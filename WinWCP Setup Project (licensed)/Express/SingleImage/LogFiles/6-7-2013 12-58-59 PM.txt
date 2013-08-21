@@ -1,0 +1,118 @@
+================= Logging started at 6/7/2013 12:58:59 PM ==================
+Created release folders
+AdminExecuteSequence table successfully built
+AdminUISequence table successfully built
+AdvtExecuteSequence table successfully built
+AdvtUISequence table successfully built
+InstallExecuteSequence table successfully built
+InstallUISequence table successfully built
+Directory table successfully built
+Feature table successfully built
+FeatureComponents table successfully built
+Component table successfully built
+Loading File table
+Building File table
+File table successfully built
+Building MsiFileHash table
+MsiFileHash table successfully built
+Class table successfully built
+Extension table successfully built
+ODBCDataSource table successfully built
+ODBCDriver table successfully built
+ActionText table successfully built
+AppSearch table successfully built
+BindImage table successfully built
+CCPSearch table successfully built
+Condition table successfully built
+AppId table successfully built
+Property table successfully built
+BBControl table successfully built
+Billboard table successfully built
+Binary table successfully built
+CompLocator table successfully built
+Complus table successfully built
+ControlCondition table successfully built
+ControlEvent table successfully built
+CreateFolder table successfully built
+CustomAction table successfully built
+Error table successfully built
+DrLocator table successfully built
+DuplicateFile table successfully built
+Environment table successfully built
+EventMapping table successfully built
+FileSFPCatalog table successfully built
+Font table successfully built
+IniFile table successfully built
+IniLocator table successfully built
+IsolatedComponent table successfully built
+LaunchCondition table successfully built
+LockPermissions table successfully built
+MIME table successfully built
+MoveFile table successfully built
+MsiAssembly table successfully built
+MsiAssemblyName table successfully built
+MsiDigitalCertificate table successfully built
+MsiDigitalSignature table successfully built
+ODBCAttribute table successfully built
+ODBCSourceAttribute table successfully built
+ODBCTranslator table successfully built
+PatchPackage table successfully built
+ProgId table successfully built
+PublishComponent table successfully built
+Registry table successfully built
+RegLocator table successfully built
+RemoveFile table successfully built
+RemoveIniFile table successfully built
+RemoveRegistry table successfully built
+ReserveCost table successfully built
+SelfReg table successfully built
+ServiceControl table successfully built
+ServiceInstall table successfully built
+SFPCatalog table successfully built
+Shortcut table successfully built
+Signature table successfully built
+TextStyle table successfully built
+TypeLib table successfully built
+UIText table successfully built
+Upgrade table successfully built
+Verb table successfully built
+_Validation table successfully built
+Searching project for extract-at-build components...
+Dialog AdminChangeFolder for language English (United States) built
+Dialog AdminNetworkLocation for language English (United States) built
+Dialog AdminWelcome for language English (United States) built
+Dialog CancelSetup for language English (United States) built
+Dialog CustomSetup for language English (United States) built
+Dialog CustomSetupTips for language English (United States) built
+Dialog CustomerInformation for language English (United States) built
+Dialog DatabaseFolder for language English (United States) built
+Dialog DestinationFolder for language English (United States) built
+Dialog DiskSpaceRequirements for language English (United States) built
+Dialog FilesInUse for language English (United States) built
+Dialog InstallChangeFolder for language English (United States) built
+Dialog InstallWelcome for language English (United States) built
+Dialog LicenseAgreement for language English (United States) built
+Dialog MaintenanceType for language English (United States) built
+Dialog MaintenanceWelcome for language English (United States) built
+Dialog OutOfSpace for language English (United States) built
+Dialog ReadmeInformation for language English (United States) built
+Dialog ReadyToInstall for language English (United States) built
+Dialog ReadyToRemove for language English (United States) built
+Dialog SetupCompleteError for language English (United States) built
+Dialog SetupCompleteSuccess for language English (United States) built
+Dialog SetupError for language English (United States) built
+Dialog SetupInitialization for language English (United States) built
+Dialog SetupInterrupted for language English (United States) built
+Dialog SetupProgress for language English (United States) built
+Dialog SetupResume for language English (United States) built
+Dialog SetupType for language English (United States) built
+Dialog SplashBitmap for language English (United States) built
+Resolving strings...
+Language English (United States) built
+Building CAB files...
+Data1.cab built
+Files built
+Media table successfully built
+Setup.exe created
+Express\SingleImage build completed with 0 errors, 0 warnings
+================= Logging stopped at 6/7/2013 12:59:07 PM ==================

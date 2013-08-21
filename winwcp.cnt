@@ -1,0 +1,151 @@
+:Base WinWCP.hlp
+1 Introduction
+2 What is WinWCP?=IDH_What_Is_WinWCP
+2 Using WinWCP=IDH_Using_WinWCP
+2 Features=IDH_Features
+2 Conditions of use=idh_conditions_of_use
+2 Differences between WinWCP V3.x and V2.x=IDH_Differences
+1 Laboratory Interfaces
+2 Interfaces supported=IDH_LaboratoryInterfaces
+2 CED 1401 series
+3 Details / Supplier=IDH_CED1401
+3 I/O Connections=IDH_CED1401_IO
+3 Installation=IDH_CED1401_Installation
+3 Troubleshooting=IDH_CED1401_troubleshooting
+2 Digidata 1200
+3 Details / Supplier=IDH_Digidata
+3 I/O Connections=IDH_Digidata_IO
+3 Installation=IDH_Digidata_Installation
+3 Troubleshooting=IDH_Digidata_Troubleshooting
+2 Digidata 1320 / 1322
+3 Details / Supplier=IDH_digidata_1320
+3 I/O Connections=IDH_Digidata_1320_IO
+3 Installation=IDH_Digidata_1320_Installation
+3 Troubleshooting=IDH_digidata_1320_troubleshooting
+2 Digidata 1440A
+3 Details / Supplier=IDH_DIGIDATA_1440A
+3 I/O Connections=IDH_Digidata_1440A_IO
+3 Installation=IDH_Digidata_1440A_Installation
+3 Troubleshooting=IDH_Digidata_1440A_troubleshooting
+2 National Instruments
+3 Details / Supplier=IDH_NI
+3 I/O Connections=IDH_NI_IO
+3 Installation (LabPC/1200 Series cards)=IDH_NI_Installation
+3 Installation (E and M Series cards)=IDH_NI_InstallationMX
+3 Troubleshooting=IDH_NI_Troubleshooting
+2 Instrutech ITC-16/18
+3 Details/Supplier=IDH_instrutech
+3 I/O Connections=IDH_instrutech_IO
+3 Installation=IDH_instrutech_installation
+3 Troubleshooting=IDH_instrutech_troubleshooting
+2 Biologic VP500
+3 Details/Supplier=IDH_VP500
+3 I/O Connections=IDH_VP500_IO
+3 Installation=IDH_VP500_INSTALLATION
+1 Things to do before making a recording
+2 Signal Connections
+3 What connections are required?=IDH_connections
+3 Example - Connecting to a patch clamp=IDH_connection_patch_clamp
+2 Configuring the recording sweep
+3 Recording parameters=IDH_Recording_Parameters
+2 Creating stimulus protocols
+3 What is a stimulus protocol?=IDH_About_Stimulus_protocols
+3 Creating a stimulus protocol=IDH_Creating_a_stimulus_protocol
+3 Command voltage divide factor=IDH_command_voltage_divide_factor
+3 Trigger Pulse=IDH_RecordingSweepTriggerPulse
+3 Leak subtraction=IDH_PN_mode
+3 Protocol Linking=IDH_Protocol_linking
+3 Recording sweep=IDH_Recording_Sweep
+3 Voltage waveform elements
+4 Rectangular pulse=IDH_rectangular_pulse
+4 Family of rectangular pulses (varying in amplitude)=IDH_Family_of_amplitude_pulses
+4 Family of rectangular pulses (varying in duration)=IDH_Family_of_duration_pulses
+4 Series of rectangular pulses=IDH_Series_of_rectangular_pulses
+4 Ramp=IDH_ramp
+4 User-defined waveform=IDH_User_defined_waveform
+3 Digital elements
+4 Digital outputs=IDH_digital_outputs
+4 Digital pulse=IDH_digital_pulse
+4 Family of digital pulses (varying duration)=IDH_Digital_pulses_duration
+4 Series of digital pulses=IDH_series_of_digital_pulses
+2 CED 1902 amplifier
+3 What is a CED 1902=IDH_About_CED1902
+3 Connecting the CED 1902=IDH_CED1902_connections
+3 Changing amplifier settings=IDH_CED1902_settings
+2 Default output settings
+3 Settings default output values=IDH_default_output_settings
+1 Making a recording
+2 How to make a recording =IDH_making_a_recording
+2 On-line analysis=idh_online_analysis
+2 Trigger modes
+3 Free run=IDH_free_run
+3 External trigger=IDH_external_trigger
+3 Event detector=IDH_event_detector
+3 Stimulus protocol=IDH_stimulus_protocol
+1 Reviewing existing recordings
+2 Opening and viewing a recording data file=IDH_View_records
+2 Magnifying the signals on display=IDH_zoom
+2 Rejecting records=IDH_rejected_records
+2 Record types=IDH_record_types
+2 Group number=IDH_Group_number
+2 Cursor measurements=idh_cursor_measurements
+2 Zero levels
+3 About zero levels=IDH_zero_levels
+3 Fixed zero levels=IDH_fixed_zero_levels
+3 Relative zero levels=IDH_relative_zero_levels
+1 Analysing recorded signals
+2 Waveform measurement
+3 About waveform measurement=IDH_about_waveform_measurement
+3 Making waveform measurements=IDH_measuring_signals
+3 Plotting a graph of measurements=idh_measurements_plot
+3 Conductance plots=idh_measurements_conductance_ plot
+3 Plotting a histogram of measurements=idh_measurements_histogram
+3 List of measurements=idh_measurements_list
+3 The summary table=idh_measurements_summary
+3 Table of results=idh_measurements_table
+2 Signal averaging
+3 About signal averaging=idh_about_signal_averaging
+3 Creating an average of a series of records=idh_creating_averages
+2 Leak current subtraction
+3 About leak current subtraction=idh_about_leak_current_subtraction
+3 Recording leak current records=idh_recording_leak_current_records
+3 Creating a set of leak subtracted records=idh_creating_leak_subtracted_records
+2 Curve fitting
+3 About curve fitting=idh_about_curve_fitting
+3 Fitting curves to signal waveforms=idh_fitting_curves
+3 Functions=idh_function_list
+3 Plotting graphs of fitted parameters=idh_curve_fit_plot
+3 Plotting histograms of fitted parameters=idh_curve_fit_histogram
+3 Summary table=idh_curve_fit_summary
+3 Table of results=idh_curve_fit_table
+2 Non-stationary variance analysis
+3 About non-stationary variance analysis=idh_about_variance_analysis
+3 Analysing the variance of a series of records=idh_analysing_variance
+3 Plotting graphs of variance vs mean current=idh_variance_plots
+3 Plotting the power spectrum=idh_variance_spectrum
+2 Quantal content analysis
+3 About quantal analysis=idh_about_quantal_analysis
+3 How to determine quantal content from a series recordings=idh_analysing_quantal_content
+2 Driving function analysis
+3 About driving function analysis=idh_about_driving_function_analysis
+3 Creating driving function records=idh_creating_driving_functions
+2 Editing records
+2 Simulations
+3 Nerve-evoked EPSCs=idh_evoked_epsc
+3 Miniature EPSCs=idh_miniature_epscs
+3 Hodgkin-Huxley voltage-activated currents=idh_hodgkin_huxley_currents
+1 Data files
+2 Creating a new data file=idh_creating_files
+2 Opening a data file=IDH_Opening_Files
+2 Combining data files=idh_append_file
+2 Deleting records=idh_deleting_records
+2 Copying records between files=idh_copy_records
+2 Importing/exporting data files
+3 Importing Axon data files=idh_import_axon
+3 Importing CED data files=idh_import_ced
+3 Importing tab-text data=idh_import_tab_text
+3 Importing binary data files=idh_import_binary
+3 Exporting to Axon data files=idh_export_axon
+1 Reference
+2 References=idh_references
+2 WCP data file structure=idh_file_structure

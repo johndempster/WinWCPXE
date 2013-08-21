@@ -1,0 +1,36 @@
+The files contained in this archive are the source code for WinWCP.
+
+The have been compiled using Delphi V7.0. 
+
+To install the source code:
+
+Unpack this archive. Two folders (WinWCP and Components) are created within the ..\Borland\Delphi folder.
+
+The Components folder contains a number of components used by WinWCP. These must be installed on the Delphi component toolbar before you open the WinWCP project. 
+
+To install the components:
+
+Add the components folder to the Delphi library path.
+
+Select the Delphi Tools/Environment Options
+Select the "Library" panel
+Click "..." at the right of Library Path
+Add "$(Delphi)\SESComponents" to the library 
+Click the Add button.
+
+Add the SESComponents package of components
+
+Select File/Open Project
+Select Files of Type "*.dpk"
+Select the "SESComponents" Folder
+ Select " SESComponents"
+Click the Install button
+
+Open the WinWCP project
+
+Select File/Open Project
+Select Files of Type "*.dpr"
+Select the "WinWCP" Folder
+ Select "WinWCP"
+Click the Open button
+

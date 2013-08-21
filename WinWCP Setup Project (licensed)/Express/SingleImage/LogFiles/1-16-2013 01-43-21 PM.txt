@@ -1,0 +1,286 @@
+================= Logging started at 1/16/2013 01:43:21 PM ==================
+Created release folders
+AdminExecuteSequence table successfully built
+AdminUISequence table successfully built
+AdvtExecuteSequence table successfully built
+AdvtUISequence table successfully built
+InstallExecuteSequence table successfully built
+InstallUISequence table successfully built
+Directory table successfully built
+Feature table successfully built
+FeatureComponents table successfully built
+Component table successfully built
+Loading File table
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\HelpSmith Files\WinWCP.chm"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\itcmm.dll"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\AxDD1400.dll"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\libusb0.dll"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\SETUP_9X.INF"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\Install Digidata 1200 Driver (Windows NT,2000,XP).bat"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\setup_64.inf"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\cpd64.exe"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\WinWCP VBSCRIPT Example.vbs"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\dd1440.dll"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\_SETUP.LIB"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\DD1200 Win 95 Support.exe"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\DISK1.ID"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\SETUP.INI"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\vprot\sinewave.xml"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\vprot\sinewave.DAT"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\vprot\VSteps 10-100mV 100ms.xml"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\vprot\ISteps 10-100pA 100ms.XML"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\vprot\Ramp -100..100mV 1s.xml"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\vprot\tail current.XML"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\AxDD132x.dll"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\shasta.bit"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\axoutils32.dll"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\winwcp.exe"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\_SETUP.DLL"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\_SETUP.1"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\SETUP.INS"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\SETUP.PKG"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\vprot\digpulse.XML"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\Install Digidata 1200 Driver (Windows 95,98,ME).bat"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\SETUP_NT.INF"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVicHW32.dll"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVicHW32.sys"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVicHW32.iss"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVICHW32.VXD"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVicHW64.sys"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVicHW64.iss"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\_INST32I.EX_"
+	** Error: -6103: Could not find file "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\_ISDEL.EXE"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\HelpSmith Files\WinWCP User Guide.pdf"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\amadeus.bit"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\tritonplus.bit"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\winusb.dll"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\Vp500.bin"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\BLVP500.dll"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\itclib.dll"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\triton.bit"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\okFrontPanel.dll"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\TecellaAmp.dll"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\pico.bit"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\proteus.bit"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\richmond.bit"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\jet.bit"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\apollo.bit"
+	** Error: -6103: Could not find file "F:\Delphi Projects\WinWCP (32)\USE1432.DLL"
+Building File table
+File table successfully built
+Building MsiFileHash table
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\AxDD132x.dll not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\AxDD1400.dll not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\BLVP500.dll not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\DD1200 Win 95 Support.exe not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\DISK1.ID not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\vprot\ISteps 10-100pA 100ms.XML not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\Install Digidata 1200 Driver (Windows NT,2000,XP).bat not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\Install Digidata 1200 Driver (Windows 95,98,ME).bat not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\vprot\Ramp -100..100mV 1s.xml not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\SETUP.INI not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\SETUP.INS not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\SETUP.PKG not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\SETUP_9X.INF not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\SETUP_NT.INF not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVICHW32.VXD not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVicHW32.dll not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVicHW32.iss not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVicHW32.sys not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVicHW64.iss not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVicHW64.sys not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\TecellaAmp.dll not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\USE1432.DLL not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\vprot\VSteps 10-100mV 100ms.xml not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\Vp500.bin not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\HelpSmith Files\WinWCP.chm not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\HelpSmith Files\WinWCP User Guide.pdf not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\WinWCP VBSCRIPT Example.vbs not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\_INST32I.EX_ not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\_ISDEL.EXE not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\_SETUP.1 not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\_SETUP.DLL not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\_SETUP.LIB not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\amadeus.bit not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\apollo.bit not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\axoutils32.dll not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\cpd64.exe not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\dd1440.dll not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\vprot\digpulse.XML not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\itclib.dll not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\itcmm.dll not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\jet.bit not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\libusb0.dll not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\okFrontPanel.dll not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\pico.bit not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\proteus.bit not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\richmond.bit not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\setup_64.inf not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\shasta.bit not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\vprot\sinewave.DAT not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\vprot\sinewave.xml not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\vprot\tail current.XML not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\triton.bit not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\tritonplus.bit not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\winusb.dll not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+	** Error: -6271: File F:\Delphi Projects\WinWCP (32)\winwcp.exe not found. An error occurred building the MsiFileHash table record for this file. Verify that the file exists in the specified location.
+MsiFileHash table successfully built
+Class table successfully built
+Extension table successfully built
+ODBCDataSource table successfully built
+ODBCDriver table successfully built
+ActionText table successfully built
+AppSearch table successfully built
+BindImage table successfully built
+CCPSearch table successfully built
+Condition table successfully built
+AppId table successfully built
+Property table successfully built
+BBControl table successfully built
+Billboard table successfully built
+Binary table successfully built
+CompLocator table successfully built
+Complus table successfully built
+ControlCondition table successfully built
+ControlEvent table successfully built
+CreateFolder table successfully built
+CustomAction table successfully built
+Error table successfully built
+DrLocator table successfully built
+DuplicateFile table successfully built
+Environment table successfully built
+EventMapping table successfully built
+FileSFPCatalog table successfully built
+Font table successfully built
+IniFile table successfully built
+IniLocator table successfully built
+IsolatedComponent table successfully built
+LaunchCondition table successfully built
+LockPermissions table successfully built
+MIME table successfully built
+MoveFile table successfully built
+MsiAssembly table successfully built
+MsiAssemblyName table successfully built
+MsiDigitalCertificate table successfully built
+MsiDigitalSignature table successfully built
+ODBCAttribute table successfully built
+ODBCSourceAttribute table successfully built
+ODBCTranslator table successfully built
+PatchPackage table successfully built
+ProgId table successfully built
+PublishComponent table successfully built
+Registry table successfully built
+RegLocator table successfully built
+RemoveFile table successfully built
+RemoveIniFile table successfully built
+RemoveRegistry table successfully built
+ReserveCost table successfully built
+SelfReg table successfully built
+ServiceControl table successfully built
+ServiceInstall table successfully built
+SFPCatalog table successfully built
+	** Error: -1024: The source file "F:\Delphi Projects\WinWCP (32)\winwcp.exe" for an icon does not exist.
+	** Error: -1024: The source file "F:\Delphi Projects\WinWCP (32)\winwcp.exe" for an icon does not exist.
+Shortcut table successfully built
+Signature table successfully built
+TextStyle table successfully built
+TypeLib table successfully built
+UIText table successfully built
+Upgrade table successfully built
+Verb table successfully built
+_Validation table successfully built
+Searching project for extract-at-build components...
+Dialog AdminChangeFolder for language English (United States) built
+Dialog AdminNetworkLocation for language English (United States) built
+Dialog AdminWelcome for language English (United States) built
+Dialog CancelSetup for language English (United States) built
+Dialog CustomSetup for language English (United States) built
+Dialog CustomSetupTips for language English (United States) built
+Dialog CustomerInformation for language English (United States) built
+Dialog DatabaseFolder for language English (United States) built
+Dialog DestinationFolder for language English (United States) built
+Dialog DiskSpaceRequirements for language English (United States) built
+Dialog FilesInUse for language English (United States) built
+Dialog InstallChangeFolder for language English (United States) built
+Dialog InstallWelcome for language English (United States) built
+	** Error: -6090: The scrollable text file:'F:\Delphi Projects\WinWCP (32)\Click Wrap Licence (2).rtf' specified for the Control:'Memo' does not exist.
+Dialog LicenseAgreement for language English (United States) built
+Dialog MaintenanceType for language English (United States) built
+Dialog MaintenanceWelcome for language English (United States) built
+Dialog OutOfSpace for language English (United States) built
+Dialog ReadmeInformation for language English (United States) built
+Dialog ReadyToInstall for language English (United States) built
+Dialog ReadyToRemove for language English (United States) built
+Dialog SetupCompleteError for language English (United States) built
+Dialog SetupCompleteSuccess for language English (United States) built
+Dialog SetupError for language English (United States) built
+Dialog SetupInitialization for language English (United States) built
+Dialog SetupInterrupted for language English (United States) built
+Dialog SetupProgress for language English (United States) built
+Dialog SetupResume for language English (United States) built
+Dialog SetupType for language English (United States) built
+Dialog SplashBitmap for language English (United States) built
+Resolving strings...
+Language English (United States) built
+Building CAB files...
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\WinWCP VBSCRIPT Example.vbs" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\shasta.bit" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\HelpSmith Files\WinWCP User Guide.pdf" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\amadeus.bit" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\tritonplus.bit" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\Vp500.bin" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\triton.bit" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\pico.bit" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\proteus.bit" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\richmond.bit" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\jet.bit" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\apollo.bit" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\HelpSmith Files\WinWCP.chm" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\itcmm.dll" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\AxDD1400.dll" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\libusb0.dll" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\cpd64.exe" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\dd1440.dll" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\SETUP_9X.INF" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\Install Digidata 1200 Driver (Windows NT,2000,XP).bat" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\setup_64.inf" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\Install Digidata 1200 Driver (Windows 95,98,ME).bat" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\SETUP_NT.INF" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVicHW32.sys" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVicHW32.iss" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVicHW64.sys" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVicHW64.iss" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\DD1200 Win 95 Support.exe" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\_SETUP.LIB" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\DISK1.ID" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\SETUP.INI" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\_SETUP.1" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\SETUP.INS" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\SETUP.PKG" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\_INST32I.EX_" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\vprot\sinewave.xml" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\vprot\sinewave.DAT" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\vprot\VSteps 10-100mV 100ms.xml" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\vprot\ISteps 10-100pA 100ms.XML" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\vprot\Ramp -100..100mV 1s.xml" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\vprot\tail current.XML" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\vprot\digpulse.XML" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\AxDD132x.dll" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\axoutils32.dll" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\winwcp.exe" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\_SETUP.DLL" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVicHW32.dll" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 2000)\TVICHW32.VXD" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\Components\Digidata 1200 Support (Win 9x)\_ISDEL.EXE" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\winusb.dll" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\BLVP500.dll" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\itclib.dll" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\okFrontPanel.dll" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\TecellaAmp.dll" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+	** Error: -1501: Could not compress "F:\Delphi Projects\WinWCP (32)\USE1432.DLL" into "F:\Delphi Projects\WinWCP\WinWCP Setup Project (licensed)\Express\SingleImage\DiskImages\DISK1\Data1.cab"
+Data1.cab built
+Files built
+Media table successfully built
+Setup.exe created
+Express\SingleImage build completed with 168 errors, 0 warnings
+================= Logging stopped at 1/16/2013 01:43:24 PM ==================

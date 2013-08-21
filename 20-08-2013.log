@@ -1,0 +1,78 @@
+09:14:00 WinWCP Started
+09:14:00 Data folder C:\Users\cecs06\Documents\WinWCP Data\ created.
+09:14:27 New data file: C:\Users\cecs06\Documents\WinWCP Data\130820_001.wcp created.
+09:14:33 Recording Started 
+09:14:44 Recording Started 
+09:14:44 Stimulus Protocol: E:\Delphi XE3 Projects\WinWCP\vprot\Ramp -100..100mV 1s.xml
+09:14:46 Stopped (1 records)
+09:39:25 WinWCP Started
+09:39:25 Protocols folder C:\Users\Public\Documents\WinWCP\ created.
+09:39:25 Protocols folder C:\Users\Public\Documents\WinWCP\Vprot created.
+09:41:04 WinWCP Started
+09:46:30 WinWCP Started
+09:47:49 WinWCP Started
+09:48:31 WinWCP Started
+09:53:16 WinWCP Started
+10:05:26 WinWCP Started
+10:06:53 WinWCP Started
+10:07:05 New data file: C:\Users\cecs06\Documents\WinWCP Data\130820_002.wcp created.
+10:21:51 WinWCP Started
+10:27:07 WinWCP Started
+10:30:03 WinWCP Started
+10:36:34 WinWCP Started
+10:37:07 WinWCP Started
+10:37:22 WinWCP Started
+10:37:34 WinWCP Started
+10:42:06 WinWCP Started
+10:45:39 WinWCP Started
+10:47:26 WinWCP Started
+10:52:22 WinWCP Started
+11:53:17 WinWCP Started
+12:49:45 WinWCP Started
+12:56:15 WinWCP Started
+13:00:24 WinWCP Started
+13:01:58 Recording Started 
+13:01:58 Stimulus Protocol: C:\Users\Public\Documents\WinWCP\Vprot\VSteps 10-100mV 100ms.xml
+13:01:59 New data file: C:\Users\cecs06\Documents\WinWCP Data\130820_003.wcp created.
+13:02:08 Stopped (10 records)
+14:01:57 WinWCP Started
+14:02:27 WinWCP Started
+14:07:18 WinWCP Started
+14:08:06 WinWCP Started
+14:09:06 Recording Started 
+14:09:06 Stimulus Protocol: E:\Documents and Settings\All Users\Documents\WinWCP\Vprot\VSteps 10-100mV 100ms.xml
+14:09:06 New data file: F:\My Documents\WinWCP Data\130820_001.wcp created.
+14:09:15 Stopped (10 records)
+14:09:41 Recording Started 
+14:09:41 Stimulus Protocol: E:\Documents and Settings\All Users\Documents\WinWCP\Vprot\VSteps 10-100mV 100ms.xml
+14:09:41 New data file: F:\My Documents\WinWCP Data\130820_001.1.wcp created.
+14:09:50 Stopped (10 records)
+14:10:17 Recording Started 
+14:10:17 Stimulus Protocol: E:\Documents and Settings\All Users\Documents\WinWCP\Vprot\VSteps 10-100mV 100ms.xml
+14:10:26 Stopped (20 records)
+14:10:38 WinWCP Started
+14:11:11 New data file: F:\My Documents\WinWCP Data\130820_002.wcp created.
+14:11:14 Recording Started 
+14:11:14 Stimulus Protocol: E:\Documents and Settings\All Users\Documents\WinWCP\Vprot\VSteps 10-100mV 100ms.xml
+14:11:23 Stopped (10 records)
+16:17:30 WinWCP Started
+16:17:38 Data file: C:\Users\cecs06\Documents\WinWCP Data\130820_001.wcp open.
+16:18:11  EXPORT: 10 records exported to C:\Users\cecs06\Documents\WinWCP Data\130820_003[1-10].mat 
+16:21:59 WinWCP Started
+16:23:50 WinWCP Started
+16:38:32 WinWCP Started
+16:39:24 WinWCP Started
+16:51:17 WinWCP Started
+16:51:30 New data file: C:\Users\cecs06\Documents\WinWCP Data\130820_004.wcp created.
+16:51:30 Synaptic current simulation
+16:51:30 Tau(rise) =  0.2 ms
+16:51:30 Tau(1) =  10 ms
+16:51:30 Latency =  0 ms
+16:51:30 Quantum amplitude =  1 nA
+16:51:30 Quantum st. dev. =  0 nA
+16:51:30 Pool Size =  1 
+16:51:30 Release Probability =  1.000 
+16:51:30 Noise RMS =  0.1 nA
+16:52:35 WinWCP Started
+16:52:47 Data file: C:\Users\cecs06\Documents\WinWCP Data\130820_004.wcp open.
+16:54:07 WinWCP Started

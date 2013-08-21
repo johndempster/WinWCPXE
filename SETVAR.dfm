@@ -1,0 +1,63 @@
+object SetVarFrm: TSetVarFrm
+  Left = 448
+  Top = 288
+  BorderStyle = bsDialog
+  Caption = 'Set Variable'
+  ClientHeight = 68
+  ClientWidth = 151
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -13
+  Font.Name = 'System'
+  Font.Style = []
+  OldCreateOrder = True
+  PixelsPerInch = 96
+  TextHeight = 16
+  object cbVariable: TComboBox
+    Left = 8
+    Top = 8
+    Width = 137
+    Height = 23
+    Style = csDropDownList
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -12
+    Font.Name = 'Arial'
+    Font.Style = []
+    ItemHeight = 15
+    ParentFont = False
+    TabOrder = 0
+  end
+  object cbChannel: TComboBox
+    Left = 8
+    Top = 40
+    Width = 81
+    Height = 23
+    Style = csDropDownList
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -12
+    Font.Name = 'Arial'
+    Font.Style = []
+    ItemHeight = 15
+    ParentFont = False
+    TabOrder = 1
+  end
+  object bOK: TButton
+    Left = 96
+    Top = 40
+    Width = 41
+    Height = 17
+    Caption = 'OK'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -12
+    Font.Name = 'Arial'
+    Font.Style = [fsBold]
+    ModalResult = 1
+    ParentFont = False
+    TabOrder = 2
+    OnClick = bOKClick
+  end
+end

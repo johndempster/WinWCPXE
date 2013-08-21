@@ -1,0 +1,9 @@
+Yes, WinWCP will run under Vista, but you need to select a Compatibility option of the program to run it with Administrator privileges. To do this ....
+ 
+1) Right-click the mouse over the WinWCP desktop icon and select "Properties" from the menu that pops up.
+ 
+2) Select the "Compatibility" tab of the Properties window.
+ 
+3) Tick the "Run this program as Administrator" option
+ 
+4) Click OK to apply this option
