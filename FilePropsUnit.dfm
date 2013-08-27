@@ -116,6 +116,10 @@ object FilePropsDlg: TFilePropsDlg
     object TabFileHeader: TTabSheet
       Caption = 'File Header'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object meFileHeader: TMemo
         Left = 8
         Top = 8

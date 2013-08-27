@@ -39,6 +39,7 @@ unit Replay;
   01.08.13 .. Updated to compile with Delphi XE
               Display Record now set to start of file in NewFile().
               ADC now allocated by GetMem()
+  27.08.13 .. Time of day when record acquired now displayed
   ===================================================}
 interface
 
@@ -46,7 +47,7 @@ uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
   Forms, Dialogs, StdCtrls, ExtCtrls, Global, Shared, FileIo, Zero, ClipBrd,
   PrintRec,Printers, PlotLib, menus, maths, Grids, RangeEdit, ValEdit,
-  ScopeDisplay, ComCtrls, CursorLabel, ValidatedEdit, HTMLLabel, seslabio, math ;
+  ScopeDisplay, ComCtrls, CursorLabel, ValidatedEdit, HTMLLabel, seslabio, math, dateutils ;
 
 type
 
@@ -82,10 +83,10 @@ type
     rbUseC0CursorasZero: TRadioButton;
     Button1: TButton;
     EdRecordIdent: TEdit;
-    edTime: TEdit;
     edGroup: TValidatedEdit;
     Label4: TLabel;
     ckFixedZeroLevels: TCheckBox;
+    metime: TMemo;
     procedure FormResize(Sender: TObject);
     procedure sbRecordNumChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -370,6 +371,7 @@ procedure TReplayFrm.DisplayRecord ;
   ========================================================}
 var
    ch : Integer ;
+   StartTime : TDateTime ;
 begin
 
      fH.RecordNum := SbRecordNum.position ;
@@ -411,8 +413,15 @@ begin
      { Show type of record }
      if cbRecordType.items.indexOf(RH.RecType) >= 0 then
         cbRecordType.ItemIndex := cbRecordType.items.indexOf(RH.RecType);
+      meTime.Clear ;
+      meTime.Lines.Add('') ;
+      meTime.Lines[0] := format('%.3fs',[RH.Time]) ;
+     if FH.RecordingStartTimeSecs > 0.0 then begin
+        StartTime := StrToDateTime( FH.RecordingStartTime ) ;
+        StartTime := System.DateUtils.IncMillisecond(StartTime,Round(RH.Time*1000.0)) ;
+        meTime.Lines[1] := FormatDateTime('hh:mm:ss.zzz',StartTime) ;
+        end ;
 
-     edTime.Text := format('%.4gs',[RH.Time]) ;
      edGroup.Value := RH.Number ;
      edRecordIdent.Text := RH.Ident ;
 

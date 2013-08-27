@@ -135,6 +135,8 @@ TFileHeader = packed record
             NSVAnalysisCursor1 : Integer ; // Variance-mean plot selection cursor 1
             SaveHeader : Boolean ;
             CreationTime : String ;
+            RecordingStartTime : string ;  // Date/time of start of recording
+            RecordingStartTimeSecs : Single ; // Time in seconds (since last boot) of start of recording
             end ;
 
 TString4 = string[4] ;
@@ -418,7 +420,7 @@ TSettings = record
           RecentFilesPointer : Integer ;
           DisplayGrid : Boolean ;
           Colors : TColors ;
-          TimeRecordingStarted : single ;
+          //TimeRecordingStarted : single ;
           // Waveform measurement module
           DifferentiationMode : Integer ;         // Rate of change differentiation mode
           LockChannelCursors : Boolean ;

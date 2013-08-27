@@ -74,6 +74,10 @@ unit Fileio;
   01.08.13 ... Settings.VProtDirectory and Settings.DataDirectory now set to default
                by LoadInitialisationFile() if directories in WinWCP.INI don't exist
                'GVAR%d=',Stimulator.GlobalVar[i] added to INI file
+  26.08.13     Settings.TimeRecordingStarted removed from winwcp.ini
+               'RSTIME=', fHDR.RecordingStartTime added to WCP header
+  27.08.13 ... RTIMESECS=', fHDR.RecordingStartTimeSecs added
+               'RSTIME=', fHDR.RecordingStartTime now date string
   }
 
 
@@ -161,6 +165,7 @@ procedure SaveHeader(
   ---------------------------------------}
 var
    Header : array[1..MaxBytesInFileHeader] of ANSIchar ;
+   s : string ;
    i : Integer ;
    ch : Integer ;
 begin
@@ -175,7 +180,15 @@ begin
 
      fHDR.Version := FileVersion ;
      AppendFloat( Header, 'VER=',fHDR.Version );
+
+     // Time file created
      AppendString( Header, 'CTIME=', fHDR.CreationTime ) ;
+
+     // Time recording started (s)
+     AppendFloat( Header, 'RTIMESECS=', fHDR.RecordingStartTimeSecs ) ;
+
+     // Date/time of start of recording
+     AppendString( Header, 'RTIME=', fHDR.RecordingStartTime ) ;
 
      AppendInt( Header, 'NBH=', fHDR.NumBytesInHeader ) ;
 
@@ -251,14 +264,14 @@ const
 var
    Header : array[1..MaxBytesInFileHeader] of ANSIchar ;
    RecordStatusArray : array[0..3] of ANSIchar ;
-   RecordStatus : string ;
+   s,RecordStatus : string ;
    i,NumBytesInFile,NumRecords,FilePointer,ch,RecordCounter : Integer ;
    Done : Boolean ;
    NumSectors : Integer ;
    ResetDisplayMagnification : Boolean ;
    OldValue : Integer ;
 begin
-     
+
      ResetDisplayMagnification :=False ;
 
      // Default file header/analysis block sizes
@@ -303,6 +316,14 @@ begin
 
           ReadFloat( Header, 'VER=',fHDR.Version );
           ReadString( Header, 'CTIME=', fHDR.CreationTime ) ;
+
+          // Time recording started (ms)
+          fHDR.RecordingStartTimeSecs := 0.0 ;
+          ReadFloat( Header, 'RTIMESECS=', fHDR.RecordingStartTimeSecs ) ;
+
+          // Time recording started (s)
+          fHDR.RecordingStartTime := '' ;
+          ReadString( Header, 'RTIME=', fHDR.RecordingStartTime ) ;
 
           OldValue := fHDR.NumChannels ;
           ReadInt( Header, 'NC=', fHDR.NumChannels ) ;
@@ -651,8 +672,8 @@ begin
            { Waveform generator No Display check box setting }
            ReadLogical( Header, 'WGNDSP=', Settings.WavGenNoDisplay ) ;
 
-           { Time first record in current data file was recorded }
-           ReadFloat( Header, 'TRS=',Settings.TimeRecordingStarted ) ;
+//           { Time first record in current data file was recorded }
+//           ReadFloat( Header, 'TRS=',Settings.TimeRecordingStarted ) ;
 
            ReadInt( Header, 'DIFFM=', Settings.DifferentiationMode ) ;
 
@@ -929,8 +950,8 @@ begin
      { Waveform generator No Display check box setting }
      AppendLogical( Header, 'WGNDSP=', Settings.WavGenNoDisplay ) ;
 
-     { Time first record in current data file was recorded }
-     AppendFloat( Header, 'TRS=',Settings.TimeRecordingStarted ) ;
+//     { Time first record in current data file was recorded }
+//     AppendFloat( Header, 'TRS=',Settings.TimeRecordingStarted ) ;
 
      { Differentiation mode for waveform measurements }
      AppendInt( Header, 'DIFFM=', Settings.DifferentiationMode ) ;

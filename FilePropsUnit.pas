@@ -5,7 +5,9 @@ unit FilePropsUnit;
 // 25.07.06
 // 14.05.10 No. records/channels and other data added, complete file header text displayed
 // 15.09.11 Displays now have scroll bars
-// 25.03.13 Updated to compile under both Delphi XE2/3 and 7
+// 25.07.13 Updated to compile under both Delphi XE2/3 and 7
+// 26.08.13 No. of sign. figure increased in scale factor table
+// 27.08.13 Recording start date now displayed
 
 interface
 
@@ -73,7 +75,7 @@ begin
      for ch := 0 to RawfH.NumChannels-1 do begin
          ChannelTable.cells[ChNum,ch+1] := IntToStr(ch) ;
          ChannelTable.cells[ChName,ch+1] := Channel[ch].ADCName ;
-         ChannelTable.cells[ChCal,ch+1] := Format( '%5.4g',[Channel[ch].ADCCalibrationFactor] ) ;
+         ChannelTable.cells[ChCal,ch+1] := Format( '%.6g',[Channel[ch].ADCCalibrationFactor] ) ;
          ChannelTable.cells[ChUnits,ch+1] := Channel[ch].ADCUnits ;
          end ;
 
@@ -81,6 +83,8 @@ begin
      meProperties.Lines.Clear ;
      meProperties.Lines.Add(format('File version: %.2f',[RawFH.Version])) ;
      meProperties.Lines.Add(format('Date Created: %s',[RawFH.CreationTime])) ;
+     if RawFH.RecordingStartTimeSecs > 0.0 then
+        meProperties.Lines.Add(format('Recording started at: %s',[RawFH.RecordingStartTime])) ;
      meProperties.Lines.Add(format('ID: %s',[RawFH.IdentLine])) ;
 
      meProperties.Lines.Add(format('No. of records: %d',[RawFH.NumRecords])) ;

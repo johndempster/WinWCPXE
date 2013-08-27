@@ -341,6 +341,7 @@ object Main: TMain
     Top = 8
   end
   object SESLabIO: TSESLabIO
+    ADCNumSamples = 4096
     DACInvertTriggerLevel = False
     DACRepeatWaveform = False
     DigitalStimulusEnabled = False

@@ -88,6 +88,8 @@ unit Rec;
               Recording window can now be opened without an open data file.
               Correct stimulus protocol names now appended to file name for linked protocols
               Record acquisition time now acquired at start of recording sweep (with 50ms accuracy)
+  26.08.13 .. CheckNewDataFileNeeded() now permits 1E-4 difference in channel gains without requiring
+              a new file to be opened to allow for loss of precision when data written/read from fiel header
   ==============================================================================}
 interface
 
@@ -726,6 +728,10 @@ begin
                if (NextBlock >= (2*Main.SESLabIO.ADCNumChannels)) and NewSweep then begin
                    // Get time of start of sweep
                    RH.Time := GetTickCount*mStoSecs ;
+                   if RawFH.NumRecords <= 0 then begin
+                      RawFH.RecordingStartTime := FormatDateTime('dd-mm-yy hh:mm:ss.zzz',Now) ;
+                      RawFH.RecordingStartTimeSecs := RH.Time ;
+                      end;
 
                    { Erase display once sweep has started (if required) }
                    scDisplay.SetDataBuf( ADCDisplay ) ;
@@ -1353,8 +1359,7 @@ begin
         if cbRecordingMode.itemIndex = rmDetect then rH.Time := Det.TimeDetected ;
 
         { Make time relative to the first record acquired }
-        if RawFH.NumRecords = 1 then Settings.TimeRecordingStarted := rH.Time ;
-        rH.Time := rH.Time - Settings.TimeRecordingStarted ;
+        rH.Time := rH.Time - RawFH.RecordingStartTimeSecs ;
 
         rH.AnalysisAvailable := false ;
         rH.EqnType := None ;
@@ -1687,7 +1692,8 @@ begin
         for ch := 0 to Main.SESLabIO.ADCNumChannels-1 do begin
             if Channel[ch].ADCName <> Main.SESLabIO.ADCChannelName[ch] then NewFileNeeded := True ;
             if Channel[ch].ADCUnits <> Main.SESLabIO.ADCChannelUnits[ch] then NewFileNeeded := True ;
-            if Channel[ch].ADCCalibrationFactor <> Main.SESLabIO.ADCChannelVoltsPerUnit[ch] then NewFileNeeded := True ;
+            if (Abs(Channel[ch].ADCCalibrationFactor/Main.SESLabIO.ADCChannelVoltsPerUnit[ch])-1.0)
+               > 1.0E-4 then NewFileNeeded := True ;
             end ;
         if RawFH.NumRecords <= 0 then NewFileNeeded := False ;
 

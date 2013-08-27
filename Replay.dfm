@@ -25,7 +25,7 @@ object ReplayFrm: TReplayFrm
   PixelsPerInch = 96
   TextHeight = 15
   object Label3: TLabel
-    Left = 120
+    Left = 152
     Top = 8
     Width = 30
     Height = 15
@@ -38,8 +38,8 @@ object ReplayFrm: TReplayFrm
     ParentFont = False
   end
   object scDisplay: TScopeDisplay
-    Left = 120
-    Top = 32
+    Left = 152
+    Top = 34
     Width = 545
     Height = 121
     OnMouseUp = scDisplayMouseUp
@@ -80,9 +80,9 @@ object ReplayFrm: TReplayFrm
     FontSize = 8
   end
   object CursorGrp: TGroupBox
-    Left = 2
-    Top = 264
-    Width = 114
+    Left = 4
+    Top = 299
+    Width = 142
     Height = 145
     Caption = ' Cursor '
     Font.Charset = DEFAULT_CHARSET
@@ -95,7 +95,7 @@ object ReplayFrm: TReplayFrm
     object bSaveCursor: TButton
       Left = 8
       Top = 60
-      Width = 97
+      Width = 128
       Height = 17
       Hint = 
         'Save cursor reading to log file. (Select  File/Inspect Log File ' +
@@ -115,7 +115,7 @@ object ReplayFrm: TReplayFrm
     object bFindCursor: TButton
       Left = 8
       Top = 16
-      Width = 97
+      Width = 128
       Height = 17
       Caption = 'Get Cursor'
       Font.Charset = DEFAULT_CHARSET
@@ -130,7 +130,7 @@ object ReplayFrm: TReplayFrm
     object ZeroGrp: TGroupBox
       Left = 7
       Top = 80
-      Width = 100
+      Width = 128
       Height = 57
       Caption = ' Zero Level '
       Font.Charset = DEFAULT_CHARSET
@@ -176,7 +176,7 @@ object ReplayFrm: TReplayFrm
     object Button1: TButton
       Left = 8
       Top = 38
-      Width = 97
+      Width = 128
       Height = 17
       Caption = 'Get c0 Cursor'
       Font.Charset = DEFAULT_CHARSET
@@ -190,10 +190,10 @@ object ReplayFrm: TReplayFrm
     end
   end
   object RecordGrp: TGroupBox
-    Left = 2
+    Left = 4
     Top = 0
-    Width = 114
-    Height = 185
+    Width = 142
+    Height = 209
     Caption = ' Record '
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
@@ -203,10 +203,11 @@ object ReplayFrm: TReplayFrm
     ParentFont = False
     TabOrder = 1
     object Label2: TLabel
-      Left = 4
-      Top = 112
-      Width = 25
+      Left = 8
+      Top = 129
+      Width = 52
       Height = 15
+      Alignment = taRightJustify
       Caption = 'Type'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
@@ -216,8 +217,8 @@ object ReplayFrm: TReplayFrm
       ParentFont = False
     end
     object Label1: TLabel
-      Left = 4
-      Top = 86
+      Left = 8
+      Top = 61
       Width = 28
       Height = 15
       Caption = 'Time'
@@ -229,10 +230,11 @@ object ReplayFrm: TReplayFrm
       ParentFont = False
     end
     object Group: TLabel
-      Left = 4
-      Top = 138
-      Width = 44
+      Left = 8
+      Top = 158
+      Width = 52
       Height = 15
+      Alignment = taRightJustify
       Caption = 'Group #'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
@@ -242,10 +244,11 @@ object ReplayFrm: TReplayFrm
       ParentFont = False
     end
     object Label4: TLabel
-      Left = 4
-      Top = 62
-      Width = 37
+      Left = 8
+      Top = 104
+      Width = 52
       Height = 15
+      Alignment = taRightJustify
       Caption = 'Marker'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
@@ -255,9 +258,9 @@ object ReplayFrm: TReplayFrm
       ParentFont = False
     end
     object cbRecordType: TComboBox
-      Left = 40
-      Top = 112
-      Width = 65
+      Left = 64
+      Top = 129
+      Width = 74
       Height = 23
       Hint = 'Record type currently on display'
       Style = csDropDownList
@@ -267,9 +270,9 @@ object ReplayFrm: TReplayFrm
       OnChange = cbRecordTypeChange
     end
     object ckBadRecord: TCheckBox
-      Left = 32
-      Top = 162
-      Width = 73
+      Left = 64
+      Top = 186
+      Width = 74
       Height = 17
       Hint = 'Rejected records are excluded from analysis'
       Alignment = taLeftJustify
@@ -282,7 +285,7 @@ object ReplayFrm: TReplayFrm
     object sbRecordNum: TScrollBar
       Left = 8
       Top = 38
-      Width = 97
+      Width = 128
       Height = 17
       Hint = 'Move slider to display records'
       PageSize = 0
@@ -294,7 +297,7 @@ object ReplayFrm: TReplayFrm
     object edRecordNum: TRangeEdit
       Left = 8
       Top = 16
-      Width = 97
+      Width = 128
       Height = 20
       OnKeyPress = edRecordNumKeyPress
       AutoSize = False
@@ -305,9 +308,9 @@ object ReplayFrm: TReplayFrm
       NumberFormat = '%.0f / %.0f'
     end
     object EdRecordIdent: TEdit
-      Left = 48
-      Top = 60
-      Width = 58
+      Left = 64
+      Top = 104
+      Width = 74
       Height = 20
       Hint = 'Record information box'
       AutoSize = False
@@ -324,20 +327,10 @@ object ReplayFrm: TReplayFrm
       OnChange = EdRecordIdentChange
       OnKeyPress = EdRecordIdentKeyPress
     end
-    object edTime: TEdit
-      Left = 40
-      Top = 86
-      Width = 65
-      Height = 20
-      AutoSize = False
-      ReadOnly = True
-      TabOrder = 5
-      Text = 'edTime'
-    end
     object edGroup: TValidatedEdit
-      Left = 56
-      Top = 140
-      Width = 49
+      Left = 64
+      Top = 160
+      Width = 74
       Height = 20
       AutoSize = False
       Text = ' 1 '
@@ -347,11 +340,27 @@ object ReplayFrm: TReplayFrm
       LoLimit = 1.000000000000000000
       HiLimit = 1.000000015047466E30
     end
+    object metime: TMemo
+      Left = 40
+      Top = 61
+      Width = 97
+      Height = 37
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Arial'
+      Font.Style = []
+      Lines.Strings = (
+        '0'
+        '1')
+      ParentFont = False
+      TabOrder = 6
+    end
   end
   object FilterGrp: TGroupBox
-    Left = 2
-    Top = 184
-    Width = 114
+    Left = 4
+    Top = 212
+    Width = 142
     Height = 81
     Caption = ' Low pass filter '
     Font.Charset = DEFAULT_CHARSET
@@ -399,7 +408,7 @@ object ReplayFrm: TReplayFrm
     end
   end
   object edIdent: TEdit
-    Left = 154
+    Left = 188
     Top = 8
     Width = 327
     Height = 20
@@ -418,8 +427,8 @@ object ReplayFrm: TReplayFrm
     OnKeyPress = edIdentKeyPress
   end
   object ckFixedZeroLevels: TCheckBox
-    Left = 118
-    Top = 156
+    Left = 152
+    Top = 161
     Width = 102
     Height = 17
     Caption = 'Fix Zero Levels'

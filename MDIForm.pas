@@ -545,13 +545,16 @@ unit MDIForm;
                        A/D and D/A sampling intervals
   V4.6.1 19/04/13 .... CED1401.pas ClockPeriod set to 2.5E-7 if it is found to be 0.0
   V4.6.2 07/06/13 .... No. of points averaged for From Record zero level can now be adjusted in Zero Level form.
-  V4.6.3 29/07/13 ... Recording window can now be opened without an open data file.
+  V4.6.3 26/08/13 ... Recording window can now be opened without an open data file.
                        RecEdit.pas: All files now backed up. Undo button now works consistently, undoing all changes
                        Various problems with X and Y shifts fixed
                        Creation time in data files now contains milliseconds
                        'winwcp.ini' and .log files now stored in Windows
                        <common documents folder>\WinWCP\ rather than program folder
                        SetCurrentDir() now used to ensure file dialog boxes open in current protocol directory
+                       CheckNewDataFileNeeded() now permits 1E-4 difference in channel gains without requiring
+                       a new file to be opened to allow for loss of precision when data written/read from fiel header
+  V4.6.4 27.08.13 ... Recording start time now stored in WCP header and time of record acquisition display in replay.pas
   =======================================================================}
 
 
@@ -791,7 +794,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.6.3' ;
+      ProgVersion := 'V4.6.4' ;
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
@@ -1060,7 +1063,7 @@ begin
                                           for Waveform Generator }
 
      { Time first record in current data file was recorded }
-     Settings.TimeRecordingStarted := 0.0 ;
+
 
      // On-line analysis cursor positions
      Settings.OpenNewFileOnRecord := False ;
@@ -1080,6 +1083,7 @@ begin
      LeakFH.FileName := '' ;
      DrvFH.FileHandle := -1 ;
      DrvFH.FileName := '' ;
+     RawFH.RecordingStartTime := '' ;
 
      RSeal := 1E9 ;
      Ga := 1E-8 ;
