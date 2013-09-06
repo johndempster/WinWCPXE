@@ -53,7 +53,8 @@ uses
   LabInterfaceSetup in 'LabInterfaceSetup.pas' {LabInterfaceSetupFrm},
   HTMLHelpViewer in '..\Components\HTMLHelpViewer.pas',
   DirectorySelectUnit in 'DirectorySelectUnit.pas' {DirectorySelectFrm},
-  MATFileWriterUnit in 'MATFileWriterUnit.pas';
+  MATFileWriterUnit in 'MATFileWriterUnit.pas',
+  EPC9PanelUnit in 'EPC9PanelUnit.pas' {EPC9PanelFrm};
 
 {$R *.TLB}
 

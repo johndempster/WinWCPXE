@@ -222,6 +222,10 @@ object Main: TMain
         Caption = '&Tecella Patch Clamp'
         OnClick = mnTritonClick
       end
+      object mnEPC9Panel: TMenuItem
+        Caption = 'EPC-&9/10 Patch Clamp'
+        OnClick = mnEPC9PanelClick
+      end
       object mnDefaultSettings: TMenuItem
         Caption = '&Default output settings'
         OnClick = mnDefaultSettingsClick

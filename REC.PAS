@@ -90,6 +90,7 @@ unit Rec;
               Record acquisition time now acquired at start of recording sweep (with 50ms accuracy)
   26.08.13 .. CheckNewDataFileNeeded() now permits 1E-4 difference in channel gains without requiring
               a new file to be opened to allow for loss of precision when data written/read from fiel header
+  06.09.13 .. EPC9PanelFrm opened if EPC9/10 patch clamp in use.
   ==============================================================================}
 interface
 
@@ -422,11 +423,20 @@ begin
         end ;
 
      // Display Triton control panel if it is not open
-     if (Main.SESLabIO.LabInterfaceType = Triton)
-        and (not Main.FormExists( 'TritonPanelFrm' )) then begin
-        Main.mnTriton.Enabled := True ;
-        Main.mnTriton.Click ;
-        end ;
+     case Main.SESLabIO.LabInterfaceType of
+          Triton : begin
+             if not Main.FormExists( 'TritonPanelFrm' ) then begin
+                Main.mnTriton.Enabled := True ;
+                Main.mnTriton.Click ;
+                end ;
+             end ;
+          HekaEPC9,HekaEPC10,HekaEPC10Plus,HekaEPC10USB : begin
+             if not Main.FormExists( 'EPC9PanelFrm' ) then begin
+                Main.mnEPC9Panel.Enabled := True ;
+                Main.mnEPC9Panel.Click ;
+                end ;
+             end ;
+          end;
 
      { Allocate memory buffers }
 

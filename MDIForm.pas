@@ -555,6 +555,8 @@ unit MDIForm;
                        CheckNewDataFileNeeded() now permits 1E-4 difference in channel gains without requiring
                        a new file to be opened to allow for loss of precision when data written/read from fiel header
   V4.6.4 27.08.13 ... Recording start time now stored in WCP header and time of record acquisition display in replay.pas
+  V4.6.5 27.08.13 ... Amplifiers: Dagan CA1B now reads gain telegraph correctly
+  V4.6.6 06.09.13 ... Support for Heka amplifiers being added (not complete)
   =======================================================================}
 
 
@@ -646,6 +648,7 @@ type
     mnShowAllChannels: TMenuItem;
     mnLaboratorInterface: TMenuItem;
     SESLabIO: TSESLabIO;
+    mnEPC9Panel: TMenuItem;
     procedure FormShow(Sender: TObject);
     procedure mnOpenClick(Sender: TObject);
     procedure mnExitClick(Sender: TObject);
@@ -707,6 +710,7 @@ type
     procedure SetupClick(Sender: TObject);
     procedure mnShowAllChannelsClick(Sender: TObject);
     procedure mnLaboratorInterfaceClick(Sender: TObject);
+    procedure mnEPC9PanelClick(Sender: TObject);
   private
 
     function OpenAssociateFile( var FileHeader : TFileHeader ;
@@ -766,7 +770,7 @@ implementation
 uses Pwrspec, SimMEPSC, AmpModule, maths , VP500Panel,
   ImportASCIIUnit, ImportRawUnit , exportUnit, Convert , FilePropsUnit,
   RecPlotUnit, TritonPanelUnit , EditProtocolUnit, LabInterfaceSetup,
-  InputChannelSetup;
+  InputChannelSetup, EPC9PanelUnit ;
 
 var
    WCPClipboardFileName : string ;
@@ -794,7 +798,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.6.4' ;
+      ProgVersion := 'V4.6.6' ;
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
@@ -1325,6 +1329,26 @@ begin
 
      end ;
 
+
+procedure TMain.mnEPC9PanelClick(Sender: TObject);
+// -------------------------------
+//  Display Triton control window
+// ------------------------------- }
+begin
+
+     if FormExists( 'EPC9PanelFrm' ) then begin
+        // Make form visible, active and on top
+        if EPC9PanelFrm.WindowState = wsMinimized then EPC9PanelFrm.WindowState := wsNormal ;
+        EPC9PanelFrm.BringToFront ;
+        EPC9PanelFrm.SetFocus ;
+        end
+     else begin
+        EPC9PanelFrm := TEPC9PanelFrm.Create(Self) ;
+        EPC9PanelFrm.Top := 10 ;
+        EPC9PanelFrm.Left := 650 ;
+        end ;
+
+     end;
 
 procedure TMain.mnExitClick(Sender: TObject);
 { --------------------------------
@@ -3456,9 +3480,11 @@ begin
 
      mnTriton.Enabled := False ;
      mnVP500.Enabled := False ;
+     mnEPC9Panel.Enabled := False ;
      case SESLabIO.LabInterfaceType of
           Triton : mnTriton.Enabled := True ;
           VP500 : mnVP500.Enabled := True ;
+          HekaEPC9,HekaEPC10,HekaEPC10Plus,HekaEPC10USB : mnEPC9Panel.Enabled := True ;
           end ;
      end;
 

@@ -130,23 +130,37 @@ begin
     Main.mnZoomOutAll.Click ;
 
      // If using VP500 as interface, amplifier must also be VP500
-     if Main.SESLabIO.LabInterfaceType = vp500 then begin
-        Amplifier.AmplifierType[0] := amVP500 ;
-        Amplifier.AmplifierType[1] := amNone ;
-        Amplifier.AmplifierType[2] := amNone ;
-        Amplifier.AmplifierType[3] := amNone ;
-        end ;
-
-     // If using VP500 as interface, amplifier must also be VP500
-     if Main.SESLabIO.LabInterfaceType = Triton then begin
-        Amplifier.AmplifierType[0] := amTriton ;
-        Amplifier.AmplifierType[1] := amNone ;
-        Amplifier.AmplifierType[2] := amNone ;
-        Amplifier.AmplifierType[3] := amNone ;
-        end
-     else begin
-        // If not a Triton interface remove Triton from amplifiers list
-        if Amplifier.AmplifierType[0] = amTriton then Amplifier.AmplifierType[0] := amNone ;
+     case Main.SESLabIO.LabInterfaceType of
+          vp500 : begin
+            Amplifier.AmplifierType[0] := amVP500 ;
+            Amplifier.AmplifierType[1] := amNone ;
+            Amplifier.AmplifierType[2] := amNone ;
+            Amplifier.AmplifierType[3] := amNone ;
+            end ;
+          Triton : begin
+            Amplifier.AmplifierType[0] := amTriton ;
+            Amplifier.AmplifierType[1] := amNone ;
+            Amplifier.AmplifierType[2] := amNone ;
+            Amplifier.AmplifierType[3] := amNone ;
+            end;
+          HekaEPC9,HekaEPC10,HekaEPC10USB :begin
+            Amplifier.AmplifierType[0] := amHekaEPC9 ;
+            Amplifier.AmplifierType[1] := amNone ;
+            Amplifier.AmplifierType[2] := amNone ;
+            Amplifier.AmplifierType[3] := amNone ;
+            end;
+          HekaEPC10Plus : begin
+            Amplifier.AmplifierType[0] := amHekaEPC9 ;
+            Amplifier.AmplifierType[1] := amHekaEPC9 ;
+            Amplifier.AmplifierType[2] := amNone ;
+            Amplifier.AmplifierType[3] := amNone ;
+            end ;
+          else begin
+            if Amplifier.AmplifierType[0] = amTriton then Amplifier.AmplifierType[0] := amNone ;
+            if Amplifier.AmplifierType[0] = amVP500 then Amplifier.AmplifierType[0] := amNone ;
+            if Amplifier.AmplifierType[0] = amHekaEPC9 then Amplifier.AmplifierType[0] := amNone ;
+            if Amplifier.AmplifierType[1] = amHekaEPC9 then Amplifier.AmplifierType[1] := amNone ;
+          end;
         end ;
 
      edModel.Text := Main.SESLabIO.LabInterfaceModel ;

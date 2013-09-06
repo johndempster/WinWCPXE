@@ -80,8 +80,8 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Release>4</VerInfo_Release>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=4.6.4.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Release>6</VerInfo_Release>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=4.6.6.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -225,6 +225,10 @@
             <Form>DirectorySelectFrm</Form>
         </DCCReference>
         <DCCReference Include="MATFileWriterUnit.pas"/>
+        <DCCReference Include="EPC9PanelUnit.pas">
+            <Form>EPC9PanelFrm</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <RidlCompile Include="winwcp.ridl"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
@@ -285,6 +289,7 @@
             <ActiveXProjectInfo>
                 <version>1</version>
             </ActiveXProjectInfo>
+            <ModelSupport>False</ModelSupport>
         </BorlandProject>
         <ProjectFileVersion>12</ProjectFileVersion>
     </ProjectExtensions>

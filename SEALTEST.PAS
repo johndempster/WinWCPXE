@@ -74,7 +74,8 @@ unit Sealtest;
               Fixes bug introduced 16.01.12
   14.03.12 .. Output channels for test pulse now selected by check box and pulse can be
               applied to additional channels by ticking boxes.
-  17.04.12 .. No. of input channels displayed can now be selected from menu.              
+  17.04.12 .. No. of input channels displayed can now be selected from menu.
+  06.09.13 .. EPC9PanelFrm opened if EPC9/10 patch clamp in use.
   ==================================================}
 
 interface
@@ -312,11 +313,20 @@ begin
         end ;
 
      // Display Triton control panel if it is not open
-     if (Main.SESLabIO.LabInterfaceType = Triton)
-        and (not Main.FormExists( 'TritonPanelFrm' )) then begin
-        Main.mnTriton.Enabled := True ;
-        Main.mnTriton.Click ;
-        end ;
+     case Main.SESLabIO.LabInterfaceType of
+          Triton : begin
+             if not Main.FormExists( 'TritonPanelFrm' ) then begin
+                Main.mnTriton.Enabled := True ;
+                Main.mnTriton.Click ;
+                end ;
+             end ;
+          HekaEPC9,HekaEPC10,HekaEPC10Plus,HekaEPC10USB : begin
+             if not Main.FormExists( 'EPC9PanelFrm' ) then begin
+                Main.mnEPC9Panel.Enabled := True ;
+                Main.mnEPC9Panel.Click ;
+                end ;
+             end ;
+          end;
 
      Timer.Enabled := False ;
      ClientWidth := CellGrp.Left + CellGrp.Width + 5 ;

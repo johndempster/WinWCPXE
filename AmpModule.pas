@@ -96,6 +96,8 @@ unit AmpModule;
 //          Multiclamp 700B primary channel units now reported correctly
 //  20.08.13 'amplifier settings.xml' now stored in Windows
 //          <common documents folder>\WinWCP\amplifier settings.xml' rather than program folder
+// 27.08.13 Dagan CA1B now reads gain telegraph correctly
+// 03.09.13 Heka EPC-9/10 added
 
 interface
 
@@ -106,7 +108,7 @@ uses
 const
      MaxAmplifiers = 4 ;
      MaxAmplifierChannels = MaxAmplifiers*2 ;
-     NumAmplifiers = 38 ;
+     NumAmplifiers = 39 ;
 
 
      amCurrentClamp = 1 ;
@@ -150,6 +152,7 @@ const
      amHekaEPC800 = 35 ;
      amEPC7 = 36 ;
      amDaganCA1B = 37 ;
+     amHekaEPC9 = 38 ;
 
 
      // Patch clamp mode flags
@@ -863,9 +866,13 @@ TAXC_GetHeadstageType = function(
     function GetHekaEPC800Mode(
              AmpNumber : Integer ) : Integer ;
 
+    function GetHekaEPC9Gain(
+             AmpNumber : Integer ) : single ;
+    function GetHekaEPC9Mode(
+             AmpNumber : Integer ) : Integer ;
+
     function GetDaganCA1BGain(
              AmpNumber : Integer ) : single ;
-
 
     procedure GetHekaEPC800ChannelSettings(
           iChan : Integer ;
@@ -876,6 +883,14 @@ TAXC_GetHeadstageType = function(
           ) ;
 
     procedure GetEPC7ChannelSettings(
+          iChan : Integer ;
+          var ChanName : String ;
+          var ChanUnits : String ;
+          var ChanCalFactor : Single ;
+          var ChanScale : Single
+          ) ;
+
+    procedure GetHekaEPC9ChannelSettings(
           iChan : Integer ;
           var ChanName : String ;
           var ChanUnits : String ;
@@ -1113,7 +1128,7 @@ var
 
 implementation
 
-uses Mdiform, maths, shared, VP500Unit,VP500Lib,TritonUnit ;
+uses Mdiform, maths, shared, VP500Unit,VP500Lib,TritonUnit,HekaUnit ;
 
 {$R *.DFM}
 
@@ -1242,6 +1257,7 @@ begin
      List.AddObject('Heka EPC-8',TObject(amEPC8)) ;
      List.AddObject('Heka EPC-800',TObject(amHekaEPC800)) ;
      List.AddObject('Heka EPC-7',TObject(amEPC7)) ;
+     List.AddObject('Heka EPC-9/10',TObject(amHekaEPC9)) ;
 
      List.AddObject('NPI Turbo Tec-03X',TObject(amTurboTEC03)) ;
      List.AddObject('A-M Systems 2400',TObject(amAMS2400)) ;
@@ -2216,6 +2232,39 @@ begin
             FModeTelegraphChannel[AmpNumber] := DefModeTelegraphChannel[AmpNumber] ;
               end ;
 
+          amHekaEPC9  : begin
+            FPrimaryOutputChannel[AmpNumber] := 2*AmpNumber ;
+            FPrimaryOutputChannelName[AmpNumber] := 'Current Monitor' ;
+            FPrimaryOutputChannelNameCC[AmpNumber] := 'Current Monitor' ;
+            FPrimaryChannelUnits[AmpNumber] := 'pA' ;
+            FPrimaryChannelUnitsCC[AmpNumber] := 'pA' ;
+            FPrimaryChannelScaleFactorX1Gain[AmpNumber] := 5E-6 ;
+            FPrimaryChannelScaleFactorX1GainCC[AmpNumber] := 5E-6 ;
+            FPrimaryChannelScaleFactor[AmpNumber] := 5E-6 ;
+
+            FSecondaryOutputChannel[AmpNumber] := 2*AmpNumber + 1 ;
+            FSecondaryOutputChannelName[AmpNumber] := ' Voltage Monitor ' ;
+            FSecondaryOutputChannelNameCC[AmpNumber] := ' Voltage Monitor ' ;
+            FSecondaryChannelUnits[AmpNumber] := 'mV' ;
+            FSecondaryChannelUnitsCC[AmpNumber] := 'mV' ;
+            FSecondaryChannelScaleFactorX1Gain[AmpNumber] := 0.01 ;
+            FSecondaryChannelScaleFactorX1GainCC[AmpNumber] := 0.01 ;
+            FSecondaryChannelScaleFactor[AmpNumber] := 0.01 ;
+
+            FVoltageCommandScaleFactor[AmpNumber] := 0.1 ;
+            FVoltageCommandChannel[AmpNumber] := AmpNumber ;
+            FCurrentCommandScaleFactor[AmpNumber] := 1E-10 ;
+            FCurrentCommandChannel[AmpNumber] := AmpNumber ;
+
+            FGainTelegraphAvailable[AmpNumber] := True ;
+            FModeTelegraphAvailable[AmpNumber] := True ;
+            FNeedsGainTelegraphChannel[AmpNumber] := False ;
+            FNeedsModeTelegraphChannel[AmpNumber] :=  False ;
+            FModeSwitchedPrimaryChannel[AmpNumber] := False ;
+            FGainTelegraphChannel[AmpNumber] := DefGainTelegraphChannel[AmpNumber] ;
+            FModeTelegraphChannel[AmpNumber] := DefModeTelegraphChannel[AmpNumber] ;
+            end ;
+
         else begin
             FPrimaryOutputChannel[AmpNumber] := 2*AmpNumber ;
             FSecondaryOutputChannel[AmpNumber] := 2*AmpNumber + 1 ;
@@ -2318,6 +2367,7 @@ begin
           amHekaEPC800 : Result := GetHekaEPC800Gain(AmpNumber) ;
           amEPC7 : Result := 1.0 ;
           amDaganCA1B : Result := GetDaganCA1BGain(AmpNumber) ;
+          amHekaEPC9 : Result := GetHekaEPC9Gain(AmpNumber) ;
           else Result := 1.0 ;
           end ;
      end ;
@@ -2735,6 +2785,13 @@ begin
                                             ChanUnits,
                                             ChanCalFactor,
                                             ChanScale ) ;
+
+          amHekaEPC9 :  GetHekaEPC9ChannelSettings( iChan,
+                                                ChanName,
+                                                ChanUnits,
+                                                ChanCalFactor,
+                                                ChanScale ) ;
+
           end ;
 
     if ChanCalFactor = 0.0 then ChanCalFactor := 1.0 ;
@@ -2876,6 +2933,7 @@ begin
           amAxoclamp900A : Result := GetAxoclamp900AMode(AmpNumber) ;
           amHekaEPC800 : Result := GetHekaEPC800Mode(AmpNumber) ;
           amEPC7 : Result := LastMode[AmpNumber] ;
+          amHekaEPC9 : Result := GetHekaEPC9Mode(AmpNumber) ;
           else Result := LastMode[AmpNumber] ;
           end ;
      end ;
@@ -4891,7 +4949,7 @@ begin
 
     AmpNumber := AmpNumberOfChannel(iChan) ;
     if AmpNumber >= MaxAmplifiers then Exit ;
-    
+
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
@@ -5036,7 +5094,7 @@ begin
 
     AmpNumber := AmpNumberOfChannel(iChan) ;
     if AmpNumber >= MaxAmplifiers then Exit ;
-    
+
     Triton_Channel_Calibration( iChan, ChanName, ChanUnits, ChanCalFactor, ChanScale ) ;
     if IsPrimaryChannel(iChan) then begin
        FPrimaryChannelScaleFactorX1Gain[0] := ChanCalFactor ;
@@ -5123,9 +5181,7 @@ const
        VCurrentClampMode = 1.0 ; // This is a guess!!!
 var
    V : single ;
-
 begin
-
      if (FModeTelegraphChannel[AmpNumber] >= 0) and
         (FModeTelegraphChannel[AmpNumber] < Main.SESLabIO.ADCMaxChannels) and
         (not ADCInUse) then begin
@@ -5216,6 +5272,138 @@ begin
     end ;
 
 
+function TAmplifier.GetHekaEPC9Gain(
+         AmpNumber : Integer ) : single ;
+// -------------------------
+// Get EPC-9/10 current gain
+// -------------------------
+var
+    Gain,ScaleFactor : Single ;
+begin
+     Main.SESLabIO.EPC9GetCurrentGain( Gain, ScaleFactor ) ;
+     LastGain[AmpNumber] := Gain ;
+     Result := LastGain[AmpNumber] ;
+     end ;
+
+
+function TAmplifier.GetHekaEPC9Mode(
+         AmpNumber : Integer ) : Integer ;
+// -----------------------------------------
+// Read voltage/current clamp mode telegraph
+// -----------------------------------------
+var
+    EPC9State : PEPC9_StateType ;
+begin
+     if Main.SESLabIO.EPC9Mode < 2 then LastMode[AmpNumber] := VClampMode
+                                   else LastMode[AmpNumber] := IClampMode ;
+    Result := LastMode[AmpNumber] ;
+    end ;
+
+
+procedure TAmplifier.GetHekaEPC9ChannelSettings(
+          iChan : Integer ;
+          var ChanName : String ;
+          var ChanUnits : String ;
+          var ChanCalFactor : single ;
+          var ChanScale : Single
+          ) ;
+// -------------------------------------
+// Get Heka EPC 9/10 channel settings
+// -------------------------------------
+var
+   AmpNumber : Integer ;
+begin
+
+    AmpNumber := AmpNumberOfChannel(iChan) ;
+    if AmpNumber >= MaxAmplifiers then Exit ;
+
+    if IsPrimaryChannel(iChan)then begin
+       ChanName := 'Im' ;
+       ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
+       ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
+       if GetGainTelegraphAvailable(AmpNumber) then begin
+          ChanScale := GetHekaEPC9Gain( AmpNumber ) ;
+          Main.SESLabIO.EPC9GetCurrentGain( ChanScale, ChanCalFactor ) ;
+          FPrimaryChannelScaleFactor[AmpNumber] := ChanCalFactor*ChanScale ;
+          FPrimaryChannelScaleFactorX1Gain[AmpNumber] :=  ChanCalFactor ;
+          end
+       else begin
+          ChanScale := FPrimaryChannelScaleFactor[AmpNumber]/ ChanCalFactor ;
+          end ;
+       end
+    else if IsSecondaryChannel(iChan) then begin
+       ChanName := 'Vm' ;
+       ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
+       ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
+       ChanScale := 1.0 ;
+       FSecondaryChannelScaleFactor[AmpNumber] := ChanCalFactor*ChanScale ;
+       end ;
+
+    end ;
+
+
+function TAmplifier.GetDaganCA1BGain(
+         AmpNumber : Integer ) : single ;
+// ---------------------------------------------------
+// Decode Dagan CA-1B current gain from gain and mode telegraph output
+// (See Heka EPC-800 manual p.70)
+// ---------------------------------------------------
+const
+     NumImGains = 8 ;
+     NumProcGains = 6 ;
+     VGainSpacing = 0.4 ;
+     VStart = 0.4 ;
+var
+   ImGains : Array[0..NumImGains-1] of Single ;
+   ProcGains : Array[0..NumProcGains-1] of Single ;
+   V : single ;
+   iGain : Integer ;
+   Gain : Single ;
+begin
+
+     // Note. Don't interrupt A/D sampling if it in progress.
+     // Use most recent gain setting instead
+
+    if (FGainTelegraphChannel[AmpNumber] >= 0) and
+        (FGainTelegraphChannel[AmpNumber] < Main.SESLabIO.ADCMaxChannels) and
+        (not ADCInUse) then begin
+
+        // Current amplifier gains
+        ImGains[0] :=  1.0 ;
+        ImGains[1] :=  2.0 ;
+        ImGains[2] :=  10.0 ;
+        ImGains[3] :=  20.0 ;
+        ImGains[4] :=  100.0 ;
+        ImGains[5] :=  200.0 ;
+        ImGains[6] :=  1000.0 ;
+        ImGains[7] :=  2000.0 ;
+
+        // Processing amplifier
+        ProcGains[0] :=  1.0 ;
+        ProcGains[1] :=  2.0 ;
+        ProcGains[2] :=  5.0 ;
+        ProcGains[3] :=  10.0 ;
+        ProcGains[4] :=  20.0 ;
+        ProcGains[5] :=  50.0 ;
+
+        // Extract gain associated with telegraph voltage
+        // Get Im gain
+        V := Abs(GetTelegraphVoltage( FGainTelegraphChannel[AmpNumber] )) ;
+        iGain := Trunc( (V - VStart + 0.1)/VGainSpacing ) ;
+        Gain := ImGains[Min(Max(iGain,0),High(ImGains))] ;
+        // Multiply by proc gain
+        V := Abs(GetTelegraphVoltage( FModeTelegraphChannel[AmpNumber] )) ;
+        iGain := Trunc( (V - VStart + 0.1)/VGainSpacing ) ;
+        Gain := Gain*ProcGains[Min(Max(iGain,0),High(ProcGains))] ;
+
+        LastGain[AmpNumber] := Gain ;
+
+        end ;
+
+     Result := LastGain[AmpNumber] ;
+     end ;
+
+
 procedure TAmplifier.GetDaganCA1BChannelSettings(
           iChan : Integer ;
           var ChanName : String ;
@@ -5236,10 +5424,16 @@ begin
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
-       ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        ForceNonZero(FPrimaryChannelScaleFactorX1Gain[AmpNumber]) ;
-       ChanScale := FPrimaryChannelScaleFactor[AmpNumber] /
-                    FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
+       ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
+
+       if GetGainTelegraphAvailable(AmpNumber) then begin
+          ChanScale := GetDaganCA1BGain( AmpNumber ) ;
+          FPrimaryChannelScaleFactor[AmpNumber] := FPrimaryChannelScaleFactorX1Gain[AmpNumber]*ChanScale ;
+          end
+       else begin
+          ChanScale := FPrimaryChannelScaleFactor[AmpNumber]/ FPrimaryChannelScaleFactorX1Gain[AmpNumber]
+          end ;
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
@@ -5301,66 +5495,6 @@ begin
      end ;
 
 
-function TAmplifier.GetDaganCA1BGain(
-         AmpNumber : Integer ) : single ;
-// ---------------------------------------------------
-// Decode Dagan CA-1B current gain from gain and mode telegraph output
-// (See Heka EPC-800 manual p.70)
-// ---------------------------------------------------
-const
-     NumImGains = 8 ;
-     NumProcGains = 6 ;
-     VGainSpacing = 0.4 ;
-     VStart = 0.4 ;
-var
-   ImGains : Array[0..NumImGains-1] of Single ;
-   ProcGains : Array[0..NumProcGains-1] of Single ;
-   V : single ;
-   iGain : Integer ;
-   Gain : Single ;
-begin
-
-     // Note. Don't interrupt A/D sampling if it in progress.
-     // Use most recent gain setting instead
-
-    if (FGainTelegraphChannel[AmpNumber] >= 0) and
-        (FGainTelegraphChannel[AmpNumber] < Main.SESLabIO.ADCMaxChannels) and
-        (not ADCInUse) then begin
-
-        // Current amplifier gains
-        ImGains[0] :=  1.0 ;
-        ImGains[1] :=  2.0 ;
-        ImGains[2] :=  10.0 ;
-        ImGains[3] :=  20.0 ;
-        ImGains[4] :=  100.0 ;
-        ImGains[5] :=  200.0 ;
-        ImGains[6] :=  1000.0 ;
-        ImGains[7] :=  2000.0 ;
-
-        // Processing amplifier
-        ProcGains[0] :=  1.0 ;
-        ProcGains[1] :=  2.0 ;
-        ProcGains[2] :=  5.0 ;
-        ProcGains[3] :=  10.0 ;
-        ProcGains[4] :=  20.0 ;
-        ProcGains[5] :=  50.0 ;
-
-        // Extract gain associated with telegraph voltage
-        // Get Im gain
-        V := Abs(GetTelegraphVoltage( FGainTelegraphChannel[AmpNumber] )) ;
-        iGain := Trunc( (V - VStart + 0.1)/VGainSpacing ) ;
-        Gain := Min(Max(iGain,0),High(ImGains)) ;
-        // Multiply by proc gain
-        V := Abs(GetTelegraphVoltage( FModeTelegraphChannel[AmpNumber] )) ;
-        iGain := Trunc( (V - VStart + 0.1)/VGainSpacing ) ;
-        Gain := Gain*Min(Max(iGain,0),High(ProcGains)) ;
-
-        LastGain[AmpNumber] := Gain ;
-
-        end ;
-
-     Result := LastGain[AmpNumber] ;
-     end ;
 
 
 procedure TAmplifier.GetAxoclamp900AChannelSettings(
