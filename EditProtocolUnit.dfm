@@ -26,15 +26,11 @@ object EditProtocolFrm: TEditProtocolFrm
     Top = 200
     Width = 757
     Height = 409
-    ActivePage = RecordTab
+    ActivePage = StimulusTab
     TabOrder = 0
     OnChange = PageChange
     object RecordTab: TTabSheet
       Caption = 'Recording'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox3: TGroupBox
         Left = 0
         Top = 232
@@ -233,10 +229,6 @@ object EditProtocolFrm: TEditProtocolFrm
     object StimulusTab: TTabSheet
       Caption = 'Stimulus'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object ProtocolGrp: TGroupBox
         Left = 100
         Top = 0
@@ -10158,8 +10150,8 @@ object EditProtocolFrm: TEditProtocolFrm
           OnMouseDown = Step0MouseDown
         end
         object Wave: TImage
-          Left = 48
-          Top = 112
+          Left = 46
+          Top = 110
           Width = 32
           Height = 32
           Hint = 'Arbitrary user-defined waveform'
@@ -10804,10 +10796,6 @@ object EditProtocolFrm: TEditProtocolFrm
     object GlobalTab: TTabSheet
       Caption = 'Global Variables'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox4: TGroupBox
         Left = 0
         Top = 0
@@ -11555,10 +11543,6 @@ object EditProtocolFrm: TEditProtocolFrm
       TabWidth = 35
       object AO0Tab: TTabSheet
         Caption = 'AO0'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object AO0StimGrp: TGroupBox
           Left = 2
           Top = 0
@@ -11646,10 +11630,6 @@ object EditProtocolFrm: TEditProtocolFrm
       object AO1Tab: TTabSheet
         Caption = 'AO1'
         ImageIndex = 1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object AO1StimGrp: TGroupBox
           Left = 2
           Top = 0
@@ -11732,10 +11712,6 @@ object EditProtocolFrm: TEditProtocolFrm
       object AO2Tab: TTabSheet
         Caption = 'AO2'
         ImageIndex = 2
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object AO2StimGrp: TGroupBox
           Left = 2
           Top = 0
@@ -11818,10 +11794,6 @@ object EditProtocolFrm: TEditProtocolFrm
       object AO3Tab: TTabSheet
         Caption = 'AO3'
         ImageIndex = 3
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object AO3StimGrp: TGroupBox
           Left = 2
           Top = 0
