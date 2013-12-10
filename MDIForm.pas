@@ -556,7 +556,19 @@ unit MDIForm;
                        a new file to be opened to allow for loss of precision when data written/read from fiel header
   V4.6.4 27.08.13 ... Recording start time now stored in WCP header and time of record acquisition display in replay.pas
   V4.6.5 27.08.13 ... Amplifiers: Dagan CA1B now reads gain telegraph correctly
-  V4.6.6 06.09.13 ... Support for Heka amplifiers being added (not complete)
+  V4.6.6 20.09.13 ... Support for Heka amplifiers and Instrutech interfaces added
+                      Bugs in Power 1401 support fixed. 2.5X error in A/D sampling rate fixed
+                      ToHost transfers now in 64Kb blocks fixing sample scrambling for high speed/large records
+                      Waveform updates now faster
+  V4.6.7 23.09.13 ... Recording start time now encoded in en-GB format by GBDateToStr & GBStrToDate
+  V4.6.8 25.09.13 ... .log files now created in settings folder.
+  V4.6.9 05.12.13 ... Now works with CED1401-plus again (DAC transfer buffers adjusted to fit at least
+                      3 in DAC buffer in 1401
+                      A/D input channels can now be mapped to different physical inputs
+                      for CED 1401s, Digidatas 1320 and 1440 and ITC-16 and ITC-18
+                      2 Multiclamp 700 B now supported.
+                      Loading/Saving of amplifier/channel settings now works correctly
+   V4.7.0 06.12.13    .HoldingVoltage ActiveX command ow scaled by amplifier command voltage scale factor (autounit.pas)
   =======================================================================}
 
 
@@ -757,7 +769,11 @@ type
     procedure UpdateChannelScalingFactors(var RH : TRecHeader ) ;
     function FormExists( FormName : String ) : Boolean ;
     procedure UpdateRecentFilesList ;
+
     function GetSpecialFolder(const ASpecialFolderID: Integer): string;
+    function GBDateToStr( DateTime : TDateTime ) : String ;
+    function GBStrToDate( DateTime : String ) : TDateTime ;
+
     end;
 
 var
@@ -798,15 +814,11 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.6.6' ;
+      ProgVersion := 'V4.7.0';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
       Settings.ProgDirectory := ExtractFilePath(ParamStr(0)) ;
-
-     { Open log file (contains log of program activity) }
-     OpenLogFile ;
-     WriteToLogFile( 'WinWCP Started' ) ;
 
      // Create settings directory
      SettingsDirectory := GetSpecialFolder(CSIDL_COMMON_DOCUMENTS) + '\WinWCP\';
@@ -816,6 +828,10 @@ begin
         else WriteToLogFile( 'Unable to create settings folder' + SettingsDirectory) ;
         end ;
      SettingsFileName := SettingsDirectory + 'winwcp.ini' ;
+
+     { Open log file (contains log of program activity) }
+     OpenLogFile ;
+     WriteToLogFile( 'WinWCP Started' ) ;
 
      // Stimulus protocols folder
      Settings.VProtDirectory := GetSpecialFolder(CSIDL_COMMON_DOCUMENTS) + '\WinWCP\Vprot';
@@ -3157,7 +3173,7 @@ begin
      //RawFH.NumBytesInHeader := MaxBytesInFileHeader ;
 
      // Time created
-     RawFH.CreationTime := FormatDateTime('dd-mm-yy hh:mm:ss.zz',Now) ;
+     RawFH.CreationTime := GBDateToStr(Now) ;
      RawFH.NumRecords := 0 ;
 
      { Set No. of bytes in analysis record to default value }
@@ -3568,6 +3584,32 @@ begin
   Result := StrPas(vSpecialPath);
 
   end;
+
+function TMain.GBDateToStr( DateTime : TDateTime ) : String ;
+// -------------------------------------------------
+// Convert date-time to GB format date & time string
+// -------------------------------------------------
+var
+   DateFormat : TFormatSettings ;
+begin
+  DateFormat := TFormatSettings.Create('en-GB') ;
+  Result :=  System.SysUtils.DateTimeToStr(DateTime,DateFormat) ;
+  end;
+
+function TMain.GBStrToDate( DateTime : String ) : TDateTime ;
+// -------------------------------------------------
+// Convert GB format date & time string to DateTime
+// -------------------------------------------------
+var
+   DateFormat : TFormatSettings ;
+begin
+
+  DateFormat := TFormatSettings.Create('en-GB') ;
+  DateTime := ANSIReplaceText(DateTime, '-', '/') ;
+  Result :=  System.SysUtils.StrToDateTime(DateTime,DateFormat) ;
+
+  end;
+
 
 end.
 

@@ -359,40 +359,37 @@ $
 
 
 
-
-
-
 $
 $
 1
 4
 FALSE
-E:\Delphi XE3 Projects\WinWCP\
+E:\Delphi XE3 Projects\WinWCPXE\
 Strathclyde Institute for Pharmacy & Biomedical Sciences
 WinWCP
 {33320EB5-637A-4E6E-9416-8F40E71AC44D}
 {603FD984-4C3C-4760-8C92-658972562774}
-4.6.3
+4.6.9
 English
 WinWCP
 WinWCP Installation
 John Dempster
 All rights reserved
-{BAE3A3D0-8AA3-42F9-BF4A-A5BF5C13F1AC}
+{9D8D7E1C-E8CC-4D05-A8B8-0F5D8AA70DD5}
 John Dempster, 
 My Company
-http://www.mywebsite.com/
-http://www.mywebsite.com/
+http://spider.science.strath.ac.uk/sipbs/showPage.php?page=software_ses
+http://spider.science.strath.ac.uk/sipbs/showPage.php?page=software_ses
 All rights reserved
 FALSE
-WinWCP Setup V4.3.6
+WinWCP V4.6.9 Setup
 TRUE
 FALSE
 
 
 http://timestamp.verisign.com/scripts/timstamp.dll
 
-
+INSTALLAWARE_DRM_LAUNCHES=FALSE,INSTALLAWARE_DRM_DAYSRELATIVE=TRUE,INSTALLAWARE_DRM_DAYSABSOLUTE=FALSE,INSTALLAWARE_DRM_DAYS=FALSE,INSTALLAWARE_DRM_YEAR=2013,INSTALLAWARE_DRM_MONTH=8,INSTALLAWARE_DRM_DAY=26,INSTALLAWARE_DRM_EXPIREUSAGE=FALSE,INSTALLAWARE_DRM_EXPIREFIXED=FALSE
 $
 $
 

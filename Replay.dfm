@@ -203,9 +203,9 @@ object ReplayFrm: TReplayFrm
     ParentFont = False
     TabOrder = 1
     object Label2: TLabel
-      Left = 8
+      Left = 35
       Top = 129
-      Width = 52
+      Width = 25
       Height = 15
       Alignment = taRightJustify
       Caption = 'Type'
@@ -230,9 +230,9 @@ object ReplayFrm: TReplayFrm
       ParentFont = False
     end
     object Group: TLabel
-      Left = 8
+      Left = 16
       Top = 158
-      Width = 52
+      Width = 44
       Height = 15
       Alignment = taRightJustify
       Caption = 'Group #'
@@ -244,9 +244,9 @@ object ReplayFrm: TReplayFrm
       ParentFont = False
     end
     object Label4: TLabel
-      Left = 8
+      Left = 23
       Top = 104
-      Width = 52
+      Width = 37
       Height = 15
       Alignment = taRightJustify
       Caption = 'Marker'

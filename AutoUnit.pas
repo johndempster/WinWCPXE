@@ -3,13 +3,15 @@ unit AutoUnit;
 // WinWCP - Automation Interface
 // -----------------------------
 // 08.12.05
+// 06.12.13 Set_HoldingVoltage/Get_HoldingVoltage, Set_SealTestPulseAmplitude/Get_SealTestPulseAmplitude
+//          now scaled by amplifier command voltage scale factor
 
 {$WARN SYMBOL_PLATFORM OFF}
 
 interface
 
 uses
-  ComObj, ActiveX, winwcp_TLB, StdVcl, sysutils, math, strutils, seslabio ;
+  ComObj, ActiveX, winwcp_TLB, StdVcl, sysutils, math, strutils, seslabio, ampmodule ;
 
 type
   TAUTO = class(TAutoObject, IAUTO)
@@ -151,16 +153,18 @@ begin
 
 function TAUTO.Get_SealTestPulseAmplitude: OleVariant;
 // -------------------
-// Get holding voltage
+// Get pulse amplitude
 // -------------------
 var
-    i : Integer ;
+    VScale : Single ;
 begin
 
-     Result := Settings.SealTest.PulseHeight1 ;
-     for i := 0 to Main.MDIChildCount-1 do
-         if Main.MDIChildren[i].Name = 'SealTestFrm' then
-            Result := TSealTestFrm(Main.MDIChildren[i]).TestPulseAmplitude[1] ;
+     if Main.FormExists('SealTestFrm') then
+        Settings.SealTest.PulseHeight1 := SealTestFrm.TestPulseAmplitude[1] ;
+
+     VScale := Amplifier.CommandScaleFactor[0] ;
+     if VScale = 0.0 then VScale := 1.0 ;
+     Result := Settings.SealTest.PulseHeight1*VScale ;
 
     end ;
 
@@ -191,15 +195,18 @@ procedure TAUTO.Set_SealTestPulseAmplitude(Value: OleVariant);
 // Set seal test pulse amplitude
 // -----------------------------
 var
-    i : Integer ;
+    VScale : Single ;
 begin
 
-     Settings.SealTest.PulseHeight1 := Value ;
-     for i := 0 to Main.MDIChildCount-1 do
-         if Main.MDIChildren[i].Name = 'SealTestFrm' then begin
-            TSealTestFrm(Main.MDIChildren[i]).TestPulseNumber := 1 ;
-            TSealTestFrm(Main.MDIChildren[i]).TestPulseAmplitude[1] := Settings.SealTest.PulseHeight1 ;
-            end ;
+     if Amplifier.CommandScaleFactor[0] <> 0.0 then VScale := 1.0/Amplifier.CommandScaleFactor[0]
+                                               else VScale := 1.0 ;
+     Settings.SealTest.PulseHeight1 := Value*VScale ;
+
+     Settings.SealTest.Use := 1 ;
+     if Main.FormExists('SealTestFrm') then begin
+        SealTestFrm.TestPulseNumber := 1 ;
+        SealTestFrm.TestPulseAmplitude[1] := Settings.SealTest.PulseHeight1 ;
+        end ;
 
      end;
 
@@ -239,13 +246,15 @@ function TAUTO.Get_HoldingVoltage: OleVariant;
 // Get holding voltage
 // -------------------
 var
-    i : Integer ;
+    VScale : Single ;
 begin
 
-     Result := Settings.SealTest.HoldingVoltage1 ;
-     for i := 0 to Main.MDIChildCount-1 do
-         if Main.MDIChildren[i].Name = 'SealTestFrm' then
-            Result := TSealTestFrm(Main.MDIChildren[i]).HoldingVoltage[1] ;
+     if Main.FormExists('SealTestFrm') then
+        Settings.SealTest.HoldingVoltage1 := SealTestFrm.HoldingVoltage[1] ;
+
+     VScale := Amplifier.CommandScaleFactor[0] ;
+     if VScale = 0.0 then VScale := 1.0 ;
+     Result := Settings.SealTest.HoldingVoltage1*VScale ;
 
     end ;
 
@@ -255,16 +264,18 @@ procedure TAUTO.Set_HoldingVoltage(Value: OleVariant);
 // Set holding voltage
 // --------------------
 var
-    i : Integer ;
+    VScale : Single ;
 begin
 
-     Settings.SealTest.HoldingVoltage1 := Value ;
+     if Amplifier.CommandScaleFactor[0] <> 0.0 then VScale := 1.0/Amplifier.CommandScaleFactor[0]
+                                               else VScale := 1.0 ;
+     Settings.SealTest.HoldingVoltage1 := Value*VScale ;
+
      Settings.SealTest.Use := 1 ;
-     for i := 0 to Main.MDIChildCount-1 do
-         if Main.MDIChildren[i].Name = 'SealTestFrm' then begin
-            TSealTestFrm(Main.MDIChildren[i]).TestPulseNumber := 1 ;
-            TSealTestFrm(Main.MDIChildren[i]).HoldingVoltage[1] := Settings.SealTest.HoldingVoltage1 ;
-            end ;
+     if Main.FormExists('SealTestFrm') then begin
+        SealTestFrm.TestPulseNumber := 1 ;
+        SealTestFrm.HoldingVoltage[1] := Settings.SealTest.HoldingVoltage1 ;
+        end ;
 
      end;
 

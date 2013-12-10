@@ -98,12 +98,15 @@ unit AmpModule;
 //          <common documents folder>\WinWCP\amplifier settings.xml' rather than program folder
 // 27.08.13 Dagan CA1B now reads gain telegraph correctly
 // 03.09.13 Heka EPC-9/10 added
+// 20.09.13 Heka EPC-10 tested and working
+// 04.12.13 Two Multiclamp 700Bs now supported (4 amplifiers)
+//          MCTelegraphData[] array now 0 rather than 1 based.
 
 interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Math, strutils,
-  xmldoc, xmlintf,ActiveX, shlobj  ;
+  xmldoc, xmlintf,ActiveX, shlobj, fileio  ;
 
 const
      MaxAmplifiers = 4 ;
@@ -3824,7 +3827,7 @@ begin
     AmpNumber := AmpNumberOfChannel(iChan) ;
     if AmpNumber >= MaxAmplifiers then Exit ;
 
-    AxonAmpNumber := AmpNumber + 1 ;
+    AxonAmpNumber := AmpNumber {+ 1} ;
 
     if MCConnectionOpen then begin
 
@@ -3832,11 +3835,11 @@ begin
 
            ChanNames[i] := format('%d',[i]) ;
 
-           if MCTelegraphData[AxonAmpNumber].HardwareType = 1 then begin
+           if MCTelegraphData[AmpNumber].HardwareType = 1 then begin
               if i < High(MCTG_ChanNames700B) then ChanNames[i] := MCTG_ChanNames700B[i] ;
               end
            else if i <= High(MCTG_ChanNames700A_VC) then begin
-              if MCTelegraphData[AxonAmpNumber].OperatingMode = MCTG_MODE_VCLAMP then begin
+              if MCTelegraphData[AmpNumber].OperatingMode = MCTG_MODE_VCLAMP then begin
                  ChanNames[i] := MCTG_ChanNames700A_VC[i] ;
                  end
               else begin
@@ -3850,14 +3853,14 @@ begin
 
           // Primary channel
 
-          if (MCTelegraphData[AxonAmpNumber].PrimaryScaledOutSignal >= 0) and
-             (MCTelegraphData[AxonAmpNumber].PrimaryScaledOutSignal < High(ChanNames)) then
-             ChanName := ChanNames[MCTelegraphData[AxonAmpNumber].PrimaryScaledOutSignal] ;
+          if (MCTelegraphData[AmpNumber].PrimaryScaledOutSignal >= 0) and
+             (MCTelegraphData[AmpNumber].PrimaryScaledOutSignal < High(ChanNames)) then
+             ChanName := ChanNames[MCTelegraphData[AmpNumber].PrimaryScaledOutSignal] ;
 
-          ChanName := ChanName + format('%d',[AxonAmpNumber]) ;
-          Units := MCTelegraphData[AxonAmpNumber].PrimaryScaleFactorUnits ;
-          ChanCalFactor := MCTelegraphData[AxonAmpNumber].PrimaryScaleFactor ;
-          ChanScale := MCTelegraphData[AxonAmpNumber].PrimaryAlpha ;
+          ChanName := ChanName + format('%d',[AmpNumber]) ;
+          Units := MCTelegraphData[AmpNumber].PrimaryScaleFactorUnits ;
+          ChanCalFactor := MCTelegraphData[AmpNumber].PrimaryScaleFactor ;
+          ChanScale := MCTelegraphData[AmpNumber].PrimaryAlpha ;
           FPrimaryChannelScaleFactorX1Gain[AmpNumber] := ChanCalFactor ;
           FPrimaryChannelScaleFactor[AmpNumber] := ChanCalFactor*ChanScale ;
 
@@ -3866,14 +3869,14 @@ begin
 
           // Secondary channel
 
-          if (MCTelegraphData[AxonAmpNumber].SecondaryOutSignal >= 0) and
-             (MCTelegraphData[AxonAmpNumber].SecondaryOutSignal < High(ChanNames)) then
-             ChanName := ChanNames[MCTelegraphData[AxonAmpNumber].SecondaryOutSignal] ;
+          if (MCTelegraphData[AmpNumber].SecondaryOutSignal >= 0) and
+             (MCTelegraphData[AmpNumber].SecondaryOutSignal < High(ChanNames)) then
+             ChanName := ChanNames[MCTelegraphData[AmpNumber].SecondaryOutSignal] ;
 
-          ChanName := ChanName + format('%d',[AxonAmpNumber]) ;
-          Units := MCTelegraphData[AxonAmpNumber].SecondaryScaleFactorUnits ;
-          ChanCalFactor := MCTelegraphData[AxonAmpNumber].SecondaryScaleFactor ;
-          ChanScale := MCTelegraphData[AxonAmpNumber].SecondaryAlpha ;
+          ChanName := ChanName + format('%d',[AmpNumber]) ;
+          Units := MCTelegraphData[AmpNumber].SecondaryScaleFactorUnits ;
+          ChanCalFactor := MCTelegraphData[AmpNumber].SecondaryScaleFactor ;
+          ChanScale := MCTelegraphData[AmpNumber].SecondaryAlpha ;
           FSecondaryChannelScaleFactorX1Gain[AmpNumber] := ChanCalFactor ;
           FSecondaryChannelScaleFactor[AmpNumber] := ChanCalFactor*ChanScale ;
           end ;
@@ -3923,14 +3926,14 @@ begin
        else if IsSecondaryChannel(iChan) then FSecondaryChannelUnits[AmpNumber] := ChanUnits ;
 
        // Set voltage/current command scale factor
-       if MCTelegraphData[AxonAmpNumber].OperatingMode = MCTG_MODE_VCLAMP then begin
-          FVoltageCommandScaleFactor[AmpNumber] := MCTelegraphData[AxonAmpNumber].ExtCmdSens ;
+       if MCTelegraphData[AmpNumber].OperatingMode = MCTG_MODE_VCLAMP then begin
+          FVoltageCommandScaleFactor[AmpNumber] := MCTelegraphData[AmpNumber].ExtCmdSens ;
           Main.StatusBar.SimpleText := format(
                                        'Multiclamp 700: Command Voltage Sensitivity: %.4g mV/V',
                                        [FVoltageCommandScaleFactor[AmpNumber]*1000.0]);
           end
        else begin
-          FCurrentCommandScaleFactor[AmpNumber] := MCTelegraphData[AxonAmpNumber].ExtCmdSens ;
+          FCurrentCommandScaleFactor[AmpNumber] := MCTelegraphData[AmpNumber].ExtCmdSens ;
           Main.StatusBar.SimpleText := format(
                                        'Multiclamp 700: Current Voltage Sensitivity: %.4g pA/V',
                                        [FCurrentCommandScaleFactor[AmpNumber]*1E12]);
@@ -5280,7 +5283,7 @@ function TAmplifier.GetHekaEPC9Gain(
 var
     Gain,ScaleFactor : Single ;
 begin
-     Main.SESLabIO.EPC9GetCurrentGain( Gain, ScaleFactor ) ;
+     Main.SESLabIO.EPC9GetCurrentGain( AmpNumber, Gain, ScaleFactor ) ;
      LastGain[AmpNumber] := Gain ;
      Result := LastGain[AmpNumber] ;
      end ;
@@ -5322,8 +5325,7 @@ begin
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        if GetGainTelegraphAvailable(AmpNumber) then begin
-          ChanScale := GetHekaEPC9Gain( AmpNumber ) ;
-          Main.SESLabIO.EPC9GetCurrentGain( ChanScale, ChanCalFactor ) ;
+          Main.SESLabIO.EPC9GetCurrentGain( AmpNumber, ChanScale, ChanCalFactor ) ;
           FPrimaryChannelScaleFactor[AmpNumber] := ChanCalFactor*ChanScale ;
           FPrimaryChannelScaleFactorX1Gain[AmpNumber] :=  ChanCalFactor ;
           end
@@ -6529,7 +6531,10 @@ begin
          MCTelegraphDataIn := PMC_TELEGRAPH_DATA(PCopyDataStruct(Message.lParam)^.lpData)^;
          if (MCTelegraphDataIn.ChannelID >= 0) and
             (MCTelegraphDataIn.ChannelID <= High(MCTelegraphData)) then begin
-           MCTelegraphData[MCTelegraphDataIn.ChannelID] :=  MCTelegraphDataIn ;
+            if MCTelegraphDataIn.AxoBusID > 1 then MCTelegraphDataIn.AxoBusID := 0 ;
+           MCTelegraphData[(MCTelegraphDataIn.ChannelID-1)+((MCTelegraphDataIn.AxoBusID)*2)] :=  MCTelegraphDataIn ;
+           WriteToLogFile(format('Multiclamp message from Device %d Ch.%d',
+           [ MCTelegraphDataIn.AxoBusID,MCTelegraphDataIn.ChannelID]));
            end ;
          //Main.StatusBar.SimpleText := 'WM_COPYDATA received' ;
          Result := True ;

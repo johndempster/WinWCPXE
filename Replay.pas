@@ -40,6 +40,7 @@ unit Replay;
               Display Record now set to start of file in NewFile().
               ADC now allocated by GetMem()
   27.08.13 .. Time of day when record acquired now displayed
+  23.09.13 .. Recording start time now encoded in en-GB format
   ===================================================}
 interface
 
@@ -372,6 +373,7 @@ procedure TReplayFrm.DisplayRecord ;
 var
    ch : Integer ;
    StartTime : TDateTime ;
+   DateFormat : TFormatSettings ;
 begin
 
      fH.RecordNum := SbRecordNum.position ;
@@ -417,7 +419,8 @@ begin
       meTime.Lines.Add('') ;
       meTime.Lines[0] := format('%.3fs',[RH.Time]) ;
      if FH.RecordingStartTimeSecs > 0.0 then begin
-        StartTime := StrToDateTime( FH.RecordingStartTime ) ;
+        DateFormat := TFormatSettings.Create('en-GB') ;
+        StartTime := Main.GBStrToDate( FH.RecordingStartTime ) ;
         StartTime := System.DateUtils.IncMillisecond(StartTime,Round(RH.Time*1000.0)) ;
         meTime.Lines[1] := FormatDateTime('hh:mm:ss.zzz',StartTime) ;
         end ;

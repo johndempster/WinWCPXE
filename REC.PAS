@@ -91,6 +91,7 @@ unit Rec;
   26.08.13 .. CheckNewDataFileNeeded() now permits 1E-4 difference in channel gains without requiring
               a new file to be opened to allow for loss of precision when data written/read from fiel header
   06.09.13 .. EPC9PanelFrm opened if EPC9/10 patch clamp in use.
+  23.09.13 .. Recording start time now encoded in en-GB format
   ==============================================================================}
 interface
 
@@ -739,7 +740,7 @@ begin
                    // Get time of start of sweep
                    RH.Time := GetTickCount*mStoSecs ;
                    if RawFH.NumRecords <= 0 then begin
-                      RawFH.RecordingStartTime := FormatDateTime('dd-mm-yy hh:mm:ss.zzz',Now) ;
+                      RawFH.RecordingStartTime := Main.GBDateToStr(Now) ;
                       RawFH.RecordingStartTimeSecs := RH.Time ;
                       end;
 

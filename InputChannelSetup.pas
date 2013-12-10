@@ -30,12 +30,16 @@ unit InputChannelSetup;
            when more than 16 AI channel were available fixed. (by returning amNone
            for all amplifiers numbers >= MaxAmplifiers. Amplifier.GetChannelSettings()
            no longer changes channel scale factors when Amplifier type is amNone
+  19.11.13 SetCurrentDir() now ensure file dialog box opens in correct directory
+  20.11.13 Displayed amplifier and channel settings now updated before being written to user-defined settings file
+            Settings files now have file ending set to .xml
+
                   }
 interface
 
 uses WinTypes, WinProcs, Classes, Graphics, Forms, Controls, Buttons,
   StdCtrls, Spin, ExtCtrls, shared, sysUtils, Grids, Dialogs, Global, FileIo,
-  maths, ValEdit, ValidatedEdit, math, ComCtrls ;
+  maths, ValEdit, ValidatedEdit, math, ComCtrls, strutils ;
 
 type
   TInputChannelSetupFrm = class(TForm)
@@ -648,6 +652,7 @@ procedure TInputChannelSetupFrm.bSaveSettingsClick(Sender: TObject);
 // ---------------
 var
   s : TStringList ;
+  FileName : String ;
 begin
 
      SaveDialog.options := [ofOverwritePrompt,ofHideReadOnly,ofPathMustExist] ;
@@ -655,18 +660,26 @@ begin
      SetCurrentDir(Main.SettingsDirectory) ;
      SaveDialog.Title := 'Save Amplifier/Input Channel Settings' ;
      SaveDialog.FileName := '*.xml' ;
+     SaveDialog.Filter := ' XML Files (*.XML)';
 
      if SaveDialog.execute then begin
+
+        UpdateAmplifierSettings ;
+        UpdateChannelSettings ;
+
+        FileName := SaveDialog.FileName ;
+        if not ContainsText( FileName, '.xml' ) then FileName := FileName + '.xml' ;
+
         s := TStringList.Create ;
         //s.LoadFromFile(SaveDialog.FileName) ;
         s.Insert(0,'<SETTINGS>') ;
         s.Insert(0,'<?xml version="1.0"?>') ;
-        s.SaveToFile(SaveDialog.FileName) ;
-        Amplifier.SaveToXMLFile(SaveDialog.FileName,True) ;
-        Main.SESLabIO.SaveToXMLFile(SaveDialog.FileName,True) ;
-        s.LoadFromFile(SaveDialog.FileName) ;
+        s.SaveToFile(FileName) ;
+        Amplifier.SaveToXMLFile(FileName,True) ;
+        Main.SESLabIO.SaveToXMLFile(FileName,True) ;
+        s.LoadFromFile(FileName) ;
         s.Add('</SETTINGS>') ;
-        s.SaveToFile(SaveDialog.FileName) ;
+        s.SaveToFile(FileName) ;
         s.Free ;
         end ;
 
@@ -683,6 +696,8 @@ begin
      OpenDialog.InitialDir := Main.SettingsDirectory ;
      SetCurrentDir(Main.SettingsDirectory) ;
      OpenDialog.Title := 'Load Amplifier/Input Channel Settings' ;
+     OpenDialog.Filter := ' XML Files (*.XML)';
+
      if OpenDialog.execute then begin
         Amplifier.LoadFromXMLFile(OpenDialog.FileName) ;
         Main.SESLabIO.LoadFromXMLFile(OpenDialog.FileName) ;
