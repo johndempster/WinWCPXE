@@ -569,6 +569,9 @@ unit MDIForm;
                       2 Multiclamp 700 B now supported.
                       Loading/Saving of amplifier/channel settings now works correctly
    V4.7.0 06.12.13    .HoldingVoltage ActiveX command ow scaled by amplifier command voltage scale factor (autounit.pas)
+   V4.7.1 17.12.13    Addition Multiclamp messages reported to log file
+   V4.7.2 19.12.13    Addition Multiclamp messages reported to log file (may now recognise 2 amplifiers)
+   V4.7.3 09.01.13    New version of Heka EPCDLL.DLL (support USB devices)
   =======================================================================}
 
 
@@ -814,7 +817,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.7.0';
+      ProgVersion := 'V4.7.3';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

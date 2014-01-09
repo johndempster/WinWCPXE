@@ -101,6 +101,8 @@ unit AmpModule;
 // 20.09.13 Heka EPC-10 tested and working
 // 04.12.13 Two Multiclamp 700Bs now supported (4 amplifiers)
 //          MCTelegraphData[] array now 0 rather than 1 based.
+// 17.12.13 Addition Multiclamp messages reported to log file
+// 19.12.13 Addition Multiclamp messages to log file updated (may now support 2 amplifiers)
 
 interface
 
@@ -6517,7 +6519,7 @@ function TAmplifier.AppHookFunc(var Message : TMessage)  : Boolean;
 var
     AddChannel : Boolean ;
     MCTelegraphDataIn : TMC_TELEGRAPH_DATA ;
-    i : Integer ;
+    i,ComID,AxobusID,ChannelID,Device : Integer ;
 begin
   Result := False; //I just do this by default
 
@@ -6532,9 +6534,10 @@ begin
          if (MCTelegraphDataIn.ChannelID >= 0) and
             (MCTelegraphDataIn.ChannelID <= High(MCTelegraphData)) then begin
             if MCTelegraphDataIn.AxoBusID > 1 then MCTelegraphDataIn.AxoBusID := 0 ;
-           MCTelegraphData[(MCTelegraphDataIn.ChannelID-1)+((MCTelegraphDataIn.AxoBusID)*2)] :=  MCTelegraphDataIn ;
-           WriteToLogFile(format('Multiclamp message from Device %d Ch.%d',
-           [ MCTelegraphDataIn.AxoBusID,MCTelegraphDataIn.ChannelID]));
+            Device := MCTelegraphDataIn.AxoBusID and $1 ;
+            MCTelegraphData[(MCTelegraphDataIn.ChannelID-1)+(Device*2)] :=  MCTelegraphDataIn ;
+            WriteToLogFile(format('Multiclamp: Message from Device=%d AxobusID=%d ComPortID=%d Ch.=%d',
+           [ Device,MCTelegraphDataIn.AxoBusID,MCTelegraphDataIn.ComPortID,MCTelegraphDataIn.ChannelID]));
            end ;
          //Main.StatusBar.SimpleText := 'WM_COPYDATA received' ;
          Result := True ;
@@ -6545,14 +6548,17 @@ begin
     if (Message.Msg = MCIDMessageID) or (Message.Msg = MCReconnectMessageID) then begin
          AddChannel := True ;
          for i := 0 to MCNumChannels-1 do if MCChannels[i] = Message.lParam then AddChannel := False ;
+         WriteToLogFile(format('Multiclamp: MCIDMessage received ID=%x',[Message.lParam]));
+
          if AddChannel then begin
              // Store server device/channel ID in list
              MCChannels[MCNumChannels] := Message.lParam ;
              // Open connection to this device/channel
              if not PostMessage(HWND_BROADCAST,MCOpenMessageID,Application.Handle,MCChannels[MCNumChannels] ) then
                 ShowMessage( 'MultiClamp Commander (Open Message Failed)' ) ;
-             Main.StatusBar.SimpleText := format('MCOpenMessageID broadcast to device %x',
+             Main.StatusBar.SimpleText := format('Multiclamp: MCOpenMessageID broadcast to device %x',
              [MCChannels[MCNumChannels]]) ;
+             WriteToLogFile(Main.StatusBar.SimpleText) ;
              Inc(MCNumChannels) ;
              end ;
          Result := True ;
