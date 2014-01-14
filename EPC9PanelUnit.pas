@@ -269,7 +269,6 @@ begin
 
     cbMode.Clear ;
     cbMode.Items.Add('V-clamp') ;
-    cbMode.Items.Add('V-clamp') ;
     cbMode.Items.Add('C-clamp') ;
     cbMode.ItemIndex := Mode[cbChannel.ItemIndex] ;
     Main.SESLabIO.EPC9Mode := cbMode.ItemIndex ;
@@ -293,8 +292,8 @@ begin
     Main.SESLabIO.EPC9FilterBandwidth[2] := Filter2BandWidth[cbChannel.ItemIndex] ;
     edFilter2BandWidth.Value := Main.SESLabIO.EPC9FilterBandwidth[2] ;
 
-    Main.SESLabIO.EPC9CFast[1] := CFast[cbChannel.ItemIndex] ;
-    edCfast.Value := Main.SESLabIO.EPC9CFast[1] ;
+    Main.SESLabIO.EPC9CFast := CFast[cbChannel.ItemIndex] ;
+    edCfast.Value := Main.SESLabIO.EPC9CFast ;
     Main.SESLabIO.EPC9CFastTau := CFastTau[cbChannel.ItemIndex] ;
     edCfastTau.Value :=  Main.SESLabIO.EPC9CFastTau ;
 
@@ -398,8 +397,8 @@ begin
     Main.SESLabIO.EPC9FilterMode[1] := Filter2[cbChannel.ItemIndex] ;
     cbFilter1.ItemIndex := Main.SESLabIO.EPC9FilterMode[1];
 
-    Main.SESLabIO.EPC9CFast[1] := CFast[cbChannel.ItemIndex] ;
-    edCfast.Value := Main.SESLabIO.EPC9CFast[1] ;
+    Main.SESLabIO.EPC9CFast := CFast[cbChannel.ItemIndex] ;
+    edCfast.Value := Main.SESLabIO.EPC9CFast ;
     Main.SESLabIO.EPC9CFastTau := CFastTau[cbChannel.ItemIndex] ;
     edCfastTau.Value :=  Main.SESLabIO.EPC9CFastTau ;
 
@@ -456,9 +455,8 @@ procedure TEPC9PanelFrm.udCFastChangingEx(Sender: TObject;
 begin
      if  Direction = updUp then edCFast.Value :=  edCFast.Value + 1.0E-13
                            else edCFast.Value :=  edCFast.Value - 1.0E-13 ;
-      Main.SESLabIO.EPC9Cfast[1] := 0.5*edCfast.Value ;
-      Main.SESLabIO.EPC9Cfast[2] := 0.5*edCfast.Value ;
-      edCFast.Value := Main.SESLabIO.EPC9Cfast[1] + Main.SESLabIO.EPC9Cfast[2] ;
+      Main.SESLabIO.EPC9Cfast := edCfast.Value ;
+      edCFast.Value := Main.SESLabIO.EPC9Cfast ;
       CFast[cbChannel.ItemIndex] := edCFast.Value ;
       if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
      end;
@@ -493,7 +491,7 @@ begin
        Main.SESLabIO.EPC9FilterMode[2] := Filter2[i] ;
        Main.SESLabIO.EPC9FilterBandwidth[2] := Filter2BandWidth[i] ;
        Main.SESLabIO.EPC9FilterMode[1] := Filter2[i] ;
-       Main.SESLabIO.EPC9CFast[1] := CFast[i] ;
+       Main.SESLabIO.EPC9CFast := CFast[i] ;
        Main.SESLabIO.EPC9CFastTau := CFastTau[i] ;
        Main.SESLabIO.EPC9CslowRange := CSlowRange[i] ;
        Main.SESLabIO.EPC9Cslow := CSlow[i] ;
@@ -526,7 +524,7 @@ begin
 
      Main.SESLabIO.EPC9AutoCFast ;
      CFast[cbChannel.ItemIndex] :=  edCFast.Value ;
-     edCFast.Value := Main.SESLabIO.EPC9CFast[1] + Main.SESLabIO.EPC9CFast[2] ;
+     edCFast.Value := Main.SESLabIO.EPC9CFast ;
      edCFastTau.Value := Main.SESLabIO.EPC9CFastTau ;
      CFastTau[cbChannel.ItemIndex] :=  edCFastTau.Value ;
 
@@ -811,9 +809,8 @@ begin
 
      if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StopADCAndDAC ;
 
-     Main.SESLabIO.EPC9CFast[1] := 0.0 ;
-     Main.SESLabIO.EPC9CFast[2] := 0.0 ;
-     edCFast.Value := Main.SESLabIO.EPC9CFast[1] + Main.SESLabIO.EPC9CFast[2] ;
+     Main.SESLabIO.EPC9CFast := 0.0 ;
+     edCFast.Value := Main.SESLabIO.EPC9CFast ;
      edCFastTau.Value := Main.SESLabIO.EPC9CFastTau ;
      CFast[cbChannel.ItemIndex] := edCFast.Value ;
      CFastTau[cbChannel.ItemIndex] := edCFastTau.Value ;
@@ -861,9 +858,8 @@ procedure TEPC9PanelFrm.edCfastKeyPress(Sender: TObject; var Key: Char);
 // ----------------------------
 begin
     if Key = #13 then begin
-       Main.SESLabIO.EPC9Cfast[1] := 0.5*edCfast.Value ;
-       Main.SESLabIO.EPC9Cfast[2] := 0.5*edCfast.Value ;
-       edCfast.Value := Main.SESLabIO.EPC9Cfast[1] + Main.SESLabIO.EPC9Cfast[2] ;
+       Main.SESLabIO.EPC9Cfast := edCfast.Value ;
+       edCfast.Value := Main.SESLabIO.EPC9Cfast ;
        CFast[cbChannel.ItemIndex] :=  edCfast.Value ;
        if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
        end;

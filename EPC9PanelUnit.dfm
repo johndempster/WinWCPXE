@@ -162,6 +162,10 @@ object EPC9PanelFrm: TEPC9PanelFrm
       TabOrder = 2
       object CfastTab: TTabSheet
         Caption = 'Cfast'
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Label3: TLabel
           Left = 4
           Top = 3
@@ -268,6 +272,10 @@ object EPC9PanelFrm: TEPC9PanelFrm
       object CslowTab: TTabSheet
         Caption = 'Cslow'
         ImageIndex = 1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Label7: TLabel
           Left = 4
           Top = 3
@@ -397,6 +405,10 @@ object EPC9PanelFrm: TEPC9PanelFrm
       object RSCompTab: TTabSheet
         Caption = 'Rs Compensation'
         ImageIndex = 2
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Label8: TLabel
           Left = 5
           Top = 3
@@ -492,6 +504,10 @@ object EPC9PanelFrm: TEPC9PanelFrm
       object LeakTab: TTabSheet
         Caption = 'Leak'
         ImageIndex = 3
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Label12: TLabel
           Left = 4
           Top = 3
@@ -562,6 +578,10 @@ object EPC9PanelFrm: TEPC9PanelFrm
       object VpipTab: TTabSheet
         Caption = 'Vpipette'
         ImageIndex = 4
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Label1: TLabel
           Left = 1
           Top = 3

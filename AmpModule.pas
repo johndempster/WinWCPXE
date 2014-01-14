@@ -5296,8 +5296,6 @@ function TAmplifier.GetHekaEPC9Mode(
 // -----------------------------------------
 // Read voltage/current clamp mode telegraph
 // -----------------------------------------
-var
-    EPC9State : PEPC9_StateType ;
 begin
      if Main.SESLabIO.EPC9Mode < 2 then LastMode[AmpNumber] := VClampMode
                                    else LastMode[AmpNumber] := IClampMode ;
