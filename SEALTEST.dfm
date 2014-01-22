@@ -17,6 +17,7 @@ object SealTestFrm: TSealTestFrm
   Visible = True
   OnActivate = FormActivate
   OnClose = FormClose
+  OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnKeyDown = FormKeyDown
   OnResize = FormResize
@@ -411,6 +412,10 @@ object SealTestFrm: TSealTestFrm
       end
       object CellTab: TTabSheet
         Caption = 'Cell (G)'
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Label15: TLabel
           Left = 12
           Top = 4
@@ -514,6 +519,10 @@ object SealTestFrm: TSealTestFrm
       object CellRTab: TTabSheet
         Caption = 'Cell (R)'
         ImageIndex = 2
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Label18: TLabel
           Left = 12
           Top = 4

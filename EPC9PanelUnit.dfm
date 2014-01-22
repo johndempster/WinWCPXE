@@ -3,7 +3,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
   Top = 0
   Caption = 'EPC-9/10 Patch Clamp'
   ClientHeight = 403
-  ClientWidth = 320
+  ClientWidth = 343
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,29 +11,32 @@ object EPC9PanelFrm: TEPC9PanelFrm
   Font.Name = 'Tahoma'
   Font.Style = []
   FormStyle = fsMDIChild
+  KeyPreview = True
   OldCreateOrder = False
   Visible = True
+  OnActivate = FormActivate
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object ControlsGrp: TGroupBox
     Left = 8
-    Top = 0
-    Width = 305
+    Top = 2
+    Width = 321
     Height = 393
     TabOrder = 0
     object GroupBox4: TGroupBox
-      Left = 8
-      Top = 8
-      Width = 129
+      Left = 3
+      Top = 3
+      Width = 150
       Height = 120
       Caption = ' Amplifier '
       TabOrder = 0
       object Label10: TLabel
-        Left = 8
+        Left = 12
         Top = 39
         Width = 24
         Height = 14
@@ -47,7 +50,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
         ParentFont = False
       end
       object Label20: TLabel
-        Left = 8
+        Left = 12
         Top = 19
         Width = 49
         Height = 14
@@ -61,9 +64,9 @@ object EPC9PanelFrm: TEPC9PanelFrm
         ParentFont = False
       end
       object cbGain: TComboBox
-        Left = 43
+        Left = 50
         Top = 43
-        Width = 83
+        Width = 95
         Height = 21
         Hint = 'Amplifier gain / headstage feedback resistance'
         ParentShowHint = False
@@ -73,7 +76,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
         OnChange = cbGainChange
       end
       object cbChannel: TComboBox
-        Left = 69
+        Left = 87
         Top = 16
         Width = 57
         Height = 21
@@ -83,9 +86,9 @@ object EPC9PanelFrm: TEPC9PanelFrm
       end
     end
     object GroupBox5: TGroupBox
-      Left = 8
+      Left = 3
       Top = 128
-      Width = 290
+      Width = 308
       Height = 74
       Caption = ' Filters '
       TabOrder = 1
@@ -116,8 +119,8 @@ object EPC9PanelFrm: TEPC9PanelFrm
         ParentFont = False
       end
       object cbFilter1: TComboBox
-        Left = 50
-        Top = 40
+        Left = 51
+        Top = 43
         Width = 120
         Height = 21
         Hint = 'Input channel'
@@ -140,9 +143,9 @@ object EPC9PanelFrm: TEPC9PanelFrm
         OnChange = cbFilter2Change
       end
       object edFilter2Bandwidth: TValidatedEdit
-        Left = 175
+        Left = 176
         Top = 16
-        Width = 105
+        Width = 122
         Height = 21
         OnKeyPress = edFilter2BandwidthKeyPress
         Text = ' 0 kHz'
@@ -154,18 +157,14 @@ object EPC9PanelFrm: TEPC9PanelFrm
       end
     end
     object PageControl1: TPageControl
-      Left = 8
+      Left = 3
       Top = 208
-      Width = 290
+      Width = 308
       Height = 113
-      ActivePage = CfastTab
+      ActivePage = VpipTab
       TabOrder = 2
       object CfastTab: TTabSheet
         Caption = 'Cfast'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object Label3: TLabel
           Left = 4
           Top = 3
@@ -193,8 +192,8 @@ object EPC9PanelFrm: TEPC9PanelFrm
           ParentFont = False
         end
         object edCfast: TValidatedEdit
-          Left = 120
-          Top = 3
+          Left = 114
+          Top = 1
           Width = 75
           Height = 21
           OnKeyPress = edCfastKeyPress
@@ -206,7 +205,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
           HiLimit = 1.000000015047466E30
         end
         object edCfastTau: TValidatedEdit
-          Left = 120
+          Left = 114
           Top = 28
           Width = 75
           Height = 21
@@ -220,7 +219,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
         end
         object bAutoCfast: TButton
           Left = 220
-          Top = 3
+          Top = 4
           Width = 57
           Height = 17
           Caption = 'Auto'
@@ -235,7 +234,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
         end
         object cCfastClear: TButton
           Left = 220
-          Top = 24
+          Top = 26
           Width = 57
           Height = 17
           Caption = 'Clear'
@@ -250,7 +249,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
         end
         object udCFast: TUpDown
           Left = 195
-          Top = 1
+          Top = -3
           Width = 16
           Height = 24
           Min = -1000000
@@ -272,10 +271,6 @@ object EPC9PanelFrm: TEPC9PanelFrm
       object CslowTab: TTabSheet
         Caption = 'Cslow'
         ImageIndex = 1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object Label7: TLabel
           Left = 4
           Top = 3
@@ -405,10 +400,6 @@ object EPC9PanelFrm: TEPC9PanelFrm
       object RSCompTab: TTabSheet
         Caption = 'Rs Compensation'
         ImageIndex = 2
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object Label8: TLabel
           Left = 5
           Top = 3
@@ -504,10 +495,6 @@ object EPC9PanelFrm: TEPC9PanelFrm
       object LeakTab: TTabSheet
         Caption = 'Leak'
         ImageIndex = 3
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object Label12: TLabel
           Left = 4
           Top = 3
@@ -578,10 +565,6 @@ object EPC9PanelFrm: TEPC9PanelFrm
       object VpipTab: TTabSheet
         Caption = 'Vpipette'
         ImageIndex = 4
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object Label1: TLabel
           Left = 1
           Top = 3
@@ -723,8 +706,8 @@ object EPC9PanelFrm: TEPC9PanelFrm
       end
     end
     object ModeGrp: TGroupBox
-      Left = 140
-      Top = 8
+      Left = 159
+      Top = 2
       Width = 155
       Height = 120
       Caption = ' Mode '
@@ -744,7 +727,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
       end
       object Label18: TLabel
         Left = 8
-        Top = 63
+        Top = 70
         Width = 38
         Height = 14
         Caption = 'CC Tau'
@@ -758,7 +741,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
       object cbMode: TComboBox
         Left = 8
         Top = 16
-        Width = 129
+        Width = 134
         Height = 21
         Hint = 'Amplifer voltage/current clamp mode'
         Style = csDropDownList
@@ -768,7 +751,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
         OnChange = cbModeChange
       end
       object cbCCGain: TComboBox
-        Left = 55
+        Left = 57
         Top = 43
         Width = 85
         Height = 21
@@ -777,7 +760,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
         OnChange = cbCCGainChange
       end
       object cbCCTrackTau: TComboBox
-        Left = 55
+        Left = 57
         Top = 70
         Width = 85
         Height = 21
@@ -802,9 +785,9 @@ object EPC9PanelFrm: TEPC9PanelFrm
       end
     end
     object StimGrp: TGroupBox
-      Left = 8
+      Left = 3
       Top = 327
-      Width = 289
+      Width = 308
       Height = 51
       Caption = ' Command Stimulus '
       TabOrder = 4
@@ -837,7 +820,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
       object ckEnableStimFilter: TCheckBox
         Left = 173
         Top = 16
-        Width = 113
+        Width = 108
         Height = 28
         Caption = 'Enable Stimulus Filter'
         Font.Charset = ANSI_CHARSET

@@ -1351,7 +1351,7 @@ begin
 
 procedure TMain.mnEPC9PanelClick(Sender: TObject);
 // -------------------------------
-//  Display Triton control window
+//  Display EPC9/10 control window
 // ------------------------------- }
 begin
 
@@ -1364,7 +1364,7 @@ begin
      else begin
         EPC9PanelFrm := TEPC9PanelFrm.Create(Self) ;
         EPC9PanelFrm.Top := 10 ;
-        EPC9PanelFrm.Left := 650 ;
+        EPC9PanelFrm.Left := Width - EPC9PanelFrm.Width - 50 ;
         end ;
 
      end;

@@ -1064,7 +1064,7 @@ begin
 
      NumPoints := Max( Round(Time/DACUpdateInterval),1) ;
 
-     outputdebugstring(pchar(format('DAC %d',[NumPoints])));
+     //outputdebugstring(pchar(format('DAC %d',[NumPoints])));
 
      jLimit := Main.SESLabIO.ADCBufferLimit ;
      j := DACCounter*NumDACChannels + Chan ;
@@ -1971,7 +1971,7 @@ begin
     XMLDoc.Active := True ;
 
     for i := 0 to  xmldoc.DocumentElement.ChildNodes.Count-1 do
-        OutputDebugString( PChar(String(xmldoc.DocumentElement.ChildNodes[i].NodeName))) ;
+        //OutputDebugString( PChar(String(xmldoc.DocumentElement.ChildNodes[i].NodeName))) ;
 
     ProtNode := xmldoc.DocumentElement ;
 

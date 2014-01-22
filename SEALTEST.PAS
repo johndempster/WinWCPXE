@@ -76,6 +76,8 @@ unit Sealtest;
               applied to additional channels by ticking boxes.
   17.04.12 .. No. of input channels displayed can now be selected from menu.
   06.09.13 .. EPC9PanelFrm opened if EPC9/10 patch clamp in use.
+  21.01.14 .. Sweep shuts down on FormDeactivate to avoid access violations
+              when EPC9PanelFrm title bar held down.
   ==================================================}
 
 interface
@@ -85,8 +87,13 @@ uses WinTypes, WinProcs, Classes, Graphics, Forms, Controls, Buttons,
   math, maths, dialogs,
   ValEdit, ScopeDisplay, SESLabIO, ComCtrls, ValidatedEdit, FileIO,ampmodule, strutils ;
 
+const
+    Idle = 0 ;
+    StartSweep = 1 ;
+    SweepInProgress = 2;
+    EndofSweep = 3 ;
 type
-  TState = ( Idle, StartSweep, SweepInProgress, EndofSweep ) ;
+  //TState = ( Idle, StartSweep, SweepInProgress, EndofSweep ) ;
 
   TTestPulse = record
                Duration : single ;
@@ -206,8 +213,10 @@ type
     procedure rbIclampClick(Sender: TObject);
     procedure cbNumChannelsChange(Sender: TObject);
     procedure edSmoothingFactorKeyPress(Sender: TObject; var Key: Char);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
+  Initialised : Boolean ;
   ADC : PSmallIntArray ;
   DAC : PSmallIntArray ;
   EndOfBuf : Integer ;
@@ -257,7 +266,8 @@ type
 
   public
     { Public declarations }
-    State : TState ;
+    State : Integer ;
+    LoadEPC9Panel : Boolean ;
     procedure StopADCandDAC ;
     procedure StartADCandDAC ;
     procedure ChangeDisplayGrid ;
@@ -282,7 +292,7 @@ implementation
 
 {$R *.DFM}
 
-uses Mdiform, mmsystem , Rec, TritonPanelUnit;
+uses Mdiform, mmsystem , Rec, TritonPanelUnit, EPC9PanelUnit;
 
 const
      NumDACChannels = 2 ;
@@ -328,7 +338,6 @@ begin
              end ;
           end;
 
-     Timer.Enabled := False ;
      ClientWidth := CellGrp.Left + CellGrp.Width + 5 ;
 
      { Get pointers to start of lab. interface A/D and D/A buffer }
@@ -384,6 +393,7 @@ begin
 
      scDisplay.TUnits := Settings.TUnits ;
 
+
      // Show available output channels
      ckPulseToAO0.Visible := False ;
      ckPulseToAO1.Visible := False ;
@@ -433,7 +443,7 @@ begin
      TimerBusy := False ;
      ResetReadout := True ;
      FirstSweep := True ;
-     State := StartSweep ;
+     State := idle ;//StartSweep ;
      NewAmplifierGain := True ;
 
      // Clear display
@@ -443,7 +453,8 @@ begin
          end ;
 
      Resize ;
-
+     State := StartSweep ;
+     Initialised := True ;
      end ;
 
 
@@ -496,6 +507,12 @@ begin
 
      if not TimerBusy then begin
           TimerBusy := True ;
+
+          if LoadEPC9Panel then begin
+               Main.mnEPC9Panel.Enabled := True ;
+                Main.mnEPC9Panel.Click ;
+                LoadEPC9Panel := False ;
+                end ;
           case State of
 
                StartSweep : Begin
@@ -1147,8 +1164,12 @@ var
     ch : Integer ;
 begin
 
-    if Main.SESLabIO.ADCActive then Main.SESLabIO.ADCStop ;
+    if not Initialised then exit ;
+    if State <> SweepInProgress then Exit ;
 
+    Timer.Enabled := False ;
+
+    if Main.SESLabIO.ADCActive then Main.SESLabIO.ADCStop ;
     if Main.SESLabIO.DACActive then Main.SESLabIO.DACStop ;
 
     { Return voltage command to holding voltage and Sync. O/P to OFF }
@@ -1166,6 +1187,8 @@ procedure TSealTestFrm.StartADCandDAC ;
   ---------------------------------}
 begin
 
+     if not Initialised then exit ;
+
      // Ensure display channels visibility is updated
      ChangeDisplayGrid ;
 
@@ -1173,9 +1196,11 @@ begin
      if Main.FormExists( 'RecordFrm') then RecordFrm.StopSweep ;
 
      { Start seal test pulses when form gains focus }
+
      Timer.enabled := True ;
      TimerBusy := False ;
      State := StartSweep ;
+
      end;
 
 
@@ -1307,8 +1332,8 @@ procedure TSealTestFrm.FormDeactivate(Sender: TObject);
 begin
      { Terminate seal test pulses if form loses focus }
  //    Timer.enabled := false ;
- //    StopADCandDAC ;
- //    State := Idle ;
+     StopADCandDAC ;
+     State := Idle ;
      end;
 
 
@@ -1319,7 +1344,7 @@ procedure TSealTestFrm.FormActivate(Sender: TObject);
 begin
 
      StartADCandDAC ;
-
+     //outputdebugstring(pchar('sealtest activate'));
      end;
 
 
@@ -1341,6 +1366,14 @@ begin
 
      end;
 
+
+procedure TSealTestFrm.FormCreate(Sender: TObject);
+begin
+     Timer.Enabled := False ;
+     LoadEPC9Panel := False ;
+     Initialised := False ;
+     State := Idle ;
+     end;
 
 procedure TSealTestFrm.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
@@ -1393,9 +1426,10 @@ begin
      scDisplay.Width := Max(ClientWidth - scDisplay.Left - 5,2) ;
      scDisplay.Height := Max( ckAutoScale.Top - scDisplay.Top - 2,2) ;
 
-     State := StartSweep ;
-     Timer.Enabled := True ;
-     
+     //State := StartSweep ;
+     StartADCandDAC ;
+     //Timer.Enabled := True ;
+
      end;
 
 

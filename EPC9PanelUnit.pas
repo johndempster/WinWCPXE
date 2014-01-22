@@ -143,6 +143,8 @@ type
       NewValue: SmallInt; Direction: TUpDownDirection);
     procedure udCFastTauChangingEx(Sender: TObject; var AllowChange: Boolean;
       NewValue: SmallInt; Direction: TUpDownDirection);
+    procedure FormActivate(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
     SettingsFileName : String ;
@@ -231,12 +233,12 @@ type
     procedure LoadFromXMLFile( FileName : String ) ;
     procedure SaveToXMLFile( FileName : String ) ;
     procedure UpdatePanelSettings ;
-    procedure UpdateEPC9Settings ;
+    procedure UpdateEPC9Settings( iAmp : Integer)  ;
 
   end;
 
 var
-  EPC9PanelFrm: TEPC9PanelFrm;
+    EPC9PanelFrm : TEPC9PanelFrm ;
 
 implementation
 
@@ -253,84 +255,51 @@ var
     i : Integer ;
 begin
 
-    // Amplifier selection
+    // Amplifier list
     cbChannel.Clear ;
     for i := 1 to  Main.SESLabIO.EPC9NumAmplifiers do cbChannel.Items.Add(Format('%d',[i])) ;
     cbChannel.ItemIndex := 0 ;
-     Main.SESLabIO.EPC9Amplifier := cbChannel.ItemIndex + 1 ;
 
     // Gain list
     Main.SESLabIO.EPC9GetCurrentGainList( cbGain.Items ) ;
-    cbGain.ItemIndex := Gain[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9SetCurrentGain(cbGain.ItemIndex) ;
-
-    GentleModeChange := ckChangeModeGently.Checked ;
-    Main.SESLabIO.EPC9GentleModeChange := GentleModeChange ;
 
     cbMode.Clear ;
     cbMode.Items.Add('V-clamp') ;
+    cbMode.Items.Add('V-clamp') ;
     cbMode.Items.Add('C-clamp') ;
-    cbMode.ItemIndex := Mode[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9Mode := cbMode.ItemIndex ;
-    cbMode.ItemIndex := Main.SESLabIO.EPC9Mode ;
 
+    // Filter #1
     cbFilter1.Clear ;
     cbFilter1.Items.Add('Bessel 100 kHz') ;
     cbFilter1.Items.Add('Bessel 30 kHz') ;
     cbFilter1.Items.Add('Bessel 10 kHz') ;
     cbFilter1.Items.Add('HQ 30 kHz') ;
-    Main.SESLabIO.EPC9FilterMode[1] := Filter1[cbChannel.ItemIndex] ;
-    cbFilter1.ItemIndex := Main.SESLabIO.EPC9FilterMode[1];
 
-    // Filters
+    // Filter #2
     cbFilter2.Clear ;
     cbFilter2.Items.Add('Bessel') ;
     cbFilter2.Items.Add('Butterworth') ;
-    Main.SESLabIO.EPC9FilterMode[2] := Filter2[cbChannel.ItemIndex] ;
-    cbFilter2.ItemIndex := Main.SESLabIO.EPC9FilterMode[2] ;
 
-    Main.SESLabIO.EPC9FilterBandwidth[2] := Filter2BandWidth[cbChannel.ItemIndex] ;
-    edFilter2BandWidth.Value := Main.SESLabIO.EPC9FilterBandwidth[2] ;
-
-    Main.SESLabIO.EPC9CFast := CFast[cbChannel.ItemIndex] ;
-    edCfast.Value := Main.SESLabIO.EPC9CFast ;
-    Main.SESLabIO.EPC9CFastTau := CFastTau[cbChannel.ItemIndex] ;
-    edCfastTau.Value :=  Main.SESLabIO.EPC9CFastTau ;
-
+    // Cslow range
     cbCSlowRange.Clear ;
     cbCSlowRange.Items.Add('Off') ;
     cbCSlowRange.Items.Add('30 pF') ;
     cbCSlowRange.Items.Add('100 pF') ;
     cbCSlowRange.Items.Add('1000 pF') ;
 
-    Main.SESLabIO.EPC9CslowRange := CSlowRange[cbChannel.ItemIndex] ;
-    cbCSlowRange.ItemIndex := Min(Max(Main.SESLabIO.EPC9CslowRange,0),cbCSlowRange.Items.Count-1);
-    Main.SESLabIO.EPC9Cslow := CSlow[cbChannel.ItemIndex] ;
-    edCSlow.Value :=  Main.SESLabIO.EPC9Cslow ;
-    Main.SESLabIO.EPC9Gseries := GSeries[cbChannel.ItemIndex] ;
-    edGSeries.Value := Main.SESLabIO.EPC9Gseries ;
-
+    // RS compensation
     cbRSSpeed.Clear ;
     cbRSSpeed.Items.Add('Off') ;
     cbRSSpeed.Items.Add('100 us') ;
     cbRSSpeed.Items.Add('10 us') ;
     cbRSSpeed.Items.Add('5 us') ;
     cbRSSpeed.Items.Add('2 us') ;
-    Main.SESLabIO.epc9RSMode := RSMode[cbChannel.ItemIndex] ;
-    cbRSSpeed.ItemIndex := Min(Max(Main.SESLabIO.epc9RSMode,0),cbCSlowRange.Items.Count-1);
-    Main.SESLabIO.EPC9RSFraction := RSFraction[cbChannel.ItemIndex] ;
-    edRSCompensation.Value := Main.SESLabIO.EPC9RSFraction ;
-
-    Main.SESLabIO.EPC9GLeak := GLeak[cbChannel.ItemIndex] ;
-    edGLeak.Value := Main.SESLabIO.EPC9GLeak ;
 
     // Current clamp gain
     cbCCGain.Clear ;
     cbCCGain.Items.Add(' 1 pA/mV');
     cbCCGain.Items.Add(' 10 pA/mV');
     cbCCGain.Items.Add(' 100 pA/mV');
-    cbCCGain.ItemIndex := CCGain[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9CCGain := cbChannel.ItemIndex ;
 
     // Current clamp tracking time constant
     cbCCTrackTau.Clear ;
@@ -339,8 +308,6 @@ begin
     cbCCTrackTau.Items.Add(' 3 ms');
     cbCCTrackTau.Items.Add(' 10 ms');
     cbCCTrackTau.Items.Add(' 100 ms');
-    cbCCTrackTau.ItemIndex := CCTrackTau[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9CCTrackTau := cbCCTrackTau.ItemIndex ;
 
     // External stimulation path
 
@@ -348,27 +315,12 @@ begin
     cbExtStimPath.Items.Add('Off') ;
     cbExtStimPath.Items.Add('DAC') ;
     cbExtStimPath.Items.Add('Input') ;
-    cbExtStimPath.ItemIndex := ExtStimPath[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9ExtStimPath := cbExtStimPath.ItemIndex ;
 
-    ckEnableStimFilter.Checked := EnableStimFilter[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9EnableStimFilter := ckEnableStimFilter.Checked ;
+     //Update patch clamp
+     UpdateEPC9Settings(cbChannel.ItemIndex) ;
 
-    edVPOffset.Value := VPOffset[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9VPOffset := edVPOffset.Value ;
-    VPOffset[cbChannel.ItemIndex] := Main.SESLabIO.EPC9VPOffset ;
-    edVPOffset.Value := VPOffset[cbChannel.ItemIndex] ;
-
-    edVLiquidJunction.Value := VLiquidJunction[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9VLiquidJunction := edVLiquidJunction.Value ;
-    VLiquidJunction[cbChannel.ItemIndex] := Main.SESLabIO.EPC9VLiquidJunction ;
-    edVLiquidJunction.Value := VLiquidJunction[cbChannel.ItemIndex] ;
-
-    edVHold.Value := VHold[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9VHold := edVHold.Value ;
-    VHold[cbChannel.ItemIndex] := Main.SESLabIO.EPC9VHold ;
-    edVHold.Value := VHold[cbChannel.ItemIndex] ;
-
+    // Update settings for amplifier
+    UpdatePanelSettings ;
 
     end;
 
@@ -379,69 +331,37 @@ procedure TEPC9PanelFrm.UpdatePanelSettings ;
 begin
 
     cbGain.ItemIndex := Gain[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9SetCurrentGain(cbGain.ItemIndex) ;
 
     GentleModeChange := ckChangeModeGently.Checked ;
-    Main.SESLabIO.EPC9GentleModeChange := GentleModeChange ;
 
     cbMode.ItemIndex := Mode[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9Mode := cbMode.ItemIndex ;
-    cbMode.ItemIndex := Main.SESLabIO.EPC9Mode ;
 
-    Main.SESLabIO.EPC9FilterMode[2] := Filter2[cbChannel.ItemIndex] ;
-    cbFilter2.ItemIndex := Main.SESLabIO.EPC9FilterMode[2] ;
+    cbFilter1.ItemIndex := Filter1[cbChannel.ItemIndex] ;
+    cbFilter2.ItemIndex := Filter2[cbChannel.ItemIndex] ;
+    edFilter2BandWidth.Value := Filter2BandWidth[cbChannel.ItemIndex] ;
 
-    Main.SESLabIO.EPC9FilterBandwidth[2] := Filter2BandWidth[cbChannel.ItemIndex] ;
-    edFilter2BandWidth.Value := Main.SESLabIO.EPC9FilterBandwidth[2] ;
+    edCfast.Value := CFast[cbChannel.ItemIndex] ;
+    edCfastTau.Value := CFastTau[cbChannel.ItemIndex] ;
 
-    Main.SESLabIO.EPC9FilterMode[1] := Filter2[cbChannel.ItemIndex] ;
-    cbFilter1.ItemIndex := Main.SESLabIO.EPC9FilterMode[1];
+    cbCSlowRange.ItemIndex := Min(Max(CSlowRange[cbChannel.ItemIndex],0),cbCSlowRange.Items.Count-1);
+    edCSlow.Value := CSlow[cbChannel.ItemIndex] ;
+    edGSeries.Value := GSeries[cbChannel.ItemIndex] ;
 
-    Main.SESLabIO.EPC9CFast := CFast[cbChannel.ItemIndex] ;
-    edCfast.Value := Main.SESLabIO.EPC9CFast ;
-    Main.SESLabIO.EPC9CFastTau := CFastTau[cbChannel.ItemIndex] ;
-    edCfastTau.Value :=  Main.SESLabIO.EPC9CFastTau ;
+    cbRSSpeed.ItemIndex := Min(Max(RSMode[cbChannel.ItemIndex],0),cbCSlowRange.Items.Count-1);
+    edRSCompensation.Value := RSFraction[cbChannel.ItemIndex] ;
 
-    Main.SESLabIO.EPC9CslowRange := CSlowRange[cbChannel.ItemIndex] ;
-    cbCSlowRange.ItemIndex := Min(Max(Main.SESLabIO.EPC9CslowRange,0),cbCSlowRange.Items.Count-1);
-    Main.SESLabIO.EPC9Cslow := CSlow[cbChannel.ItemIndex] ;
-    edCSlow.Value :=  Main.SESLabIO.EPC9Cslow ;
-    Main.SESLabIO.EPC9Gseries := GSeries[cbChannel.ItemIndex] ;
-    edGSeries.Value := Main.SESLabIO.EPC9Gseries ;
-
-    Main.SESLabIO.epc9RSMode := RSMode[cbChannel.ItemIndex] ;
-    cbRSSpeed.ItemIndex := Min(Max(Main.SESLabIO.epc9RSMode,0),cbCSlowRange.Items.Count-1);
-    Main.SESLabIO.EPC9RSFraction := RSFraction[cbChannel.ItemIndex] ;
-    edRSCompensation.Value := Main.SESLabIO.EPC9RSFraction ;
-
-    Main.SESLabIO.EPC9GLeak := GLeak[cbChannel.ItemIndex] ;
-    edGLeak.Value := Main.SESLabIO.EPC9GLeak ;
+    edGLeak.Value := GLeak[cbChannel.ItemIndex] ;
 
     cbCCGain.ItemIndex := CCGain[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9CCGain := cbChannel.ItemIndex ;
 
     cbCCTrackTau.ItemIndex := CCTrackTau[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9CCTrackTau := cbCCTrackTau.ItemIndex ;
 
     cbExtStimPath.ItemIndex := ExtStimPath[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9ExtStimPath := cbExtStimPath.ItemIndex ;
 
     ckEnableStimFilter.Checked := EnableStimFilter[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9EnableStimFilter := ckEnableStimFilter.Checked ;
 
     edVPOffset.Value := VPOffset[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9VPOffset := edVPOffset.Value ;
-    VPOffset[cbChannel.ItemIndex] := Main.SESLabIO.EPC9VPOffset ;
-    edVPOffset.Value := VPOffset[cbChannel.ItemIndex] ;
-
     edVLiquidJunction.Value := VLiquidJunction[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9VLiquidJunction := edVLiquidJunction.Value ;
-    VLiquidJunction[cbChannel.ItemIndex] := Main.SESLabIO.EPC9VLiquidJunction ;
-    edVLiquidJunction.Value := VLiquidJunction[cbChannel.ItemIndex] ;
-
-    edVHold.Value := VHold[cbChannel.ItemIndex] ;
-    Main.SESLabIO.EPC9VHold := edVHold.Value ;
-    VHold[cbChannel.ItemIndex] := Main.SESLabIO.EPC9VHold ;
     edVHold.Value := VHold[cbChannel.ItemIndex] ;
 
     end ;
@@ -452,61 +372,80 @@ procedure TEPC9PanelFrm.udCFastChangingEx(Sender: TObject;
 // -------------------------------
 // CFast Up/down button pressed
 // -------------------------------
+var
+    dx : single ;
 begin
-     if  Direction = updUp then edCFast.Value :=  edCFast.Value + 1.0E-13
-                           else edCFast.Value :=  edCFast.Value - 1.0E-13 ;
-      Main.SESLabIO.EPC9Cfast := edCfast.Value ;
-      edCFast.Value := Main.SESLabIO.EPC9Cfast ;
-      CFast[cbChannel.ItemIndex] := edCFast.Value ;
-      if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+     if  Direction = updUp then dx := 1.0E-13
+                           else dx := -1.0E-13 ;
+     CFast[cbChannel.ItemIndex] := Max(CFast[cbChannel.ItemIndex] + dx,0.0) ;
+     UpdateEPC9Settings(cbChannel.ItemIndex) ;
+     CFast[cbChannel.ItemIndex] := Main.SESLabIO.EPC9Cfast ;
+     edCfast.Value := CFast[cbChannel.ItemIndex] ;
      end;
+
 
 procedure TEPC9PanelFrm.udCFastTauChangingEx(Sender: TObject;
   var AllowChange: Boolean; NewValue: SmallInt; Direction: TUpDownDirection);
 // -------------------------------
 // CFastTau Up/down button pressed
 // -------------------------------
+var
+    dx : single ;
 begin
-     if  Direction = updUp then edCFastTau.Value :=  edCFastTau.Value + 1.0E-4
-                           else edCFastTau.Value :=  edCFastTau.Value - 1.0E-4 ;
-     Main.SESLabIO.EPC9CFastTau := edCFastTau.Value ;
-      edCFastTau.Value := Main.SESLabIO.EPC9CFastTau ;
-      CFastTau[cbChannel.ItemIndex] := edCFastTau.Value ;
-      if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+     if  Direction = updUp then dx := 1E-7
+                           else dx := -1E-7 ;
+     CFastTau[cbChannel.ItemIndex] := Max(CFastTau[cbChannel.ItemIndex] + dx,0.0) ;
+     UpdateEPC9Settings(cbChannel.ItemIndex) ;
+     CFastTau[cbChannel.ItemIndex] := Main.SESLabIO.EPC9CfastTau ;
+     edCfastTau.Value := CFastTau[cbChannel.ItemIndex] ;
      end;
 
-procedure TEPC9PanelFrm.UpdateEPC9Settings ;
+procedure TEPC9PanelFrm.UpdateEPC9Settings(
+          iAmp : Integer)  ;
 // --------------------------------------------
 // Update panel settings for selected amplifier
 // --------------------------------------------
 var
-    i : Integer ;
+    RestartSealTest : Boolean ;
+
 begin
 
-    for i := 1 to Main.SESLabIO.EPC9NumAmplifiers do begin
-       Main.SESLabIO.EPC9Amplifier := i ;
-       Main.SESLabIO.EPC9SetCurrentGain(Gain[i]) ;
+//       if Main.SESLabIO.ADCActive and
+//          Main.FormExists( 'SealTestFrm' ) then begin
+//          SealTestFrm.StopADCAndDAC ;
+//          RestartSealTest := True ;
+//          end
+//       else RestartSealTest := False ;
+
+       Main.SESLabIO.EPC9Amplifier := iAmp ;
+
+       Main.SESLabIO.EPC9SetCurrentGain(Gain[iAmp]) ;
+
        Main.SESLabIO.EPC9GentleModeChange := GentleModeChange ;
-       Main.SESLabIO.EPC9Mode := Mode[i] ;
-       Main.SESLabIO.EPC9FilterMode[2] := Filter2[i] ;
-       Main.SESLabIO.EPC9FilterBandwidth[2] := Filter2BandWidth[i] ;
-       Main.SESLabIO.EPC9FilterMode[1] := Filter2[i] ;
-       Main.SESLabIO.EPC9CFast := CFast[i] ;
-       Main.SESLabIO.EPC9CFastTau := CFastTau[i] ;
-       Main.SESLabIO.EPC9CslowRange := CSlowRange[i] ;
-       Main.SESLabIO.EPC9Cslow := CSlow[i] ;
-       Main.SESLabIO.EPC9Gseries := GSeries[i] ;
-       Main.SESLabIO.epc9RSMode := RSMode[i] ;
-       Main.SESLabIO.EPC9RSFraction := RSFraction[i] ;
-       Main.SESLabIO.EPC9GLeak := GLeak[i] ;
-       Main.SESLabIO.EPC9CCGain := CCGain[i] ;
-       Main.SESLabIO.EPC9CCTrackTau := CCTrackTau[i] ;
-       Main.SESLabIO.EPC9ExtStimPath := ExtStimPath[i] ;
-       Main.SESLabIO.EPC9EnableStimFilter :=  EnableStimFilter[i] ;
-       Main.SESLabIO.EPC9VPOffset :=  VPOffset[i] ;
-       Main.SESLabIO.EPC9VLiquidJunction := VLiquidJunction[i] ;
-       Main.SESLabIO.EPC9VHold := VHold[i] ;
-       end ;
+       Main.SESLabIO.EPC9Mode := Mode[iAmp] ;
+       Main.SESLabIO.EPC9FilterMode[2] := Filter2[iAmp] ;
+       Main.SESLabIO.EPC9FilterMode[1] := Filter1[iAmp] ;
+       Filter1BandWidth[iAmp] := 1E5 ;
+       Main.SESLabIO.EPC9FilterBandwidth[1] := Filter1BandWidth[iAmp] ;
+       Main.SESLabIO.EPC9FilterBandwidth[2] := Filter2BandWidth[iAmp] ;
+       Main.SESLabIO.EPC9CFast := CFast[iAmp] ;
+       Main.SESLabIO.EPC9CFastTau := CFastTau[iAmp] ;
+       Main.SESLabIO.EPC9CslowRange := CSlowRange[iAmp] ;
+       Main.SESLabIO.EPC9Cslow := CSlow[iAmp] ;
+       Main.SESLabIO.EPC9Gseries := GSeries[iAmp] ;
+       Main.SESLabIO.epc9RSMode := RSMode[iAmp] ;
+       Main.SESLabIO.EPC9RSFraction := RSFraction[iAmp] ;
+       Main.SESLabIO.EPC9GLeak := GLeak[iAmp] ;
+       Main.SESLabIO.EPC9CCGain := CCGain[iAmp] ;
+       Main.SESLabIO.EPC9CCTrackTau := CCTrackTau[iAmp] ;
+       Main.SESLabIO.EPC9ExtStimPath := ExtStimPath[iAmp] ;
+       Main.SESLabIO.EPC9EnableStimFilter :=  EnableStimFilter[iAmp] ;
+       Main.SESLabIO.EPC9VPOffset :=  VPOffset[iAmp] ;
+       Main.SESLabIO.EPC9VLiquidJunction := VLiquidJunction[iAmp] ;
+       Main.SESLabIO.EPC9VHold := VHold[iAmp] ;
+       Main.SESLabIO.EPC9FlushCache ;
+
+//       if RestartSealTest then SealTestFrm.StartADCAndDAC ;
 
     end ;
 
@@ -523,7 +462,7 @@ begin
      Main.StatusBar.SimpleText := 'WAIT: Cfast compensation in progress.' ;
 
      Main.SESLabIO.EPC9AutoCFast ;
-     CFast[cbChannel.ItemIndex] :=  edCFast.Value ;
+     //CFast[cbChannel.ItemIndex] :=  edCFast.Value ;
      edCFast.Value := Main.SESLabIO.EPC9CFast ;
      edCFastTau.Value := Main.SESLabIO.EPC9CFastTau ;
      CFastTau[cbChannel.ItemIndex] :=  edCFastTau.Value ;
@@ -647,10 +586,10 @@ procedure TEPC9PanelFrm.bClearRSCompensationClick(Sender: TObject);
 // Clear leak RS compensation
 // --------------------------
 begin
-      Main.SESLabIO.EPC9RSFraction := 0.0 ;
-      edRSCompensation.Value := Main.SESLabIO.EPC9RSFraction ;
-      RSFraction[cbChannel.ItemIndex] := edRSCompensation.Value ;
-      if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+      RSFraction[cbChannel.ItemIndex] := 0.0 ;
+      UpdateEPC9Settings(cbChannel.ItemIndex) ;
+      RSFraction[cbChannel.ItemIndex] := Main.SESLabIO.EPC9RSFraction ;
+      edRSCompensation.Value := RSFraction[cbChannel.ItemIndex] ;
       end;
 
 procedure TEPC9PanelFrm.bClearVPOffsetClick(Sender: TObject);
@@ -658,13 +597,13 @@ procedure TEPC9PanelFrm.bClearVPOffsetClick(Sender: TObject);
 // Clear VPoffset and junction potential
 // -------------------------------------
 begin
-     Main.SESLabIO.EPC9VpOffset := 0.0 ;
-     Main.SESLabIO.EPC9VLiquidJunction := 0.0 ;
-     edVpOffset.Value := Main.SESLabIO.EPC9VpOffset ;
-     VPOffset[cbChannel.ItemIndex] := edVpOffset.Value ;
-     edVLiquidJunction.Value := Main.SESLabIO.EPC9VLiquidJunction ;
-     VLiquidJunction[cbChannel.ItemIndex] := edVLiquidJunction.Value ;
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+     VPOffset[cbChannel.ItemIndex] := 0.0 ;
+     VLiquidJunction[cbChannel.ItemIndex] := 0.0 ;
+     UpdateEPC9Settings(cbChannel.ItemIndex) ;
+     VPOffset[cbChannel.ItemIndex] :=  Main.SESLabIO.EPC9VpOffset ;
+     VLiquidJunction[cbChannel.ItemIndex] := Main.SESLabIO.EPC9VLiquidJunction ;
+     edVLiquidJunction.Value := VLiquidJunction[cbChannel.ItemIndex] ;
+     edVPOffset.Value := VPOffset[cbChannel.ItemIndex] ;
      end;
 
 
@@ -674,9 +613,9 @@ procedure TEPC9PanelFrm.bCLearLeakSubtractClick(Sender: TObject);
 // -------------------------------------
 begin
      Main.SESLabIO.EPC9Gleak := 0.0 ;
-     edGleak.Value := Main.SESLabIO.EPC9Gleak ;
-     Gleak[cbChannel.ItemIndex] :=  edGleak.Value ;
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+     UpdateEPC9Settings(cbChannel.ItemIndex) ;
+     Gleak[cbChannel.ItemIndex] := Main.SESLabIO.EPC9Gleak ;
+     edGleak.Value := Gleak[cbChannel.ItemIndex] ;
      end;
 
 
@@ -685,16 +624,13 @@ procedure TEPC9PanelFrm.bClearCslowClick(Sender: TObject);
 // Clear Cslow
 // ------------
 begin
-     Main.SESLabIO.EPC9Cslow := 0.0 ;
-     edCslow.Value := Main.SESLabIO.EPC9Cslow ;
-     CSlow[cbChannel.ItemIndex] :=  edCslow.Value ;
-
-     Main.SESLabIO.EPC9GSeries := 1.0 ;
-     edGseries.Value :=  Main.SESLabIO.EPC9GSeries ;
-     Gseries[cbChannel.ItemIndex] :=  edGseries.Value ;
-
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
-
+     CSlow[cbChannel.ItemIndex] :=  0.0 ;
+     Gseries[cbChannel.ItemIndex] := 1.0 ;
+     UpdateEPC9Settings(cbChannel.ItemIndex) ;
+     CSlow[cbChannel.ItemIndex] := Main.SESLabIO.EPC9Cslow ;
+     edCslow.Value :=  CSlow[cbChannel.ItemIndex] ;
+     Gseries[cbChannel.ItemIndex] := Main.SESLabIO.EPC9GSeries ;
+     edGseries.Value := Gseries[cbChannel.ItemIndex] ;
      end;
 
 procedure TEPC9PanelFrm.cbCCGainChange(Sender: TObject);
@@ -702,9 +638,10 @@ procedure TEPC9PanelFrm.cbCCGainChange(Sender: TObject);
 // Current clamp gain changed
 // --------------------------
 begin
-    CCGain[cbChannel.ItemIndex] :=  cbCCGain.ItemIndex ;
-    Main.SESLabIO.EPC9CCGain := cbChannel.ItemIndex ;
-    if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+    CCGain[cbChannel.ItemIndex] := cbCCGain.ItemIndex ;
+    UpdateEPC9Settings(cbChannel.ItemIndex) ;
+    CCGain[cbChannel.ItemIndex] := Main.SESLabIO.EPC9CCGain ;
+    cbCCGain.ItemIndex := CCGain[cbChannel.ItemIndex] ;
     end;
 
 
@@ -714,8 +651,9 @@ procedure TEPC9PanelFrm.cbCCTrackTauChange(Sender: TObject);
 // --------------------------------------------
 begin
     CCTrackTau[cbChannel.ItemIndex] := cbCCTrackTau.ItemIndex ;
-    Main.SESLabIO.EPC9CCTrackTau := cbCCTrackTau.ItemIndex ;
-    if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+    UpdateEPC9Settings(cbChannel.ItemIndex) ;
+    CCTrackTau[cbChannel.ItemIndex] := Main.SESLabIO.EPC9CCTrackTau ;
+    cbCCTrackTau.ItemIndex := CCTrackTau[cbChannel.ItemIndex] ;
     end ;
 
 
@@ -725,19 +663,20 @@ procedure TEPC9PanelFrm.cbChannelChange(Sender: TObject);
 // -----------------
 begin
     Main.SESLabIO.EPC9Amplifier := cbChannel.ItemIndex + 1 ;
+    UpdateEPC9Settings(cbChannel.ItemIndex) ;
     UpdatePanelSettings ;
-    if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
     end;
+
 
 procedure TEPC9PanelFrm.cbCslowRangeChange(Sender: TObject);
 // -------------------
 // Cslow range changed
 // -------------------
 begin
-     Main.SESLabIO.EPC9CslowRange := cbCslowRange.ItemIndex ;
-     cbCslowRange.ItemIndex := Main.SESLabIO.EPC9CslowRange ;
+     CSlowRange[cbChannel.ItemIndex] := cbCslowRange.ItemIndex ;
+     UpdateEPC9Settings(cbChannel.ItemIndex) ;
      CSlowRange[cbChannel.ItemIndex] := Main.SESLabIO.EPC9CslowRange ;
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+     cbCslowRange.ItemIndex := CSlowRange[cbChannel.ItemIndex] ;
      end;
 
 procedure TEPC9PanelFrm.cbExtStimPathChange(Sender: TObject);
@@ -746,8 +685,9 @@ procedure TEPC9PanelFrm.cbExtStimPathChange(Sender: TObject);
 // ---------------------------------
 begin
     ExtStimPath[cbChannel.ItemIndex] := cbExtStimPath.ItemIndex ;
-    Main.SESLabIO.EPC9ExtStimPath := cbExtStimPath.ItemIndex ;
-    if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+    UpdateEPC9Settings(cbChannel.ItemIndex) ;
+    ExtStimPath[cbChannel.ItemIndex] := Main.SESLabIO.EPC9ExtStimPath ;
+    cbExtStimPath.ItemIndex := ExtStimPath[cbChannel.ItemIndex] ;
     end;
 
 procedure TEPC9PanelFrm.cbFilter1Change(Sender: TObject);
@@ -755,15 +695,15 @@ procedure TEPC9PanelFrm.cbFilter1Change(Sender: TObject);
 // Filter 1 changed
 // -------------------
 begin
-    Main.SESLabIO.EPC9FilterMode[1] := cbFilter1.ItemIndex ;
-    Filter1Bandwidth[cbChannel.ItemIndex] := Main.SESLabIO.EPC9FilterBandwidth[1] ;
-    cbFilter1.ItemIndex := Main.SESLabIO.EPC9FilterMode[1] ;
-    Filter1[cbChannel.ItemIndex] := cbFilter1.ItemIndex ;
-    Main.SESLabIO.EPC9FilterBandwidth[2] := edFilter2Bandwidth.Value ;
-    edFilter2Bandwidth.Value := Main.SESLabIO.EPC9FilterBandwidth[2] ;
-    Filter2Bandwidth[cbChannel.ItemIndex] := edFilter2Bandwidth.Value ;
 
-    if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+    Filter1[cbChannel.ItemIndex] := cbFilter1.ItemIndex ;
+    UpdateEPC9Settings(cbChannel.ItemIndex) ;
+    Filter1[cbChannel.ItemIndex] := Main.SESLabIO.EPC9FilterMode[1] ;
+    cbFilter1.ItemIndex := Filter1[cbChannel.ItemIndex] ;
+    Filter1Bandwidth[cbChannel.ItemIndex] := Main.SESLabIO.EPC9FilterBandwidth[1] ;
+    Filter2Bandwidth[cbChannel.ItemIndex] := Main.SESLabIO.EPC9FilterBandwidth[2] ;
+    edFilter2Bandwidth.Value := Filter2Bandwidth[cbChannel.ItemIndex] ;
+
     end;
 
 procedure TEPC9PanelFrm.cbFilter2Change(Sender: TObject);
@@ -771,12 +711,10 @@ procedure TEPC9PanelFrm.cbFilter2Change(Sender: TObject);
 // Filter 2 changed
 // -------------------
 begin
-    Main.SESLabIO.EPC9FilterMode[2] := cbFilter2.ItemIndex ;
-    edFilter2BandWidth.Value := Main.SESLabIO.EPC9FilterBandwidth[2] ;
-    cbFilter2.ItemIndex := Main.SESLabIO.EPC9FilterMode[2] ;
     Filter2[cbChannel.ItemIndex] := cbFilter2.ItemIndex ;
-    Filter2Bandwidth[cbChannel.ItemIndex] := edFilter2BandWidth.Value ;
-    if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+    UpdateEPC9Settings(cbChannel.ItemIndex) ;
+    Filter2[cbChannel.ItemIndex] := Main.SESLabIO.EPC9FilterMode[2] ;
+    cbFilter2.ItemIndex := Filter2[cbChannel.ItemIndex] ;
     end;
 
 procedure TEPC9PanelFrm.cbGainChange(Sender: TObject);
@@ -784,9 +722,8 @@ procedure TEPC9PanelFrm.cbGainChange(Sender: TObject);
 // Gain changed
 // -------------------
 begin
-     Main.SESLabIO.EPC9SetCurrentGain( cbGain.ItemIndex) ;
      Gain[cbChannel.ItemIndex] :=  cbGain.ItemIndex ;
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+     UpdateEPC9Settings(cbChannel.ItemIndex) ;
      end;
 
 procedure TEPC9PanelFrm.cbRSSpeedChange(Sender: TObject);
@@ -797,7 +734,9 @@ begin
      Main.SESLabIO.EPC9RSMode := cbRSSpeed.ItemIndex ;
      cbRSSpeed.ItemIndex := Main.SESLabIO.EPC9RSMode ;
      RSMode[cbChannel.ItemIndex] := cbRSSpeed.ItemIndex ;
-     Main.SESLabIO.EPC9RSMode := cbRSSpeed.ItemIndex ;
+     UpdateEPC9Settings(cbChannel.ItemIndex) ;
+     RSMode[cbChannel.ItemIndex] := Main.SESLabIO.EPC9RSMode ;
+     cbRSSpeed.ItemIndex := RSMode[cbChannel.ItemIndex] ;
      end;
 
 
@@ -806,17 +745,12 @@ procedure TEPC9PanelFrm.cCfastClearClick(Sender: TObject);
 // Clear Cfast compensation
 // ----------------------------
 begin
-
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StopADCAndDAC ;
-
-     Main.SESLabIO.EPC9CFast := 0.0 ;
-     edCFast.Value := Main.SESLabIO.EPC9CFast ;
-     edCFastTau.Value := Main.SESLabIO.EPC9CFastTau ;
-     CFast[cbChannel.ItemIndex] := edCFast.Value ;
-     CFastTau[cbChannel.ItemIndex] := edCFastTau.Value ;
-
-     // Restart seal test
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+     CFast[cbChannel.ItemIndex] := 0.0 ;
+     UpdateEPC9Settings(cbChannel.ItemIndex);
+     CFast[cbChannel.ItemIndex] := Main.SESLabIO.EPC9CFast ;
+     CFastTau[cbChannel.ItemIndex] := Main.SESLabIO.EPC9CFastTau ;
+     edCFast.Value := CFast[cbChannel.ItemIndex] ;
+     edCFastTau.Value := CFastTau[cbChannel.ItemIndex] ;
 
      end;
 
@@ -827,7 +761,7 @@ procedure TEPC9PanelFrm.ckChangeModeGentlyClick(Sender: TObject);
 // --------------------------------
 begin
      GentleModeChange := ckChangeModeGently.Checked ;
-      Main.SESLabIO.EPC9GentleModeChange := GentleModeChange ;
+     Main.SESLabIO.EPC9GentleModeChange := GentleModeChange ;
      end;
 
 procedure TEPC9PanelFrm.ckEnableStimFilterClick(Sender: TObject);
@@ -837,7 +771,7 @@ procedure TEPC9PanelFrm.ckEnableStimFilterClick(Sender: TObject);
 begin
 
     EnableStimFilter[cbExtStimPath.ItemIndex] := ckEnableStimFilter.Checked  ;
-    Main.SESLabIO.EPC9EnableStimFilter := ckEnableStimFilter.Checked ;
+    UpdateEPC9Settings(cbChannel.ItemIndex) ;
 
     end;
 
@@ -846,10 +780,10 @@ procedure TEPC9PanelFrm.cbModeChange(Sender: TObject);
 // Clamp mode changed
 // ----------------------------
 begin
-    Main.SESLabIO.EPC9Mode := cbMode.ItemIndex ;
-    cbMode.ItemIndex := Main.SESLabIO.EPC9Mode ;
     Mode[cbChannel.ItemIndex] := cbMode.ItemIndex ;
-    if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+    //Main.SESLabIO.EPC9Mode := Mode[cbChannel.ItemIndex] ;
+    UpdateEPC9Settings(cbChannel.ItemIndex) ;
+    Mode[cbChannel.ItemIndex] := Main.SESLabIO.EPC9Mode ;
     end;
 
 procedure TEPC9PanelFrm.edCfastKeyPress(Sender: TObject; var Key: Char);
@@ -858,40 +792,39 @@ procedure TEPC9PanelFrm.edCfastKeyPress(Sender: TObject; var Key: Char);
 // ----------------------------
 begin
     if Key = #13 then begin
-       Main.SESLabIO.EPC9Cfast := edCfast.Value ;
-       edCfast.Value := Main.SESLabIO.EPC9Cfast ;
        CFast[cbChannel.ItemIndex] :=  edCfast.Value ;
-       if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+       UpdateEPC9Settings(cbChannel.ItemIndex) ;
+       CFast[cbChannel.ItemIndex] := Main.SESLabIO.EPC9Cfast ;
+       edCfast.Value := CFast[cbChannel.ItemIndex] ;
        end;
     end;
 
 procedure TEPC9PanelFrm.edCfastTauKeyPress(Sender: TObject; var Key: Char);
-// ----------------------------
+// ------------------------
 // Cfast tau value changed
-// ----------------------------
+// ------------------------
 begin
     if Key = #13 then begin
-       Main.SESLabIO.EPC9CfastTau := edCfastTau.Value ;
-       edCfastTau.Value := Main.SESLabIO.EPC9CfastTau ;
        CFastTau[cbChannel.ItemIndex] :=  edCfastTau.Value ;
-       if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+       UpdateEPC9Settings(cbChannel.ItemIndex) ;
+       CFastTau[cbChannel.ItemIndex] := Main.SESLabIO.EPC9CfastTau ;
+       edCfastTau.Value := CFastTau[cbChannel.ItemIndex] ;
        end;
     end;
 
 
 procedure TEPC9PanelFrm.edCSlowKeyPress(Sender: TObject; var Key: Char);
-// ----------------------------
+// -------------------
 // Cslow value changed
-// ----------------------------
+// -------------------
 begin
     if Key = #13 then begin
-       Main.SESLabIO.EPC9CSlow := edCSlow.Value ;
-       edCSlow.Value := Main.SESLabIO.EPC9CSlow ;
        CSlow[cbChannel.ItemIndex] :=  edCSlow.Value ;
-       if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+       UpdateEPC9Settings(cbChannel.ItemIndex) ;
+       CSlow[cbChannel.ItemIndex] := Main.SESLabIO.EPC9CSlow ;
+       edCSlow.Value := CSlow[cbChannel.ItemIndex] ;
        end;
     end;
-
 
 
 procedure TEPC9PanelFrm.edFilter1BandwidthKeyPress(Sender: TObject;
@@ -901,8 +834,8 @@ procedure TEPC9PanelFrm.edFilter1BandwidthKeyPress(Sender: TObject;
 // ----------------------------
 begin
     if Key = #13 then begin
-       Main.SESLabIO.EPC9FilterBandwidth[1] := Filter1Bandwidth[cbChannel.ItemIndex] ;
-       if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+   //    Main.SESLabIO.EPC9FilterBandwidth[1] := Filter1Bandwidth[cbChannel.ItemIndex] ;
+       //if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
        end;
     end;
 
@@ -914,23 +847,23 @@ procedure TEPC9PanelFrm.edFilter2BandwidthKeyPress(Sender: TObject;
 // ----------------------------
 begin
     if Key = #13 then begin
-       Main.SESLabIO.EPC9FilterBandwidth[2] := edFilter2Bandwidth.Value ;
-       edFilter2Bandwidth.Value := Main.SESLabIO.EPC9FilterBandwidth[2] ;
        Filter2Bandwidth[cbChannel.ItemIndex] := edFilter2Bandwidth.Value ;
-       if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+       UpdateEPC9Settings(cbChannel.ItemIndex) ;
+       Filter2Bandwidth[cbChannel.ItemIndex] := Main.SESLabIO.EPC9FilterBandwidth[2] ;
+       edFilter2Bandwidth.Value := Filter2Bandwidth[cbChannel.ItemIndex] ;
        end;
     end;
 
 procedure TEPC9PanelFrm.edGLeakKeyPress(Sender: TObject; var Key: Char);
-// ----------------------------
+// -------------------
 // Gleak value changed
-// ----------------------------
+// -------------------
 begin
    if Key = #13 then begin
-       Main.SESLabIO.EPC9GLeak := edGLeak.Value ;
-       edGLeak.Value := Main.SESLabIO.EPC9GLeak ;
-       GLeak[cbChannel.ItemIndex] := edGLeak.Value ;
-       if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+       GLeak[cbChannel.ItemIndex] :=  edGLeak.Value ;
+       UpdateEPC9Settings(cbChannel.ItemIndex) ;
+       GLeak[cbChannel.ItemIndex] := Main.SESLabIO.EPC9GLeak ;
+       edGLeak.Value := GLeak[cbChannel.ItemIndex] ;
        end;
    end;
 
@@ -941,20 +874,20 @@ procedure TEPC9PanelFrm.edRSCompensationKeyPress(Sender: TObject;
 // ----------------------------
 begin
     if Key = #13 then begin
-       Main.SESLabIO.EPC9RSFraction := edRSCompensation.Value ;
-       edRSCompensation.Value := Main.SESLabIO.EPC9RSFraction ;
-       RSFraction[cbChannel.ItemIndex] := edRSCompensation.Value ;
-       if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+       RSFraction[cbChannel.ItemIndex] :=  edRSCompensation.Value ;
+       UpdateEPC9Settings(cbChannel.ItemIndex) ;
+       RSFraction[cbChannel.ItemIndex] := Main.SESLabIO.EPC9RSFraction ;
+       edRSCompensation.Value := RSFraction[cbChannel.ItemIndex] ;
        end;
     end;
 
 procedure TEPC9PanelFrm.edGSeriesKeyPress(Sender: TObject; var Key: Char);
 begin
     if Key = #13 then begin
-       Main.SESLabIO.EPC9GSeries := edGSeries.Value ;
-       edGseries.Value := Main.SESLabIO.EPC9GSeries ;
+       GSeries[cbChannel.ItemIndex] :=  edGSeries.Value ;
+       UpdateEPC9Settings(cbChannel.ItemIndex) ;
        GSeries[cbChannel.ItemIndex] := Main.SESLabIO.EPC9GSeries ;
-       if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+       edGSeries.Value := GSeries[cbChannel.ItemIndex] ;
        end;
     end;
 
@@ -962,43 +895,44 @@ begin
 procedure TEPC9PanelFrm.edVHoldKeyPress(Sender: TObject; var Key: Char);
 begin
   if Key = #13 then begin
-       Main.SESLabIO.EPC9VHold := edVHold.Value ;
-       edVHold.Value := Main.SESLabIO.EPC9VHold ;
-       VHold[cbChannel.ItemIndex] := edVHold.Value ;
-       if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+       VHold[cbChannel.ItemIndex] :=  edVHold.Value ;
+       UpdateEPC9Settings(cbChannel.ItemIndex) ;
+       VHold[cbChannel.ItemIndex] := Main.SESLabIO.EPC9VHold ;
+       edVHold.Value := VHold[cbChannel.ItemIndex] ;
        end;
-end;
+   end;
 
 procedure TEPC9PanelFrm.edVLiquidJunctionKeyPress(Sender: TObject;
   var Key: Char);
 begin
    if Key = #13 then begin
-       Main.SESLabIO.EPC9VLiquidJunction := edVLiquidJunction.Value ;
-       edVLiquidJunction.Value := Main.SESLabIO.EPC9VLiquidJunction ;
-       VLiquidJunction[cbChannel.ItemIndex] := edVLiquidJunction.Value ;
-       if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+       VLiquidJunction[cbChannel.ItemIndex] :=  edVLiquidJunction.Value ;
+       UpdateEPC9Settings(cbChannel.ItemIndex) ;
+       VLiquidJunction[cbChannel.ItemIndex] := Main.SESLabIO.EPC9VLiquidJunction ;
+       edVLiquidJunction.Value := VLiquidJunction[cbChannel.ItemIndex] ;
        end;
    end;
 
 procedure TEPC9PanelFrm.edVPOffsetKeyPress(Sender: TObject; var Key: Char);
 begin
    if Key = #13 then begin
-       Main.SESLabIO.EPC9VPOffset := edVPOffset.Value ;
-       edVPOffset.Value := Main.SESLabIO.EPC9VPOffset ;
-       VPOffset[cbChannel.ItemIndex] := edVPOffset.Value ;
-       if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
-       end;
+      VPOffset[cbChannel.ItemIndex] :=  edVPOffset.Value ;
+      UpdateEPC9Settings(cbChannel.ItemIndex) ;
+      VPOffset[cbChannel.ItemIndex] := Main.SESLabIO.EPC9VPOffset ;
+      edVPOffset.Value := VPOffset[cbChannel.ItemIndex] ;
+      end;
    end;
+
+procedure TEPC9PanelFrm.FormActivate(Sender: TObject);
+begin
+    //  outputdebugstring(pchar('formactivate'));
+      end;
 
 procedure TEPC9PanelFrm.FormClose(Sender: TObject; var Action: TCloseAction);
 // ----------------------
 // Tidy up and close form
 // ----------------------
 begin
-
-     //ZapAmplitude := edZapAmplitude.Value ;
-     //ZapDuration := edZapDuration.Value ;
-
 
      Action := caFree ;
 
@@ -1023,7 +957,7 @@ begin
        GSERIES[i] := 1E-9 ;
        GLeak[i] := 0.0 ;
        Filter1[i] := 0 ;
-       Filter1Bandwidth[i] := 1.0E4 ;
+       Filter1Bandwidth[i] := 1.0E5 ;
        Filter2[i] := 0 ;
        Filter2Bandwidth[i] := 1.0E4 ;
        VPOffset[i] := 0.0 ;
@@ -1044,7 +978,7 @@ begin
      if FileExists( SettingsFileName ) then LoadFromXMLFile( SettingsFileName ) ;
 
      //Update patch clamp
-     UpdateEPC9Settings ;
+//     UpdateEPC9Settings(cbChannel.ItemIndex) ;
 
      end;
 
@@ -1061,11 +995,17 @@ begin
      end;
 
 
+procedure TEPC9PanelFrm.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+outputdebugstring(pchar('formkeydown'));
+end;
+
 procedure TEPC9PanelFrm.SaveToXMLFile(
            FileName : String
            ) ;
 // -------------------------------------------
-// Save tecella amplifier settings to XML file
+// Save amplifier settings to XML file
 // -------------------------------------------
 begin
     CoInitialize(Nil) ;
@@ -1078,7 +1018,7 @@ procedure TEPC9PanelFrm.SaveToXMLFile1(
            FileName : String
            ) ;
 // -------------------------------------------
-// Save tecella amplifier settings to XML file (internal)
+// Save amplifier settings to XML file (internal)
 // -------------------------------------------
 var
    iNode,ProtNode : IXMLNode;
@@ -1139,20 +1079,20 @@ begin
     end ;
 
 
-
-
 procedure TEPC9PanelFrm.udCSLowChangingEx(Sender: TObject;
   var AllowChange: Boolean; NewValue: SmallInt; Direction: TUpDownDirection);
 // -------------------------------
 // CSlow Up/down button pressed
 // -------------------------------
+var
+    dx : single ;
 begin
-     if  Direction = updUp then edCSlow.Value :=  edCSlow.Value + 1.0E-13
-                           else edCSlow.Value :=  edCSlow.Value - 1.0E-13 ;
-     Main.SESLabIO.EPC9CSlow := edCSlow.Value ;
-     edCSlow.Value := Main.SESLabIO.EPC9CSlow ;
-     CSlow[cbChannel.ItemIndex] := edCSlow.Value ;
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+     if  Direction = updUp then dx := 1.0E-13
+                           else dx := -1.0E-13 ;
+     CSlow[cbChannel.ItemIndex] := Max(CSlow[cbChannel.ItemIndex] + dx,0.0) ;
+     UpdateEPC9Settings(cbChannel.ItemIndex) ;
+     CSlow[cbChannel.ItemIndex] := Main.SESLabIO.EPC9CSlow ;
+     edCSlow.Value := CSlow[cbChannel.ItemIndex] ;
      end;
 
 
@@ -1161,13 +1101,15 @@ procedure TEPC9PanelFrm.udGLeakChangingEx(Sender: TObject;
 // -------------------------------
 // GLeak Up/down button pressed
 // -------------------------------
+var
+    dx : single ;
 begin
-     if  Direction = updUp then edGLeak.Value :=  edGLeak.Value + 1.0E-10
-                           else edGLeak.Value :=  edGLeak.Value - 1.0E-10 ;
-     Main.SESLabIO.EPC9GLeak := edGLeak.Value ;
-      edGLeak.Value := Main.SESLabIO.EPC9GLeak ;
-      GLeak[cbChannel.ItemIndex] := edGLeak.Value ;
-      if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+     if  Direction = updUp then dx := 1.0E-9
+                           else dx := -1.0E-9 ;
+     GLeak[cbChannel.ItemIndex] := Max(GLeak[cbChannel.ItemIndex] + dx,0.0) ;
+     UpdateEPC9Settings(cbChannel.ItemIndex) ;
+     GLeak[cbChannel.ItemIndex] := Main.SESLabIO.EPC9GLeak ;
+     edGLeak.Value := GLeak[cbChannel.ItemIndex] ;
      end;
 
 
@@ -1176,13 +1118,15 @@ procedure TEPC9PanelFrm.udGSeriesChangingEx(Sender: TObject;
 // -------------------------------
 // GSeries Up/down button pressed
 // -------------------------------
+var
+    dx : single ;
 begin
-     if  Direction = updUp then edGSeries.Value :=  edGSeries.Value + 1.0E-9
-                           else edGSeries.Value :=  edGSeries.Value - 1.0E-9;
-     Main.SESLabIO.EPC9GSeries := edGSeries.Value ;
-      edGSeries.Value := Main.SESLabIO.EPC9GSeries ;
-      GSeries[cbChannel.ItemIndex] := edGSeries.Value ;
-      if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+     if  Direction = updUp then dx := 1.0E-9
+                           else dx := -1.0E-9 ;
+     GSeries[cbChannel.ItemIndex] := Max(GSeries[cbChannel.ItemIndex] + dx,0.0) ;
+     UpdateEPC9Settings(cbChannel.ItemIndex) ;
+     GSeries[cbChannel.ItemIndex] := Main.SESLabIO.EPC9GSeries ;
+     edGSeries.Value := GSeries[cbChannel.ItemIndex] ;
      end;
 
 procedure TEPC9PanelFrm.udRSCompensationChangingEx(Sender: TObject;
@@ -1190,28 +1134,31 @@ procedure TEPC9PanelFrm.udRSCompensationChangingEx(Sender: TObject;
 // -------------------------------
 // RS Compensation Up/down button pressed
 // -------------------------------
+var
+    dx : single ;
 begin
-     if  Direction = updUp then edRSCompensation.Value :=  edRSCompensation.Value + 1.0E-3
-                           else edRSCompensation.Value :=  edRSCompensation.Value - 1.0E-3 ;
-     Main.SESLabIO.EPC9RSFraction := edRSCompensation.Value ;
-     edRSCompensation.Value := Main.SESLabIO.EPC9RSFraction ;
-     RSFraction[cbChannel.ItemIndex] := edRSCompensation.Value ;
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
-     end;
-
+     if  Direction = updUp then dx := 1.0E-9
+                           else dx := -1.0E-9 ;
+     RSFraction[cbChannel.ItemIndex] := Max(RSFraction[cbChannel.ItemIndex] + dx,0.0) ;
+     UpdateEPC9Settings(cbChannel.ItemIndex) ;
+     RSFraction[cbChannel.ItemIndex] := Main.SESLabIO.EPC9RSFraction ;
+     edRSCompensation.Value := RSFraction[cbChannel.ItemIndex] ;
+     end ;
 
 procedure TEPC9PanelFrm.udVHoldChangingEx(Sender: TObject;
   var AllowChange: Boolean; NewValue: SmallInt; Direction: TUpDownDirection);
 // -------------------------------
 // VHold Up/down button pressed
 // -------------------------------
+var
+    dx : single ;
 begin
-     if  Direction = updUp then edVHold.Value :=  edVHold.Value + 1.0E-4
-                           else edVHold.Value :=  edVHold.Value - 1.0E-4 ;
-     Main.SESLabIO.EPC9VHold := edVHold.Value ;
-      edVHold.Value := Main.SESLabIO.EPC9VHold ;
-      VHold[cbChannel.ItemIndex] := edVHold.Value ;
-      if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+     if  Direction = updUp then dx := 1.0E-4
+                           else dx := -1.0E-4 ;
+     VHold[cbChannel.ItemIndex] := Max(VHold[cbChannel.ItemIndex] + dx,0.0) ;
+     UpdateEPC9Settings(cbChannel.ItemIndex) ;
+     VHold[cbChannel.ItemIndex] := Main.SESLabIO.EPC9VHold ;
+     edVHold.Value := VHold[cbChannel.ItemIndex] ;
      end;
 
 
@@ -1220,15 +1167,16 @@ procedure TEPC9PanelFrm.udVLiquidJunctionChangingEx(Sender: TObject;
 // -------------------------------
 // VLiquidJunction Up/down button pressed
 // -------------------------------
+var
+    dx : single ;
 begin
-     if  Direction = updUp then edVLiquidJunction.Value :=  edVLiquidJunction.Value + 1.0E-4
-                           else edVLiquidJunction.Value :=  edVLiquidJunction.Value - 1.0E-4 ;
-     Main.SESLabIO.EPC9VLiquidJunction := edVLiquidJunction.Value ;
-      edVLiquidJunction.Value := Main.SESLabIO.EPC9VLiquidJunction ;
-      VLiquidJunction[cbChannel.ItemIndex] := edVLiquidJunction.Value ;
-      if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+     if  Direction = updUp then dx := 1.0E-4
+                           else dx := -1.0E-4 ;
+     VLiquidJunction[cbChannel.ItemIndex] := Max(VLiquidJunction[cbChannel.ItemIndex] + dx,0.0) ;
+     UpdateEPC9Settings(cbChannel.ItemIndex) ;
+     VLiquidJunction[cbChannel.ItemIndex] := Main.SESLabIO.EPC9VLiquidJunction ;
+     edVLiquidJunction.Value := VLiquidJunction[cbChannel.ItemIndex] ;
      end;
-
 
 
 procedure TEPC9PanelFrm.udVPOffsetChangingEx(Sender: TObject;
@@ -1236,13 +1184,15 @@ procedure TEPC9PanelFrm.udVPOffsetChangingEx(Sender: TObject;
 // -------------------------------
 // VPOffset Up/down button pressed
 // -------------------------------
+var
+    dx : single ;
 begin
-     if  Direction = updUp then edVPOffset.Value :=  edVPOffset.Value + 1.0E-4
-                           else edVPOffset.Value :=  edVPOffset.Value - 1.0E-4 ;
-     Main.SESLabIO.EPC9VPOffset := edVPOffset.Value ;
-      edVPOffset.Value := Main.SESLabIO.EPC9VPOffset ;
-      VPOffset[cbChannel.ItemIndex] := edVPOffset.Value ;
-      if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+     if  Direction = updUp then dx := 1.0E-4
+                           else dx := -1.0E-4 ;
+     VPOffset[cbChannel.ItemIndex] := Max(VPOffset[cbChannel.ItemIndex] + dx,0.0) ;
+     UpdateEPC9Settings(cbChannel.ItemIndex) ;
+     VPOffset[cbChannel.ItemIndex] := Main.SESLabIO.EPC9VPOffset ;
+     edVPOffset.Value := VPOffset[cbChannel.ItemIndex] ;
      end;
 
 procedure TEPC9PanelFrm.LoadFromXMLFile(
