@@ -56,14 +56,6 @@ type
     bClearCslow: TButton;
     bCLearLeakSubtract: TButton;
     VpipTab: TTabSheet;
-    Label1: TLabel;
-    edVPOffset: TValidatedEdit;
-    Label16: TLabel;
-    edVLiquidJunction: TValidatedEdit;
-    bAutoVPipette: TButton;
-    bClearVPOffset: TButton;
-    edVHold: TValidatedEdit;
-    Label17: TLabel;
     ModeGrp: TGroupBox;
     Label13: TLabel;
     Label18: TLabel;
@@ -78,15 +70,23 @@ type
     cbChannel: TComboBox;
     Label20: TLabel;
     bClearRSCompensation: TButton;
-    udVHold: TUpDown;
-    udVPOffset: TUpDown;
-    udVLiquidJunction: TUpDown;
     udRSCompensation: TUpDown;
     udGLeak: TUpDown;
     udCSLow: TUpDown;
     udGSeries: TUpDown;
     udCFast: TUpDown;
     udCFastTau: TUpDown;
+    Label1: TLabel;
+    Label16: TLabel;
+    Label17: TLabel;
+    edVPOffset: TValidatedEdit;
+    edVLiquidJunction: TValidatedEdit;
+    edVHold: TValidatedEdit;
+    bAutoVPipette: TButton;
+    bClearVPOffset: TButton;
+    udVPOffset: TUpDown;
+    udVLiquidJunction: TUpDown;
+    udVHold: TUpDown;
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure cbGainChange(Sender: TObject);
@@ -405,17 +405,7 @@ procedure TEPC9PanelFrm.UpdateEPC9Settings(
 // --------------------------------------------
 // Update panel settings for selected amplifier
 // --------------------------------------------
-var
-    RestartSealTest : Boolean ;
-
 begin
-
-//       if Main.SESLabIO.ADCActive and
-//          Main.FormExists( 'SealTestFrm' ) then begin
-//          SealTestFrm.StopADCAndDAC ;
-//          RestartSealTest := True ;
-//          end
-//       else RestartSealTest := False ;
 
        Main.SESLabIO.EPC9Amplifier := iAmp ;
 
@@ -454,19 +444,19 @@ procedure TEPC9PanelFrm.bAutoCfastClick(Sender: TObject);
 // ----------------------------
 begin
 
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StopADCAndDAC ;
      Screen.Cursor := crHourglass ;
       TButton(Sender).Enabled := False ;
      Main.StatusBar.SimpleText := 'WAIT: Cfast compensation in progress.' ;
+     try
+        Main.SESLabIO.EPC9AutoCFast ;
+     except
+        Main.SESLabIO.EPC9CFast := 0.0 ;
+     end;
 
-     Main.SESLabIO.EPC9AutoCFast ;
-     //CFast[cbChannel.ItemIndex] :=  edCFast.Value ;
      edCFast.Value := Main.SESLabIO.EPC9CFast ;
      edCFastTau.Value := Main.SESLabIO.EPC9CFastTau ;
      CFastTau[cbChannel.ItemIndex] :=  edCFastTau.Value ;
 
-     // Restart seal test
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
      Screen.Cursor := crDefault ;
      Main.StatusBar.SimpleText := '' ;
 
@@ -481,7 +471,6 @@ procedure TEPC9PanelFrm.bAutoCSlowClick(Sender: TObject);
 // ----------------------------
 begin
 
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StopADCAndDAC ;
      Screen.Cursor := crHourglass ;
      TButton(Sender).Enabled := False ;
      Main.StatusBar.SimpleText := 'WAIT: Cslow compensation in progress.' ;
@@ -493,17 +482,15 @@ begin
          Main.SESLabIO.EPC9GSeries := 0.0 ;
          end ;
 
-       edCSlow.Value := Main.SESLabIO.EPC9CSlow ;
-       CSlow[cbChannel.ItemIndex] := edCSlow.Value ;
-       edGSeries.Value := Main.SESLabIO.EPC9GSeries ;
-       GSeries[cbChannel.ItemIndex] := edGSeries.Value ;
+     edCSlow.Value := Main.SESLabIO.EPC9CSlow ;
+     CSlow[cbChannel.ItemIndex] := edCSlow.Value ;
+     edGSeries.Value := Main.SESLabIO.EPC9GSeries ;
+     GSeries[cbChannel.ItemIndex] := edGSeries.Value ;
 
-       // Restart seal test
-       if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
-       Screen.Cursor := crDefault ;
-       Main.StatusBar.SimpleText := '' ;
+     Screen.Cursor := crDefault ;
+     Main.StatusBar.SimpleText := '' ;
 
-       TButton(Sender).Enabled := True ;
+     TButton(Sender).Enabled := True ;
 
      end;
 
@@ -514,17 +501,17 @@ procedure TEPC9PanelFrm.bAutoLeakSubtractClick(Sender: TObject);
 // ----------------------------
 begin
 
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StopADCAndDAC ;
      Screen.Cursor := crHourglass ;
      TButton(Sender).Enabled := False ;
      Main.StatusBar.SimpleText := 'WAIT: leak subtraction in progress.' ;
-
-     Main.SESLabIO.EPC9AutoGLeak ;
+     try
+        Main.SESLabIO.EPC9AutoGLeak ;
+     except
+        edGLeak.Value := 0.0 ;
+     end;
      edGLeak.Value := Main.SESLabIO.EPC9GLeak ;
      GLeak[cbChannel.ItemIndex] := edGLeak.Value ;
 
-     // Restart seal test
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
      Screen.Cursor := crDefault ;
      Main.StatusBar.SimpleText := '' ;
 
@@ -539,13 +526,18 @@ procedure TEPC9PanelFrm.bAutoRSCompensationClick(Sender: TObject);
 // ----------------------------
 begin
 
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StopADCAndDAC ;
      Screen.Cursor := crHourglass ;
      TButton(Sender).Enabled := False ;
-     Main.StatusBar.SimpleText := 'WAIT: Cslow compensation in progress.' ;
+     Main.StatusBar.SimpleText := 'WAIT: RS compensation in progress.' ;
+     try
+       Main.SESLabIO.EPC9AutoRSComp ;
+     except
+       Main.SESLabIO.EPC9RSFraction := 0.0 ;
+       end;
 
-     // Restart seal test
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
+     edRSCompensation.Value := Main.SESLabIO.EPC9RSFraction ;
+     RSFraction[cbChannel.ItemIndex] := edRSCompensation.Value ;
+
      Screen.Cursor := crDefault ;
      Main.StatusBar.SimpleText := '' ;
 
@@ -560,17 +552,18 @@ procedure TEPC9PanelFrm.bAutoVPipetteClick(Sender: TObject);
 // ----------------------------
 begin
 
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StopADCAndDAC ;
      Screen.Cursor := crHourglass ;
      TButton(Sender).Enabled := False ;
      Main.StatusBar.SimpleText := 'WAIT: Vpipette offset in progress.' ;
+     try
+       Main.SESLabIO.EPC9AutoVpOffset ;
+     except
+       Main.SESLabIO.EPC9VpOffset := 0.0 ;
+     end;
 
-     Main.SESLabIO.EPC9AutoVpOffset ;
      edVpOffset.Value := Main.SESLabIO.EPC9VpOffset ;
      VPOffset[cbChannel.ItemIndex] := edVpOffset.Value ;
 
-     // Restart seal test
-     if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
      Screen.Cursor := crDefault ;
      Main.StatusBar.SimpleText := '' ;
 

@@ -572,6 +572,7 @@ unit MDIForm;
    V4.7.1 17.12.13    Addition Multiclamp messages reported to log file
    V4.7.2 19.12.13    Addition Multiclamp messages reported to log file (may now recognise 2 amplifiers)
    V4.7.3 09.01.13    New version of Heka EPCDLL.DLL (support USB devices)
+   V4.7.4 11.03.14    Heka EPC9/10 RS % compensation now works
   =======================================================================}
 
 
@@ -817,7 +818,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.7.3';
+      ProgVersion := 'V4.7.4';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

@@ -630,6 +630,19 @@ object EPC9PanelFrm: TEPC9PanelFrm
           LoLimit = -1.000000015047466E30
           HiLimit = 1.000000015047466E30
         end
+        object edVHold: TValidatedEdit
+          Left = 120
+          Top = 53
+          Width = 75
+          Height = 21
+          OnKeyPress = edVHoldKeyPress
+          Text = ' 0 mV'
+          Scale = 1000.000000000000000000
+          Units = 'mV'
+          NumberFormat = '%.5g'
+          LoLimit = -1.000000015047466E30
+          HiLimit = 1.000000015047466E30
+        end
         object bAutoVPipette: TButton
           Left = 220
           Top = 3
@@ -642,7 +655,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
           Font.Name = 'Arial'
           Font.Style = [fsBold]
           ParentFont = False
-          TabOrder = 2
+          TabOrder = 3
           OnClick = bAutoVPipetteClick
         end
         object bClearVPOffset: TButton
@@ -657,51 +670,38 @@ object EPC9PanelFrm: TEPC9PanelFrm
           Font.Name = 'Arial'
           Font.Style = [fsBold]
           ParentFont = False
-          TabOrder = 3
+          TabOrder = 4
           OnClick = bClearVPOffsetClick
         end
-        object edVHold: TValidatedEdit
-          Left = 120
-          Top = 54
-          Width = 75
-          Height = 21
-          OnKeyPress = edVHoldKeyPress
-          Text = ' 0 mV'
-          Scale = 1000.000000000000000000
-          Units = 'mV'
-          NumberFormat = '%.5g'
-          LoLimit = -1.000000015047466E30
-          HiLimit = 1.000000015047466E30
-        end
-        object udVHold: TUpDown
-          Left = 195
-          Top = 53
+        object udVPOffset: TUpDown
+          Left = 194
+          Top = 3
           Width = 16
           Height = 24
           Min = -1000000
           Max = 10000000
           TabOrder = 5
-          OnChangingEx = udVHoldChangingEx
+          OnChangingEx = udVPOffsetChangingEx
         end
-        object udVPOffset: TUpDown
-          Left = 195
-          Top = 1
+        object udVLiquidJunction: TUpDown
+          Left = 194
+          Top = 28
           Width = 16
           Height = 24
           Min = -1000000
           Max = 10000000
           TabOrder = 6
-          OnChangingEx = udVPOffsetChangingEx
+          OnChangingEx = udVLiquidJunctionChangingEx
         end
-        object udVLiquidJunction: TUpDown
-          Left = 195
-          Top = 27
+        object udVHold: TUpDown
+          Left = 194
+          Top = 53
           Width = 16
           Height = 24
           Min = -1000000
           Max = 10000000
           TabOrder = 7
-          OnChangingEx = udVLiquidJunctionChangingEx
+          OnChangingEx = udVHoldChangingEx
         end
       end
     end

@@ -103,6 +103,7 @@ unit AmpModule;
 //          MCTelegraphData[] array now 0 rather than 1 based.
 // 17.12.13 Addition Multiclamp messages reported to log file
 // 19.12.13 Addition Multiclamp messages to log file updated (may now support 2 amplifiers)
+// 22.01.14 Multiclamp support updated to API V2.x Now detects Multiclamp device serial number
 
 interface
 
@@ -375,8 +376,22 @@ TMC_TELEGRAPH_DATA = packed record
    SecondaryScaleFactorUnits : Cardinal ;// use constants defined above
    HardwareType : Cardinal ;       // use constants defined above
    SecondaryAlpha : Double ;
-   pcPadding : Array[1..28] of Byte ;
-   pcPadding1 : Array[1..128] of Byte ;
+
+   SecondaryLPFCutoff : Double ;   // ( Hz ) , ( MCTG_LPF_BYPASS indicates Bypass )
+                                   // for SECONDARY output signal.
+   AppVersion : Array[0..15] of ANSIChar ;       // application version number
+   FirmwareVersion : Array[0..15] of ANSIChar ;  // firmware version number
+   DSPVersion : Array[0..15] of ANSIChar ;       // DSP version number
+   SerialNumber : Array[0..15] of ANSIChar ;     // serial number of device
+
+   SeriesResistance : Double ;     // ( Rs )
+                                   // dSeriesResistance will be MCTG_NOSERIESRESIST
+                                   // if we are not in V-Clamp mode,
+                                   // or
+                                   // if Rf is set to range 2 (5G) or range 3 (50G),
+                                   // or
+                                   // if whole cell comp is explicitly disabled.
+   pcPadding1 : Array[1..76] of Byte ;
    end ;
 PMC_TELEGRAPH_DATA = ^TMC_TELEGRAPH_DATA ;
 
@@ -6516,8 +6531,9 @@ function TAmplifier.AppHookFunc(var Message : TMessage)  : Boolean;
 // ---------------
 var
     AddChannel : Boolean ;
-    MCTelegraphDataIn : TMC_TELEGRAPH_DATA ;
-    i,ComID,AxobusID,ChannelID,Device : Integer ;
+    TData : TMC_TELEGRAPH_DATA ;
+    i,ComID,AxobusID,ChannelID,Device,Err,iChan : Integer ;
+    SerialNum : Cardinal ;
 begin
   Result := False; //I just do this by default
 
@@ -6528,16 +6544,28 @@ begin
           (PCopyDataStruct(Message.lParam)^.cbData = 256)) and
          (PCopyDataStruct(Message.lParam)^.dwData = MCRequestMessageID) then begin
          // Copy telegraph data into record
-         MCTelegraphDataIn := PMC_TELEGRAPH_DATA(PCopyDataStruct(Message.lParam)^.lpData)^;
-         if (MCTelegraphDataIn.ChannelID >= 0) and
-            (MCTelegraphDataIn.ChannelID <= High(MCTelegraphData)) then begin
-            if MCTelegraphDataIn.AxoBusID > 1 then MCTelegraphDataIn.AxoBusID := 0 ;
-            Device := MCTelegraphDataIn.AxoBusID and $1 ;
-            MCTelegraphData[(MCTelegraphDataIn.ChannelID-1)+(Device*2)] :=  MCTelegraphDataIn ;
-            WriteToLogFile(format('Multiclamp: Message from Device=%d AxobusID=%d ComPortID=%d Ch.=%d',
-           [ Device,MCTelegraphDataIn.AxoBusID,MCTelegraphDataIn.ComPortID,MCTelegraphDataIn.ChannelID]));
-           end ;
-         //Main.StatusBar.SimpleText := 'WM_COPYDATA received' ;
+         TData := PMC_TELEGRAPH_DATA(PCopyDataStruct(Message.lParam)^.lpData)^ ;
+         if TData.Version < 6 then begin
+            // API V1.x
+            iChan := (TData.AxoBusID*2) + TData.ChannelID ;
+            iChan := Max(0,Min(iChan,High(MCTelegraphData))) ;
+            WriteToLogFile(format(
+            'Multiclamp V1.1: Message from Device=%d AxobusID=%d ComPortID=%d Ch.=%d',
+            [TData.AxoBusID,TData.ComPortID,TData.ChannelID]));
+            end
+         else begin
+            // API V2.x
+            iChan := 0 ;
+            for i  := 0 to MCNumChannels-1 do begin
+               Val( ANSIString(TData.SerialNumber), SerialNum, Err ) ;
+               if Err <> 0 then SerialNum := 0 ;
+               if ((TData.ChannelID shl 28) or SerialNum) = MCChannels[i] then iChan := i ;
+               end ;
+             WriteToLogFile(format(
+             'Multiclamp V2.x: Message from Device=%s  Ch.=%d',
+             [ANSIString(TData.SerialNumber),TData.ChannelID]));
+            end ;
+         MCTelegraphData[iChan] := TData ;
          Result := True ;
          end ;
       end ;
