@@ -4,6 +4,7 @@ unit EPC9PanelUnit;
 // =======================================
 // 19.09.13
 // 11.03.14 Filter settings now work
+// 12.03.14 Final working version A
 
 interface
 
