@@ -161,7 +161,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
       Top = 208
       Width = 308
       Height = 113
-      ActivePage = VpipTab
+      ActivePage = RSCompTab
       TabOrder = 2
       object CfastTab: TTabSheet
         Caption = 'Cfast'

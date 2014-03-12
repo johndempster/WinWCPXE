@@ -3,6 +3,7 @@ unit EPC9PanelUnit;
 // Heka EPC-9/10 Patch Clamp Control Panel
 // =======================================
 // 19.09.13
+// 11.03.14 Filter settings now work
 
 interface
 
@@ -92,7 +93,6 @@ type
     procedure cbFilter2Change(Sender: TObject);
     procedure cbFilter1Change(Sender: TObject);
     procedure edFilter2BandwidthKeyPress(Sender: TObject; var Key: Char);
-    procedure edFilter1BandwidthKeyPress(Sender: TObject; var Key: Char);
     procedure edCfastKeyPress(Sender: TObject; var Key: Char);
     procedure edCfastTauKeyPress(Sender: TObject; var Key: Char);
     procedure edCSlowKeyPress(Sender: TObject; var Key: Char);
@@ -425,9 +425,7 @@ begin
        Main.SESLabIO.EPC9Mode := Mode[iAmp] ;
        Main.SESLabIO.EPC9FilterMode[2] := Filter2[iAmp] ;
        Main.SESLabIO.EPC9FilterMode[1] := Filter1[iAmp] ;
-       Filter1BandWidth[iAmp] := 1E5 ;
-       Main.SESLabIO.EPC9FilterBandwidth[1] := Filter1BandWidth[iAmp] ;
-       Main.SESLabIO.EPC9FilterBandwidth[2] := Filter2BandWidth[iAmp] ;
+       Main.SESLabIO.EPC9Filter2Bandwidth := Filter2BandWidth[iAmp] ;
        Main.SESLabIO.EPC9CFast := CFast[iAmp] ;
        Main.SESLabIO.EPC9CFastTau := CFastTau[iAmp] ;
        Main.SESLabIO.EPC9CslowRange := CSlowRange[iAmp] ;
@@ -700,8 +698,7 @@ begin
     UpdateEPC9Settings(cbChannel.ItemIndex) ;
     Filter1[cbChannel.ItemIndex] := Main.SESLabIO.EPC9FilterMode[1] ;
     cbFilter1.ItemIndex := Filter1[cbChannel.ItemIndex] ;
-    Filter1Bandwidth[cbChannel.ItemIndex] := Main.SESLabIO.EPC9FilterBandwidth[1] ;
-    Filter2Bandwidth[cbChannel.ItemIndex] := Main.SESLabIO.EPC9FilterBandwidth[2] ;
+    Filter2Bandwidth[cbChannel.ItemIndex] := Main.SESLabIO.EPC9Filter2Bandwidth ;
     edFilter2Bandwidth.Value := Filter2Bandwidth[cbChannel.ItemIndex] ;
 
     end;
@@ -827,19 +824,6 @@ begin
     end;
 
 
-procedure TEPC9PanelFrm.edFilter1BandwidthKeyPress(Sender: TObject;
-  var Key: Char);
-// ----------------------------
-// Filter 1 bandwidth value changed
-// ----------------------------
-begin
-    if Key = #13 then begin
-   //    Main.SESLabIO.EPC9FilterBandwidth[1] := Filter1Bandwidth[cbChannel.ItemIndex] ;
-       //if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StartADCAndDAC ;
-       end;
-    end;
-
-
 procedure TEPC9PanelFrm.edFilter2BandwidthKeyPress(Sender: TObject;
   var Key: Char);
 // ----------------------------
@@ -849,7 +833,7 @@ begin
     if Key = #13 then begin
        Filter2Bandwidth[cbChannel.ItemIndex] := edFilter2Bandwidth.Value ;
        UpdateEPC9Settings(cbChannel.ItemIndex) ;
-       Filter2Bandwidth[cbChannel.ItemIndex] := Main.SESLabIO.EPC9FilterBandwidth[2] ;
+       Filter2Bandwidth[cbChannel.ItemIndex] := Main.SESLabIO.EPC9Filter2Bandwidth ;
        edFilter2Bandwidth.Value := Filter2Bandwidth[cbChannel.ItemIndex] ;
        end;
     end;
@@ -1137,8 +1121,8 @@ procedure TEPC9PanelFrm.udRSCompensationChangingEx(Sender: TObject;
 var
     dx : single ;
 begin
-     if  Direction = updUp then dx := 1.0E-9
-                           else dx := -1.0E-9 ;
+     if  Direction = updUp then dx := 0.01
+                           else dx := -0.01 ;
      RSFraction[cbChannel.ItemIndex] := Max(RSFraction[cbChannel.ItemIndex] + dx,0.0) ;
      UpdateEPC9Settings(cbChannel.ItemIndex) ;
      RSFraction[cbChannel.ItemIndex] := Main.SESLabIO.EPC9RSFraction ;
