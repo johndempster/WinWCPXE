@@ -531,7 +531,7 @@ begin
      TButton(Sender).Enabled := False ;
      Main.StatusBar.SimpleText := 'WAIT: RS compensation in progress.' ;
      try
-       Main.SESLabIO.EPC9AutoRSComp ;
+      // Main.SESLabIO.EPC9AutoRSComp ;
      except
        Main.SESLabIO.EPC9RSFraction := 0.0 ;
        end;

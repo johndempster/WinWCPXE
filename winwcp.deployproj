@@ -6,14 +6,14 @@
     <ItemGroup Condition="'$(Platform)'=='Win64'"/>
     <ItemGroup Condition="'$(Platform)'=='OSX32'"/>
     <ItemGroup Condition="'$(Platform)'=='Win32'">
-        <DeployFile Include="winwcp.rsm" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="winwcp.rsm" Condition="'$(Config)'=='Release'">
             <RemoteDir>winwcp\</RemoteDir>
             <RemoteName>winwcp.rsm</RemoteName>
             <Operation>0</Operation>
             <LocalCommand/>
             <RemoteCommand/>
         </DeployFile>
-        <DeployFile Include="winwcp.exe" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="winwcp.exe" Condition="'$(Config)'=='Release'">
             <RemoteDir>winwcp\</RemoteDir>
             <RemoteName>winwcp.exe</RemoteName>
             <Operation>0</Operation>
