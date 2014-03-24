@@ -5,6 +5,7 @@ unit EPC9PanelUnit;
 // 19.09.13
 // 11.03.14 Filter settings now work
 // 12.03.14 Final working version A
+// 24.03.14 Cslow and RS compensation turned off during auto Cfast to avoid access violations
 
 interface
 
@@ -145,7 +146,6 @@ type
     procedure udCFastTauChangingEx(Sender: TObject; var AllowChange: Boolean;
       NewValue: SmallInt; Direction: TUpDownDirection);
     procedure FormActivate(Sender: TObject);
-    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
     SettingsFileName : String ;
@@ -449,12 +449,17 @@ begin
       TButton(Sender).Enabled := False ;
      Main.StatusBar.SimpleText := 'WAIT: Cfast compensation in progress.' ;
      try
+        Main.SESLabIO.EPC9CslowRange := 0 ; // Disable CSlow
+        Main.SESLabIO.EPC9RSMode := 0 ;     // Disable RS comp
         Main.SESLabIO.EPC9AutoCFast ;
+        Main.SESLabIO.EPC9CslowRange := CSlowRange[cbChannel.ItemIndex] ; // Re-enable
+        Main.SESLabIO.EPC9RSMode := RSMode[cbChannel.ItemIndex] ;
      except
         Main.SESLabIO.EPC9CFast := 0.0 ;
      end;
 
      edCFast.Value := Main.SESLabIO.EPC9CFast ;
+     CFast[cbChannel.ItemIndex] :=  edCFast.Value ;
      edCFastTau.Value := Main.SESLabIO.EPC9CFastTau ;
      CFastTau[cbChannel.ItemIndex] :=  edCFastTau.Value ;
 
@@ -812,7 +817,7 @@ begin
     if Key = #13 then begin
        CSlow[cbChannel.ItemIndex] :=  edCSlow.Value ;
        UpdateEPC9Settings(cbChannel.ItemIndex) ;
-       CSlow[cbChannel.ItemIndex] := Main.SESLabIO.EPC9CSlow ;
+       //CSlow[cbChannel.ItemIndex] := Main.SESLabIO.EPC9CSlow ;
        edCSlow.Value := CSlow[cbChannel.ItemIndex] ;
        end;
     end;
@@ -972,12 +977,6 @@ begin
 
      end;
 
-
-procedure TEPC9PanelFrm.FormKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-outputdebugstring(pchar('formkeydown'));
-end;
 
 procedure TEPC9PanelFrm.SaveToXMLFile(
            FileName : String

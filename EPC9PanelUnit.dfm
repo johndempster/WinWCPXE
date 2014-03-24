@@ -18,7 +18,6 @@ object EPC9PanelFrm: TEPC9PanelFrm
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnKeyDown = FormKeyDown
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -211,15 +210,16 @@ object EPC9PanelFrm: TEPC9PanelFrm
           Height = 21
           OnKeyPress = edCfastTauKeyPress
           Text = ' 0 us'
+          Value = 0.000000000000000000
           Scale = 1000000.000000000000000000
           Units = 'us'
           NumberFormat = '%.5g'
-          LoLimit = -1.000000015047466E30
+          LoLimit = 0.000000000000000000
           HiLimit = 1.000000015047466E30
         end
         object bAutoCfast: TButton
-          Left = 220
-          Top = 4
+          Left = 217
+          Top = 3
           Width = 57
           Height = 17
           Caption = 'Auto'
@@ -427,7 +427,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
           ParentFont = False
         end
         object cbRSSpeed: TComboBox
-          Left = 120
+          Left = 124
           Top = 3
           Width = 90
           Height = 21
