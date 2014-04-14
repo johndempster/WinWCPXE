@@ -574,6 +574,8 @@ unit MDIForm;
    V4.7.3 09.01.13    New version of Heka EPCDLL.DLL (support USB devices)
    V4.7.4 24.03.14    Heka EPC9/10 RS % compensation now works
                       Cslow and RS compensation turned off during auto Cfast to avoid access violations
+   V4.7.5 14.04.14    FPU exceptions disabled in Tecella support to allow Triton-Plus to work
+                      Padding at end of stimulus pulses reduced from 1s to 100ms to speed up repeat rate
   =======================================================================}
 
 
@@ -810,7 +812,6 @@ procedure TMain.FormShow(Sender: TObject);
   ---------------------------------------------------------------}
 var
    ch,i : Integer ;
-   //TempPath : Array[0..255] of Char ;
    FileName : String ;
 begin
 
@@ -819,7 +820,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.7.4';
+      ProgVersion := 'V4.7.5';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
