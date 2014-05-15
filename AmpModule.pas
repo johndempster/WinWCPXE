@@ -104,6 +104,7 @@ unit AmpModule;
 // 17.12.13 Addition Multiclamp messages reported to log file
 // 19.12.13 Addition Multiclamp messages to log file updated (may now support 2 amplifiers)
 // 22.01.14 Multiclamp support updated to API V2.x Now detects Multiclamp device serial number
+// 15.05.14 Amplifier # now appended to channel name if more than one amplifier in use
 
 interface
 
@@ -611,6 +612,10 @@ TAXC_GetHeadstageType = function(
     Axoclamp900ALibHnd : Integer ;
     Axoclamp900AHIDHnd : Integer ;
     Axoclamp900AHnd : Integer ;
+
+   procedure AddAmplifierNumber(
+          var Name : string ;
+          iChan : Integer ) ;
 
     procedure GetNoneChannelSettings(
           iChan : Integer ;
@@ -3033,6 +3038,7 @@ begin
 
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        ForceNonZero(FPrimaryChannelScaleFactorX1Gain[AmpNumber]) ;
@@ -3041,6 +3047,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ForceNonZero(FSecondaryChannelScaleFactorX1Gain[AmpNumber]) ;
@@ -3048,6 +3055,24 @@ begin
                     FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        end ;
     end ;
+
+
+procedure TAmplifier.AddAmplifierNumber(
+          var Name : string ;
+          iChan : Integer ) ;
+// Add amplifier number
+var
+    NumAmps,i : Integer ;
+begin
+
+    // No. of amplifiers in use
+    NumAmps := 0 ;
+    for i := 0 to High(FAmpType) do if FAmpType[i] <> amNone then Inc(NumAmps) ;
+
+    if NumAmps > 1 then Name := Name + format('%d',[(iChan div 2) + 1]) ;
+
+    end;
+
 
 procedure TAmplifier.ForceNonZero(
           var Value : Single ) ;
@@ -3176,6 +3201,7 @@ begin
 
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        if GetGainTelegraphAvailable(AmpNumber) then begin
@@ -3188,6 +3214,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ChanScale := 1.0 ;
@@ -3305,12 +3332,14 @@ begin
        if LastMode[AmpNumber] = VClampMode then begin
           // Voltage-clamp mode
           ChanName := 'Im' ;
+          AddAmplifierNumber( ChanName, iChan ) ;
           ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
           ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
           end
        else begin
           // Current-clamp mode
           ChanName := 'Vm' ;
+          AddAmplifierNumber( ChanName, iChan ) ;
           ChanUnits := FPrimaryChannelUnitsCC[AmpNumber] ;
           ChanCalFactor := FPrimaryChannelScaleFactorX1GainCC[AmpNumber] ;
           end ;
@@ -3326,12 +3355,14 @@ begin
        if LastMode[AmpNumber] = VClampMode then begin
           // Voltage-clamp mode
           ChanName := 'Vm' ;
+          AddAmplifierNumber( ChanName, iChan ) ;
           ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
           ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
           end
        else begin
           // Current-clamp mode
           ChanName := 'Im' ;
+          AddAmplifierNumber( ChanName, iChan ) ;
           ChanUnits := FSecondaryChannelUnitsCC[AmpNumber] ;
           ChanCalFactor := FSecondaryChannelScaleFactorX1GainCC[AmpNumber] ;
           end ;
@@ -3420,6 +3451,7 @@ begin
     
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        if GetGainTelegraphAvailable(AmpNumber) then begin
@@ -3432,6 +3464,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ChanScale := 1.0 ;
@@ -3524,6 +3557,7 @@ begin
     
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        if GetGainTelegraphAvailable(AmpNumber) then begin
@@ -3536,6 +3570,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ChanScale := 1.0 ;
@@ -3647,12 +3682,14 @@ begin
        if LastMode[AmpNumber] = VClampMode then begin
           // Voltage-clamp mode
           ChanName :=  'Im' ;
+          AddAmplifierNumber( ChanName, iChan ) ;
           ChanUnits :=  FPrimaryChannelUnits[AmpNumber] ;
           ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
           end
        else begin
           // Current-clamp mode
           ChanName := 'Vm' ;
+          AddAmplifierNumber( ChanName, iChan ) ;
           ChanUnits := FPrimaryChannelUnitsCC[AmpNumber] ;
           ChanCalFactor := FPrimaryChannelScaleFactorX1GainCC[AmpNumber]
           end ;
@@ -3664,12 +3701,14 @@ begin
        if LastMode[AmpNumber] = VClampMode then begin
           // Voltage-clamp mode
           ChanName := 'Vm' ;
+          AddAmplifierNumber( ChanName, iChan ) ;
           ChanUnits := FSecondaryChannelUnitsCC[AmpNumber] ;
           ChanCalFactor := FSecondaryChannelScaleFactorX1GainCC[AmpNumber]
           end
        else begin
           // Current-clamp mode
           ChanName := 'Im' ;
+          AddAmplifierNumber( ChanName, iChan ) ;
           ChanUnits := FSecondaryChannelUnitsCC[AmpNumber] ;
           ChanCalFactor := FSecondaryChannelScaleFactorX1GainCC[AmpNumber]
           end ;
@@ -3724,6 +3763,7 @@ begin
     
     if  IsPrimaryChannel(iChan) then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := 'pA' ;
        ChanCalFactor := 0.001 ;
        ChanScale := GetVP500Gain(AmpNumber) ;
@@ -3733,6 +3773,7 @@ begin
        end
     else if  IsSecondaryChannel(iChan)  then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := 'mV' ;
        ChanCalFactor := 0.05 ; //
        ChanScale := 1.0 ;
@@ -4073,6 +4114,7 @@ begin
     
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        if GetGainTelegraphAvailable(AmpNumber) then begin
@@ -4085,6 +4127,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ChanScale := 1.0 ;
@@ -4201,12 +4244,14 @@ begin
        if LastMode[AmpNumber] = VClampMode then begin
           // Voltage-clamp mode
           ChanName := 'Im' ;
+          AddAmplifierNumber( ChanName, iChan ) ;
           ChanUnits := FPrimaryChannelUnits[AmpNumber];
           ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber];
           end
        else begin
           // Current-clamp mode
           ChanName := 'Vm' ;
+          AddAmplifierNumber( ChanName, iChan ) ;
           ChanUnits := FPrimaryChannelUnitsCC[AmpNumber];
           ChanCalFactor := FPrimaryChannelScaleFactorX1GainCC[AmpNumber]
           end ;
@@ -4218,12 +4263,14 @@ begin
        if LastMode[AmpNumber] = VClampMode then begin
           // Voltage-clamp mode
           ChanName := 'Vm' ;
+          AddAmplifierNumber( ChanName, iChan ) ;
           ChanUnits := FSecondaryChannelUnits[AmpNumber];
           ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber];
           end
        else begin
           // Current-clamp mode
           ChanName := 'Im' ;
+          AddAmplifierNumber( ChanName, iChan ) ;
           ChanUnits := FSecondaryChannelUnitsCC[AmpNumber];
           ChanCalFactor := FSecondaryChannelScaleFactorX1GainCC[AmpNumber];
           end ;
@@ -4303,6 +4350,7 @@ begin
     
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        if GetGainTelegraphAvailable(AmpNumber) then begin
@@ -4315,6 +4363,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ChanScale := 1.0 ;
@@ -4399,6 +4448,7 @@ begin
     
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        if GetGainTelegraphAvailable(AmpNumber) then begin
@@ -4411,6 +4461,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ChanScale := 1.0 ;
@@ -4496,6 +4547,7 @@ begin
     
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        if GetGainTelegraphAvailable(AmpNumber) then begin
@@ -4508,6 +4560,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ChanScale := 1.0 ;
@@ -4593,6 +4646,7 @@ begin
     
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        if GetGainTelegraphAvailable(AmpNumber) then begin
@@ -4605,6 +4659,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ChanScale := 1.0 ;
@@ -4709,6 +4764,7 @@ begin
     
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        if GetGainTelegraphAvailable(AmpNumber) then begin
@@ -4721,6 +4777,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ChanScale := 1.0 ;
@@ -4811,6 +4868,7 @@ begin
     
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        if GetGainTelegraphAvailable(AmpNumber) then begin
@@ -4823,6 +4881,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ChanScale := 1.0 ;
@@ -4912,6 +4971,7 @@ begin
     
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        if GetGainTelegraphAvailable(AmpNumber) then begin
@@ -4924,6 +4984,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ChanScale := 1.0 ;
@@ -4972,6 +5033,7 @@ begin
 
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        ForceNonZero(FPrimaryChannelScaleFactorX1Gain[AmpNumber]) ;
@@ -4980,6 +5042,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ForceNonZero(FSecondaryChannelScaleFactorX1Gain[AmpNumber]) ;
@@ -5064,6 +5127,7 @@ begin
     
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        if GetGainTelegraphAvailable(AmpNumber) then begin
@@ -5076,6 +5140,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ChanScale := 1.0 ;
@@ -5234,6 +5299,7 @@ begin
 
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        if GetGainTelegraphAvailable(AmpNumber) then begin
@@ -5246,6 +5312,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ChanScale := 1.0 ;
@@ -5275,6 +5342,7 @@ begin
 
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        ForceNonZero(FPrimaryChannelScaleFactorX1Gain[AmpNumber]) ;
@@ -5283,6 +5351,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ForceNonZero(FSecondaryChannelScaleFactorX1Gain[AmpNumber]) ;
@@ -5337,6 +5406,7 @@ begin
 
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        if GetGainTelegraphAvailable(AmpNumber) then begin
@@ -5350,6 +5420,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ChanScale := 1.0 ;
@@ -5440,6 +5511,7 @@ begin
 
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
        ForceNonZero(FPrimaryChannelScaleFactorX1Gain[AmpNumber]) ;
        ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
@@ -5454,6 +5526,7 @@ begin
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
        ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
        ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
        ForceNonZero(FSecondaryChannelScaleFactorX1Gain[AmpNumber]) ;
