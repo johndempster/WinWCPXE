@@ -92,6 +92,7 @@ unit Rec;
               a new file to be opened to allow for loss of precision when data written/read from fiel header
   06.09.13 .. EPC9PanelFrm opened if EPC9/10 patch clamp in use.
   23.09.13 .. Recording start time now encoded in en-GB format
+  25.06.14 .. From Record zero level can now be set in recording window
   ==============================================================================}
 interface
 
@@ -621,6 +622,7 @@ begin
      scDisplay.xMax := Main.SESLabIO.ADCNumSamples - 1 ;
      scDisplay.NumPoints := 0 ;
      scDisplay.NumChannels := Main.SESLabIO.ADCNumChannels ;
+     scDisplay.ChanZeroAvg := Main.SESLabIO.ADCChannelNumZero ;
 
      {Set channel information }
      for ch := 0 to scDisplay.NumChannels-1 do begin
@@ -642,6 +644,9 @@ begin
                              True,
                              'z' ) ;
          scDisplay.HorizontalCursors[ch] := Main.SESLabIO.ADCChannelZero[ch] ;
+         Channel[ch].ADCZeroAt := Main.SESLabIO.ADCChannelZero[ch] ;
+         scDisplay.ChanZeroAt[ch] := Main.SESLabIO.ADCChannelZeroAt[ch] ;
+
          end ;
 
      scDisplay.TScale := Main.SESLabIO.ADCSamplingInterval*Settings.TScale ;
@@ -832,7 +837,6 @@ begin
 
         UpdateStopwatch ;
         TimerBusy := False ;
-
         if (Main.SESLabIO.StimulusStartFlag = True) and
            (not Main.SESLabIO.DACActive) and
            (not bRecord.enabled) then begin
@@ -1307,8 +1311,9 @@ procedure TRecordFrm.SaveSweep ;
   Save recording sweep to file
   --------------------------- }
 var
-   i,NumAvg,iStart : Integer ;
+   ch,i,j,i0,i1,NumAvg,iStart : Integer ;
    Done,SaveRecord,EmptyRecord : Boolean ;
+   ZeroSum : Single ;
    Sum : PIntArray ; { Summation buffer used to average LEAK records }
 begin
 
@@ -1375,6 +1380,25 @@ begin
         rH.AnalysisAvailable := false ;
         rH.EqnType := None ;
         PutRecord( RawfH, rH, RawfH.NumRecords, ADC^ ) ;
+
+        // Calculate zero levels
+        for ch := 0 to  Main.SESLabIO.ADCNumChannels-1 do begin
+            if Main.SESLabIO.ADCChannelZeroAt[ch] >= 0 then begin
+               i0 := Min(Max( Main.SESLabIO.ADCChannelZeroAt[ch],0 ), Main.SESLabIO.ADCNumSamples-1 ) ;
+               i1 := i0 + Main.SESLabIO.ADCChannelNumZero - 1 ;
+               i1 := Min(Max( i1,0 ),Main.SESLabIO.ADCNumSamples-1 ) ;
+               ZeroSum := 0 ;
+               j := i0*Main.SESLabIO.ADCNumChannels + Main.SESLabIO.ADCChannelOffset[ch] ;
+               for i := i0 to i1 do begin
+                  ZeroSum := ZeroSum + ADC^[j] ;
+                  j := j + Main.SESLabIO.ADCNumChannels ;
+                  end;
+               Main.SESLabIO.ADCChannelZero[ch] := Round( ZeroSum / (i1-i0+1) );
+               scDisplay.HorizontalCursors[ch] := Main.SESLabIO.ADCChannelZero[ch] ;
+               Channel[ch].ADCZero := Main.SESLabIO.ADCChannelZero[ch] ;
+               end ;
+            end ;
+
         rH.Ident := '' ;
 
         if (not ckSaveRecords.checked) then begin
@@ -1963,13 +1987,14 @@ begin
          Main.SESLabIO.ADCChannelYMax[ch] := scDisplay.YMax[Ch] ;
          Main.SESLabIO.ADCChannelVisible[ch] := scDisplay.ChanVisible[ch] ;
 
-         if Settings.FixedZeroLevels or (Channel[ch].ADCZeroAt >= 0) then begin
+         if Settings.FixedZeroLevels or (Main.SESLabIO.ADCChannelZeroAt[ch] >= 0) then begin
             if scDisplay.HorizontalCursors[Cursors.Base[ch]] <> Main.SESLabIO.ADCChannelZero[ch] then begin
                scDisplay.HorizontalCursors[Cursors.Base[ch]] := Main.SESLabIO.ADCChannelZero[ch] ;
                end ;
             end
          else Main.SESLabIO.ADCChannelZero[ch] := scDisplay.HorizontalCursors[Cursors.Base[ch]] ;
-
+         scDisplay.ChanZeroAt[ch] := Main.SESLabIO.ADCChannelZeroAt[ch] ;
+         Channel[ch].ADCZeroAt := Main.SESLabIO.ADCChannelZero[ch] ;
          end ;
 
      // Readout cursors
@@ -2706,26 +2731,29 @@ procedure TRecordFrm.scDisplayMouseUp(Sender: TObject;
 begin
    if (Button = mbRight) and (scDisplay.ActiveHorizontalCursor >=0) then begin
         // If right-mouse button down, display zero baseline level selection dialog box
-        ZeroFrm.EnableFromRecord := False ;
+        ZeroFrm.EnableFromRecord := True ;
         ZeroFrm.Chan := scDisplay.ActiveHorizontalCursor ;
         ZeroFrm.Level := Main.SESLabIO.ADCChannelZero[ZeroFrm.Chan] ;
         ZeroFrm.ChanName := Main.SESLabIO.ADCChannelName[ZeroFrm.Chan] ;
         ZeroFrm.NewZeroAt := Round(scDisplay.ScreenCoordToX( ZeroFrm.Chan, X )) ;
-        ZeroFrm.OldZeroAt := -1 ;
-        ZeroFrm. NumSamplesPerRecord := scDisplay.NumPoints ;
-        ZeroFrm.NumZeroAveraged := 1 ;
+        ZeroFrm.OldZeroAt := Main.SESLabIO.ADCChannelZeroAt[ZeroFrm.Chan] ;
+        ZeroFrm. NumSamplesPerRecord := scDisplay.MaxPoints ;
+        ZeroFrm.NumZeroAveraged := Main.SESLabIO.ADCChannelNumZero ;
         ZeroFrm.MaxValue := Main.SESLabIO.ADCMaxValue ;
         ZeroFrm.Left := Self.Left + Main.Left + 10 + scDisplay.Left + X;
         ZeroFrm.Top := Self.Top + Main.Top + 10 + scDisplay.Top + Y ;
         ZeroFrm.ShowModal ;
         Main.SESLabIO.ADCChannelZero[ZeroFrm.Chan] := ZeroFrm.Level ;
-        Channel[ZeroFrm.Chan].ADCZeroAt := -1 ;
+        Main.SESLabIO.ADCChannelZeroAt[ZeroFrm.Chan] := ZeroFrm.NewZeroAt ;
+        Channel[ZeroFrm.Chan].ADCZeroAt := ZeroFrm.NewZeroAt ;
+        Main.SESLabIO.ADCChannelNumZero := ZeroFrm.NumZeroAveraged ;
 
         scDisplay.HorizontalCursors[ZeroFrm.Chan] := Main.SESLabIO.ADCChannelZero[ZeroFrm.Chan] ;
-
+        scDisplay.ChanZeroAt[ZeroFrm.Chan] :=  Main.SESLabIO.ADCChannelZeroAt[ZeroFrm.Chan] ;
         end
-  
-end;
+
+   end;
+
 
 procedure TRecordFrm.FormCreate(Sender: TObject);
 begin

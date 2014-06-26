@@ -577,6 +577,7 @@ unit MDIForm;
    V4.7.5 14.04.14    FPU exceptions disabled in Tecella support to allow Triton-Plus to work
                       Padding at end of stimulus pulses reduced from 1s to 100ms to speed up repeat rate
    V4.7.6 15.05.14    Amplifier # now appended to channel name if more than one amplifier in use
+   V4.7.7 25.06.14    Free run and external trigger modes now work with Heka devices
   =======================================================================}
 
 
@@ -821,7 +822,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.7.6';
+      ProgVersion := 'V4.7.7';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

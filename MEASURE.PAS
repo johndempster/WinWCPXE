@@ -76,6 +76,7 @@ unit Measure;
               cbPeakMode, cbRateOfRiseMode, EdRiseTime and now all stored in FH file header
               Readout cursor added
   09.08.13 .. ADC now allocated by GetMem()
+  25.06.14 .. Access violations prevented when first point in record is peak
   ==========================================================================}
 interface
 
@@ -1092,8 +1093,9 @@ begin
                   until (Y <= PeakLo) or (i0 <= iStart) ;
 
                 // V4.0.5 Interpolate to find exact time of lo, hi transitions
-                YHiPrev := ADC^[(i1-1)*fH.NumChannels + ChOffset]*Invert ;
-                YLoNext := ADC^[(i0+1)*fH.NumChannels + ChOffset]*Invert ;
+
+                YHiPrev := ADC^[Max(i1-1,0)*fH.NumChannels + ChOffset]*Invert ;
+                YLoNext := ADC^[Min(i0+1,fh.NumSamples-1)*fH.NumChannels + ChOffset]*Invert ;
                 dRiseTime := 0.0 ;
                 if YHi <> YHiPrev then dRiseTime := dRiseTime + ((PeakHi - YHi) /(YHi - YHiPrev)) ;
                 if YLoNext <> YLo then dRiseTime := dRiseTime - ((PeakLo - YLo) /(YLoNext - YLo)) ;
@@ -1131,13 +1133,13 @@ begin
 
                 Peak10 := Round(Abs(Peak)*0.1) ;
 
-                i := PeakAt - 1;
+                i := Max(PeakAt - 1,0);
                 repeat
                   Inc(i) ;
                   Y := ADC^[i*fH.NumChannels + ChOffset]*Invert ;
                   until (Y < Peak10) or (i > iEnd) ;
 
-                YPrev := ADC^[(i-1)*fH.NumChannels + ChOffset]*Invert ;
+                YPrev := ADC^[Max(i-1,0)*fH.NumChannels + ChOffset]*Invert ;
                 if (Y <> YPrev) then begin
                    dDecay := -((Peak10 - Y) /(Y - YPrev)) *rH.dt ;
                    end
@@ -1158,7 +1160,7 @@ begin
                   if Y >= TXAmplitude then TXAmplitudeAt := i ;
                   until (Y < 0) or (i > iEnd) ;
 
-                YPrev := ADC^[(TXAmplitudeAt-1)*fH.NumChannels + ChOffset]*Invert ;
+                YPrev := ADC^[Max(TXAmplitudeAt-1,0)*fH.NumChannels + ChOffset]*Invert ;
                 if (Y <> YPrev) then begin
                    dDecay := -((TXAmplitude - Y) /(Y - YPrev)) *rH.dt ;
                    end

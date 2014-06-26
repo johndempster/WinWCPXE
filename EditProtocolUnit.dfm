@@ -2,7 +2,7 @@ object EditProtocolFrm: TEditProtocolFrm
   Left = 510
   Top = 362
   Caption = 'EditProtocolFrm'
-  ClientHeight = 604
+  ClientHeight = 643
   ClientWidth = 1009
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -25,15 +25,16 @@ object EditProtocolFrm: TEditProtocolFrm
     Left = 172
     Top = 200
     Width = 757
-    Height = 409
+    Height = 441
     ActivePage = StimulusTab
     TabOrder = 0
     OnChange = PageChange
     object RecordTab: TTabSheet
       Caption = 'Recording'
+      ExplicitHeight = 361
       object GroupBox3: TGroupBox
-        Left = 0
-        Top = 232
+        Left = 4
+        Top = 250
         Width = 369
         Height = 51
         Caption = ' Link to next protocol '
@@ -53,16 +54,16 @@ object EditProtocolFrm: TEditProtocolFrm
         end
       end
       object GroupBox2: TGroupBox
-        Left = 0
+        Left = 4
         Top = 0
         Width = 369
-        Height = 161
+        Height = 179
         TabOrder = 1
         object RecTable: TStringGrid
           Left = 4
           Top = 10
           Width = 301
-          Height = 138
+          Height = 159
           ColCount = 2
           DefaultColWidth = 94
           DefaultRowHeight = 18
@@ -108,8 +109,8 @@ object EditProtocolFrm: TEditProtocolFrm
         end
       end
       object LeakGrp: TGroupBox
-        Left = 0
-        Top = 160
+        Left = 4
+        Top = 182
         Width = 369
         Height = 65
         Caption = ' Leak Subtraction (AO0 only)'
@@ -229,11 +230,12 @@ object EditProtocolFrm: TEditProtocolFrm
     object StimulusTab: TTabSheet
       Caption = 'Stimulus'
       ImageIndex = 1
+      ExplicitHeight = 381
       object ProtocolGrp: TGroupBox
         Left = 100
         Top = 0
         Width = 369
-        Height = 377
+        Height = 410
         Caption = ' Protocol '
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
@@ -9824,7 +9826,7 @@ object EditProtocolFrm: TEditProtocolFrm
         Left = 0
         Top = 0
         Width = 97
-        Height = 281
+        Height = 305
         Caption = ' Toolbox '
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
@@ -10796,6 +10798,7 @@ object EditProtocolFrm: TEditProtocolFrm
     object GlobalTab: TTabSheet
       Caption = 'Global Variables'
       ImageIndex = 2
+      ExplicitHeight = 381
       object GroupBox4: TGroupBox
         Left = 0
         Top = 0

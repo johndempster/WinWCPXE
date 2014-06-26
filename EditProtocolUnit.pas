@@ -17,6 +17,7 @@ unit EditProtocolUnit;
 //          Pulse period of train waveform can now be incremented between records
 //          Global stimulus protocol variables feature added
 // 20.08.13 SetCurrentDir() now used to ensure file dialog boxes open in current protocol directory
+// 25.06.14 Height of Recording settings box increased to ensure External Trigger line is visible
 
 
 interface

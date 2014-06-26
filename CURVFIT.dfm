@@ -40,10 +40,6 @@ object FitFrm: TFitFrm
     OnChange = PageChange
     object CurveFitTab: TTabSheet
       Caption = 'Fit Curves'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object scDisplay: TScopeDisplay
         Left = 176
         Top = 6
@@ -162,7 +158,7 @@ object FitFrm: TFitFrm
           Height = 20
           OnKeyPress = edRecordNumKeyPress
           AutoSize = False
-          Text = ' 1 / 1.00000001504746624E30 '
+          Text = ' 1 / 1.00000001504746622E30 '
           LoValue = 1.000000000000000000
           HiValue = 1.000000015047466E30
           LoLimit = 1.000000000000000000
@@ -410,7 +406,7 @@ object FitFrm: TFitFrm
             Width = 113
             Height = 20
             AutoSize = False
-            Text = ' 0.00 - 1.00000001504746624E30 '
+            Text = ' 0.00 - 1.00000001504746622E30 '
             HiValue = 1.000000015047466E30
             HiLimit = 1.000000015047466E30
             Scale = 1.000000000000000000
@@ -1412,7 +1408,7 @@ object FitFrm: TFitFrm
       Height = 20
       OnKeyPress = edPlotRangeKeyPress
       AutoSize = False
-      Text = ' 0.00 - 1.00000001504746624E30 '
+      Text = ' 0.00 - 1.00000001504746622E30 '
       HiValue = 1.000000015047466E30
       HiLimit = 1.000000015047466E30
       Scale = 1.000000000000000000

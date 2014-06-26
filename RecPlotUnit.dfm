@@ -1,9 +1,9 @@
 object RecPlotFrm: TRecPlotFrm
   Left = 613
   Top = 229
-  Width = 486
-  Height = 574
   Caption = 'On-Line Analysis'
+  ClientHeight = 547
+  ClientWidth = 478
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -166,7 +166,6 @@ object RecPlotFrm: TRecPlotFrm
         Height = 21
         Hint = 'Waveform measurement to be plotted'
         Style = csDropDownList
-        ItemHeight = 13
         ParentShowHint = False
         ShowHint = True
         TabOrder = 0
@@ -179,7 +178,6 @@ object RecPlotFrm: TRecPlotFrm
         Height = 21
         Hint = 'Signal input channel to be measured'
         Style = csDropDownList
-        ItemHeight = 13
         ParentShowHint = False
         ShowHint = True
         TabOrder = 1
@@ -229,7 +227,6 @@ object RecPlotFrm: TRecPlotFrm
           Height = 21
           Hint = 'Polarity of waveform: positive-going, negative-going, or both.'
           Style = csDropDownList
-          ItemHeight = 13
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
@@ -262,7 +259,6 @@ object RecPlotFrm: TRecPlotFrm
           Height = 21
           Hint = 'No. of points over which rate of change is smoothed'
           Style = csDropDownList
-          ItemHeight = 13
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
@@ -308,7 +304,6 @@ object RecPlotFrm: TRecPlotFrm
         Height = 21
         Hint = 'Plot only when selected stimulus protocol is in use'
         Style = csDropDownList
-        ItemHeight = 13
         ParentShowHint = False
         ShowHint = True
         TabOrder = 6
@@ -396,7 +391,6 @@ object RecPlotFrm: TRecPlotFrm
             'Cursor pair  defining waveform measurement region in recording s' +
             'weep'
           Style = csDropDownList
-          ItemHeight = 13
           ItemIndex = 0
           ParentShowHint = False
           ShowHint = True
@@ -432,7 +426,7 @@ object RecPlotFrm: TRecPlotFrm
           Top = 16
           Width = 113
           Height = 21
-          Text = ' 10 - 90 %'
+          Text = ' 10.00 - 90.00 %'
           LoValue = 0.100000001490116100
           HiValue = 0.899999976158142100
           HiLimit = 100.000000000000000000

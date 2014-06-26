@@ -78,6 +78,7 @@ unit Fileio;
                'RSTIME=', fHDR.RecordingStartTime added to WCP header
   27.08.13 ... RTIMESECS=', fHDR.RecordingStartTimeSecs added
                'RSTIME=', fHDR.RecordingStartTime now date string
+  26.06.14 ...
   }
 
 
@@ -209,7 +210,6 @@ begin
 
      fHDR.NumZeroAvg := Max(fHDR.NumZeroAvg,1) ;
      AppendInt( Header, 'NZ=', fHDR.NumZeroAvg ) ;
-
 
      for ch := 0 to fHDR.NumChannels-1 do begin
          AppendInt( Header, format('YO%d=',[ch]), Channel[ch].ChannelOffset) ;
@@ -1194,7 +1194,7 @@ begin
                fHDR.NumBytesPerRecord*(RecordNum-1) +
                fHDR.NumAnalysisBytesPerRecord,
                0 ) ;
-     outputdebugstring(pchar(format('Rec=%d data off=%d',[RecordNum,FilePointer])));
+
      { Read data block }
      if FileRead( FHDR.FileHandle, dBuf, FHDR.NumDataBytesPerRecord )
         <> FHDR.NumDataBytesPerRecord then begin
@@ -1308,9 +1308,9 @@ begin
 
      { Move file pointer to start of record header block }
      FilePointer := FileSeek( FHDR.FileHandle,
-               (RecordNum-1)*fHDR.NumBytesPerRecord + fHDR.NumBytesInHeader,
-               0 ) ;
-     outputdebugstring(pchar(format('Rec=%d off=%d',[RecordNum,FilePointer])));
+                    (RecordNum-1)*fHDR.NumBytesPerRecord + fHDR.NumBytesInHeader,
+                    0 ) ;
+
      { Read record header data }
 
      FileRead( FHDR.FileHandle, cStatus, SizeOf(cStatus));
