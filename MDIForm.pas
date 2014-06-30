@@ -578,6 +578,9 @@ unit MDIForm;
                       Padding at end of stimulus pulses reduced from 1s to 100ms to speed up repeat rate
    V4.7.6 15.05.14    Amplifier # now appended to channel name if more than one amplifier in use
    V4.7.7 25.06.14    Free run and external trigger modes now work with Heka devices
+   V4.7.8 27.06.14    ITC-18 Now works correctly with sampling buffers > 50000 samples
+                      Analog output buffer no longer corrupted
+   V4.7.9 30.06.14    ITC-18 More bugs fixed.
   =======================================================================}
 
 
@@ -822,7 +825,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.7.7';
+      ProgVersion := 'V4.7.9';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
