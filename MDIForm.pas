@@ -581,6 +581,7 @@ unit MDIForm;
    V4.7.8 27.06.14    ITC-18 Now works correctly with sampling buffers > 50000 samples
                       Analog output buffer no longer corrupted
    V4.7.9 30.06.14    ITC-18 More bugs fixed.
+   V4.8.0 23.07.14    Ampmodule.pas updated. V1.1 message received report format corrected.  No longer produces error.
   =======================================================================}
 
 
@@ -825,7 +826,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.7.9';
+      ProgVersion := 'V4.8.0';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

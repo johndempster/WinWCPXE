@@ -105,6 +105,8 @@ unit AmpModule;
 // 19.12.13 Addition Multiclamp messages to log file updated (may now support 2 amplifiers)
 // 22.01.14 Multiclamp support updated to API V2.x Now detects Multiclamp device serial number
 // 15.05.14 Amplifier # now appended to channel name if more than one amplifier in use
+// 23.05.14 V1.1 message received report format corrected.  No longer produces error.
+//          TCopyData updated for 64 bit compatibility
 
 interface
 
@@ -351,8 +353,8 @@ const
 type
 
 TCopyDataStruct = record
-    dwData : Cardinal ;
-    cbData : Cardinal ;
+    dwData : NativeUInt ;
+    cbData : NativeInt ;
     lpData : Pointer ;
     end ;
 PCopyDataStruct = ^TCopyDataStruct ;
@@ -6623,7 +6625,7 @@ begin
             iChan := (TData.AxoBusID*2) + TData.ChannelID ;
             iChan := Max(0,Min(iChan,High(MCTelegraphData))) ;
             WriteToLogFile(format(
-            'Multiclamp V1.1: Message from Device=%d AxobusID=%d ComPortID=%d Ch.=%d',
+            'Multiclamp V1.1: Message from AxobusID=%d ComPortID=%d Ch.=%d',
             [TData.AxoBusID,TData.ComPortID,TData.ChannelID]));
             end
          else begin

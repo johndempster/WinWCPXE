@@ -1,6 +1,11 @@
 Comment
 Comment
 Code Folding Region
+Get System Settings
+If
+MessageBox
+Terminate Install
+End
 Code Folding Region
 Comment
 Code Folding Region
@@ -327,6 +332,11 @@ $
 {B29C9A09-32EE-440F-BA21-E628EBC7F408}
 {EFC8FD50-11EF-401C-BD1A-B92B7C889552}
 {F40796B7-145A-4562-A0C5-B631A0FA7AD1}
+{3F1FE9D7-17F9-4804-A83B-127F210505A7}
+{567807E5-900D-4638-AE8F-CF389486E2A4}
+{6C6B5C7E-6046-4393-A833-4087708952C6}
+{3E7A0DC0-CB8C-4938-929A-602C02BAC11B}
+{7A34B17C-2409-4EFC-BC03-90C77C0C02C8}
 {15305323-9C9C-4201-A2A1-D938A0B3E32F}
 {BBE66208-75ED-4D56-9CFB-6EC7FCCB7D17}
 {2CFBB59E-7830-4458-9EFB-E760DBB96F12}
@@ -995,6 +1005,11 @@ SUCCESS
 0
 CANCEL
 TRUE
+{567807E5-900D-4638-AE8F-CF389486E2A4}
+CHECKSYSTEM
+0
+TRUE
+TRUE
 {D86B9C9F-50F8-49C9-A973-06840DB500B6}
 $TITLE$ Setup
 Your computer needs to be restarted before $TITLE$ Setup can continue.$NEWLINE$$NEWLINE$Please save your work in all running programs and click OK to restart your computer. Setup will resume once your computer restarts.$NEWLINE$$NEWLINE$If you click CANCEL, setup will exit. You will have to run setup again at a later time to install $TITLE$.
@@ -1005,6 +1020,12 @@ REBOOTNOW
 $TITLE$ Setup
 Unable to uninstall old version of $TITLE$. Please uninstall it yourself using Control Panel Add-Remove Programs before attempting to install this product.$NEWLINE$$NEWLINE$$ERROROLD$
 2
+1
+
+{6C6B5C7E-6046-4393-A833-4087708952C6}
+$TITLE$ Setup Error
+This product requires at least Administrator Privileges.$NEWLINE$$NEWLINE$Setup cannot continue.
+3
 1
 
 {19D1481E-4398-4C19-8564-9A8120637107}
@@ -1196,6 +1217,9 @@ TRUE
 {08D720B6-79CB-4F4D-A83D-225DB20498B8}
 ISNT
 18
+{3F1FE9D7-17F9-4804-A83B-127F210505A7}
+CHECKSYSTEM
+0
 {5B541E0F-58AE-411E-BD3F-314A121D2E55}
 E:\Delphi XE3 Projects\WinWCPXE\apollo.bit
 FALSE|
@@ -1942,7 +1966,7 @@ Removes this InstallAware Software Corporation product
 0
 {74EADCE1-2F26-4E19-A146-570F55B98FEA}
 $TARGETDIR$\winwcp.exe
-WinWCP V4.7.9
+WinWCP V4.8.0
 $DESKTOPDIR$
 
 
@@ -1952,7 +1976,7 @@ $DESKTOPDIR$
 0|
 {F728F386-31E8-45B1-83DF-DF1CA070C974}
 $TARGETDIR$\winwcp.exe
-WinWCP V4.7.9
+WinWCP V4.8.0
 $SHORTCUTFOLDER$
 
 
@@ -2158,6 +2182,11 @@ $
 
 
 
+
+
+
+
+
 C
 
 
@@ -2458,6 +2487,11 @@ C
 
 
 $
+
+
+
+
+
 
 
 
