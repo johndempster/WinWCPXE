@@ -826,7 +826,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.8.0';
+      ProgVersion := 'V4.8.1';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

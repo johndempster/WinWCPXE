@@ -105,8 +105,9 @@ unit AmpModule;
 // 19.12.13 Addition Multiclamp messages to log file updated (may now support 2 amplifiers)
 // 22.01.14 Multiclamp support updated to API V2.x Now detects Multiclamp device serial number
 // 15.05.14 Amplifier # now appended to channel name if more than one amplifier in use
-// 23.05.14 V1.1 message received report format corrected.  No longer produces error.
+// 23.07.14 V1.1 message received report format corrected.  No longer produces error.
 //          TCopyData updated for 64 bit compatibility
+// 25.07.14 V1.1 API now detects channel correctly
 
 interface
 
@@ -6607,7 +6608,7 @@ function TAmplifier.AppHookFunc(var Message : TMessage)  : Boolean;
 var
     AddChannel : Boolean ;
     TData : TMC_TELEGRAPH_DATA ;
-    i,ComID,AxobusID,ChannelID,Device,Err,iChan : Integer ;
+    i,Err,iChan : Integer ;
     SerialNum : Cardinal ;
 begin
   Result := False; //I just do this by default
@@ -6621,15 +6622,22 @@ begin
          // Copy telegraph data into record
          TData := PMC_TELEGRAPH_DATA(PCopyDataStruct(Message.lParam)^.lpData)^ ;
          if TData.Version < 6 then begin
-            // API V1.x
-            iChan := (TData.AxoBusID*2) + TData.ChannelID ;
-            iChan := Max(0,Min(iChan,High(MCTelegraphData))) ;
+            // API V1.x (Multiclamp 700A)
+            //iChan := TData.ChannelID - 1 ;
+            //iChan := Max(0,Min(iChan,High(MCTelegraphData))) ;
+            // Assign channel based upon COM port # and channelID
+            iChan := 0 ;
+            for i  := 0 to MCNumChannels-1 do begin
+               if ((TData.ChannelID shl 16) or TData.ComPortID) = MCChannels[i] then iChan := i ;
+               end ;
+
             WriteToLogFile(format(
-            'Multiclamp V1.1: Message from AxobusID=%d ComPortID=%d Ch.=%d',
-            [TData.AxoBusID,TData.ComPortID,TData.ChannelID]));
+            'Multiclamp V1.1: Message received from ComPortID=%d ChannelID=%d to Input Ch.=%d',
+            [TData.ComPortID,TData.ChannelID,iChan]));
             end
          else begin
-            // API V2.x
+            // API V2.x (Multiclamp 700B)
+            // Assign channel based upon Device serial number and ChannelID
             iChan := 0 ;
             for i  := 0 to MCNumChannels-1 do begin
                Val( ANSIString(TData.SerialNumber), SerialNum, Err ) ;
@@ -6637,8 +6645,8 @@ begin
                if ((TData.ChannelID shl 28) or SerialNum) = MCChannels[i] then iChan := i ;
                end ;
              WriteToLogFile(format(
-             'Multiclamp V2.x: Message from Device=%s  Ch.=%d',
-             [ANSIString(TData.SerialNumber),TData.ChannelID]));
+             'Multiclamp V2.x: Message received from Device=%s  ChannelID=%d to Input Ch.%d',
+             [ANSIString(TData.SerialNumber),TData.ChannelID,iChan]));
             end ;
          MCTelegraphData[iChan] := TData ;
          Result := True ;
@@ -6649,7 +6657,7 @@ begin
     if (Message.Msg = MCIDMessageID) or (Message.Msg = MCReconnectMessageID) then begin
          AddChannel := True ;
          for i := 0 to MCNumChannels-1 do if MCChannels[i] = Message.lParam then AddChannel := False ;
-         WriteToLogFile(format('Multiclamp: MCIDMessage received ID=%x',[Message.lParam]));
+         WriteToLogFile(format('Multiclamp: Channel detected ID=%x',[Message.lParam]));
 
          if AddChannel then begin
              // Store server device/channel ID in list
