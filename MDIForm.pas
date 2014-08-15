@@ -582,6 +582,9 @@ unit MDIForm;
                       Analog output buffer no longer corrupted
    V4.7.9 30.06.14    ITC-18 More bugs fixed.
    V4.8.0 23.07.14    Ampmodule.pas updated. V1.1 message received report format corrected.  No longer produces error.
+   V4.8.2 15.08.14    Settings.VProtDirectory now initialised correctly with '\' at end. Protocols list now detected again
+                      Support for USB-6000-6005 added
+                      Gap-free ABF files now loaded as a single record
   =======================================================================}
 
 
@@ -826,7 +829,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.8.1';
+      ProgVersion := 'V4.8.2';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
@@ -846,7 +849,7 @@ begin
      WriteToLogFile( 'WinWCP Started' ) ;
 
      // Stimulus protocols folder
-     Settings.VProtDirectory := GetSpecialFolder(CSIDL_COMMON_DOCUMENTS) + '\WinWCP\Vprot';
+     Settings.VProtDirectory := GetSpecialFolder(CSIDL_COMMON_DOCUMENTS) + '\WinWCP\Vprot\';
       if not SysUtils.DirectoryExists(Settings.VProtDirectory) then begin
          if SysUtils.ForceDirectories(Settings.VProtDirectory) then
             WriteToLogFile( 'Protocols folder ' + Settings.VProtDirectory + ' created.')
@@ -3040,9 +3043,10 @@ begin
         Exit ;
         end ;
 
-     if (Main.ImportFile.NumScansPerRecord*Main.ImportFile.NumChannelsPerScan)
-        > MaxADCSamples then begin
-        ShowMessage( ' IMPORT: Unable to import files with more than 32768 samples/record!') ;
+     if (Main.ImportFile.NumScansPerRecord*Main.ImportFile.NumChannelsPerScan) > MaxADCSamples then begin
+        ShowMessage( format(
+        ' IMPORT: Unable to import files with more than %d samples/record!',
+        [MaxADCSamples div Main.ImportFile.NumChannelsPerScan])) ;
         Main.ImportFile.CloseDataFile ;
         Exit ;
         end ;
