@@ -108,6 +108,7 @@ unit AmpModule;
 // 23.07.14 V1.1 message received report format corrected.  No longer produces error.
 //          TCopyData updated for 64 bit compatibility
 // 25.07.14 V1.1 API now detects channel correctly
+// 19.08.14 Support for NPI ELC03X amplifier added
 
 interface
 
@@ -118,7 +119,7 @@ uses
 const
      MaxAmplifiers = 4 ;
      MaxAmplifierChannels = MaxAmplifiers*2 ;
-     NumAmplifiers = 39 ;
+     NumAmplifiers = 40 ;
 
 
      amCurrentClamp = 1 ;
@@ -163,6 +164,7 @@ const
      amEPC7 = 36 ;
      amDaganCA1B = 37 ;
      amHekaEPC9 = 38 ;
+     amNPIELC03SX = 39 ;
 
 
      // Patch clamp mode flags
@@ -934,6 +936,19 @@ TAXC_GetHeadstageType = function(
           var ChanScale : Single
           ) ;
 
+    function GetNPIELC03SXGain(
+         AmpNumber : Integer ;
+         TelChan : Integer ) : single ;
+    procedure GetNPIELC03SXChannelSettings(
+          iChan : Integer ;
+          var ChanName : String ;
+          var ChanUnits : String ;
+          var ChanCalFactor : Single ;
+          var ChanScale : Single
+          ) ;
+
+
+
     function LoadProcedure(
          Hnd : THandle ;       { Library DLL handle }
          Name : string         { Procedure name within DLL }
@@ -1296,6 +1311,7 @@ begin
      List.AddObject('NPI Turbo Tec-10CX',TObject(amTurboTec10CX)) ;
      List.AddObject('NPI Turbo Tec-20',TObject(amTurboTec20)) ;
      List.AddObject('NPI Turbo Tec-30',TObject(amTurboTec30)) ;
+     List.AddObject('NPI ELC03SX',TObject(amNPIELC03SX)) ;
 
      List.AddObject('Dagan TEV-200',TObject(amDaganTEV200A)) ;
      List.AddObject('Dagan PC-ONE-10 (10M)',TObject(amDaganPCOne10M)) ;
@@ -1843,6 +1859,39 @@ begin
             FModeTelegraphAvailable[AmpNumber] := False ;
             FNeedsGainTelegraphChannel[AmpNumber] := True ;
             FNeedsModeTelegraphChannel[AmpNumber] := False ;
+            FModeSwitchedPrimaryChannel[AmpNumber] := False ;
+            FGainTelegraphChannel[AmpNumber] := DefGainTelegraphChannel[AmpNumber] ;
+            FModeTelegraphChannel[AmpNumber] := DefModeTelegraphChannel[AmpNumber] ;
+            end ;
+
+          amNPIELC03SX  : begin
+            FPrimaryOutputChannel[AmpNumber] := 2*AmpNumber ;
+            FPrimaryOutputChannelName[AmpNumber] := 'Current Output' ;
+            FPrimaryOutputChannelNameCC[AmpNumber] := 'Current Output' ;
+            FPrimaryChannelUnits[AmpNumber] := 'nA' ;
+            FPrimaryChannelUnitsCC[AmpNumber] := 'nA' ;
+            FPrimaryChannelScaleFactorX1Gain[AmpNumber] := 0.1 ;
+            FPrimaryChannelScaleFactorX1GainCC[AmpNumber] := 0.1 ;
+            FPrimaryChannelScaleFactor[AmpNumber] := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
+
+            FSecondaryOutputChannel[AmpNumber] := 2*AmpNumber + 1 ;
+            FSecondaryOutputChannelName[AmpNumber] := 'Potential Output (mV)' ;
+            FSecondaryOutputChannelNameCC[AmpNumber] := 'Potential Output (mV)' ;
+            FSecondaryCHannelUnits[AmpNumber] := 'mV' ;
+            FSecondaryCHannelUnitsCC[AmpNumber] := 'mV' ;
+            FSecondaryChannelScaleFactorX1Gain[AmpNumber] := 0.01 ;
+            FSecondaryChannelScaleFactorX1GainCC[AmpNumber] := 0.01 ;
+            FSecondaryChannelScaleFactor[AmpNumber] := 0.01 ;
+
+            FVoltageCommandScaleFactor[AmpNumber] := 0.1 ;
+            FVoltageCommandChannel[AmpNumber] := AmpNumber ;
+            FCurrentCommandScaleFactor[AmpNumber] := 1E-9 ; // 1nA/V input
+            FCurrentCommandChannel[AmpNumber] := Min(AmpNumber+1,MaxAmplifiers-1) ;
+
+            FGainTelegraphAvailable[AmpNumber] := True ;
+            FModeTelegraphAvailable[AmpNumber] := True ;
+            FNeedsGainTelegraphChannel[AmpNumber] := True ;
+            FNeedsModeTelegraphChannel[AmpNumber] := True ;
             FModeSwitchedPrimaryChannel[AmpNumber] := False ;
             FGainTelegraphChannel[AmpNumber] := DefGainTelegraphChannel[AmpNumber] ;
             FModeTelegraphChannel[AmpNumber] := DefModeTelegraphChannel[AmpNumber] ;
@@ -2396,6 +2445,7 @@ begin
           amEPC7 : Result := 1.0 ;
           amDaganCA1B : Result := GetDaganCA1BGain(AmpNumber) ;
           amHekaEPC9 : Result := GetHekaEPC9Gain(AmpNumber) ;
+          amNPIELC03SX : Result := GetNPIELC03SXGain(AmpNumber,FGainTelegraphChannel[AmpNumber]) ;
           else Result := 1.0 ;
           end ;
      end ;
@@ -2560,6 +2610,7 @@ begin
      AmplifierType := GetAmplifierType(AmpNumber) ;
      case AmplifierType of
         amDaganCA1B : Result := 'Im Gain' ;
+        amNPIELC03SX : Result := 'Current Sensitivity' ;
         else Result := 'Gain' ;
         end ;
      end ;
@@ -2582,6 +2633,7 @@ begin
      AmplifierType := GetAmplifierType(AmpNumber) ;
      case AmplifierType of
         amDaganCA1B : Result := 'Proc Gain' ;
+        amNPIELC03SX : Result := 'Potential Sensitivity' ;
         else Result := 'Voltage/Current Clamp Mode' ;
         end ;
      end ;
@@ -2820,6 +2872,11 @@ begin
                                                 ChanCalFactor,
                                                 ChanScale ) ;
 
+          amNPIELC03SX :  GetNPIELC03SXChannelSettings( iChan,
+                                                      ChanName,
+                                                      ChanUnits,
+                                                      ChanCalFactor,
+                                                      ChanScale ) ;
           end ;
 
     if ChanCalFactor = 0.0 then ChanCalFactor := 1.0 ;
@@ -3557,7 +3614,7 @@ begin
 
     AmpNumber := AmpNumberOfChannel(iChan) ;
     if AmpNumber >= MaxAmplifiers then Exit ;
-    
+
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
        AddAmplifierNumber( ChanName, iChan ) ;
@@ -4448,7 +4505,7 @@ begin
 
     AmpNumber := AmpNumberOfChannel(iChan) ;
     if AmpNumber >= MaxAmplifiers then Exit ;
-    
+
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
        AddAmplifierNumber( ChanName, iChan ) ;
@@ -4868,7 +4925,7 @@ begin
 
     AmpNumber := AmpNumberOfChannel(iChan) ;
     if AmpNumber >= MaxAmplifiers then Exit ;
-    
+
     if IsPrimaryChannel(iChan)then begin
        ChanName := 'Im' ;
        AddAmplifierNumber( ChanName, iChan ) ;
@@ -5860,6 +5917,101 @@ begin
         ShowMessage(ErrText) ;
         end ;
      end ;
+
+
+function TAmplifier.GetNPIELC03SXGain(
+         AmpNumber : Integer ;
+         TelChan : Integer ) : single ;
+// ---------------------------------------------
+// Decode NPI ELC03SX gain from telegraph output
+// ---------------------------------------------
+const
+     NumGains = 7 ;
+     VGainSpacing = 1.0 ;
+     VStart = 1.0 ;
+var
+   Gains : Array[0..NumGains-1] of single ;
+   V : single ;
+   iGain : Integer ;
+begin
+
+     // Note. Don't interrupt A/D sampling if it in progress.
+     // Use most recent gain setting instead
+
+    if (TelChan >= 0) and (TelChan < Main.SESLabIO.ADCMaxChannels) and
+       (not ADCInUse) then begin
+
+        // Gain settings
+        Gains[0] := 1.0 ;
+        Gains[1] := 2.0 ;
+        Gains[2] := 5.0 ;
+        Gains[3] := 10.0 ;
+        Gains[4] := 20.0 ;
+        Gains[5] := 50.0 ;
+        Gains[6] := 100.0 ;
+
+        // Get voltage from telegraph channel
+        V := GetTelegraphVoltage( TelChan ) ;
+
+        // Extract gain associated with telegraph voltage
+        iGain := Trunc( (V - VStart + 0.1)/VGainSpacing ) ;
+        iGain := Max(Min(iGain,NumGains-1),0);
+
+        LastGain[AmpNumber] := Gains[iGain] ;
+
+        end ;
+
+     Result := LastGain[AmpNumber] ;
+     end ;
+
+
+procedure TAmplifier.GetNPIELC03SXChannelSettings(
+          iChan : Integer ;
+          var ChanName : String ;
+          var ChanUnits : String ;
+          var ChanCalFactor : single ;
+          var ChanScale : Single
+          ) ;
+// -----------------------------------
+// Get NPI ELC03SX channel settings
+// -----------------------------------
+var
+   AmpNumber : Integer ;
+begin
+
+    AmpNumber := AmpNumberOfChannel(iChan) ;
+    if AmpNumber >= MaxAmplifiers then Exit ;
+
+    if IsPrimaryChannel(iChan)then begin
+       ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
+       ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
+       ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
+       if GetGainTelegraphAvailable(AmpNumber) then begin
+          ChanScale := GetNPIELC03SXGain( AmpNumber, FGainTelegraphChannel[AmpNumber] ) ;
+          FPrimaryChannelScaleFactor[AmpNumber] := ChanCalFactor*ChanScale ;
+          end
+       else begin
+          ChanScale := FPrimaryChannelScaleFactor[AmpNumber]/ ChanCalFactor ;
+          end ;
+       end
+    else if IsSecondaryChannel(iChan) then begin
+       ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
+       ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
+       ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
+       if GetModeTelegraphAvailable(AmpNumber) then begin
+          ChanScale := GetNPIELC03SXGain( AmpNumber, FModeTelegraphChannel[AmpNumber] ) ;
+          FSecondaryChannelScaleFactor[AmpNumber] := ChanCalFactor*ChanScale ;
+          end
+       else begin
+          ChanScale := FSecondaryChannelScaleFactor[AmpNumber]/ ChanCalFactor ;
+          end ;
+       end ;
+
+    end ;
+
+
 
 
 // *** CED 1902 Amplifier methods ***
