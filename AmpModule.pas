@@ -1205,8 +1205,6 @@ var
     SettingsDirectory : String ;
 begin
 
-     // Default settings
-
      FAmpCurrentChannel := 0 ;
      FAmpVoltageChannel := 1 ;
 
