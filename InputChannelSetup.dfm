@@ -31,10 +31,6 @@ object InputChannelSetupFrm: TInputChannelSetupFrm
     object ChannelsPage: TTabSheet
       Caption = 'Input Channels '
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object ChannelTable: TStringGrid
         Left = 0
         Top = 2

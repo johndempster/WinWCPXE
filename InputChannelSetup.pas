@@ -33,6 +33,9 @@ unit InputChannelSetup;
   19.11.13 SetCurrentDir() now ensure file dialog box opens in correct directory
   20.11.13 Displayed amplifier and channel settings now updated before being written to user-defined settings file
             Settings files now have file ending set to .xml
+  18.09.14 Amplifier.VoltageCommandScaleFactor and Amplifier.CurrentCommandScaleFactor now updated by
+           cbVoltageCommandChannel.ItemIndex and cbCurrentCommandChannel.ItemIndex not (AmplifiersTab.TabIndex)
+           Correct current clamp scale factor now applied for AxoClamp 2s.
 
                   }
 interface
@@ -288,16 +291,13 @@ begin
      cbModeTelegraphChannel.ItemIndex := Min(cbModeTelegraphChannel.Items.Count-1,Max(0,
                                          Amplifier.ModeTelegraphChannel[AmplifiersTab.TabIndex])) ;
 
-
-     edVoltageCommandScaleFactor.Value := Amplifier.VoltageCommandScaleFactor[AmplifiersTab.TabIndex] ;
      cbVoltageCommandChannel.ItemIndex := Min(cbVoltageCommandChannel.Items.Count-1,Max(0,
                                          Amplifier.VoltageCommandChannel[AmplifiersTab.TabIndex])) ;
+     edVoltageCommandScaleFactor.Value := Amplifier.VoltageCommandScaleFactor[cbVoltageCommandChannel.ItemIndex] ;
 
-     edCurrentCommandScaleFactor.Value := Amplifier.CurrentCommandScaleFactor[AmplifiersTab.TabIndex] ;
      cbCurrentCommandChannel.ItemIndex := Min(cbCurrentCommandChannel.Items.Count-1,Max(0,
                                           Amplifier.CurrentCommandChannel[AmplifiersTab.TabIndex])) ;
-
-     //DisplayClampMode ;
+     edCurrentCommandScaleFactor.Value := Amplifier.CurrentCommandScaleFactor[cbCurrentCommandChannel.ItemIndex] ;
 
      AmpNumberOnDisplay := AmplifiersTab.TabIndex ;
 
@@ -323,8 +323,8 @@ begin
      Amplifier.GainTelegraphChannel[AmplifiersTab.TabIndex] := cbGainTelegraphChannel.ItemIndex ;
      Amplifier.ModeTelegraphChannel[AmplifiersTab.TabIndex] := cbModeTelegraphChannel.ItemIndex ;
 
-     Amplifier.VoltageCommandScaleFactor[AmplifiersTab.TabIndex] := edVoltageCommandScaleFactor.Value ;
-     Amplifier.CurrentCommandScaleFactor[AmplifiersTab.TabIndex] := edCurrentCommandScaleFactor.Value ;
+     Amplifier.VoltageCommandScaleFactor[cbVoltageCommandChannel.ItemIndex] := edVoltageCommandScaleFactor.Value ;
+     Amplifier.CurrentCommandScaleFactor[cbCurrentCommandChannel.ItemIndex] := edCurrentCommandScaleFactor.Value ;
 
      // Update A/D channels with settings from amplifiers
      UpdateADCChannelsWithAmplifierSettings

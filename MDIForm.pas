@@ -587,6 +587,8 @@ unit MDIForm;
                       Gap-free ABF files now loaded as a single record
    V4.8.3 15.09.14    ABF V2.X files now imported (using abffio.dll)
                       PCI-6281 and other 18 bit interfaces now supported.
+   V4.8.4 18.09.14    Current scaling factor for Axoclamp 2 current command channel now recognised currently
+                      Current and Voltage command channels can now be updated by user.
   =======================================================================}
 
 
@@ -831,7 +833,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.8.3';
+      ProgVersion := 'V4.8.4';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
