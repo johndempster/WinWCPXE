@@ -589,9 +589,10 @@ unit MDIForm;
                       PCI-6281 and other 18 bit interfaces now supported.
    V4.8.4 18.09.14    Current scaling factor for Axoclamp 2 current command channel now recognised currently
                       Current and Voltage command channels can now be updated by user.
+   V4.8.5 15.10.14    ITC-18 ADCActive no longer set TRUE by adctomemory() in tmWaveGen mode
+                      Prevents time jitter and access violations with voltage step protocols.
+                      Rec.pas Stimulus protocol status now updated during sweep and shows time till next stimulus
   =======================================================================}
-
-
 
 interface
 
@@ -602,7 +603,6 @@ uses
   LeakSub, About, RecEdit,Log, QAnal, DrvFun, defset,
   SESLabIO, ced1902u, ComCtrls, ADCDataFile, strutils, math, StdCtrls,FileCtrl,
   UITypes, Vcl.HtmlHelpViewer, shlobj, ioutils ;
-
 
 type
   TMain = class(TForm)
@@ -833,7 +833,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.8.4';
+      ProgVersion := 'V4.8.5';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

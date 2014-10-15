@@ -93,6 +93,7 @@ unit Rec;
   06.09.13 .. EPC9PanelFrm opened if EPC9/10 patch clamp in use.
   23.09.13 .. Recording start time now encoded in en-GB format
   25.06.14 .. From Record zero level can now be set in recording window
+  15.10.14 .. Stimulus protocol status now updated during sweep and shows time till next stimulus
   ==============================================================================}
 interface
 
@@ -299,6 +300,7 @@ TCursors = record
                             voltage program waveform }
    OldStepCounter : Integer ; { Previous voltage program step number }
    Stopwatch : TStopwatch ;
+   StatusCounter : Integer ;
    EndOfSweep : boolean ;
    EndOfSweepCount : Integer ;
    AbortRecording : boolean ;
@@ -847,6 +849,17 @@ begin
            if not Main.FormExists( 'RecPlotFrm' ) then bCloseOLAWindow.Click ;
            end ;
 
+        // Display stimulus protocol status
+        if NOT bRecord.Enabled and (Main.SESLabIO.ADCTriggerMode = tmWaveGen) then begin
+           Inc(StatusCounter) ;
+           if (StatusCounter >= 10) and (Main.SesLabIO.TimerPeriod >= 0.0) then begin
+              edStatus.text := format( 'Rec %d %s (Next stim. %.1f/%.1fs)',
+                                      [RawFH.NumRecords,
+                                       Stimulator.ProtocolStatus,
+                                       Main.SesLabIO.TimerTime,Main.SesLabIO.TimerPeriod ]) ;
+              StatusCounter := 0 ;
+              end;
+           end ;
         end ;
      end ;
 
@@ -1614,6 +1627,7 @@ begin
         MainMenus( Enable ) ;
         end ;
 
+     StatusCounter := 0 ;
      end;
 
 function TRecordFrm.LoadStimulusProtocol(
