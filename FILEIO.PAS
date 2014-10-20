@@ -478,7 +478,6 @@ begin
            ReadInt( Header, 'NC=', Settings.NumChannels ) ;
            Settings.NumChannels := Max( 1,Settings.NumChannels ) ;
            ReadInt( Header, 'NSAMP=', Settings.NumSamples ) ;
-//           ReadInt( Header, 'ADCVRI=', Settings.ADCVoltageRangeIndex ) ;
            ReadFloat( Header, 'RECDUR=', Settings.RecordDuration ) ;
 
            { CED 1902 amplifier settings }
@@ -835,7 +834,6 @@ begin
      // SAve default recording settings
      AppendInt( Header, 'NC=', Settings.NumChannels ) ;
      AppendInt( Header, 'NSAMP=', Settings.NumSamples ) ;
-//     AppendInt( Header, 'ADCVRI=', Settings.ADCVoltageRangeIndex ) ;
      AppendFloat( Header, 'RECDUR=', Settings.RecordDuration ) ;
 
      AppendInt( Header, 'CEDI=', Amplifier.CED1902.Input ) ;

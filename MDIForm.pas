@@ -592,6 +592,8 @@ unit MDIForm;
    V4.8.5 15.10.14    ITC-18 ADCActive no longer set TRUE by adctomemory() in tmWaveGen mode
                       Prevents time jitter and access violations with voltage step protocols.
                       Rec.pas Stimulus protocol status now updated during sweep and shows time till next stimulus
+   V4.8.6             File/Import. Blank lines in files no longer stop importing
+                      Digidata 1320 D/A timing error fixed.
   =======================================================================}
 
 interface
@@ -833,7 +835,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.8.5';
+      ProgVersion := 'V4.8.6';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
@@ -941,7 +943,6 @@ begin
 
      Settings.NumChannels := 1 ;
      Settings.NumSamples := 4096 ;
-     //Settings.ADCVoltageRangeIndex := 0 ;
      Settings.RecordDuration := 1.0 ;
 
      Settings.RecordingMode := 0 ;

@@ -576,8 +576,6 @@ begin
                    Main.SESLabIO.ADCNumChannels := NumTestChannels ;
                    Main.SESLabIO.ADCNumSamples := NumTestSamples ;
                    // A/D input voltage range
-//                   Main.SESLabIO.ADCVoltageRangeIndex := Min( Settings.ADCVoltageRangeIndex,
-//                                                              Main.SESLabIO.ADCNumVoltageRanges-1) ;
 
                    // Set A/D sweep triggering
                    Main.SESLabIO.ADCTriggerMode := tmWaveGen ;

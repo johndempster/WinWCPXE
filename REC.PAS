@@ -922,7 +922,6 @@ begin
           Main.SESLabIO.GetADCBuffer( ADC ) ;
           if Main.SESLabIO.ADCActive then Main.SESLabIO.ADCStop ;
           Main.SESLabIO.ADCTriggerMode := tmFreeRun ;
-//          Main.SESLabIO.ADCVoltageRangeIndex := Settings.ADCVoltageRangeIndex ;
           Main.SESLabIO.ADCNumChannels := Settings.NumChannels ;
           Main.SESLabIO.ADCNumSamples := Settings.NumSamples ;
           Main.SESLabIO.ADCSamplingInterval := Settings.RecordDuration / Settings.NumSamples ;
@@ -1113,7 +1112,6 @@ begin
         Main.SESLabIO.ADCNumChannels := Settings.NumChannels ;
         Main.SESLabIO.ADCNumSamples := (Det.EndofBuf+1) div Settings.NumChannels ;
         Main.SESLabIO.ADCSamplingInterval := Settings.RecordDuration / Settings.NumSamples ;
-//        Main.SESLabIO.ADCVoltageRangeIndex := Settings.ADCVoltageRangeIndex ;
         Main.SESLabIO.ADCTriggerMode := tmFreeRun ;
         Main.SESLabIO.ADCCircularBuffer := True ;
         Main.SESLabIO.ADCStart ;
