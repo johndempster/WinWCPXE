@@ -18,7 +18,7 @@ unit EditProtocolUnit;
 //          Global stimulus protocol variables feature added
 // 20.08.13 SetCurrentDir() now used to ensure file dialog boxes open in current protocol directory
 // 25.06.14 Height of Recording settings box increased to ensure External Trigger line is visible
-
+// 15.12.14 Changes to element parameters no longer lost when a new element dropped on waveform palette
 
 interface
 
@@ -1322,6 +1322,10 @@ procedure TEditProtocolFrm.AO00DragDrop(Sender, Source: TObject; X,
 var
    iTag : Integer ;
 begin
+
+    // Update current parameter table
+    UpdateStimulusElement( SelectedStimulusElement ) ;
+
      iTag := TImage(Sender).Tag ;
      if  TImage(Source).Picture.Height = TImage(Sender).Picture.Height then begin
         TIMage(Sender).Picture := TImage(Source).Picture ;

@@ -226,6 +226,11 @@ object Main: TMain
         Caption = 'EPC-&9/10 Patch Clamp'
         OnClick = mnEPC9PanelClick
       end
+      object mnResetMulticlamp: TMenuItem
+        Caption = 'Reset &Multiclamp 700A/B Link'
+        Hint = 'Reset communication link with Multiclamp 700A/B'
+        OnClick = mnResetMulticlampClick
+      end
       object mnDefaultSettings: TMenuItem
         Caption = '&Default output settings'
         OnClick = mnDefaultSettingsClick

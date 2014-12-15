@@ -31,7 +31,6 @@ object EditProtocolFrm: TEditProtocolFrm
     OnChange = PageChange
     object RecordTab: TTabSheet
       Caption = 'Recording'
-      ExplicitHeight = 361
       object GroupBox3: TGroupBox
         Left = 4
         Top = 250
@@ -230,7 +229,6 @@ object EditProtocolFrm: TEditProtocolFrm
     object StimulusTab: TTabSheet
       Caption = 'Stimulus'
       ImageIndex = 1
-      ExplicitHeight = 381
       object ProtocolGrp: TGroupBox
         Left = 100
         Top = 0
@@ -10798,7 +10796,6 @@ object EditProtocolFrm: TEditProtocolFrm
     object GlobalTab: TTabSheet
       Caption = 'Global Variables'
       ImageIndex = 2
-      ExplicitHeight = 381
       object GroupBox4: TGroupBox
         Left = 0
         Top = 0

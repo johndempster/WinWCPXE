@@ -594,6 +594,9 @@ unit MDIForm;
                       Rec.pas Stimulus protocol status now updated during sweep and shows time till next stimulus
    V4.8.6             File/Import. Blank lines in files no longer stop importing
                       Digidata 1320 D/A timing error fixed.
+   V4.8.7 05.12.14    ABF2 import now works correctly (update to adcdatafile.pas)
+          15.12.14    EditProtocolUnit.pas Changes to element parameters no longer lost
+                      when a new element dropped on waveform palette
   =======================================================================}
 
 interface
@@ -683,6 +686,7 @@ type
     mnLaboratorInterface: TMenuItem;
     SESLabIO: TSESLabIO;
     mnEPC9Panel: TMenuItem;
+    mnResetMulticlamp: TMenuItem;
     procedure FormShow(Sender: TObject);
     procedure mnOpenClick(Sender: TObject);
     procedure mnExitClick(Sender: TObject);
@@ -745,6 +749,7 @@ type
     procedure mnShowAllChannelsClick(Sender: TObject);
     procedure mnLaboratorInterfaceClick(Sender: TObject);
     procedure mnEPC9PanelClick(Sender: TObject);
+    procedure mnResetMulticlampClick(Sender: TObject);
   private
 
     function OpenAssociateFile( var FileHeader : TFileHeader ;
@@ -835,7 +840,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.8.6';
+      ProgVersion := 'V4.8.7';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
@@ -1678,6 +1683,14 @@ begin
 
      end;
 
+
+procedure TMain.mnResetMulticlampClick(Sender: TObject);
+// -------------------------------------------
+// Reset communications with Multiclamp 700A/B
+// -------------------------------------------
+begin
+    Amplifier.ResetMultiClamp700 ;
+    end;
 
 procedure TMain.mnNewClick(Sender: TObject);
 { - Menu Item --------
@@ -3507,16 +3520,28 @@ procedure TMain.SetupClick(Sender: TObject);
 // -------------------
 // Setup menu selected
 // -------------------
+var
+    i : Integer ;
 begin
 
      mnTriton.Enabled := False ;
      mnVP500.Enabled := False ;
      mnEPC9Panel.Enabled := False ;
+     mnResetMulticlamp.Enabled := False ;
      case SESLabIO.LabInterfaceType of
           Triton : mnTriton.Enabled := True ;
           VP500 : mnVP500.Enabled := True ;
           HekaEPC9,HekaEPC10,HekaEPC10Plus,HekaEPC10USB : mnEPC9Panel.Enabled := True ;
+
           end ;
+
+     // Enable/disable Multiclamp reset item
+     mnResetMulticlamp.Enabled := False ;
+     for i := 0 to 3 do begin
+         if (Amplifier.AmplifierType[i] = amMulticlamp700A) or
+            (Amplifier.AmplifierType[i] = amMulticlamp700B) then mnResetMulticlamp.Enabled := True ;
+         end;
+
      end;
 
 
