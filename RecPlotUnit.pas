@@ -14,7 +14,8 @@ unit RecPlotUnit;
 //          can be taken from two different regions of recording sweep.
 // 31.08.12 Rising slope variable added
 //          Incorrect slope scaling on first recording sweep fixed
-//          Channel[].ADCScale scaling replaced with SESLabIO.ADCUnitsPerBit 
+//          Channel[].ADCScale scaling replaced with SESLabIO.ADCUnitsPerBit
+// 10.02.15 plPlot.CreateLine() Label name added to arguments
 
 interface
 
@@ -727,7 +728,6 @@ function TRecPlotFrm.RisingSlope(
 // -----------------------
 var
     Y,YPeak10,YPeak90,YHi : Single ;
-    dRiseTime : Single ;
     Invert : Single ;
     j,iStart,iEnd : Integer ;
     YScale : Single ;
@@ -879,7 +879,7 @@ begin
      plPlot.MaxPointsPerLine := 100000 ;
 
      // Add`new line to plot
-     Plot[NumPlots].LineNum := plPlot.CreateLine( clBlue, msOpenSquare,psSolid ) ;
+     Plot[NumPlots].LineNum := plPlot.CreateLine( clBlue, msOpenSquare,psSolid, '' ) ;
 
      Plot[NumPlots].VarNum := Integer( cbPlotVar.Items.Objects[cbPlotVar.ItemIndex] ) ;
      Plot[NumPlots].ChanNum := cbPlotChan.ItemIndex ;
@@ -1018,7 +1018,7 @@ begin
          Plot[iPlot].PlotNum := plPlot.CreatePlot ;
 
          // Add`new line to plot
-        Plot[iPlot].LineNum := plPlot.CreateLine( clBlue, msOpenSquare,psSolid ) ;
+        Plot[iPlot].LineNum := plPlot.CreateLine( clBlue, msOpenSquare,psSolid, '' ) ;
 
         plPlot.YAxisLabel := Plot[iPlot].YLabel ;
 

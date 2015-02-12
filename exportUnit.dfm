@@ -3,8 +3,8 @@ object ExportFrm: TExportFrm
   Top = 181
   BorderStyle = bsDialog
   Caption = ' Export File'
-  ClientHeight = 347
-  ClientWidth = 247
+  ClientHeight = 413
+  ClientWidth = 345
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
   Font.Color = clWindowText
@@ -19,7 +19,7 @@ object ExportFrm: TExportFrm
   object GroupBox8: TGroupBox
     Left = 8
     Top = 68
-    Width = 129
+    Width = 220
     Height = 159
     Caption = ' Record Range '
     TabOrder = 0
@@ -62,13 +62,13 @@ object ExportFrm: TExportFrm
       OnClick = rbRangeClick
     end
     object edRange: TRangeEdit
-      Left = 24
-      Top = 48
-      Width = 97
+      Left = 26
+      Top = 50
+      Width = 119
       Height = 20
       OnKeyPress = edRangeKeyPress
       AutoSize = False
-      Text = ' 1 - 1.00000001504746624E30  '
+      Text = ' 1 - 1.00000001504746622E30  '
       LoValue = 1.000000000000000000
       HiValue = 1.000000015047466E30
       LoLimit = 1.000000000000000000
@@ -80,14 +80,14 @@ object ExportFrm: TExportFrm
   object ChannelsGrp: TGroupBox
     Left = 8
     Top = 227
-    Width = 233
-    Height = 89
+    Width = 329
+    Height = 153
     Caption = ' Channels '
     TabOrder = 1
     object ckCh0: TCheckBox
       Left = 8
       Top = 16
-      Width = 81
+      Width = 70
       Height = 17
       Caption = 'ckCh0'
       TabOrder = 0
@@ -95,7 +95,7 @@ object ExportFrm: TExportFrm
     object ckCh1: TCheckBox
       Left = 8
       Top = 32
-      Width = 81
+      Width = 70
       Height = 17
       Caption = 'CheckBox1'
       TabOrder = 1
@@ -103,7 +103,7 @@ object ExportFrm: TExportFrm
     object ckCh2: TCheckBox
       Left = 8
       Top = 48
-      Width = 81
+      Width = 70
       Height = 17
       Caption = 'CheckBox1'
       TabOrder = 2
@@ -111,48 +111,240 @@ object ExportFrm: TExportFrm
     object ckCh3: TCheckBox
       Left = 8
       Top = 64
-      Width = 81
+      Width = 70
       Height = 17
       Caption = 'CheckBox1'
       TabOrder = 3
     end
     object ckCh4: TCheckBox
-      Left = 112
-      Top = 16
-      Width = 89
+      Left = 8
+      Top = 81
+      Width = 70
       Height = 17
       Caption = 'CheckBox1'
       TabOrder = 4
     end
     object ckCh5: TCheckBox
-      Left = 112
-      Top = 32
-      Width = 81
+      Left = 8
+      Top = 97
+      Width = 70
       Height = 17
       Caption = 'CheckBox1'
       TabOrder = 5
     end
     object ckCh6: TCheckBox
-      Left = 112
-      Top = 48
-      Width = 81
+      Left = 8
+      Top = 112
+      Width = 70
       Height = 17
       Caption = 'CheckBox1'
       TabOrder = 6
     end
     object ckCh7: TCheckBox
-      Left = 112
-      Top = 64
-      Width = 81
+      Left = 8
+      Top = 128
+      Width = 70
       Height = 17
       Caption = 'CheckBox1'
       TabOrder = 7
+    end
+    object ckCh8: TCheckBox
+      Left = 88
+      Top = 16
+      Width = 70
+      Height = 17
+      Caption = 'ckCh0'
+      TabOrder = 8
+    end
+    object ckCh9: TCheckBox
+      Left = 88
+      Top = 32
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 9
+    end
+    object ckCh10: TCheckBox
+      Left = 88
+      Top = 48
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 10
+    end
+    object ckCh11: TCheckBox
+      Left = 88
+      Top = 64
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 11
+    end
+    object ckCh12: TCheckBox
+      Left = 88
+      Top = 81
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 12
+    end
+    object ckCh13: TCheckBox
+      Left = 88
+      Top = 97
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 13
+    end
+    object ckCh14: TCheckBox
+      Left = 88
+      Top = 112
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 14
+    end
+    object ckCh15: TCheckBox
+      Left = 88
+      Top = 128
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 15
+    end
+    object ckCh16: TCheckBox
+      Left = 168
+      Top = 16
+      Width = 70
+      Height = 17
+      Caption = 'ckCh0'
+      TabOrder = 16
+    end
+    object ckCh17: TCheckBox
+      Left = 168
+      Top = 32
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 17
+    end
+    object ckCh18: TCheckBox
+      Left = 168
+      Top = 48
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 18
+    end
+    object ckCh19: TCheckBox
+      Left = 168
+      Top = 64
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 19
+    end
+    object ckCh20: TCheckBox
+      Left = 168
+      Top = 81
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 20
+    end
+    object ckCh21: TCheckBox
+      Left = 168
+      Top = 97
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 21
+    end
+    object ckCh22: TCheckBox
+      Left = 168
+      Top = 112
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 22
+    end
+    object ckCh23: TCheckBox
+      Left = 168
+      Top = 128
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 23
+    end
+    object ckCh24: TCheckBox
+      Left = 248
+      Top = 16
+      Width = 70
+      Height = 17
+      Caption = 'ckCh0'
+      TabOrder = 24
+    end
+    object ckCh25: TCheckBox
+      Left = 248
+      Top = 32
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 25
+    end
+    object ckCh26: TCheckBox
+      Left = 248
+      Top = 48
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 26
+    end
+    object ckCh27: TCheckBox
+      Left = 248
+      Top = 64
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 27
+    end
+    object ckCh28: TCheckBox
+      Left = 248
+      Top = 81
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 28
+    end
+    object ckCh29: TCheckBox
+      Left = 248
+      Top = 97
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 29
+    end
+    object ckCh30: TCheckBox
+      Left = 248
+      Top = 112
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 30
+    end
+    object ckCh31: TCheckBox
+      Left = 248
+      Top = 128
+      Width = 70
+      Height = 17
+      Caption = 'CheckBox1'
+      TabOrder = 31
     end
   end
   object GroupBox3: TGroupBox
     Left = 8
     Top = 0
-    Width = 233
+    Width = 329
     Height = 65
     Caption = ' Output file '
     Font.Charset = ANSI_CHARSET
@@ -165,7 +357,7 @@ object ExportFrm: TExportFrm
     object edFileName: TEdit
       Left = 8
       Top = 16
-      Width = 217
+      Width = 312
       Height = 21
       AutoSize = False
       Color = clMenuBar
@@ -196,9 +388,9 @@ object ExportFrm: TExportFrm
     end
   end
   object GroupBox2: TGroupBox
-    Left = 143
+    Left = 234
     Top = 68
-    Width = 97
+    Width = 103
     Height = 159
     Caption = ' Output  Format  '
     TabOrder = 3
@@ -321,7 +513,7 @@ object ExportFrm: TExportFrm
   end
   object bOK: TButton
     Left = 8
-    Top = 322
+    Top = 386
     Width = 50
     Height = 20
     Caption = 'OK'
@@ -337,7 +529,7 @@ object ExportFrm: TExportFrm
   end
   object bCancel: TButton
     Left = 64
-    Top = 322
+    Top = 386
     Width = 50
     Height = 17
     Caption = 'Cancel'
@@ -351,8 +543,8 @@ object ExportFrm: TExportFrm
     TabOrder = 5
   end
   object SaveDialog: TSaveDialog
-    Left = 152
-    Top = 328
+    Left = 160
+    Top = 384
   end
   object ExportFile: TADCDataFile
     NumChannelsPerScan = 1
@@ -376,7 +568,7 @@ object ExportFrm: TExportFrm
     ASCIITimeUnits = 's'
     ASCIITitleLines = 2
     ASCIIFixedRecordSize = False
-    Left = 120
-    Top = 328
+    Left = 128
+    Top = 384
   end
 end

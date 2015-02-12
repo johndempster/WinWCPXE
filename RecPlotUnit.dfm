@@ -59,6 +59,7 @@ object RecPlotFrm: TRecPlotFrm
     PrinterDisableColor = False
     MetafileWidth = 500
     MetafileHeight = 400
+    ShowLineLabels = True
   end
   object ControlsGrp: TGroupBox
     Left = 8

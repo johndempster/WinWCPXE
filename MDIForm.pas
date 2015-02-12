@@ -597,6 +597,8 @@ unit MDIForm;
    V4.8.7 05.12.14    ABF2 import now works correctly (update to adcdatafile.pas)
           15.12.14    EditProtocolUnit.pas Changes to element parameters no longer lost
                       when a new element dropped on waveform palette
+   V4.8.8 11.02.14    Tecella: Now tested and works correctly with Triton+
+                      Export: No. of exportable channels increased to 32.
   =======================================================================}
 
 interface
@@ -840,7 +842,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.8.7';
+      ProgVersion := 'V4.8.8';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

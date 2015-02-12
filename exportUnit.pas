@@ -25,6 +25,7 @@ unit exportUnit;
                exported series, a warning message is displayed
   30.05.08 ... FP Errors when RH.ADCVoltageRange = 0 fixed
   05.08.13 ... MAT file export added. Compiled under Delphi XE
+  11.02.15 ... No. of exportable channels increased to 32
 
   }
 interface
@@ -64,6 +65,30 @@ type
     rbIGOR: TRadioButton;
     rbMAT: TRadioButton;
     ckCombineRecords: TCheckBox;
+    ckCh8: TCheckBox;
+    ckCh9: TCheckBox;
+    ckCh10: TCheckBox;
+    ckCh11: TCheckBox;
+    ckCh12: TCheckBox;
+    ckCh13: TCheckBox;
+    ckCh14: TCheckBox;
+    ckCh15: TCheckBox;
+    ckCh16: TCheckBox;
+    ckCh17: TCheckBox;
+    ckCh18: TCheckBox;
+    ckCh19: TCheckBox;
+    ckCh20: TCheckBox;
+    ckCh21: TCheckBox;
+    ckCh22: TCheckBox;
+    ckCh23: TCheckBox;
+    ckCh24: TCheckBox;
+    ckCh25: TCheckBox;
+    ckCh26: TCheckBox;
+    ckCh27: TCheckBox;
+    ckCh28: TCheckBox;
+    ckCh29: TCheckBox;
+    ckCh30: TCheckBox;
+    ckCh31: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure bChangeNameClick(Sender: TObject);
     procedure rbABFClick(Sender: TObject);
@@ -182,6 +207,30 @@ begin
      UseChannel[5] :=  ckCh5.Checked ;
      UseChannel[6] :=  ckCh6.Checked ;
      UseChannel[7] :=  ckCh7.Checked ;
+     UseChannel[8] :=  ckCh8.Checked ;
+     UseChannel[9] :=  ckCh9.Checked ;
+     UseChannel[10] :=  ckCh10.Checked ;
+     UseChannel[11] :=  ckCh11.Checked ;
+     UseChannel[12] :=  ckCh12.Checked ;
+     UseChannel[13] :=  ckCh13.Checked ;
+     UseChannel[14] :=  ckCh14.Checked ;
+     UseChannel[15] :=  ckCh15.Checked ;
+     UseChannel[16] :=  ckCh16.Checked ;
+     UseChannel[17] :=  ckCh17.Checked ;
+     UseChannel[18] :=  ckCh18.Checked ;
+     UseChannel[19] :=  ckCh19.Checked ;
+     UseChannel[20] :=  ckCh20.Checked ;
+     UseChannel[21] :=  ckCh21.Checked ;
+     UseChannel[22] :=  ckCh22.Checked ;
+     UseChannel[23] :=  ckCh23.Checked ;
+     UseChannel[24] :=  ckCh24.Checked ;
+     UseChannel[25] :=  ckCh25.Checked ;
+     UseChannel[26] :=  ckCh26.Checked ;
+     UseChannel[27] :=  ckCh27.Checked ;
+     UseChannel[28] :=  ckCh28.Checked ;
+     UseChannel[29] :=  ckCh29.Checked ;
+     UseChannel[30] :=  ckCh30.Checked ;
+     UseChannel[31] :=  ckCh31.Checked ;
 
      // Add record range to file name
      FileName := CreateExportFileName(BaseExportFileName) ;
@@ -363,6 +412,30 @@ begin
      UseChannel[5] :=  ckCh5.Checked ;
      UseChannel[6] :=  ckCh6.Checked ;
      UseChannel[7] :=  ckCh7.Checked ;
+     UseChannel[8] :=  ckCh8.Checked ;
+     UseChannel[9] :=  ckCh9.Checked ;
+     UseChannel[10] :=  ckCh10.Checked ;
+     UseChannel[11] :=  ckCh11.Checked ;
+     UseChannel[12] :=  ckCh12.Checked ;
+     UseChannel[13] :=  ckCh13.Checked ;
+     UseChannel[14] :=  ckCh14.Checked ;
+     UseChannel[15] :=  ckCh15.Checked ;
+     UseChannel[16] :=  ckCh16.Checked ;
+     UseChannel[17] :=  ckCh17.Checked ;
+     UseChannel[18] :=  ckCh18.Checked ;
+     UseChannel[19] :=  ckCh19.Checked ;
+     UseChannel[20] :=  ckCh20.Checked ;
+     UseChannel[21] :=  ckCh21.Checked ;
+     UseChannel[22] :=  ckCh22.Checked ;
+     UseChannel[23] :=  ckCh23.Checked ;
+     UseChannel[24] :=  ckCh24.Checked ;
+     UseChannel[25] :=  ckCh25.Checked ;
+     UseChannel[26] :=  ckCh26.Checked ;
+     UseChannel[27] :=  ckCh27.Checked ;
+     UseChannel[28] :=  ckCh28.Checked ;
+     UseChannel[29] :=  ckCh29.Checked ;
+     UseChannel[30] :=  ckCh30.Checked ;
+     UseChannel[31] :=  ckCh31.Checked ;
 
      // Set file parameters
      ExportFile.NumScansPerRecord := FH.NumSamples ;
@@ -465,6 +538,7 @@ begin
         end ;
 
      end;
+
 
 procedure TExportFrm.ExportToMATFile ;
 // -------------------------------------------------
@@ -689,6 +763,30 @@ begin
      SetChannel( ckCh5, 5 ) ;
      SetChannel( ckCh6, 6 ) ;
      SetChannel( ckCh7, 7 ) ;
+     SetChannel( ckCh8, 8 ) ;
+     SetChannel( ckCh9, 9 ) ;
+     SetChannel( ckCh10, 10 ) ;
+     SetChannel( ckCh11, 11 ) ;
+     SetChannel( ckCh12, 12 ) ;
+     SetChannel( ckCh13, 13 ) ;
+     SetChannel( ckCh14, 14 ) ;
+     SetChannel( ckCh15, 15 ) ;
+     SetChannel( ckCh16, 16 ) ;
+     SetChannel( ckCh17, 17 ) ;
+     SetChannel( ckCh18, 18 ) ;
+     SetChannel( ckCh19, 19 ) ;
+     SetChannel( ckCh20, 20 ) ;
+     SetChannel( ckCh21, 21 ) ;
+     SetChannel( ckCh22, 22 ) ;
+     SetChannel( ckCh23, 23 ) ;
+     SetChannel( ckCh24, 24 ) ;
+     SetChannel( ckCh25, 25 ) ;
+     SetChannel( ckCh26, 26 ) ;
+     SetChannel( ckCh27, 27 ) ;
+     SetChannel( ckCh28, 28 ) ;
+     SetChannel( ckCh29, 29 ) ;
+     SetChannel( ckCh30, 30 ) ;
+     SetChannel( ckCh31, 31 ) ;
 
      ChangeFileExt( FileName, '.tmp' ) ;
 
