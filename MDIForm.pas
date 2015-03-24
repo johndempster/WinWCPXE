@@ -597,8 +597,14 @@ unit MDIForm;
    V4.8.7 05.12.14    ABF2 import now works correctly (update to adcdatafile.pas)
           15.12.14    EditProtocolUnit.pas Changes to element parameters no longer lost
                       when a new element dropped on waveform palette
-   V4.8.8 11.02.14    Tecella: Now tested and works correctly with Triton+
+   V4.8.8 11.02.15    Tecella: Now tested and works correctly with Triton+
                       Export: No. of exportable channels increased to 32.
+   V4.8.9 12.03.15    Invalid date error now avoided when loaded WCP data files created on systems
+                      using yyyy-mm-dd date format now fixed.
+   V4.9.0 20.03.15    WinWCP program version now stored in WCP header
+                      Date format in WCP header now fixed at yyyy/mm/dd (does not use LOCAL settings)
+          24.03.15    Dynamic clamp control panel added
+                      Prefix can be added to default file name and date removed (setting in Default Output settings)
   =======================================================================}
 
 interface
@@ -689,6 +695,7 @@ type
     SESLabIO: TSESLabIO;
     mnEPC9Panel: TMenuItem;
     mnResetMulticlamp: TMenuItem;
+    mnDClamp: TMenuItem;
     procedure FormShow(Sender: TObject);
     procedure mnOpenClick(Sender: TObject);
     procedure mnExitClick(Sender: TObject);
@@ -752,6 +759,7 @@ type
     procedure mnLaboratorInterfaceClick(Sender: TObject);
     procedure mnEPC9PanelClick(Sender: TObject);
     procedure mnResetMulticlampClick(Sender: TObject);
+    procedure mnDClampClick(Sender: TObject);
   private
 
     function OpenAssociateFile( var FileHeader : TFileHeader ;
@@ -800,8 +808,8 @@ type
     procedure UpdateRecentFilesList ;
 
     function GetSpecialFolder(const ASpecialFolderID: Integer): string;
-    function GBDateToStr( DateTime : TDateTime ) : String ;
-    function GBStrToDate( DateTime : String ) : TDateTime ;
+    function DateToStr( DateTime : TDateTime ) : String ;
+    function StrToDate( DateTime : String ) : TDateTime ;
 
     end;
 
@@ -815,7 +823,7 @@ implementation
 uses Pwrspec, SimMEPSC, AmpModule, maths , VP500Panel,
   ImportASCIIUnit, ImportRawUnit , exportUnit, Convert , FilePropsUnit,
   RecPlotUnit, TritonPanelUnit , EditProtocolUnit, LabInterfaceSetup,
-  InputChannelSetup, EPC9PanelUnit ;
+  InputChannelSetup, EPC9PanelUnit , DCLAMPUnit;
 
 var
    WCPClipboardFileName : string ;
@@ -842,7 +850,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.8.8';
+      ProgVersion := 'V4.9.0';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
@@ -920,6 +928,7 @@ begin
      RawFH.NumZeroAvg := 20  ;
      RawFH.dt := 0.001 ;
      RawFH.Version := 8.0 ;
+     RawFH.ProgVersion := ProgVersion ;
      RawFH.NumPointsAveragedAtPeak := 1 ;
 
      for ch := 0 to WCPMaxChannels-1 do begin
@@ -1097,6 +1106,9 @@ begin
 
      Settings.ProtocolListFileName := '' ;
 
+     Settings.FileNameIncludeDate := True ;  // Include date in auto-created file names
+     Settings.FileNamePrefix := '' ;          // Add prefix to name
+
      { Settings for record hard copy plots }
      Settings.TimeBarValue := -1. ;
      for ch := 0 to WCPMaxChannels-1 do Settings.BarValue[ch] := -1. ;
@@ -1109,9 +1121,6 @@ begin
      Settings.WavGenNoDisplay := False ; {Display waveform check box settings
                                           for Waveform Generator }
 
-     { Time first record in current data file was recorded }
-
-
      // On-line analysis cursor positions
      Settings.OpenNewFileOnRecord := False ;
      Settings.RecCursor0 := -1 ;
@@ -1119,7 +1128,6 @@ begin
      Settings.RecCursor2 := -1 ;
      Settings.RecCursor3 := -1 ;
      Settings.RecCursor4 := -1 ;
-
 
      { Set the file names and handles for all header blocks to null }
      RawFH.FileHandle := -1 ;
@@ -2527,6 +2535,26 @@ begin
 
 
 
+procedure TMain.mnDClampClick(Sender: TObject);
+// --------------------------------------------
+// Display DCLAMP - Dynamic Clamp control panel
+// --------------------------------------------
+begin
+     if FormExists( 'DCLAMPFrm' ) then begin
+        // Make form visible, active and on top
+        if DefSetFrm.WindowState = wsMinimized then DefSetFrm.WindowState := wsNormal ;
+        DCLAMPFrm.BringToFront ;
+        DCLAMPFrm.SetFocus ;
+        end
+     else begin
+        DCLAMPFrm := TDCLAMPFrm.Create(Self) ;
+        DCLAMPFrm.Top := 10 ;
+        DCLAMPFrm.Left := 10 ;
+        end ;
+
+     end;
+
+
 procedure TMain.mnDefaultSettingsClick(Sender: TObject);
 { --------------------------------------
   Display default outputs control window
@@ -3203,7 +3231,8 @@ begin
      //RawFH.NumBytesInHeader := MaxBytesInFileHeader ;
 
      // Time created
-     RawFH.CreationTime := GBDateToStr(Now) ;
+     RawFH.CreationTime := DateToStr(Now) ;
+     RawFH.ProgVersion := ProgVersion ;    // WinWCP program version
      RawFH.NumRecords := 0 ;
 
      { Set No. of bytes in analysis record to default value }
@@ -3252,7 +3281,9 @@ begin
      // Create new file name based on date
 
      DateTimeToString( sDate, 'yymmdd', Date() ) ;
-     FileName := Settings.DataDirectory  + sDate + '.wcp' ;
+     FileName := Settings.DataDirectory  + Settings.FileNamePrefix ;
+     if Settings.FileNameIncludeDate then FileName := FileName + sDate ;
+     FileName := FileName + '.wcp' ;
 
      // Find '_nnn' index number (if it exists)
      i := Length(FileName) ;
@@ -3627,18 +3658,24 @@ begin
 
   end;
 
-function TMain.GBDateToStr( DateTime : TDateTime ) : String ;
-// -------------------------------------------------
-// Convert date-time to GB format date & time string
-// -------------------------------------------------
+function TMain.DateToStr( DateTime : TDateTime ) : String ;
+// -------------------------------------------------------------
+// Convert date-time to date & time string (dd/mm/yyyy hh:mm:ss)
+// -------------------------------------------------------------
 var
    DateFormat : TFormatSettings ;
 begin
-  DateFormat := TFormatSettings.Create('en-GB') ;
-  Result :=  System.SysUtils.DateTimeToStr(DateTime,DateFormat) ;
+
+  DateFormat := TFormatSettings.Create ;
+  DateFormat.DateSeparator := '/' ;
+  DateFormat.TimeSeparator := ':' ;
+  DateFormat.ShortDateFormat := 'dd/MM/yyyy' ;
+  DateFormat.ShortTimeFormat := 'hh:mm:ss' ;
+  Result := System.SysUtils.DateTimeToStr( DateTime,DateFormat) ;
   end;
 
-function TMain.GBStrToDate( DateTime : String ) : TDateTime ;
+
+function TMain.StrToDate( DateTime : String ) : TDateTime ;
 // -------------------------------------------------
 // Convert GB format date & time string to DateTime
 // -------------------------------------------------
@@ -3646,9 +3683,18 @@ var
    DateFormat : TFormatSettings ;
 begin
 
-  DateFormat := TFormatSettings.Create('en-GB') ;
-  DateTime := ANSIReplaceText(DateTime, '-', '/') ;
-  Result :=  System.SysUtils.StrToDateTime(DateTime,DateFormat) ;
+  DateFormat := TFormatSettings.Create ;
+  DateFormat.DateSeparator := '/' ;
+  DateFormat.TimeSeparator := ':' ;
+  DateFormat.ShortDateFormat := 'dd/MM/yyyy' ;
+  DateFormat.ShortTimeFormat := 'hh:mm:ss' ;
+
+  // If date is in yyyy-MM-dd format, adjust format
+  if ANSIContainsText(DateTime,'-') then begin
+     DateFormat.DateSeparator := '-' ;
+     DateFormat.ShortDateFormat := 'yyyy-MM-dd' ;
+     end ;
+  Result :=  System.SysUtils.StrToDateTimeDef(DateTime,Now,DateFormat) ;
 
   end;
 

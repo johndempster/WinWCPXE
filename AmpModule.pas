@@ -2736,16 +2736,17 @@ begin
      case AmplifierType of
 
           amNone : GetNoneChannelSettings( iChan,
-                                                    ChanName,
-                                                    ChanUnits,
-                                                    ChanCalFactor,
-                                                    ChanScale ) ;
+                                           ChanName,
+                                           ChanUnits,
+                                           ChanCalFactor,
+                                           ChanScale ) ;
 
           amManual : GetManualChannelSettings( iChan,
-                                                    ChanName,
-                                                    ChanUnits,
-                                                    ChanCalFactor,
-                                                    ChanScale ) ;
+                                               ChanName,
+                                               ChanUnits,
+                                               ChanCalFactor,
+                                               ChanScale ) ;
+
           amCED1902 : GetCED1902ChannelSettings( iChan,
                                                  ChanName,
                                                  ChanUnits,
@@ -2753,46 +2754,47 @@ begin
                                                  ChanScale ) ;
 
           amAxoPatch1D : GetAxoPatch1DChannelSettings( iChan,
-                                                           ChanName,
-                                                           ChanUnits,
-                                                           ChanCalFactor,
-                                                           ChanScale ) ;
+                                                       ChanName,
+                                                       ChanUnits,
+                                                       ChanCalFactor,
+                                                       ChanScale ) ;
 
           amAxoPatch200 : GetAxoPatch200ChannelSettings( iChan,
-                                                           ChanName,
-                                                           ChanUnits,
-                                                           ChanCalFactor,
-                                                           ChanScale ) ;
+                                                         ChanName,
+                                                         ChanUnits,
+                                                         ChanCalFactor,
+                                                         ChanScale ) ;
 
           amWPC100 : GetWPC100ChannelSettings( iChan,
-                                                           ChanName,
-                                                           ChanUnits,
-                                                           ChanCalFactor,
-                                                           ChanScale ) ;
+                                               ChanName,
+                                               ChanUnits,
+                                               ChanCalFactor,
+                                               ChanScale ) ;
 
           amRK400 : GetRK400ChannelSettings( iChan,
-                                                           ChanName,
-                                                           ChanUnits,
-                                                           ChanCalFactor,
-                                                           ChanScale ) ;
+                                             ChanName,
+                                             ChanUnits,
+                                             ChanCalFactor,
+                                             ChanScale ) ;
 
           amVP500 : GetVP500ChannelSettings( iChan,
-                                                           ChanName,
-                                                           ChanUnits,
-                                                           ChanCalFactor,
-                                                           ChanScale ) ;
+                                             ChanName,
+                                             ChanUnits,
+                                             ChanCalFactor,
+                                             ChanScale ) ;
 
           amOptoPatch : GetOptoPatchChannelSettings( iChan,
-                                                           ChanName,
-                                                           ChanUnits,
-                                                           ChanCalFactor,
-                                                           ChanScale ) ;
+                                                     ChanName,
+                                                     ChanUnits,
+                                                     ChanCalFactor,
+                                                     ChanScale ) ;
 
           amMultiClamp700A : GetMultiClampChannelSettings( iChan,
                                                            ChanName,
                                                            ChanUnits,
                                                            ChanCalFactor,
                                                            ChanScale ) ;
+
           amMultiClamp700B :  GetMultiClampChannelSettings( iChan,
                                                             ChanName,
                                                             ChanUnits,

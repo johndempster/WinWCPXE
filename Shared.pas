@@ -365,8 +365,10 @@ var
    Parameter : String ;
 begin
      FindParameter( Source, Keyword, Parameter ) ;
-     if pos('T',Parameter) > 0 then Value := True
-                               else Value := False ;
+     if Parameter <> '' then begin
+        if pos('T',Parameter) > 0 then Value := True
+                                  else Value := False ;
+        end;
      end ;
 
 function AppendStringToANSIArray(

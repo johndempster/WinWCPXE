@@ -79,6 +79,9 @@ unit Fileio;
   27.08.13 ... RTIMESECS=', fHDR.RecordingStartTimeSecs added
                'RSTIME=', fHDR.RecordingStartTime now date string
   26.06.14 ...
+  20.03.15 ... VERPROG= added (WinWCP program version which created file)
+  24.03.15 ... 'FNINCDATE=', Settings.FileNameIncludeDate 'FNPREFIX=', Settings.FileNamePrefix added
+
   }
 
 
@@ -181,6 +184,8 @@ begin
 
      fHDR.Version := FileVersion ;
      AppendFloat( Header, 'VER=',fHDR.Version );
+
+     AppendString( Header, 'VERPROG=',fHDR.ProgVersion );
 
      // Time file created
      AppendString( Header, 'CTIME=', fHDR.CreationTime ) ;
@@ -315,6 +320,7 @@ begin
         = fHDR.NumBytesInHeader then begin
 
           ReadFloat( Header, 'VER=',fHDR.Version );
+          ReadString( Header, 'VERPROG=',fHDR.ProgVersion );
           ReadString( Header, 'CTIME=', fHDR.CreationTime ) ;
 
           // Time recording started (ms)
@@ -540,7 +546,6 @@ begin
            RawFH.NumBytesPerRecord := RawFH.NumDataBytesPerRecord
                                      + RawFH.NumAnalysisBytesPerRecord ;
 
-
            { *** Recording settings *** }
            { Recording trigger mode }
            ReadInt( Header, 'RECMODE=', Settings.RecordingMode ) ;
@@ -645,6 +650,9 @@ begin
               end;
 
            ReadString( Header, 'PLNAME=', Settings.ProtocolListFileName ) ;
+
+           ReadLogical( Header, 'FNINCDATE=', Settings.FileNameIncludeDate ) ;
+           ReadString( Header, 'FNPREFIX=', Settings.FileNamePrefix ) ;
 
            for i := 0 to High(Settings.RecentFiles) do Settings.RecentFiles[i] := '' ;
            ReadString( Header, 'RF0=', Settings.RecentFiles[0] ) ;
@@ -935,6 +943,9 @@ begin
      AppendString( Header, 'VPDIR=', Settings.VprotDirectory ) ;
 
      AppendString( Header, 'PLNAME=', Settings.ProtocolListFileName ) ;
+
+     AppendLogical( Header, 'FNINCDATE=', Settings.FileNameIncludeDate ) ;
+     AppendString( Header, 'FNPREFIX=', Settings.FileNamePrefix ) ;
 
      AppendString( Header, 'RF0=', Settings.RecentFiles[0] ) ;
      AppendString( Header, 'RF1=', Settings.RecentFiles[1] ) ;

@@ -118,6 +118,7 @@ TFileHeader = packed record
             NumZeroAvg : LongInt ;
             IdentLine : string ;
             Version : Single ;
+            ProgVersion : string ;
             CurrentRecord : LongInt ;
             // Measurement settings
             DecayTimePercentage : Single ;          // Selected T(x%) decay percentage value
@@ -410,6 +411,8 @@ TSettings = record
           DataDirectory : string ;
           ProgDirectory : string ;
           VProtDirectory : string ;
+          FileNameIncludeDate : Boolean ;
+          FileNamePrefix : string ;
           WavGenNoDisplay : boolean ;
           LaboratoryInterface : LongInt ;
           DeviceNumber : Integer ;

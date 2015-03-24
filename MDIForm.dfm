@@ -214,6 +214,10 @@ object Main: TMain
         Caption = '&CED 1902 amplifier'
         OnClick = mnCED1902Click
       end
+      object mnDClamp: TMenuItem
+        Caption = 'DCLAMP - D&ynamic Clamp'
+        OnClick = mnDClampClick
+      end
       object mnVP500: TMenuItem
         Caption = '&VP500 Patch Clamp'
         OnClick = mnVP500Click

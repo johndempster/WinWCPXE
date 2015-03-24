@@ -8,6 +8,7 @@ unit Defset;
   5/2/04 ..... Normal/Inverted trigger pulse setting added
   2/11/11 .... Settings now updated when digital outputs changed or return pressed for DAC values
   27/8/12 .... Digital & Analog O/Ps now updated correctly
+  24/3/15 .... File name creation settings added
   }
 
 interface
@@ -60,6 +61,10 @@ type
     panAo3: TPanel;
     lbAO3: TLabel;
     edLevelAO3: TValidatedEdit;
+    GroupBox3: TGroupBox;
+    edFileNamePrefix: TEdit;
+    Label1: TLabel;
+    ckFileNameIncludeDate: TCheckBox;
     procedure bOKClick(Sender: TObject);
     procedure bCancelClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -143,6 +148,9 @@ begin
      SetAOPanel( panAO2,lbAO2,edLevelAO2,2 ) ;
      SetAOPanel( panAO3,lbAO3,edLevelAO3,3 ) ;
 
+     ckFileNameIncludeDate.Checked := Settings.FileNameIncludeDate ;
+     edFileNamePrefix.Text := Settings.FileNamePrefix ;
+
      Initialised := True ;
 
      end;
@@ -216,6 +224,8 @@ begin
      if rbOn6.checked then Value := Value or 64 ;
      if rbOn7.checked then Value := Value or 128 ;
      Main.SESLabIO.DIGHoldingLevel := Value ;
+     Settings.FileNameIncludeDate := ckFileNameIncludeDate.Checked ;
+     Settings.FileNamePrefix := edFileNamePrefix.Text ;
 
      end ;
 
@@ -243,6 +253,9 @@ begin
 
 procedure TDefSetFrm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+
+     Settings.FileNameIncludeDate := ckFileNameIncludeDate.Checked ;
+     Settings.FileNamePrefix := edFileNamePrefix.Text ;
 
      Action := caFree ;
      end;

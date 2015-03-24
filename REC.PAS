@@ -94,6 +94,7 @@ unit Rec;
   23.09.13 .. Recording start time now encoded in en-GB format
   25.06.14 .. From Record zero level can now be set in recording window
   15.10.14 .. Stimulus protocol status now updated during sweep and shows time till next stimulus
+  23.03.15 .. Incrementing of dynamic clamp Gmax added
   ==============================================================================}
 interface
 
@@ -294,8 +295,6 @@ TCursors = record
    NextBlock : Integer ;
    DIGActive : Boolean ; { Digital port sub-system active }
    NewSweep : Boolean ;
-//  InLeakMode : boolean ;    { Indicates that LEAK records are currently
-//                              being collected }
    GroupNumber : Integer ; { Group of TEST and LEAK records produced by same
                             voltage program waveform }
    OldStepCounter : Integer ; { Previous voltage program step number }
@@ -395,7 +394,7 @@ implementation
 {$R *.DFM}
 
 uses MDiform, AmpModule, StimModule , RecPlotUnit, Sealtest,
-  TritonPanelUnit, DirectorySelectUnit, Replay, Zero;
+  TritonPanelUnit, DirectorySelectUnit, Replay, Zero, DCLAMPUnit;
 
 
 procedure TRecordFrm.FormShow(Sender: TObject);
@@ -747,7 +746,7 @@ begin
                    // Get time of start of sweep
                    RH.Time := GetTickCount*mStoSecs ;
                    if RawFH.NumRecords <= 0 then begin
-                      RawFH.RecordingStartTime := Main.GBDateToStr(Now) ;
+                      RawFH.RecordingStartTime := Main.DateToStr(Now) ;
                       RawFH.RecordingStartTimeSecs := RH.Time ;
                       end;
 
@@ -776,6 +775,11 @@ begin
 
                   { Save sweep data to file }
                   SaveSweep ;
+
+                  // If Dynamic clamp in use, update to next Gmax value
+                  if Main.FormExists('DCLAMPFrm') then begin
+                     DCLAMPFrm.NextGMaxStep(false) ;
+                     end;
 
                   { If in repeated sweep modes request another sweep
                     (unless recording aborted by user) }
@@ -1388,6 +1392,11 @@ begin
         { Make time relative to the first record acquired }
         rH.Time := rH.Time - RawFH.RecordingStartTimeSecs ;
 
+        // If dynamic clamp in use, add conductance to record ident field.
+        if Main.FormExists('DCLAMPFrm') then begin
+           Rh.Ident := format('Gmax=%.4g nS',[DCLAMPFrm.GMax]);
+           end;
+
         rH.AnalysisAvailable := false ;
         rH.EqnType := None ;
         PutRecord( RawfH, rH, RawfH.NumRecords, ADC^ ) ;
@@ -1616,6 +1625,11 @@ begin
         MainMenus( Enable ) ;
         Exit ;
         end ;
+
+     // If Dynamic clamp in use, Select first Gmax value in sequence
+     if Main.FormExists('DCLAMPFrm') then begin
+        DCLAMPFrm.NextGMaxStep(True) ;
+        end;
 
      StartSweep ;
 

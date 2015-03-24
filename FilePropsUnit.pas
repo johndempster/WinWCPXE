@@ -8,6 +8,7 @@ unit FilePropsUnit;
 // 25.07.13 Updated to compile under both Delphi XE2/3 and 7
 // 26.08.13 No. of sign. figure increased in scale factor table
 // 27.08.13 Recording start date now displayed
+// 20.09.15 Displays WinWCP program version which created file.
 
 interface
 
@@ -82,6 +83,7 @@ begin
      // Display file properties
      meProperties.Lines.Clear ;
      meProperties.Lines.Add(format('File version: %.2f',[RawFH.Version])) ;
+     meProperties.Lines.Add(format('WinWCP version: %s',[RawFH.ProgVersion])) ;
      meProperties.Lines.Add(format('Date Created: %s',[RawFH.CreationTime])) ;
      if RawFH.RecordingStartTimeSecs > 0.0 then
         meProperties.Lines.Add(format('Recording started at: %s',[RawFH.RecordingStartTime])) ;

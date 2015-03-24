@@ -301,7 +301,7 @@ object ReplayFrm: TReplayFrm
       Height = 20
       OnKeyPress = edRecordNumKeyPress
       AutoSize = False
-      Text = ' 0 / 1.00000001504746624E30 '
+      Text = ' 0 / 1.00000001504746622E30 '
       HiValue = 1.000000015047466E30
       HiLimit = 1.000000015047466E30
       Scale = 1.000000000000000000

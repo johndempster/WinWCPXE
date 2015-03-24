@@ -4,13 +4,13 @@ object DefSetFrm: TDefSetFrm
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Default Output Settings'
-  ClientHeight = 205
-  ClientWidth = 309
+  ClientHeight = 216
+  ClientWidth = 329
   Color = clBtnFace
-  Font.Charset = DEFAULT_CHARSET
+  Font.Charset = ANSI_CHARSET
   Font.Color = clWindowText
-  Font.Height = -13
-  Font.Name = 'System'
+  Font.Height = -12
+  Font.Name = 'Arial'
   Font.Style = []
   FormStyle = fsMDIChild
   OldCreateOrder = True
@@ -19,10 +19,10 @@ object DefSetFrm: TDefSetFrm
   OnClose = FormClose
   OnShow = FormShow
   PixelsPerInch = 96
-  TextHeight = 16
+  TextHeight = 15
   object DACGroup: TGroupBox
-    Left = 120
-    Top = 80
+    Left = 8
+    Top = 90
     Width = 185
     Height = 121
     Caption = ' Analog Output Holding Levels '
@@ -49,7 +49,7 @@ object DefSetFrm: TDefSetFrm
       object lbAO0: TLabel
         Left = 0
         Top = 0
-        Width = 37
+        Width = 36
         Height = 14
         Caption = 'Voltage'
         Font.Charset = DEFAULT_CHARSET
@@ -90,7 +90,7 @@ object DefSetFrm: TDefSetFrm
       object lbAO1: TLabel
         Left = 0
         Top = 0
-        Width = 37
+        Width = 36
         Height = 14
         Caption = 'Voltage'
         Font.Charset = DEFAULT_CHARSET
@@ -131,7 +131,7 @@ object DefSetFrm: TDefSetFrm
       object lbAO2: TLabel
         Left = 0
         Top = 0
-        Width = 37
+        Width = 36
         Height = 14
         Caption = 'Voltage'
         Font.Charset = DEFAULT_CHARSET
@@ -158,7 +158,7 @@ object DefSetFrm: TDefSetFrm
     end
     object panAo3: TPanel
       Left = 16
-      Top = 94
+      Top = 93
       Width = 164
       Height = 25
       BevelOuter = bvNone
@@ -172,7 +172,7 @@ object DefSetFrm: TDefSetFrm
       object lbAO3: TLabel
         Left = 0
         Top = 0
-        Width = 37
+        Width = 36
         Height = 14
         Caption = 'Voltage'
         Font.Charset = DEFAULT_CHARSET
@@ -200,8 +200,8 @@ object DefSetFrm: TDefSetFrm
   end
   object DIGGroup: TGroupBox
     Left = 8
-    Top = 0
-    Width = 297
+    Top = 4
+    Width = 313
     Height = 81
     Caption = ' Digital Outputs '
     Font.Charset = DEFAULT_CHARSET
@@ -434,8 +434,8 @@ object DefSetFrm: TDefSetFrm
     end
   end
   object bOK: TButton
-    Left = 8
-    Top = 88
+    Left = 199
+    Top = 186
     Width = 49
     Height = 17
     Caption = 'Apply'
@@ -447,5 +447,49 @@ object DefSetFrm: TDefSetFrm
     ParentFont = False
     TabOrder = 2
     OnClick = bOKClick
+  end
+  object GroupBox3: TGroupBox
+    Left = 199
+    Top = 90
+    Width = 122
+    Height = 90
+    Caption = ' Default File Name  '
+    TabOrder = 3
+    object Label1: TLabel
+      Left = 8
+      Top = 41
+      Width = 28
+      Height = 14
+      Caption = 'Prefix'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Arial'
+      Font.Style = []
+      ParentFont = False
+    end
+    object edFileNamePrefix: TEdit
+      Left = 8
+      Top = 58
+      Width = 105
+      Height = 20
+      TabOrder = 0
+    end
+    object ckFileNameIncludeDate: TCheckBox
+      Left = 8
+      Top = 18
+      Width = 95
+      Height = 17
+      Caption = 'Include Date'
+      Checked = True
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentFont = False
+      State = cbChecked
+      TabOrder = 1
+    end
   end
 end
