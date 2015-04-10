@@ -605,6 +605,8 @@ unit MDIForm;
                       Date format in WCP header now fixed at yyyy/mm/dd (does not use LOCAL settings)
           24.03.15    Dynamic clamp control panel added
                       Prefix can be added to default file name and date removed (setting in Default Output settings)
+   V4.9.1 10.04.15    Recording to disk no longer defaults to From Record zero level (Rec.pas)
+                      Sampling interval of ABF file imports now read correctly (ADCDataFile.pas)
   =======================================================================}
 
 interface
@@ -850,7 +852,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.9.0';
+      ProgVersion := 'V4.9.1';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

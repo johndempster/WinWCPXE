@@ -95,6 +95,7 @@ unit Rec;
   25.06.14 .. From Record zero level can now be set in recording window
   15.10.14 .. Stimulus protocol status now updated during sweep and shows time till next stimulus
   23.03.15 .. Incrementing of dynamic clamp Gmax added
+  10.04.15 .. Zero level now correctly set to fixed level rather than From Record
   ==============================================================================}
 interface
 
@@ -645,7 +646,8 @@ begin
                              True,
                              'z' ) ;
          scDisplay.HorizontalCursors[ch] := Main.SESLabIO.ADCChannelZero[ch] ;
-         Channel[ch].ADCZeroAt := Main.SESLabIO.ADCChannelZero[ch] ;
+         Channel[ch].ADCZeroAt := Main.SESLabIO.ADCChannelZeroAt[ch] ;
+         Channel[ch].ADCZero := Main.SESLabIO.ADCChannelZero[ch] ;
          scDisplay.ChanZeroAt[ch] := Main.SESLabIO.ADCChannelZeroAt[ch] ;
 
          end ;
@@ -2020,7 +2022,8 @@ begin
             end
          else Main.SESLabIO.ADCChannelZero[ch] := scDisplay.HorizontalCursors[Cursors.Base[ch]] ;
          scDisplay.ChanZeroAt[ch] := Main.SESLabIO.ADCChannelZeroAt[ch] ;
-         Channel[ch].ADCZeroAt := Main.SESLabIO.ADCChannelZero[ch] ;
+         Channel[ch].ADCZeroAt := Main.SESLabIO.ADCChannelZeroAt[ch] ;
+         Channel[ch].ADCZero := Main.SESLabIO.ADCChannelZero[ch] ;
          end ;
 
      // Readout cursors

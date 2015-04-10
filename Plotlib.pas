@@ -10,7 +10,7 @@ unit Plotlib;
 interface
 uses
     ExtCtrls,Shared, WinTypes, WinProcs, Classes, SysUtils, Graphics,
-    Forms, Printers, maths, stdctrls, global, controls ;
+    Forms, Printers, maths, stdctrls, global, controls, types, UITYpes ;
 
   {    Controls,
   Dialogs, }
@@ -1405,7 +1405,7 @@ procedure DrawHorizontalCursor(
           Level : Integer ;       { Cursor level (IN) }
           CursorColour : TColor ) { Colour of cursor (IN) };
 var
-   yPix,xPix,TicSize : Integer ;
+   yPix : Integer ;
    OldColor : TColor ;
    OldStyle : TPenStyle ;
    OldMode : TPenMode ;
@@ -1693,6 +1693,7 @@ begin
     if Cursors[Index].Enabled then begin
        { Find bin with mid-point closest to cursor position }
        MinDiff := MaxSingle ;
+       xVal := 0.0 ;
        for iBin := 0 to Histogram.MaxBin do begin
          if Abs(Cursors[Index].xVal - Histogram.Bins[iBin].Mid) < MinDiff then begin
             MinDiff := Abs(Cursors[Index].xVal - Histogram.Bins[iBin].Mid) ;
