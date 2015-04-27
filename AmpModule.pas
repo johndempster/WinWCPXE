@@ -114,6 +114,9 @@ unit AmpModule;
 //          Amplifier.VoltageCommandChannel and Amplifier.CurrentCommandChannel (rather than AmpNumber)
 //          Now permits correct Axoclamp 2 current channel scaling factor to be recognised.
 // 15.12.14 .ResetMultiClamp700 added (closes link forcing it to be reestablished)
+// 22.04.15 Multiclamp 700A/B channels now correctly assigned to analog inputs when two Multiclamp 700A/Bs
+//          in use Amp #1 (lower s.n) Ch.1 1.Primary->AI0,Secondary->AI1, Ch.2 1.Primary->AI2,Secondary->AI3
+//                 Amp #2 (higher s.n) Ch.1 1.Primary->AI4,Secondary->AI5, Ch.2 1.Primary->AI6,Secondary->AI7
 
 interface
 
@@ -6822,7 +6825,8 @@ var
     AddChannel : Boolean ;
     TData : TMC_TELEGRAPH_DATA ;
     i,Err,iChan : Integer ;
-    SerialNum : Cardinal ;
+    SerialNum,MaxSerialNum,MinSerialNum,SN : Cardinal ;
+    MaxComPortID,MinComPortID,ComPortID : Cardinal ;
 begin
   Result := False; //I just do this by default
 
@@ -6836,30 +6840,39 @@ begin
          TData := PMC_TELEGRAPH_DATA(PCopyDataStruct(Message.lParam)^.lpData)^ ;
          if TData.Version < 6 then begin
             // API V1.x (Multiclamp 700A)
-            //iChan := TData.ChannelID - 1 ;
-            //iChan := Max(0,Min(iChan,High(MCTelegraphData))) ;
             // Assign channel based upon COM port # and channelID
-            iChan := 0 ;
+            MaxComPortID := 0 ;
+            MinComPortID := High(MinComPortID) ;
             for i  := 0 to MCNumChannels-1 do begin
-               if ((TData.ChannelID shl 16) or TData.ComPortID) = MCChannels[i] then iChan := i ;
-               end ;
-
+                ComPortID := MCChannels[i] and $FFFF ;
+                if ComPortID > MaxComPortID then MaxComPortID := ComPortID ;
+                if ComPortID < MinComPortID then MinComPortID := ComPortID ;
+                end ;
+            if TData.ComPortID = MinComPortID then iChan := TData.ChannelID -1
+                                              else iChan := TData.ChannelID +1 ;
+            iChan := Min(Max(iChan,0),MCNumChannels-1);
             WriteToLogFile(format(
-            'Multiclamp V1.1: Message received from ComPortID=%d ChannelID=%d to Input Ch.=%d',
-            [TData.ComPortID,TData.ChannelID,iChan]));
+            'Multiclamp V1.1: Message received from ComPortID=%d ChannelID=%d to Amplifier #%d',
+            [TData.ComPortID,TData.ChannelID,iChan+1]));
             end
          else begin
             // API V2.x (Multiclamp 700B)
             // Assign channel based upon Device serial number and ChannelID
-            iChan := 0 ;
+            Val( ANSIString(TData.SerialNumber), SerialNum, Err ) ;
+            if Err <> 0 then SerialNum := MCChannels[0] and $FFFFFFF ;
+            MaxSerialNum := 0 ;
+            MinSerialNum := High(MinSerialNum) ;
             for i  := 0 to MCNumChannels-1 do begin
-               Val( ANSIString(TData.SerialNumber), SerialNum, Err ) ;
-               if Err <> 0 then SerialNum := 0 ;
-               if ((TData.ChannelID shl 28) or SerialNum) = MCChannels[i] then iChan := i ;
-               end ;
+                SN := MCChannels[i] and $FFFFFFF ;
+                if SN > MaxSerialNum then MaxSerialNum := SN ;
+                if SN < MinSerialNum then MinSerialNum := SN ;
+                end ;
+            if SerialNum = MinSerialNum then iChan := TData.ChannelID -1
+                                        else iChan := TData.ChannelID +1 ;
+            iChan := Min(Max(iChan,0),MCNumChannels-1);
              WriteToLogFile(format(
-             'Multiclamp V2.x: Message received from Device=%s  ChannelID=%d to Input Ch.%d',
-             [ANSIString(TData.SerialNumber),TData.ChannelID,iChan]));
+             'Multiclamp V2.x: Message received from Device=%s  ChannelID=%d to Amplifier #%d',
+             [ANSIString(TData.SerialNumber),TData.ChannelID,iChan+1]));
             end ;
          MCTelegraphData[iChan] := TData ;
          Result := True ;

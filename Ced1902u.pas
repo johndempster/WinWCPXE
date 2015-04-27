@@ -7,6 +7,8 @@ unit Ced1902u;
   27/02/01 CED 1902 support now working
   23/05/01 Amplifier.GainValue now updated when gain changed
   31/07/06 Error messages when no CED 1902 available handled
+  24/04/15 DC offset setting now works and is updated upon exit of form . Com port list increased to 6
+
   ================================================}
 
 interface
@@ -103,7 +105,12 @@ begin
      cbCED1902ComPort.items.add( ' COM2 ' ) ;
      cbCED1902ComPort.items.add( ' COM3 ' ) ;
      cbCED1902ComPort.items.add( ' COM4 ' ) ;
+     cbCED1902ComPort.items.add( ' COM5 ' ) ;
+     cbCED1902ComPort.items.add( ' COM6 ' ) ;
      cbCED1902ComPort.ItemIndex := Amplifier.CED1902.ComPort - 1 ;
+
+     edDCOffset.Scale := VMaxDCOffset(Amplifier.CED1902.DCOffset)/32.767 ;
+     edDCOffset.Value := Amplifier.CED1902.DCOffset ;
 
      // Set amplifier
      Amplifier.SetCED1902 ;
@@ -149,6 +156,9 @@ begin
      Amplifier.CED1902.GainValue := ExtractFloat(
                                     cbCED1902Gain.items[cbCED1902Gain.ItemIndex],
                                     Amplifier.CED1902.GainValue ) ;
+
+     edDCOffset.Scale := VMaxDCOffset(Amplifier.CED1902.DCOffset)/32.767 ;
+     edDCOffset.Value := Amplifier.CED1902.DCOffset ;
 
      end;
 
@@ -213,6 +223,12 @@ procedure TCED1902Frm.FormClose(Sender: TObject; var Action: TCloseAction);
 // ---------------------------
 begin
 
+     // Ensure DC offset has been updated
+     Amplifier.CED1902.DCOffset := Round( edDCOffset.Value ) ;
+
+     // Update attached CED 1902 amplifier
+     Amplifier.SetCED1902 ;
+
      // Read back amplifier settings to make sure all settings are up to date
      GetCED1902Options ;
 
@@ -226,7 +242,7 @@ procedure TCED1902Frm.EdDCOffsetKeyPress(Sender: TObject; var Key: Char);
   Update CED 1902 DC Offset
   -------------------------}
 begin
-     if key = chr(13) then begin
+     if key = #13 then begin
         Amplifier.CED1902.DCOffset := Round( edDCOffset.Value ) ;
         // Update attached CED 1902 amplifier
         Amplifier.SetCED1902 ;

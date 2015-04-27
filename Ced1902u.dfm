@@ -168,6 +168,7 @@ object CED1902Frm: TCED1902Frm
       Top = 152
       Width = 73
       Height = 20
+      OnKeyPress = EdDCOffsetKeyPress
       AutoSize = False
       Text = ' 0 mV'
       Scale = 1000.000000000000000000

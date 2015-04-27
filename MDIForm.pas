@@ -607,6 +607,10 @@ unit MDIForm;
                       Prefix can be added to default file name and date removed (setting in Default Output settings)
    V4.9.1 10.04.15    Recording to disk no longer defaults to From Record zero level (Rec.pas)
                       Sampling interval of ABF file imports now read correctly (ADCDataFile.pas)
+// V4.9.2 22.04.15    Multiclamp 700A/B channels now correctly assigned to analog inputs when two Multiclamp 700A/Bs
+//                    in use Amp #1 (lower s.n) Ch.1 1.Primary->AI0,Secondary->AI1, Ch.2 1.Primary->AI2,Secondary->AI3
+//                    Amp #2 (higher s.n) Ch.1 1.Primary->AI4,Secondary->AI5, Ch.2 1.Primary->AI6,Secondary->AI7
+                      CED1902u.pas: CED 1902 DC Offset now works.
   =======================================================================}
 
 interface
@@ -852,7 +856,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.9.1';
+      ProgVersion := 'V4.9.2';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
