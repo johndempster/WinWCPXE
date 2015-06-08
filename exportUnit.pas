@@ -26,7 +26,7 @@ unit exportUnit;
   30.05.08 ... FP Errors when RH.ADCVoltageRange = 0 fixed
   05.08.13 ... MAT file export added. Compiled under Delphi XE
   11.02.15 ... No. of exportable channels increased to 32
-
+  04.06.15 ... Multiple files can be exported. Format now selected from drop-down liat.
   }
 interface
 
@@ -50,20 +50,11 @@ type
     ckCh6: TCheckBox;
     ckCh7: TCheckBox;
     GroupBox3: TGroupBox;
-    edFileName: TEdit;
     GroupBox2: TGroupBox;
-    rbABF: TRadioButton;
-    rbCFS: TRadioButton;
     bChangeName: TButton;
     bOK: TButton;
     bCancel: TButton;
-    SaveDialog: TSaveDialog;
-    rbASCII: TRadioButton;
-    rbEDR: TRadioButton;
     ExportFile: TADCDataFile;
-    rbWCP: TRadioButton;
-    rbIGOR: TRadioButton;
-    rbMAT: TRadioButton;
     ckCombineRecords: TCheckBox;
     ckCh8: TCheckBox;
     ckCh9: TCheckBox;
@@ -89,30 +80,28 @@ type
     ckCh29: TCheckBox;
     ckCh30: TCheckBox;
     ckCh31: TCheckBox;
+    meFileList: TMemo;
+    cbExportFormat: TComboBox;
+    OpenDialog: TOpenDialog;
     procedure FormShow(Sender: TObject);
     procedure bChangeNameClick(Sender: TObject);
-    procedure rbABFClick(Sender: TObject);
-    procedure rbLDTClick(Sender: TObject);
-    procedure rbCFSClick(Sender: TObject);
-    procedure rbASCIIClick(Sender: TObject);
-    procedure rbEDRClick(Sender: TObject);
-    procedure k(Sender: TObject);
-    procedure rbIGORClick(Sender: TObject);
     procedure bOKClick(Sender: TObject);
-    procedure rbRangeClick(Sender: TObject);
-    procedure rbAllRecordsClick(Sender: TObject);
-    procedure edRangeKeyPress(Sender: TObject; var Key: Char);
-    procedure rbWCPClick(Sender: TObject);
-    procedure rbMATClick(Sender: TObject);
+    procedure cbExportFormatChange(Sender: TObject);
   private
     { Private declarations }
-    BaseExportFileName : string ;
+
+    ExportExtension : Array[0..100] of String ;
+    KeepFileName : String ;
+
     procedure SetChannel( CheckBox : TCheckBox ; ch : Integer ) ;
     function CreateExportFileName(FileName : string ) : String ;
+    procedure ExportToFile( FileName : string ) ;
+    procedure ExportToIGORFile( FileName : string ) ;
+    procedure ExportToMATFile( FileName : string ) ;
+    function UseChannel( chan : Integer ) : Boolean ;
+    procedure UpdateChannelSelectionList ;
+    procedure OpenDataFile( FileName : string ) ;
 
-    procedure ExportToFile;
-    procedure ExportToIGORFile;
-    procedure ExportToMATFile ;
   public
     { Public declarations }
   end;
@@ -136,19 +125,44 @@ begin
      Top := Main.Top + 60 ;
      Left := Main.Left + 20 ;
 
-     { Set block of EDR file to be exported }
+    KeepFileName := FH.FileName ;
+
+     { Set block of WCP file to be exported }
      edRange.LoValue := 1.0 ;
      edRange.HiLimit := FH.NumRecords ;
      edRange.HiValue := edRange.HiLimit ;
 
+     // Export formats
+     cbExportFormat.Clear ;
+     cbExportFormat.Items.AddObject('Axon ABF V1.6',TObject(ftAxonABF)) ;
+     ExportExtension[cbExportFormat.Items.Count-1] := '.abf' ;
+
+     cbExportFormat.Items.AddObject('CED CFS',TObject(ftCFS)) ;
+     ExportExtension[cbExportFormat.Items.Count-1] := '.cfs' ;
+
+     cbExportFormat.Items.AddObject('ASCII Text',TObject(ftASC)) ;
+     ExportExtension[cbExportFormat.Items.Count-1] := '.txt' ;
+     cbExportFormat.Items.AddObject('Strathclyde WCP',TObject(ftWCP)) ;
+     ExportExtension[cbExportFormat.Items.Count-1] := '.wcp' ;
+
+     cbExportFormat.Items.AddObject('Strathclyde EDR',TObject(ftEDR)) ;
+     ExportExtension[cbExportFormat.Items.Count-1] := '.edr' ;
+
+     cbExportFormat.Items.AddObject('Wavemetrics IGOR IBW',TObject(ftIBW)) ;
+     ExportExtension[cbExportFormat.Items.Count-1] := '.ibw' ;
+
+     cbExportFormat.Items.AddObject('Matlab MAT',TObject(ftMAT)) ;
+     ExportExtension[cbExportFormat.Items.Count-1] := '.mat' ;
+
+     cbExportFormat.ItemIndex := 0 ;
+
      { Update O/P file name channel selection options }
-     BaseExportFileName := FH.FileName ;
-     edFileName.Text := CreateExportFileName(BaseExportFileName) ;
-     ChannelsGrp.Enabled := True ;
-     ckCombineRecords.Visible := rbMat.Checked ;
+     meFileList.Clear ;
+     meFileList.Lines[0] := FH.FileName ;
+     ckCombineRecords.Visible := False ;
+     UpdateChannelSelectionList ;
 
      end;
-
 
 procedure TExportFrm.SetChannel(
           CheckBox : TCheckBox ;
@@ -167,7 +181,9 @@ begin
      end ;
 
 
-procedure TExportFrm.ExportToFile;
+procedure TExportFrm.ExportToFile(
+          FileName : string        // Name of file to export
+          ) ;
 // -------------------------------------------------
 // Copy selected section of data file to export file
 // -------------------------------------------------
@@ -175,7 +191,7 @@ type
     TSmallIntArray1 = Array[0..9999999] of SmallInt ;
 var
    StartAt,EndAt,ch,i,j : Integer ;
-   UseChannel : Array[0..WCPMaxChannels-1] of Boolean ; // Channels to be exported
+//   UseChannel : Array[0..WCPMaxChannels-1] of Boolean ; // Channels to be exported
    NumBytesPerBuf : Integer ;       // Buffer size
    InBuf : ^TSmallIntArray1 ;       // Source data buffer
    OutBuf : ^TSmallIntArray1 ;      // Output data buffer
@@ -184,7 +200,7 @@ var
    RH : TRecHeader ;                // WCP record header
    NumRecordsExported : Integer ;
    ExportType : TADCDataFileType ;
-   FileName : String ;
+   ExportFileName : String ;
    ScanIntervalChanged : Boolean ;
    ErrMsg : String ;
 begin
@@ -194,63 +210,22 @@ begin
         EndAt := FH.NumRecords ;
         end
      else begin
-        StartAt := Round(edRange.LoValue) ;
-        EndAt := Round(edRange.HiValue) ;
+        StartAt := Min(Round(edRange.LoValue),FH.NumRecords) ;
+        EndAt := Min(Round(edRange.HiValue),FH.NumRecords) ;
         end ;
 
-     // Channels to be exported
-     UseChannel[0] :=  ckCh0.Checked ;
-     UseChannel[1] :=  ckCh1.Checked ;
-     UseChannel[2] :=  ckCh2.Checked ;
-     UseChannel[3] :=  ckCh3.Checked ;
-     UseChannel[4] :=  ckCh4.Checked ;
-     UseChannel[5] :=  ckCh5.Checked ;
-     UseChannel[6] :=  ckCh6.Checked ;
-     UseChannel[7] :=  ckCh7.Checked ;
-     UseChannel[8] :=  ckCh8.Checked ;
-     UseChannel[9] :=  ckCh9.Checked ;
-     UseChannel[10] :=  ckCh10.Checked ;
-     UseChannel[11] :=  ckCh11.Checked ;
-     UseChannel[12] :=  ckCh12.Checked ;
-     UseChannel[13] :=  ckCh13.Checked ;
-     UseChannel[14] :=  ckCh14.Checked ;
-     UseChannel[15] :=  ckCh15.Checked ;
-     UseChannel[16] :=  ckCh16.Checked ;
-     UseChannel[17] :=  ckCh17.Checked ;
-     UseChannel[18] :=  ckCh18.Checked ;
-     UseChannel[19] :=  ckCh19.Checked ;
-     UseChannel[20] :=  ckCh20.Checked ;
-     UseChannel[21] :=  ckCh21.Checked ;
-     UseChannel[22] :=  ckCh22.Checked ;
-     UseChannel[23] :=  ckCh23.Checked ;
-     UseChannel[24] :=  ckCh24.Checked ;
-     UseChannel[25] :=  ckCh25.Checked ;
-     UseChannel[26] :=  ckCh26.Checked ;
-     UseChannel[27] :=  ckCh27.Checked ;
-     UseChannel[28] :=  ckCh28.Checked ;
-     UseChannel[29] :=  ckCh29.Checked ;
-     UseChannel[30] :=  ckCh30.Checked ;
-     UseChannel[31] :=  ckCh31.Checked ;
-
      // Add record range to file name
-     FileName := CreateExportFileName(BaseExportFileName) ;
+     ExportFileName := CreateExportFileName(FileName) ;
 
      // If destination file already exists, allow user to abort
-     if FileExists( FileName ) then begin
-        if MessageDlg( FileName + ' exists! Overwrite?!',
+     if FileExists( ExportFileName ) then begin
+        if MessageDlg( ExportFileName + ' exists! Overwrite?!',
            mtConfirmation, [mbYes, mbNo], 0) <> mrYes then Exit ;
         end ;
 
-     // Export file type
-     if rbABF.Checked then ExportType := ftAxonABF
-     else if rbASCII.Checked then ExportType := ftASC
-     else if rbCFS.Checked then ExportType := ftCFS
-     else if rbEDR.Checked then ExportType := ftEDR
-     else ExportType := ftWCP ;
-
      // Create empty export data file
-     ExportFile.CreateDataFile( FileName,
-                                ExportType ) ;
+     ExportType := TADCDataFileType(cbExportFormat.Items.objects[cbExportFormat.ItemIndex]);
+     ExportFile.CreateDataFile( ExportFileName,ExportType ) ;
 
      // Set file parameters
      ExportFile.NumScansPerRecord := FH.NumSamples ;
@@ -267,7 +242,7 @@ begin
      Try
 
      chOut := 0 ;
-     for ch := 0 to FH.NumChannels-1 do if UseChannel[ch] then begin
+     for ch := 0 to FH.NumChannels-1 do if UseChannel(ch) then begin
          ExportFile.ChannelOffset[chOut] := chOut ;
          ExportFile.ChannelADCVoltageRange[chOut] := FH.ADCVoltageRange ;
          ExportFile.ChannelName[chOut] := Channel[ch].ADCName ;
@@ -286,7 +261,7 @@ begin
      for iRec := StartAt to EndAt do begin
 
          // Read record
-         GetRecord(FH,RH,iRec,InBuf^) ;
+         GetRecord(RawFH,RH,iRec,InBuf^) ;
 
          // Skip if record rejected
          if not ANSIContainsText(RH.Status,'ACCEPTED') then continue ;
@@ -294,7 +269,7 @@ begin
          // Copy required channels
          j := 0 ;
          for i := 0 to FH.NumSamples-1 do begin
-             for ch := 0 to FH.NumChannels-1 do if UseChannel[ch] then begin
+             for ch := 0 to FH.NumChannels-1 do if UseChannel(ch) then begin
                  OutBuf^[j] := InBuf^[(i*FH.NumChannels)+Channel[ch].ChannelOffset] ;
                  Inc(j) ;
                  end ;
@@ -315,7 +290,7 @@ begin
          if ExportType = ftWCP then begin
             // Update record header (WCP file only)
             chOut := 0 ;
-            for ch := 0 to FH.NumChannels-1 do if UseChannel[ch] then begin
+            for ch := 0 to FH.NumChannels-1 do if UseChannel(ch) then begin
                 if RH.ADCVoltageRange[ch] = 0.0 then
                    RH.ADCVoltageRange[ch] := FH.ADCVoltageRange ;
                 ExportFile.ChannelGain[chOut] := FH.ADCVoltageRange /
@@ -333,7 +308,7 @@ begin
          else begin
             // Adjust calibration factor for variations in channel gain (all other formats)
             chOut := 0 ;
-            for ch := 0 to FH.NumChannels-1 do if UseChannel[ch] then begin
+            for ch := 0 to FH.NumChannels-1 do if UseChannel(ch) then begin
                 if RH.ADCVoltageRange[ch] = 0.0 then RH.ADCVoltageRange[ch] := FH.ADCVoltageRange ;
                 ExportFile.ChannelCalibrationFactor[chOut] := Channel[ch].ADCCalibrationFactor *
                                                               (FH.ADCVoltageRange/RH.ADCVoltageRange[ch]) ;
@@ -347,7 +322,7 @@ begin
          // Report progress
          Main.StatusBar.SimpleText := format(
          ' EXPORT: Exporting record %d/%d to %s ',
-         [iRec,EndAt,FileName]) ;
+         [iRec,EndAt,ExportFileName]) ;
 
          end ;
 
@@ -356,8 +331,8 @@ begin
 
      // Final Report
      Main.StatusBar.SimpleText := format(
-     ' EXPORT: %d records exported to %s ',
-     [EndAt-StartAt+1,FileName]) ;
+     ' EXPORT: %d records exported from %s to %s ',
+     [EndAt-StartAt+1,FileName,ExportFileName]) ;
      WriteToLogFile( Main.StatusBar.SimpleText ) ;
 
      if ScanIntervalChanged then begin
@@ -375,7 +350,9 @@ begin
      end;
 
 
-procedure TExportFrm.ExportToIGORFile;
+procedure TExportFrm.ExportToIGORFile(
+          FileName : string        // Name of file to export
+          ) ;
 // -----------------------------------------------------------
 // Copy selected section of data file to IGOR Binary Wave file
 // -----------------------------------------------------------
@@ -383,14 +360,14 @@ type
     TSmallIntArray1 = Array[0..9999999] of SmallInt ;
 var
    StartAt,EndAt,ch,i,j : Integer ;
-   UseChannel : Array[0..WCPMaxChannels-1] of Boolean ; // Channels to be exported
+//   UseChannel : Array[0..WCPMaxChannels-1] of Boolean ; // Channels to be exported
    NumBytesPerBuf : Integer ;       // Buffer size
    InBuf : ^TSmallIntArray1 ;       // Source data buffer
    OutBuf : ^TSmallIntArray1 ;      // Output data buffer
    iRec : Integer ;                 // Record counter
    RH : TRecHeader ;                // WCP record header
    NumRecordsExported : Integer ;
-   FileName : String ;
+   ExportFileName : String ;
 begin
 
 
@@ -399,43 +376,9 @@ begin
         EndAt := FH.NumRecords ;
         end
      else begin
-        StartAt := Round(edRange.LoValue) ;
-        EndAt := Round(edRange.HiValue) ;
+        StartAt := Min(Round(edRange.LoValue),FH.NumRecords) ;
+        EndAt := Min(Round(edRange.HiValue),FH.NumRecords) ;
         end ;
-
-     // Channels to be exported
-     UseChannel[0] :=  ckCh0.Checked ;
-     UseChannel[1] :=  ckCh1.Checked ;
-     UseChannel[2] :=  ckCh2.Checked ;
-     UseChannel[3] :=  ckCh3.Checked ;
-     UseChannel[4] :=  ckCh4.Checked ;
-     UseChannel[5] :=  ckCh5.Checked ;
-     UseChannel[6] :=  ckCh6.Checked ;
-     UseChannel[7] :=  ckCh7.Checked ;
-     UseChannel[8] :=  ckCh8.Checked ;
-     UseChannel[9] :=  ckCh9.Checked ;
-     UseChannel[10] :=  ckCh10.Checked ;
-     UseChannel[11] :=  ckCh11.Checked ;
-     UseChannel[12] :=  ckCh12.Checked ;
-     UseChannel[13] :=  ckCh13.Checked ;
-     UseChannel[14] :=  ckCh14.Checked ;
-     UseChannel[15] :=  ckCh15.Checked ;
-     UseChannel[16] :=  ckCh16.Checked ;
-     UseChannel[17] :=  ckCh17.Checked ;
-     UseChannel[18] :=  ckCh18.Checked ;
-     UseChannel[19] :=  ckCh19.Checked ;
-     UseChannel[20] :=  ckCh20.Checked ;
-     UseChannel[21] :=  ckCh21.Checked ;
-     UseChannel[22] :=  ckCh22.Checked ;
-     UseChannel[23] :=  ckCh23.Checked ;
-     UseChannel[24] :=  ckCh24.Checked ;
-     UseChannel[25] :=  ckCh25.Checked ;
-     UseChannel[26] :=  ckCh26.Checked ;
-     UseChannel[27] :=  ckCh27.Checked ;
-     UseChannel[28] :=  ckCh28.Checked ;
-     UseChannel[29] :=  ckCh29.Checked ;
-     UseChannel[30] :=  ckCh30.Checked ;
-     UseChannel[31] :=  ckCh31.Checked ;
 
      // Set file parameters
      ExportFile.NumScansPerRecord := FH.NumSamples ;
@@ -451,24 +394,24 @@ begin
 
      Try
 
-     for ch := 0 to FH.NumChannels-1 do if UseChannel[ch] then begin
+     for ch := 0 to FH.NumChannels-1 do if UseChannel(ch) then begin
 
          // Create export file name
-         FileName := CreateExportFileName(BaseExportFileName) ;
+         ExportFileName := CreateExportFileName(FileName) ;
 
          // Add channel
-         FileName := ANSIReplaceText( FileName,
-                                      '.ibw',
-                                     format( '[%s].ibw',[Channel[ch].ADCName])) ;
+         ExportFileName := ANSIReplaceText( ExportFileName,
+                                            '.ibw',
+                                            format( '[%s].ibw',[Channel[ch].ADCName])) ;
 
          // If destination file already exists, allow user to abort
-         if FileExists( FileName ) then begin
-            if MessageDlg( FileName + ' exists! Overwrite?!',
+         if FileExists( ExportFileName ) then begin
+            if MessageDlg( ExportFileName + ' exists! Overwrite?!',
                mtConfirmation, [mbYes, mbNo], 0) <> mrYes then Break ;
             end ;
 
          // Create empty export data file
-         ExportFile.CreateDataFile( FileName, ftIBW ) ;
+         ExportFile.CreateDataFile( ExportFileName, ftIBW ) ;
 
          // Set file parameters
          ExportFile.NumChannelsPerScan := 1 ;
@@ -525,8 +468,8 @@ begin
 
          // Final Report
          Main.StatusBar.SimpleText := format(
-         ' EXPORT: %d records exported to %s ',
-         [EndAt-StartAt+1,FileName]) ;
+         ' EXPORT: %d records exported from %s to %s ',
+         [EndAt-StartAt+1,FileName,ExportFileName]) ;
          WriteToLogFile( Main.StatusBar.SimpleText ) ;
 
          end ;
@@ -540,7 +483,9 @@ begin
      end;
 
 
-procedure TExportFrm.ExportToMATFile ;
+procedure TExportFrm.ExportToMATFile(
+          FileName : string        // Name of file to export
+          ) ;
 // -------------------------------------------------
 // Copy selected records to MATLab .MAT file
 // -------------------------------------------------
@@ -553,7 +498,7 @@ var
    NumRecordsToExport,NumChannelsToExport,NumRecordsExported,NumChannelsExported : Integer ;
    Writer : TMATFileWriter ;
    NumSamplesPerBuf : Integer ;
-   FileName : String ;
+   ExportFileName : String ;
    RH : TRecHeader ;                // WCP record header
 begin
 
@@ -562,17 +507,16 @@ begin
         EndAt := FH.NumRecords ;
         end
      else begin
-        StartAt := Round(edRange.LoValue) ;
-        EndAt := Round(edRange.HiValue) ;
+        StartAt := Min(Round(edRange.LoValue),FH.NumRecords) ;
+        EndAt := Min(Round(edRange.HiValue),FH.NumRecords) ;
         end ;
 
      // Add record range to file name
-     FileName := CreateExportFileName(BaseExportFileName) ;
+     ExportFileName := CreateExportFileName(FileName) ;
 
      // Get no. of channels exported
      NumChannelsToExport := 0 ;
-     for ch := 0 to FH.NumChannels-1 do
-         if TCheckBox(ChannelsGrp.Controls[ch]).Checked then Inc(NumChannelsToExport) ;
+     for ch := 0 to FH.NumChannels-1 do if UseChannel(ch) then Inc(NumChannelsToExport) ;
 
      if ckCombineRecords.Checked then begin
         NumRecordsToExport := 0 ;
@@ -585,13 +529,13 @@ begin
         NumRecordsToExport := 1 ;
         end ;
 
-     NumSamplesPerBuf := fh.NumSamplesPerRecord*fH.NumChannels ;
+     NumSamplesPerBuf := FH.NumSamplesPerRecord*FH.NumChannels ;
      GetMem( InBuf, NumSamplesPerBuf*2 ) ;
      GetMem( YBuf, NumSamplesPerBuf*8*NumRecordsToExport ) ;
      GetMem( TBuf, (NumSamplesPerBuf div FH.NumChannels)*8*NumRecordsToExport ) ;
 
      Writer := TMATFileWriter.Create();
-     Writer.OpenMATFile( FileName ) ;
+     Writer.OpenMATFile( ExportFileName ) ;
      Writer.WriteFileHeader;
 
      Try
@@ -622,8 +566,7 @@ begin
 
          // Copy required channels
          NumChannelsExported := 0 ;
-         for ch := 0 to FH.NumChannels-1 do
-             if TCheckBox(ChannelsGrp.Controls[ch]).Checked then begin
+         for ch := 0 to FH.NumChannels-1 do if UseChannel(ch) then begin
              iY := (NumRecordsExported + NumChannelsExported*NumRecordsToExport)*FH.NumSamples ;
              for i := 0 to FH.NumSamples-1 do begin
                  YBuf^[iY] := (InBuf^[(i*FH.NumChannels)+Channel[ch].ChannelOffset]
@@ -642,7 +585,7 @@ begin
          // Report progress
          Main.StatusBar.SimpleText := format(
          ' EXPORT: Exporting record %d/%d to %s ',
-         [iRec,EndAt,FileName]) ;
+         [iRec,EndAt,ExportFileName]) ;
 
          Inc(NumRecordsExported) ;
 
@@ -657,8 +600,8 @@ begin
 
      // Final Report
      Main.StatusBar.SimpleText := format(
-     ' EXPORT: %d records exported to %s ',
-     [EndAt-StartAt+1,FileName]) ;
+     ' EXPORT: %d records exported from %s to %s ',
+     [EndAt-StartAt+1,FileName,ExportFileName]) ;
      WriteToLogFile( Main.StatusBar.SimpleText ) ;
 
      Finally
@@ -674,74 +617,28 @@ begin
 
 
 procedure TExportFrm.bChangeNameClick(Sender: TObject);
-{ ------------------------------------------
-  Change name/location of export destination
-  ------------------------------------------ }
-var
-   ExportFileExt : string ;
+{ ------------------------
+  Select files for export
+  ------------------------ }
 begin
 
-     ExportFileExt := ExtractFileExt(CreateExportFileName(BaseExportFileName )) ;
+     OpenDialog.DefaultExt := '.wcp' ;
+     OpenDialog.options := [ofOverwritePrompt,ofHideReadOnly,ofPathMustExist,ofAllowMultiSelect] ;
+     OpenDialog.Filter := ' Files (*' + OpenDialog.DefaultExt + ')|*' +
+                            OpenDialog.DefaultExt + '|' ;
 
-     SaveDialog.DefaultExt := ExportFileExt ;
-     SaveDialog.options := [ofOverwritePrompt,ofHideReadOnly,ofPathMustExist] ;
-     SaveDialog.Filter := ' Files (*' + SaveDialog.DefaultExt + ')|*' +
-                            SaveDialog.DefaultExt + '|' ;
-
-     SaveDialog.FileName := ChangeFileExt(BaseExportFileName,ExportFileExt) ;
-     SaveDialog.Title := 'Export File ' ;
+     //OpenDialog.FileName := ChangeFileExt(BaseExportFileName,ExportFileExt) ;
+     OpenDialog.Title := 'Select Files to Export ' ;
      if Settings.DataDirectory <> '' then begin
         SetCurrentDir(Settings.DataDirectory);
-        SaveDialog.InitialDir := Settings.DataDirectory ;
+        OpenDialog.InitialDir := Settings.DataDirectory ;
         end;
 
-     if SaveDialog.Execute then BaseExportFileName := SaveDialog.FileName ;
+     if OpenDialog.Execute then begin
+        meFileList.Lines.Assign(OpenDialog.Files);
+        UpdateChannelSelectionList ;
+        end;
 
-     edFileName.text := CreateExportFileName(BaseExportFileName) ;
-
-     end;
-
-
-procedure TExportFrm.rbABFClick(Sender: TObject);
-// ---------------------------------
-// Axon Binary File option selected
-// ---------------------------------
-begin
-     edFileName.Text := CreateExportFileName(BaseExportFileName) ;
-     ChannelsGrp.Enabled := True ;
-     ckCombineRecords.Visible := False ;
-     end;
-
-
-procedure TExportFrm.rbLDTClick(Sender: TObject);
-// ---------------------------------
-// Qub data file option selected
-// ---------------------------------
-begin
-     edFileName.Text := CreateExportFileName(BaseExportFileName) ;
-     ChannelsGrp.Enabled := True ;
-     ckCombineRecords.Visible := False ;
-     end;
-
-
-procedure TExportFrm.rbMATClick(Sender: TObject);
-// ---------------------------------
-// MatLAB File option selected
-// ---------------------------------
-begin
-     edFileName.Text := CreateExportFileName(BaseExportFileName) ;
-     ChannelsGrp.Enabled := True ;
-     ckCombineRecords.Visible := True ;
-     end;
-
-procedure TExportFrm.rbCFSClick(Sender: TObject);
-// ---------------------------------
-// CED Filing System option selected
-// ---------------------------------
-begin
-     edFileName.Text := CreateExportFileName(BaseExportFileName) ;
-     ChannelsGrp.Enabled := True ;
-     ckCombineRecords.Visible := False ;
      end;
 
 
@@ -752,8 +649,182 @@ function TExportFrm.CreateExportFileName(
 // Update control settings when export format changed
 // ---------------------------------------------------
 var
-    StartAt,EndAt : Integer ;
+    StartAt,EndAt,ch : Integer ;
+    s : string ;
 begin
+
+     ChangeFileExt( FileName, '.tmp' ) ;
+
+     // Add record range to file name
+     if rbAllRecords.Checked then begin
+        StartAt := 1 ;
+        EndAt := FH.NumRecords ;
+        end
+     else begin
+        StartAt := Round(edRange.LoValue) ;
+        EndAt := Round(edRange.HiValue) ;
+        end ;
+
+     // Set file extension to .tmp to locate end of file later
+     FileName := ChangeFileExt( FileName, '.tmp' ) ;
+
+    // Add raw/average/leak subtraction/driving function
+    if Main.mnShowAveraged.checked then
+       FileName := ANSIReplaceText( FileName,'.tmp','[AVG].tmp' )
+    else if Main.mnShowLeakSubtracted.checked then
+       FileName := ANSIReplaceText( FileName,'.tmp','[SUB].tmp' )
+    else if Main.mnShowDrivingFunction.checked then
+       FileName := ANSIReplaceText( FileName,'.tmp','[DFN].tmp' ) ;
+
+     // Add record range
+     FileName := ANSIReplaceText( FileName,
+                                  '.tmp',
+                                  format('[%d-%d].tmp',[StartAt,EndAt]) ) ;
+
+     // Add channels for ASCII text export
+     if TADCDataFileType(cbExportFormat.Items.objects[cbExportFormat.ItemIndex])=ftASC then begin
+        s := '[' ;
+        for ch := 0 to FH.NumChannels-1 do if UseChannel(ch) then begin
+            s := s + Channel[ch].ADCName + ',' ;
+            end;
+        s := LeftStr(s,Length(s)-1)+'].tmp' ;
+        FileName := ANSIReplaceText( FileName,'.tmp',s);
+        end;
+
+     FileName := ChangeFileExt( FileName, ExportExtension[cbExportFormat.ItemIndex] ) ;
+
+     Result := FileName ;
+
+     end ;
+
+
+procedure TExportFrm.bOKClick(Sender: TObject);
+// ----------------------
+// Export to output file
+// ----------------------
+var
+    ExportType : TADCDataFileType ;
+    FileName : string ;
+    i : Integer ;
+begin
+
+    ExportType := TADCDataFileType(cbExportFormat.Items.objects[cbExportFormat.ItemIndex]);
+
+    // Close currently open data file
+    Main.CloseAllDataFiles ;
+
+    for i := 0 to meFileList.Lines.Count-1 do begin
+
+        FileName := meFileList.Lines[i] ;
+        OpenDataFile(FileName) ;
+
+        case ExportType of
+             ftIBW : ExportToIGORFile(FileName) ;
+             ftMAT : ExportToMATFile(FileName) ;
+             else ExportToFile(FileName) ;
+             end ;
+
+        Main.CloseAllDataFiles ;
+
+        end;
+
+    OpenDataFile(KeepFileName) ;
+
+    end ;
+
+
+procedure TExportFrm.OpenDataFile(
+          FileName : string        // Name of file to open
+          ) ;
+// --------------
+// Open data file
+// --------------
+begin
+     Main.OpenAssociateFile(RawFH,FileName,'.wcp') ;
+     Main.OpenAssociateFile(AvgFH,FileName,'.avg') ;
+     Main.OpenAssociateFile(LeakFH,FileName,'.sub') ;
+     Main.OpenAssociateFile(DrvFH,FileName,'.dfn') ;
+     if Main.mnShowRaw.checked then FH := RawFH ;
+     if Main.mnShowAveraged.checked then FH := AvgFH ;
+     if Main.mnShowDrivingFunction.checked then FH := DrvFH ;
+     if Main.mnShowLeakSubtracted.checked then FH := LeakFH ;
+     end;
+
+
+procedure TExportFrm.cbExportFormatChange(Sender: TObject);
+// ---------------------
+// Output format changed
+// ---------------------
+var
+    ExportType : TADCDataFileType ;
+begin
+
+   ExportType := TADCDataFileType(cbExportFormat.Items.objects[cbExportFormat.ItemIndex]);
+   case ExportType of
+     ftMat : begin
+       ckCombineRecords.Visible := true ;
+       end;
+     ftASC : begin
+       ckCombineRecords.Visible := true ;
+       end;
+     else begin
+       ckCombineRecords.Visible := False ;
+       end;
+     end ;
+   end;
+
+
+function TExportFrm.UseChannel( chan : Integer ) : Boolean ;
+// ---------------------------------------------
+// Return TRUE if channel is selected for export
+// ---------------------------------------------
+begin
+    case Chan of
+      0 : Result := ckCh0.Checked or (not ckCh0.Visible) ;
+      1 : Result := ckCh1.Checked or (not ckCh1.Visible) ;
+      2 : Result := ckCh2.Checked or (not ckCh2.Visible) ;
+      3 : Result := ckCh3.Checked or (not ckCh3.Visible) ;
+      4 : Result := ckCh4.Checked or (not ckCh4.Visible) ;
+      5 : Result := ckCh5.Checked or (not ckCh5.Visible) ;
+      6 : Result := ckCh6.Checked or (not ckCh6.Visible) ;
+      7 : Result := ckCh7.Checked or (not ckCh7.Visible) ;
+      8 : Result := ckCh8.Checked or (not ckCh8.Visible) ;
+      9 : Result := ckCh9.Checked or (not ckCh9.Visible) ;
+      10 : Result := ckCh10.Checked or (not ckCh10.Visible) ;
+      11 : Result := ckCh11.Checked or (not ckCh11.Visible) ;
+      12 : Result := ckCh12.Checked or (not ckCh12.Visible) ;
+      13 : Result := ckCh13.Checked or (not ckCh13.Visible) ;
+      14 : Result := ckCh14.Checked or (not ckCh14.Visible) ;
+      15 : Result := ckCh15.Checked or (not ckCh15.Visible) ;
+      16 : Result := ckCh16.Checked or (not ckCh16.Visible) ;
+      17 : Result := ckCh17.Checked or (not ckCh17.Visible) ;
+      18 : Result := ckCh18.Checked or (not ckCh18.Visible) ;
+      19 : Result := ckCh19.Checked or (not ckCh19.Visible) ;
+      20 : Result := ckCh20.Checked or (not ckCh20.Visible) ;
+      21 : Result := ckCh21.Checked or (not ckCh21.Visible) ;
+      22 : Result := ckCh22.Checked or (not ckCh22.Visible) ;
+      23 : Result := ckCh23.Checked or (not ckCh23.Visible) ;
+      24 : Result := ckCh24.Checked or (not ckCh24.Visible) ;
+      25 : Result := ckCh25.Checked or (not ckCh25.Visible) ;
+      26 : Result := ckCh26.Checked or (not ckCh26.Visible) ;
+      27 : Result := ckCh27.Checked or (not ckCh27.Visible) ;
+      28 : Result := ckCh28.Checked or (not ckCh28.Visible) ;
+      29 : Result := ckCh29.Checked or (not ckCh29.Visible) ;
+      30 : Result := ckCh30.Checked or (not ckCh30.Visible) ;
+      31 : Result := ckCh31.Checked or (not ckCh31.Visible) ;
+      Else Result := True ;
+      end;
+    end;
+
+
+procedure TExportFrm.UpdateChannelSelectionList ;
+// --------------------------------------
+// Update list of channel selection boxes
+// --------------------------------------
+begin
+
+     Main.CloseAllDataFiles ;
+     OpenDataFile( meFileList.Lines[0] ) ;
 
      SetChannel( ckCh0, 0 ) ;
      SetChannel( ckCh1, 1 ) ;
@@ -788,124 +859,9 @@ begin
      SetChannel( ckCh30, 30 ) ;
      SetChannel( ckCh31, 31 ) ;
 
-     ChangeFileExt( FileName, '.tmp' ) ;
-
-     // Add record range to file name
-     if rbAllRecords.Checked then begin
-        StartAt := 1 ;
-        EndAt := FH.NumRecords ;
-        end
-     else begin
-        StartAt := Round(edRange.LoValue) ;
-        EndAt := Round(edRange.HiValue) ;
-        end ;
-
-     // Set file extension to .tmp to locate end of file later
-     FileName := ChangeFileExt( FileName, '.tmp' ) ;
-
-     // Add record range
-     FileName := ANSIReplaceText( FileName,
-                                  '.tmp',
-                                  format('[%d-%d].tmp',[StartAt,EndAt]) ) ;
-
-     if rbABF.Checked then FileName := ChangeFileExt( FileName, '.abf' ) ;
-     if rbCFS.Checked then FileName := ChangeFileExt( FileName, '.cfs' ) ;
-     if rbASCII.Checked then FileName := ChangeFileExt( FileName, '.txt' ) ;
-     if rbEDR.Checked then FileName := ChangeFileExt( FileName, '.edr' ) ;
-     if rbIGOR.Checked then FileName := ChangeFileExt( FileName, '.ibw' ) ;
-     if rbWCP.Checked then FileName := ChangeFileExt( FileName, '.wcp' ) ;
-     if rbMAT.Checked then FileName := ChangeFileExt( FileName, '.mat' ) ;
-
-     Result := FileName ;
-     edFileName.Text := FileName ;
+     Main.CloseAllDataFiles ;
+     OpenDataFile(KeepFileName) ;
 
      end ;
-
-
-procedure TExportFrm.rbASCIIClick(Sender: TObject);
-// ---------------------------------
-// ASCII text file option selected
-// ---------------------------------
-begin
-     edFileName.Text := CreateExportFileName(BaseExportFileName) ;
-     ChannelsGrp.Enabled := False ;
-     ckCombineRecords.Visible := False ;
-     end;
-
-
-procedure TExportFrm.rbEDRClick(Sender: TObject);
-// ---------------------------------
-// WinEDR file option selected
-// ---------------------------------
-begin
-     edFileName.Text := CreateExportFileName(BaseExportFileName) ;
-     ChannelsGrp.Enabled := True ;
-     ckCombineRecords.Visible := False ;
-     end;
-
-
-procedure TExportFrm.k(Sender: TObject);
-// ---------------------------------
-// Axon Binary File option selected
-// ---------------------------------
-begin
-     edFileName.Text := CreateExportFileName(BaseExportFileName) ;
-     ChannelsGrp.Enabled := False ;
-     end;
-
-
-procedure TExportFrm.rbIGORClick(Sender: TObject);
-// ---------------------------------
-// IGOR Binary File option selected
-// ---------------------------------
-begin
-     edFileName.Text := CreateExportFileName(BaseExportFileName) ;
-     ChannelsGrp.Enabled := True ;
-     ckCombineRecords.Visible := False ;
-     end;
-
-
-procedure TExportFrm.bOKClick(Sender: TObject);
-// ----------------------
-// Export to output file
-// ----------------------
-begin
-
-    if rbIGOR.Checked then ExportToIGORFile
-    else if rbMAT.Checked then ExportToMATFile
-    else ExportToFile ;
-
-    end ;
-
-
-procedure TExportFrm.rbRangeClick(Sender: TObject);
-begin
-     edFileName.Text := CreateExportFileName(BaseExportFileName) ;
-     end;
-
-
-procedure TExportFrm.rbAllRecordsClick(Sender: TObject);
-begin
-     edFileName.Text := CreateExportFileName(BaseExportFileName) ;
-     end;
-
-
-
-procedure TExportFrm.edRangeKeyPress(Sender: TObject; var Key: Char);
-begin
-     if Key = #13 then begin
-        edFileName.Text := CreateExportFileName(BaseExportFileName) ;
-        end;
-     end;
-
-procedure TExportFrm.rbWCPClick(Sender: TObject);
-// ---------------------------------
-// WCP File option selected
-// ---------------------------------
-begin
-     edFileName.Text := CreateExportFileName(BaseExportFileName) ;
-     ChannelsGrp.Enabled := True ;
-     ckCombineRecords.Visible := False ;
-     end;
 
 end.

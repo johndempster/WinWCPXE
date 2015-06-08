@@ -780,7 +780,7 @@ begin
 
                   // If Dynamic clamp in use, update to next Gmax value
                   if Main.FormExists('DCLAMPFrm') then begin
-                     DCLAMPFrm.NextGMaxStep(false) ;
+                     DCLAMPFrm.NextStep(false) ;
                      end;
 
                   { If in repeated sweep modes request another sweep
@@ -1015,6 +1015,11 @@ begin
     Main.SESLabIO.DIGHoldingLevel := Main.SESLabIO.DIGHoldingLevel ;
 
     RestoreIdleState ;
+
+    // If Dynamic clamp in use, Reset to initial settings
+    if Main.FormExists('DCLAMPFrm') then begin
+       DCLAMPFrm.NextStep(True) ;
+       end;
 
     end ;
 
@@ -1630,7 +1635,7 @@ begin
 
      // If Dynamic clamp in use, Select first Gmax value in sequence
      if Main.FormExists('DCLAMPFrm') then begin
-        DCLAMPFrm.NextGMaxStep(True) ;
+        DCLAMPFrm.NextStep(True) ;
         end;
 
      StartSweep ;

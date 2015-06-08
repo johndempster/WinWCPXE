@@ -117,6 +117,7 @@ unit AmpModule;
 // 22.04.15 Multiclamp 700A/B channels now correctly assigned to analog inputs when two Multiclamp 700A/Bs
 //          in use Amp #1 (lower s.n) Ch.1 1.Primary->AI0,Secondary->AI1, Ch.2 1.Primary->AI2,Secondary->AI3
 //                 Amp #2 (higher s.n) Ch.1 1.Primary->AI4,Secondary->AI5, Ch.2 1.Primary->AI6,Secondary->AI7
+// 05.05.15 Multiclamp 700A/B Now correctly allocates Channel 1 of second Multiclamp 700A/B as Amplifier #3
 
 interface
 
@@ -4015,8 +4016,7 @@ begin
 
           // Primary channel
 
-          if (MCTelegraphData[AmpNumber].PrimaryScaledOutSignal >= 0) and
-             (MCTelegraphData[AmpNumber].PrimaryScaledOutSignal < High(ChanNames)) then
+          if MCTelegraphData[AmpNumber].PrimaryScaledOutSignal < High(ChanNames) then
              ChanName := ChanNames[MCTelegraphData[AmpNumber].PrimaryScaledOutSignal] ;
 
           ChanName := ChanName + format('%d',[AmpNumber]) ;
@@ -4031,8 +4031,7 @@ begin
 
           // Secondary channel
 
-          if (MCTelegraphData[AmpNumber].SecondaryOutSignal >= 0) and
-             (MCTelegraphData[AmpNumber].SecondaryOutSignal < High(ChanNames)) then
+          if MCTelegraphData[AmpNumber].SecondaryOutSignal < High(ChanNames) then
              ChanName := ChanNames[MCTelegraphData[AmpNumber].SecondaryOutSignal] ;
 
           ChanName := ChanName + format('%d',[AmpNumber]) ;
@@ -6357,6 +6356,7 @@ begin
        for i := 0 to MCNumChannels-1 do begin
            if not PostMessage( HWND_BROADCAST, MCCloseMessageID, Application.Handle, MCChannels[i] )
            then ShowMessage( 'Multi-Clamp Commander(Failed to close channel)' ) ;
+
            end ;
        end ;
        MCConnectionOpen := False ;
@@ -6399,6 +6399,7 @@ begin
        for i := 0 to MCNumChannels-1 do begin
            if not PostMessage( HWND_BROADCAST, MCCloseMessageID, Application.Handle, MCChannels[i] )
            then ShowMessage( 'Multi-Clamp Commander(Failed to close channel)' ) ;
+           WriteToLogFile( format('Multiclamp: Channel %x closed.',[MCChannels[i]]) ) ;
            end ;
        end ;
        MCConnectionOpen := False ;
@@ -6850,9 +6851,9 @@ begin
                 end ;
             if TData.ComPortID = MinComPortID then iChan := TData.ChannelID -1
                                               else iChan := TData.ChannelID +1 ;
-            iChan := Min(Max(iChan,0),MCNumChannels-1);
+            iChan := Min(Max(iChan,0),3);
             WriteToLogFile(format(
-            'Multiclamp V1.1: Message received from ComPortID=%d ChannelID=%d to Amplifier #%d',
+            'Multiclamp V1.1: Message received from ComPortID=%d ChannelID=%d as Amplifier #%d',
             [TData.ComPortID,TData.ChannelID,iChan+1]));
             end
          else begin
@@ -6869,9 +6870,9 @@ begin
                 end ;
             if SerialNum = MinSerialNum then iChan := TData.ChannelID -1
                                         else iChan := TData.ChannelID +1 ;
-            iChan := Min(Max(iChan,0),MCNumChannels-1);
+            iChan := Min(Max(iChan,0),3);
              WriteToLogFile(format(
-             'Multiclamp V2.x: Message received from Device=%s  ChannelID=%d to Amplifier #%d',
+             'Multiclamp V2.x: Message received from Device=%s  ChannelID=%d as Amplifier #%d',
              [ANSIString(TData.SerialNumber),TData.ChannelID,iChan+1]));
             end ;
          MCTelegraphData[iChan] := TData ;
@@ -6891,7 +6892,7 @@ begin
              // Open connection to this device/channel
              if not PostMessage(HWND_BROADCAST,MCOpenMessageID,Application.Handle,MCChannels[MCNumChannels] ) then
                 ShowMessage( 'MultiClamp Commander (Open Message Failed)' ) ;
-             Main.StatusBar.SimpleText := format('Multiclamp: MCOpenMessageID broadcast to device %x',
+             Main.StatusBar.SimpleText := format('Multiclamp: MCOpenMessageID broadcast to channel %x',
              [MCChannels[MCNumChannels]]) ;
              WriteToLogFile(Main.StatusBar.SimpleText) ;
              Inc(MCNumChannels) ;

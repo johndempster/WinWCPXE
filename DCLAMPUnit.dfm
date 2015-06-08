@@ -2,7 +2,7 @@ object DCLAMPFrm: TDCLAMPFrm
   Left = 0
   Top = 0
   Caption = 'DCLAMP - Dynamic Clamp Control Panel'
-  ClientHeight = 537
+  ClientHeight = 541
   ClientWidth = 780
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -23,21 +23,21 @@ object DCLAMPFrm: TDCLAMPFrm
     Left = 8
     Top = 0
     Width = 769
-    Height = 530
-    ActivePage = ControlsTab
+    Height = 537
+    ActivePage = GraphsTab
     TabOrder = 0
     OnChange = PageChange
     object ControlsTab: TTabSheet
       Caption = 'Controls '
       object GroupBox1: TGroupBox
-        Left = 4
+        Left = 3
         Top = 0
         Width = 749
-        Height = 499
+        Height = 505
         TabOrder = 0
         object Label2: TLabel
           Left = 247
-          Top = 406
+          Top = 412
           Width = 52
           Height = 14
           Caption = 'COM Port'
@@ -50,7 +50,7 @@ object DCLAMPFrm: TDCLAMPFrm
         end
         object cbComPort: TComboBox
           Left = 303
-          Top = 406
+          Top = 412
           Width = 65
           Height = 21
           Style = csDropDownList
@@ -64,19 +64,19 @@ object DCLAMPFrm: TDCLAMPFrm
             'COM 4')
         end
         object GroupBox4: TGroupBox
-          Left = 472
+          Left = 392
           Top = 12
-          Width = 265
-          Height = 124
-          Caption = ' Max. Conductance (Gmax) '
+          Width = 345
+          Height = 130
+          Caption = ' Parameter Incrementing '
           TabOrder = 1
-          object Label1: TLabel
-            Left = 75
-            Top = 16
-            Width = 104
+          object Label5: TLabel
+            Left = 30
+            Top = 39
+            Width = 52
             Height = 14
             Alignment = taRightJustify
-            Caption = 'Initial Conductance'
+            Caption = 'No. Steps'
             Font.Charset = ANSI_CHARSET
             Font.Color = clWindowText
             Font.Height = -11
@@ -84,162 +84,92 @@ object DCLAMPFrm: TDCLAMPFrm
             Font.Style = [fsBold]
             ParentFont = False
           end
-          object edGMax: TValidatedEdit
-            Left = 185
-            Top = 16
+          object Label6: TLabel
+            Left = 17
+            Top = 64
+            Width = 65
+            Height = 14
+            Alignment = taRightJustify
+            Caption = 'No. Repeats'
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -11
+            Font.Name = 'Arial'
+            Font.Style = [fsBold]
+            ParentFont = False
+          end
+          object edNumSteps: TValidatedEdit
+            Left = 86
+            Top = 39
             Width = 70
             Height = 21
-            Hint = 'Initial Maximum conductance'
-            OnKeyPress = edGMaxKeyPress
+            Hint = 'No. of steps in conductance step cycle'
             ShowHint = True
-            Text = ' 10 nS'
+            Text = ' 10 '
             Value = 10.000000000000000000
             Scale = 1.000000000000000000
-            Units = 'nS'
             NumberFormat = '%.4g'
             LoLimit = -1.000000015047466E30
             HiLimit = 1.000000015047466E30
           end
-          object rbGmaxFixed: TRadioButton
+          object edNumRepeats: TValidatedEdit
+            Left = 86
+            Top = 64
+            Width = 70
+            Height = 21
+            Hint = 'No. of recording sweeps to acquire at each conductance level.'
+            ShowHint = True
+            Text = ' 1 '
+            Value = 1.000000000000000000
+            Scale = 1.000000000000000000
+            NumberFormat = '%.4g'
+            LoLimit = -1.000000015047466E30
+            HiLimit = 1.000000015047466E30
+          end
+          object ckEnableIncrementing: TCheckBox
             Left = 8
             Top = 16
-            Width = 60
+            Width = 145
             Height = 17
-            Hint = 'Fixed maximum conductance.'
-            Caption = 'Fixed'
-            Checked = True
+            Hint = 'Enable parameter incrementing after each recording sweep'
+            Caption = 'Enable Incrementing'
             Font.Charset = ANSI_CHARSET
             Font.Color = clWindowText
-            Font.Height = -12
-            Font.Name = 'Arial'
-            Font.Style = [fsBold]
-            ParentFont = False
-            ParentShowHint = False
-            ShowHint = True
-            TabOrder = 1
-            TabStop = True
-            OnClick = rbGmaxFixedClick
-          end
-          object rbGMaxSteps: TRadioButton
-            Left = 8
-            Top = 32
-            Width = 60
-            Height = 17
-            Hint = 'Increment maximum conductance after a group of recording sweeps'
-            Caption = 'Steps'
-            Font.Charset = ANSI_CHARSET
-            Font.Color = clWindowText
-            Font.Height = -12
+            Font.Height = -11
             Font.Name = 'Arial'
             Font.Style = [fsBold]
             ParentFont = False
             ParentShowHint = False
             ShowHint = True
             TabOrder = 2
-            OnClick = rbGMaxStepsClick
           end
-          object PanGmaxSteps: TPanel
-            Left = 104
-            Top = 42
-            Width = 154
-            Height = 74
-            BevelOuter = bvNone
+          object sgSteps: TStringGrid
+            Left = 162
+            Top = 16
+            Width = 175
+            Height = 105
+            Hint = 'Parameter step size table'
+            ColCount = 2
+            DefaultRowHeight = 20
+            RowCount = 4
+            FixedRows = 0
+            Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing]
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 3
-            object Label4: TLabel
-              Left = 27
-              Top = 0
-              Width = 51
-              Height = 14
-              Alignment = taRightJustify
-              Caption = 'Step Size'
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-            end
-            object Label5: TLabel
-              Left = 26
-              Top = 27
-              Width = 52
-              Height = 14
-              Alignment = taRightJustify
-              Caption = 'No. Steps'
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-            end
-            object Label6: TLabel
-              Left = 12
-              Top = 53
-              Width = 65
-              Height = 14
-              Alignment = taRightJustify
-              Caption = 'No. Repeats'
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-            end
-            object edGMaxStepSize: TValidatedEdit
-              Left = 81
-              Top = 0
-              Width = 70
-              Height = 21
-              Hint = 'Increment in conductance between steps'
-              OnKeyPress = edGMaxKeyPress
-              ShowHint = True
-              Text = ' 10 nS'
-              Value = 10.000000000000000000
-              Scale = 1.000000000000000000
-              Units = 'nS'
-              NumberFormat = '%.4g'
-              LoLimit = -1.000000015047466E30
-              HiLimit = 1.000000015047466E30
-            end
-            object edGMaxNumSteps: TValidatedEdit
-              Left = 83
-              Top = 27
-              Width = 70
-              Height = 21
-              Hint = 'No. of steps in conductance step cycle'
-              OnKeyPress = edGMaxKeyPress
-              ShowHint = True
-              Text = ' 10 '
-              Value = 10.000000000000000000
-              Scale = 1.000000000000000000
-              NumberFormat = '%.4g'
-              LoLimit = -1.000000015047466E30
-              HiLimit = 1.000000015047466E30
-            end
-            object edGMaxNumRepeats: TValidatedEdit
-              Left = 81
-              Top = 53
-              Width = 70
-              Height = 21
-              Hint = 'No. of recording sweeps to acquire at each conductance level.'
-              OnKeyPress = edGMaxKeyPress
-              ShowHint = True
-              Text = ' 1 '
-              Value = 1.000000000000000000
-              Scale = 1.000000000000000000
-              NumberFormat = '%.4g'
-              LoLimit = -1.000000015047466E30
-              HiLimit = 1.000000015047466E30
-            end
+            OnKeyPress = sgStepsKeyPress
+            RowHeights = (
+              20
+              20
+              20
+              20)
           end
         end
         object GroupBox5: TGroupBox
           Left = 8
           Top = 12
           Width = 97
-          Height = 124
+          Height = 130
           Caption = ' Conductance '
           TabOrder = 2
           object rbOff: TRadioButton
@@ -290,7 +220,7 @@ object DCLAMPFrm: TDCLAMPFrm
         end
         object GroupBox2: TGroupBox
           Left = 8
-          Top = 140
+          Top = 146
           Width = 360
           Height = 233
           Caption = ' Activation Parameter (m) '
@@ -540,7 +470,7 @@ object DCLAMPFrm: TDCLAMPFrm
         end
         object GroupBox9: TGroupBox
           Left = 374
-          Top = 140
+          Top = 146
           Width = 363
           Height = 345
           Caption = ' Inactivation Parameter (h) '
@@ -928,11 +858,11 @@ object DCLAMPFrm: TDCLAMPFrm
         object GroupBox6: TGroupBox
           Left = 112
           Top = 12
-          Width = 354
-          Height = 124
+          Width = 275
+          Height = 130
           TabOrder = 5
           object Label3: TLabel
-            Left = 133
+            Left = 55
             Top = 16
             Width = 135
             Height = 14
@@ -946,8 +876,8 @@ object DCLAMPFrm: TDCLAMPFrm
             ParentFont = False
           end
           object Label7: TLabel
-            Left = 96
-            Top = 42
+            Left = 17
+            Top = 64
             Width = 172
             Height = 14
             Alignment = taRightJustify
@@ -959,9 +889,23 @@ object DCLAMPFrm: TDCLAMPFrm
             Font.Style = [fsBold]
             ParentFont = False
           end
+          object Label1: TLabel
+            Left = 118
+            Top = 40
+            Width = 72
+            Height = 14
+            Alignment = taRightJustify
+            Caption = 'Conductance'
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -11
+            Font.Name = 'Arial'
+            Font.Style = [fsBold]
+            ParentFont = False
+          end
           object ckEnableInhibitInput: TCheckBox
-            Left = 192
-            Top = 67
+            Left = 113
+            Top = 91
             Width = 153
             Height = 17
             Alignment = taLeftJustify
@@ -975,7 +919,7 @@ object DCLAMPFrm: TDCLAMPFrm
             TabOrder = 0
           end
           object edVrev: TValidatedEdit
-            Left = 274
+            Left = 196
             Top = 16
             Width = 70
             Height = 21
@@ -988,8 +932,8 @@ object DCLAMPFrm: TDCLAMPFrm
             HiLimit = 200.000000000000000000
           end
           object edCurrentCommandScaleFactor: TValidatedEdit
-            Left = 274
-            Top = 42
+            Left = 195
+            Top = 64
             Width = 70
             Height = 21
             OnKeyPress = edCurrentCommandScaleFactorKeyPress
@@ -1001,17 +945,33 @@ object DCLAMPFrm: TDCLAMPFrm
             LoLimit = -1.000000015047466E30
             HiLimit = 1.000000015047466E30
           end
+          object edGMax: TValidatedEdit
+            Left = 196
+            Top = 40
+            Width = 70
+            Height = 21
+            Hint = 'Initial Maximum conductance'
+            OnKeyPress = edGMaxKeyPress
+            ShowHint = True
+            Text = ' 10 nS'
+            Value = 10.000000000000000000
+            Scale = 1.000000000000000000
+            Units = 'nS'
+            NumberFormat = '%.4g'
+            LoLimit = -1.000000015047466E30
+            HiLimit = 1.000000015047466E30
+          end
         end
         object edStatus: TEdit
           Left = 167
-          Top = 379
+          Top = 387
           Width = 201
           Height = 21
           TabOrder = 6
         end
         object bReset: TButton
           Left = 8
-          Top = 380
+          Top = 387
           Width = 153
           Height = 17
           Caption = 'Update Dynamic Clamp'
@@ -1026,7 +986,7 @@ object DCLAMPFrm: TDCLAMPFrm
         end
         object bLoadSettings: TButton
           Left = 8
-          Top = 403
+          Top = 410
           Width = 153
           Height = 17
           Hint = 'Load dynamic clamp conductance settings'
@@ -1044,7 +1004,7 @@ object DCLAMPFrm: TDCLAMPFrm
         end
         object bSaveSettings: TButton
           Left = 8
-          Top = 426
+          Top = 433
           Width = 153
           Height = 17
           Hint = 'Save dynamic clamp conductance settings'
@@ -1097,10 +1057,10 @@ object DCLAMPFrm: TDCLAMPFrm
         PrinterFontName = 'Arial'
         PrinterLineWidth = 1
         PrinterMarkerSize = 5
-        PrinterLeftMargin = 2
-        PrinterRightMargin = 2
-        PrinterTopMargin = 2
-        PrinterBottomMargin = 2
+        PrinterLeftMargin = 0
+        PrinterRightMargin = 0
+        PrinterTopMargin = 0
+        PrinterBottomMargin = 0
         PrinterDisableColor = False
         MetafileWidth = 500
         MetafileHeight = 400
@@ -1113,6 +1073,21 @@ object DCLAMPFrm: TDCLAMPFrm
         Style = csDropDownList
         TabOrder = 0
         OnChange = cbPlotChange
+      end
+      object bCopyToClipboard: TButton
+        Left = 288
+        Top = 8
+        Width = 121
+        Height = 17
+        Caption = 'Copy to Clipboard'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        ParentFont = False
+        TabOrder = 1
+        OnClick = bCopyToClipboardClick
       end
     end
   end

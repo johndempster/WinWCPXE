@@ -3,8 +3,8 @@ object ExportFrm: TExportFrm
   Top = 181
   BorderStyle = bsDialog
   Caption = ' Export File'
-  ClientHeight = 413
-  ClientWidth = 345
+  ClientHeight = 390
+  ClientWidth = 344
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
   Font.Color = clWindowText
@@ -18,9 +18,9 @@ object ExportFrm: TExportFrm
   TextHeight = 14
   object GroupBox8: TGroupBox
     Left = 8
-    Top = 68
-    Width = 220
-    Height = 159
+    Top = 108
+    Width = 158
+    Height = 85
     Caption = ' Record Range '
     TabOrder = 0
     object rbAllRecords: TRadioButton
@@ -28,7 +28,7 @@ object ExportFrm: TExportFrm
       Top = 16
       Width = 81
       Height = 18
-      Hint = 'Analysis all record in the data file'
+      Hint = 'Export all record in the data file'
       Caption = 'Whole file'
       Checked = True
       Font.Charset = DEFAULT_CHARSET
@@ -41,14 +41,13 @@ object ExportFrm: TExportFrm
       ShowHint = True
       TabOrder = 0
       TabStop = True
-      OnClick = rbAllRecordsClick
     end
     object rbRange: TRadioButton
       Left = 8
       Top = 32
       Width = 57
       Height = 17
-      Hint = 'Analysis a limited range of records within the data file'
+      Hint = 'Export a limited range of records within the data file'
       Caption = 'Range'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
@@ -59,14 +58,12 @@ object ExportFrm: TExportFrm
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
-      OnClick = rbRangeClick
     end
     object edRange: TRangeEdit
       Left = 26
       Top = 50
       Width = 119
       Height = 20
-      OnKeyPress = edRangeKeyPress
       AutoSize = False
       Text = ' 1 - 1.00000001504746622E30  '
       LoValue = 1.000000000000000000
@@ -79,10 +76,13 @@ object ExportFrm: TExportFrm
   end
   object ChannelsGrp: TGroupBox
     Left = 8
-    Top = 227
+    Top = 199
     Width = 329
     Height = 153
+    Hint = 'Select channels to be exported'
     Caption = ' Channels '
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 1
     object ckCh0: TCheckBox
       Left = 8
@@ -345,8 +345,8 @@ object ExportFrm: TExportFrm
     Left = 8
     Top = 0
     Width = 329
-    Height = 65
-    Caption = ' Output file '
+    Height = 106
+    Caption = ' Files '
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -12
@@ -354,166 +354,63 @@ object ExportFrm: TExportFrm
     Font.Style = []
     ParentFont = False
     TabOrder = 2
-    object edFileName: TEdit
-      Left = 8
-      Top = 16
-      Width = 312
-      Height = 21
-      AutoSize = False
-      Color = clMenuBar
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Arial'
-      Font.Style = []
-      ParentFont = False
-      ReadOnly = True
-      TabOrder = 0
-      Text = 'edFileName'
-    end
     object bChangeName: TButton
       Left = 8
-      Top = 40
+      Top = 82
       Width = 121
       Height = 17
-      Caption = 'Change File  Name'
+      Caption = 'Select Files'
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
       Font.Height = -11
       Font.Name = 'Arial'
       Font.Style = [fsBold]
       ParentFont = False
-      TabOrder = 1
+      TabOrder = 0
       OnClick = bChangeNameClick
+    end
+    object meFileList: TMemo
+      Left = 8
+      Top = 17
+      Width = 312
+      Height = 59
+      Lines.Strings = (
+        'meFileList')
+      TabOrder = 1
     end
   end
   object GroupBox2: TGroupBox
-    Left = 234
-    Top = 68
-    Width = 103
-    Height = 159
+    Left = 172
+    Top = 108
+    Width = 165
+    Height = 85
     Caption = ' Output  Format  '
     TabOrder = 3
-    object rbABF: TRadioButton
-      Left = 8
-      Top = 16
-      Width = 57
-      Height = 17
-      Caption = 'Axon'
-      Checked = True
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Arial'
-      Font.Style = [fsBold]
-      ParentFont = False
-      TabOrder = 0
-      TabStop = True
-      OnClick = rbABFClick
-    end
-    object rbCFS: TRadioButton
-      Left = 8
-      Top = 30
-      Width = 57
-      Height = 19
-      Caption = 'CED'
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Arial'
-      Font.Style = [fsBold]
-      ParentFont = False
-      TabOrder = 1
-      OnClick = rbCFSClick
-    end
-    object rbASCII: TRadioButton
-      Left = 8
-      Top = 46
-      Width = 57
-      Height = 17
-      Caption = 'Text'
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Arial'
-      Font.Style = [fsBold]
-      ParentFont = False
-      TabOrder = 2
-      OnClick = rbASCIIClick
-    end
-    object rbEDR: TRadioButton
-      Left = 8
-      Top = 62
-      Width = 57
-      Height = 17
-      Caption = 'EDR'
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Arial'
-      Font.Style = [fsBold]
-      ParentFont = False
-      TabOrder = 3
-      OnClick = rbEDRClick
-    end
-    object rbWCP: TRadioButton
-      Left = 8
-      Top = 78
-      Width = 57
-      Height = 17
-      Caption = 'WCP'
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Arial'
-      Font.Style = [fsBold]
-      ParentFont = False
-      TabOrder = 4
-      OnClick = rbWCPClick
-    end
-    object rbIGOR: TRadioButton
-      Left = 8
-      Top = 94
-      Width = 57
-      Height = 17
-      Caption = 'IGOR'
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Arial'
-      Font.Style = [fsBold]
-      ParentFont = False
-      TabOrder = 5
-      OnClick = rbIGORClick
-    end
-    object rbMAT: TRadioButton
-      Left = 8
-      Top = 110
-      Width = 57
-      Height = 17
-      Caption = 'MAT'
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Arial'
-      Font.Style = [fsBold]
-      ParentFont = False
-      TabOrder = 6
-      OnClick = rbMATClick
-    end
     object ckCombineRecords: TCheckBox
-      Left = 24
-      Top = 128
-      Width = 65
+      Left = 8
+      Top = 38
+      Width = 146
       Height = 25
       Caption = 'Combine Records'
-      TabOrder = 7
+      TabOrder = 0
       WordWrap = True
+    end
+    object cbExportFormat: TComboBox
+      Left = 8
+      Top = 16
+      Width = 153
+      Height = 22
+      Hint = 'Select export file data format'
+      Style = csDropDownList
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 1
+      OnChange = cbExportFormatChange
     end
   end
   object bOK: TButton
     Left = 8
-    Top = 386
+    Top = 358
     Width = 50
     Height = 20
     Caption = 'OK'
@@ -529,7 +426,7 @@ object ExportFrm: TExportFrm
   end
   object bCancel: TButton
     Left = 64
-    Top = 386
+    Top = 358
     Width = 50
     Height = 17
     Caption = 'Cancel'
@@ -541,10 +438,6 @@ object ExportFrm: TExportFrm
     ModalResult = 2
     ParentFont = False
     TabOrder = 5
-  end
-  object SaveDialog: TSaveDialog
-    Left = 160
-    Top = 384
   end
   object ExportFile: TADCDataFile
     NumChannelsPerScan = 1
@@ -569,6 +462,10 @@ object ExportFrm: TExportFrm
     ASCIITitleLines = 2
     ASCIIFixedRecordSize = False
     Left = 128
-    Top = 384
+    Top = 356
+  end
+  object OpenDialog: TOpenDialog
+    Left = 208
+    Top = 352
   end
 end

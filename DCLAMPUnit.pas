@@ -16,19 +16,21 @@ unit DCLAMPUnit;
 // V2.0 9-7-14    Now uses National Instruments cRIO-9076 controller unit
 // V2.0.1 17-9-14   Current scale factor now expressed as A/V (same as WinWCP)
 // 23-3-15        Incorporated into WinWCP
+// 30-5-15        Activation and inactivation Vhalf and time constants can now be incremented.
 
 interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, XYPlotDisplay,
-  Vcl.StdCtrls, HTMLLabel, ValidatedEdit, Vcl.ComCtrls, math, shared ;
+  Vcl.StdCtrls, HTMLLabel, ValidatedEdit, Vcl.ComCtrls, math, shared, Vcl.Grids, system.character ;
 
 const
     SteadyStatesPlot = 0 ;
     TimeConstantsPlot = 1 ;
     ActivationRatesPlot = 2 ;
     InactivationRatesPlot = 3 ;
+
     HeaderSize = 1024 ;
 
 type
@@ -39,8 +41,6 @@ type
     Label2: TLabel;
     cbComPort: TComboBox;
     GroupBox4: TGroupBox;
-    Label1: TLabel;
-    edGMax: TValidatedEdit;
     GroupBox5: TGroupBox;
     rbOff: TRadioButton;
     rbAdd: TRadioButton;
@@ -105,19 +105,19 @@ type
     edVrev: TValidatedEdit;
     Label7: TLabel;
     edCurrentCommandScaleFactor: TValidatedEdit;
-    rbGmaxFixed: TRadioButton;
-    rbGMaxSteps: TRadioButton;
-    PanGmaxSteps: TPanel;
-    edGMaxStepSize: TValidatedEdit;
-    Label4: TLabel;
-    Label5: TLabel;
-    edGMaxNumSteps: TValidatedEdit;
-    Label6: TLabel;
-    edGMaxNumRepeats: TValidatedEdit;
     bLoadSettings: TButton;
     bSaveSettings: TButton;
     OpenDialog: TOpenDialog;
     SaveDialog: TSaveDialog;
+    Label1: TLabel;
+    edGMax: TValidatedEdit;
+    Label5: TLabel;
+    edNumSteps: TValidatedEdit;
+    Label6: TLabel;
+    edNumRepeats: TValidatedEdit;
+    ckEnableIncrementing: TCheckBox;
+    sgSteps: TStringGrid;
+    bCopyToClipboard: TButton;
     procedure FormShow(Sender: TObject);
     procedure edGMaxKeyPress(Sender: TObject; var Key: Char);
     procedure edVrevKeyPress(Sender: TObject; var Key: Char);
@@ -149,10 +149,10 @@ type
     procedure Timer1Timer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure rbGmaxFixedClick(Sender: TObject);
-    procedure rbGMaxStepsClick(Sender: TObject);
     procedure bLoadSettingsClick(Sender: TObject);
     procedure bSaveSettingsClick(Sender: TObject);
+    procedure sgStepsKeyPress(Sender: TObject; var Key: Char);
+    procedure bCopyToClipboardClick(Sender: TObject);
   private
     { Private declarations }
     ComHandle : Integer ;
@@ -162,22 +162,30 @@ type
     UpdateCounter : Integer ;
     StepNumber : Integer ;             // Gmax step number (in steps mode)
     RepeatNumber : Integer ;           // Gmax repeat number (in steps mode)
+    StepGmax : Integer ;
+    StepVHAct : Integer ;
+    StepVHInact : Integer ;
+    StepTauAct : Integer ;
+    StepTauInact : Integer ;
+    StepUnits: Array[0..99] of string ;
 
     function OpenDCLAMP : Boolean ;
     procedure CloseDCLAMP ;
     procedure SetParameter( ParName : String ; Value : Single ) ;
-    procedure SetConductance ;
+    procedure SetConductance( G : Single ) ;
     procedure TransmitLine( const Line : string ) ;
     function  ReceiveLine : string ;
     procedure PlotGraph ;
     procedure LoadSettingsFile( const IniFileName : string ) ;
     procedure SaveSettingsFile( const IniFileName : string ) ;
     procedure UpdateDCLAMP ;
+    function GetStepSize( iPar : Integer ) : single ;
 
   public
     { Public declarations }
     GMax : single ;
-    procedure NextGMaxStep( Initialise : Boolean ) ;
+    SteppedParameter : Integer ;
+    procedure NextStep( Initialise : Boolean ) ;
   end;
 
 var
@@ -187,7 +195,7 @@ implementation
 
 {$R *.dfm}
 
-uses MDIForm ;
+uses MDIForm, fileio ;
 
 procedure TDClampFrm.edGMaxKeyPress(Sender: TObject; var Key: Char);
 // ---------
@@ -196,7 +204,6 @@ procedure TDClampFrm.edGMaxKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
         UpdateDclamp ;
-        //SetConductance ;
         end ;
      end;
 
@@ -207,7 +214,6 @@ procedure TDClampFrm.edCurrentCommandScaleFactorKeyPress(Sender: TObject; var Ke
 begin
      if Key = #13 then begin
         UpdateDCLAMP ;
-//        SetParameter( 'VRV=', edVrev.Value) ;
         end ;
      end;
 
@@ -219,7 +225,6 @@ procedure TDClampFrm.edVrevKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
         UpdateDCLAMP ;
-//        SetParameter( 'VRV=', edVrev.Value) ;
         end ;
      end;
 
@@ -232,7 +237,6 @@ procedure TDClampFrm.edMSSVhalfKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
         UpdateDCLAMP ;
-   //     SetParameter( 'MVH=', edMSSVhalf.Value) ;
         end ;
      end;
 
@@ -244,7 +248,6 @@ procedure TDClampFrm.edMSSVslopeKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
         UpdateDCLAMP ;
-   //     SetParameter( 'MVS=', edMSSVslope.Value) ;
         end ;
      end;
 
@@ -256,7 +259,6 @@ procedure TDClampFrm.edMTauMinKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
         UpdateDCLAMP ;
-   //     SetParameter( 'MTMN=', edMTauMin.Value) ;
         end ;
      end;
 
@@ -268,7 +270,6 @@ procedure TDClampFrm.edMTauMaxKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
         UpdateDCLAMP ;
-   //     SetParameter( 'MTMX=', edMTauMax.Value) ;
         end ;
      end;
 
@@ -280,7 +281,6 @@ procedure TDClampFrm.edMTauVhalfKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
         UpdateDCLAMP ;
-   //     SetParameter( 'MTVH=', edMTauVhalf.Value) ;
         end ;
      end;
 
@@ -292,7 +292,6 @@ procedure TDClampFrm.edMTauVSlopeKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
         UpdateDCLAMP ;
-   //     SetParameter( 'MTVS=', edMTauVSlope.Value) ;
         end ;
      end;
 
@@ -304,7 +303,6 @@ procedure TDClampFrm.edmPowerKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
         UpdateDCLAMP ;
-   //     SetParameter( 'P', edmPower.Value) ;
         end ;
      end;
 
@@ -315,7 +313,6 @@ procedure TDClampFrm.edHFastFractionKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
          UpdateDCLAMP ;
-//        SetParameter( 'HTFF=', edHFastFraction.Value) ;
         end ;
      end;
 
@@ -327,7 +324,6 @@ procedure TDClampFrm.edHSSVhalfKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
       UpdateDCLAMP ;
-//        SetParameter( 'HVH=', edHSSVhalf.Value) ;
         end ;
      end;
 
@@ -338,7 +334,6 @@ procedure TDClampFrm.edHSSVslopeKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
       UpdateDCLAMP ;
-//        SetParameter( 'HVS=', edHSSVslope.Value) ;
         end ;
      end;
 
@@ -350,7 +345,6 @@ procedure TDClampFrm.edHTauFMinKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
       UpdateDCLAMP ;
-//        SetParameter( 'HTFMN=', edHTauFMin.Value) ;
         end ;
      end;
 
@@ -362,7 +356,6 @@ procedure TDClampFrm.edHTauFMaxKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
       UpdateDCLAMP ;
-//        SetParameter( 'HTFMX=', edHTauFMax.Value) ;
         end ;
      end;
 
@@ -374,7 +367,6 @@ procedure TDClampFrm.edHTauFVhalfKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
       UpdateDCLAMP ;
-//        SetParameter( 'HTFVH=', edHTauFVhalf.Value) ;
         end ;
      end;
 
@@ -388,7 +380,6 @@ procedure TDClampFrm.edHTauFVslopeKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
       UpdateDCLAMP ;
-//        SetParameter( 'HTFVS=', edHTauFVSlope.Value) ;
         end ;
      end;
 
@@ -400,7 +391,6 @@ procedure TDClampFrm.edHTauSMaxKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
         UpdateDCLAMP ;
-       // SetParameter( 'HTSMX=', edHTauSMax.Value) ;
         end ;
      end;
 
@@ -413,7 +403,6 @@ procedure TDClampFrm.edHTauSMinKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
          UpdateDCLAMP ;
-        //SetParameter( 'HTSMN=', edHTauSMin.Value) ;
         end ;
      end;
 
@@ -424,7 +413,6 @@ procedure TDClampFrm.edHTauSVHalfKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
         UpdateDCLAMP ;
-  //      SetParameter( 'HTSVH=', edHTauSVHalf.Value) ;
         end ;
      end;
 
@@ -435,7 +423,6 @@ procedure TDClampFrm.edHTauSVSlopeKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
         UpdateDCLAMP ;
-  //      SetParameter( 'HTSVS=', edHTauSVSlope.Value) ;
         end ;
      end;
 
@@ -467,17 +454,48 @@ procedure TDCLAMPFrm.FormShow(Sender: TObject);
 // -----------------------------------
 // Initialisations when form is opened
 // -----------------------------------
+var
+    i : Integer ;
 begin
 
      INIFileName := Main.SettingsDirectory + 'DCLAMP.INI' ;
 
       edGmax.Value := 4.0 ;
       edVrev.Value := 0.0 ;
-      edGmaxStepSize.Value := 0.1 ;
-      edGmaxNumSteps.Value := 10.0 ;
-      rbGMaxFixed.Checked := True ;
-      rbGMaxSteps.Checked := False ;
-      PanGMaxSteps.Visible := not rbGMaxFixed.Checked ;
+      edNumSteps.Value := 10.0 ;
+
+      // Create step increments table
+      sgSteps.ColWidths[0] := 90 ;
+      sgSteps.ColWidths[1] := 50 ;
+      i := 0 ;
+      sgSteps.Cells[0,i] := 'Gmax' ;
+      StepUnits[i] := '%' ;
+      sgSteps.Cells[1,i] := '10.0 ' + StepUnits[i];
+      StepGMax := i ;
+      Inc(i) ;
+      sgSteps.Cells[0,i] := 'V1/2 (activation)' ;
+      StepUnits[i] := 'mV' ;
+      sgSteps.Cells[1,i] := '0.0 ' + StepUnits[i];
+      StepVHAct := i ;
+      Inc(i) ;
+      sgSteps.Cells[0,i] := 'V1/2 (inactivation)' ;
+      StepUnits[i] := 'mV' ;
+      sgSteps.Cells[1,i] := '0.0 ' + StepUnits[i];
+      StepVHInact := i ;
+      Inc(i) ;
+      sgSteps.Cells[0,i] := 'Tau (activation)' ;
+      StepUnits[i] := '%' ;
+      sgSteps.Cells[1,i] := '0.0 ' + StepUnits[i];
+
+      StepTauAct := i ;
+      Inc(i) ;
+      sgSteps.Cells[0,i] := 'Tau (inactivation)' ;
+      StepUnits[i] := '%' ;
+      sgSteps.Cells[1,i] := '0.0 ' + StepUnits[i] ;
+      StepTauInAct := i ;
+      sgSteps.RowCount := i + 1 ;
+
+      ckEnableIncrementing.Checked := False ;
 
       // Activation parameter (m) constants
       edMSSVHalf.Value := 30.0 ;
@@ -529,10 +547,16 @@ procedure TDClampFrm.UpdateDCLAMP ;
 // ------------------------------------
 // Send all parameters to dynamic clamp
 // ------------------------------------
+var
+    s : string ;
 begin
 
-     SetConductance ;
+     WriteToLogFile('DCLAMP: Update');
+     SetConductance( edGMax.Value ) ;
      SetParameter( 'VRV=', edVrev.Value) ;
+     s := format( 'Gmax=%.3gnS, Vrev=%.3gmV',
+                  [edGMax.Value,edVrev.Value]);
+     WriteToLogFile(s) ;
 
      // Activation
      SetParameter('MVH=', edMSSVHalf.Value ) ;
@@ -541,6 +565,13 @@ begin
      SetParameter('MTMX=', edMTauMax.Value ) ;
      SetParameter('MTVH=', edMTauVHalf.Value ) ;
      SetParameter('MTVS=', edMTauVSlope.Value ) ;
+
+     s := format( 'Act: Hinf(V)= 1/ (V - %.3gmV)/%.3gmV',
+                  [edMSSVHalf.Value,edMSSVSlope.Value]);
+     WriteToLogFile(s) ;
+     s := format( 'Act: TauM(V)= %.3gms + (%.3gms - %.3gms)*exp(-((V - %.3gmV)/%.3gmV)^2)',
+                  [edMTauMin.Value,edMTauMax.Value,edMTauMin.Value,edMTauVHalf.Value,edMTauVSlope.Value]);
+     WriteToLogFile(s) ;
 
      // Inactivation
      SetParameter('HVH=', edHSSVHalf.Value ) ;
@@ -558,6 +589,18 @@ begin
 
      SetParameter( 'HTFF=', edHFastFraction.Value) ;
 
+     s := format( 'Inact: Hinf(V)= 1/ (V - %.3gmV)/%.3gmV',
+                  [edHSSVHalf.Value,edHSSVSlope.Value]);
+     WriteToLogFile(s) ;
+     s := format( 'Inact: TauHfast(V)= %.3gms + (%.3gms - %.3gms)*exp(-((V - %.3gms)/%.3gms)^2)',
+                   [edHTauFMin.Value,edHTauFMax.Value,edHTauFMin.Value,edHTauFVHalf.Value,edHTauFVSlope.Value]);
+     WriteToLogFile(s) ;
+     s := format( 'Inact: TauHslow(V)= %.3gms + (%.3gms - %.3gms)*exp(-((V - %.3gmV)/%.3gmV)^2)',
+                   [edHTauSMin.Value,edHTauSMax.Value,edHTauSMin.Value,edHTauSVHalf.Value,edHTauSVSlope.Value]);
+     WriteToLogFile(s) ;
+     s := format('Inact: Fast Fraction=%.3g',[edHFastFraction.Value]);
+     WriteToLogFile(s) ;
+
      if ckEnableInhibitInput.Checked then SetParameter( 'VIH=',2.5)
                                      else SetParameter( 'VIH=',11.0) ;
 
@@ -569,11 +612,15 @@ begin
      end ;
 
 
-procedure TDClampFrm.NextGMaxStep( Initialise : Boolean ) ;
+procedure TDClampFrm.NextStep( Initialise : Boolean ) ;
 // -------------------------------------------
 // Increment maximum conductance to next level
 // -------------------------------------------
+var
+    StepValue,StepSize : single ;
 begin
+
+    if not ckEnableIncrementing.Checked then Exit ;
 
     if Initialise then begin
        StepNumber := 0 ;
@@ -581,35 +628,99 @@ begin
        end
     else begin
        Inc(RepeatNumber) ;
-       if RepeatNumber >= Round(edGMaxNumRepeats.Value) then begin
+       if RepeatNumber >= Round(edNumRepeats.Value) then begin
           RepeatNumber := 0 ;
           Inc(StepNumber) ;
-
           end;
-       if StepNumber >= Round(edGMaxNumSteps.Value) then StepNumber := 0 ;
+       if StepNumber >= Round(edNumSteps.Value) then StepNumber := 0 ;
        end ;
 
-    SetConductance ;
+    // Gmax
+    StepSize := GetStepSize(StepGMax) ;
+    if StepSize <> 0.0 then begin
+       StepValue := (100.0 + StepSize*StepNumber)*0.01 ;
+       SetConductance( edGMax.Value*StepValue ) ;
+       WriteToLogFile(format('GMax = %.4g nS',[edGMax.Value*StepValue]));
+       end;
+
+    // Activation V1/2
+    StepSize := GetStepSize(StepVHAct) ;
+    if StepSize <> 0.0 then begin
+       StepValue := Max(StepSize*StepNumber,0.0) ;
+       SetParameter('MVH=', edMSSVHalf.Value + StepValue ) ;
+       SetParameter('MTVH=', edMTauVHalf.Value + StepValue ) ;
+       WriteToLogFile(format('Act: V1/2= %.4g, Tau.V1/2 %.4g mV',
+                             [edMSSVHalf.Value + StepValue,
+                              edMTauVHalf.Value + StepValue]));
+       end ;
+
+    // Inactivation V1/2
+    StepSize := GetStepSize(StepVHInact) ;
+    if StepSize <> 0.0 then begin
+       StepValue := StepSize*StepNumber ;
+       SetParameter('HVH=', edHSSVHalf.Value + StepValue ) ;
+       SetParameter('HTFVH=', edHTauFVHalf.Value + StepValue ) ;
+       SetParameter('HTSVH=', edHTauSVHalf.Value + StepValue ) ;
+       WriteToLogFile(format('Inact: V1/2= %.4g, TauF.V1/2 %.4g, TauS.V1/2 %.4g mV',
+                             [edHSSVHalf.Value + StepValue,
+                              edHTauFVHalf.Value + StepValue,
+                              edHTauSVHalf.Value + StepValue]));
+       end ;
+
+    StepSize := GetStepSize(StepTauAct) ;
+    if StepSize <> 0.0 then begin
+       StepValue := Max(StepSize*StepNumber,0.0) ;
+       SetParameter('MTMN=', edMTauMin.Value*StepValue ) ;
+       SetParameter('MTMX=', edMTauMax.Value*StepValue ) ;
+       WriteToLogFile(format('Act: Tau(min)= %.4g, Tau(max) %.4g ms',
+                             [edMTauMin.Value*StepValue,
+                              edMTauMax.Value*StepValue]));
+       end ;
+
+    StepSize := GetStepSize(StepTauInact) ;
+    if StepSize <> 0.0 then begin
+       StepValue := Max(StepSize*StepNumber,0.0) ;
+       SetParameter('HTFMN=', edHTauFMin.Value*StepValue ) ;
+       SetParameter('HTFMX=', edHTauFMax.Value*StepValue ) ;
+       SetParameter('HTSMN=', edHTauSMin.Value*StepValue )  ;
+       SetParameter('HTSMX=', edHTauSMax.Value*StepValue ) ;
+       WriteToLogFile(format('Inact: TauF(min)= %.4g, TauF(max) %.4g, TauS(min)= %.4g, TauS(max) %.4g ms',
+                             [edHTauFMin.Value*StepValue,
+                              edHTauFMax.Value*StepValue,
+                              edHTauSMin.Value*StepValue,
+                              edHTauSMax.Value*StepValue]));
+       end ;
 
     end;
 
 
-procedure TDClampFrm.SetConductance ;
+function TDClampFrm.GetStepSize(
+         iPar : Integer ) : single ;
+// ---------------------------------------------------
+// Get size of step for parameter iPar from step table
+// ---------------------------------------------------
+var
+    i,iChar : Integer ;
+    sIn,sNum : string ;
+begin
+    sIn := sgSteps.Cells[1,iPar] ;
+    sNum := '' ;
+    for i := 1 to Length(sIn) do if TCharacter.IsNumber(sIn[i]) or
+        (sIn[i] = '-') or (sIn[i] = '+') or (sIn[i] = '.') then sNum := sNum + sIn[i] ;
+    if sNum <> '' then begin
+       Val( sNum,Result,iChar) ;
+       if iChar <> 0 then Result := 0.0 ;
+       end
+    else Result := 0.0 ;
+
+    sgSteps.Cells[1,iPar] := format('%.3g %s',[Result,StepUnits[iPar]]);
+    end;
+
+procedure TDClampFrm.SetConductance( G : Single ) ;
 // ----------------
 // Set conductance
 // ----------------
-var
-    G : Single ;
 begin
-
-    G := edGMax.Value ;
-    if rbGMaxSteps.checked then begin
-       G := G + edGMaxStepSize.Value*Min(Max(StepNumber,0),Round(edGMaxNumSteps.Value)) ;
-       end
-    else begin
-       StepNumber := 0 ;
-       RepeatNumber := 0 ;
-       end;
 
     if rbOff.checked then G := 0.0
     else if rbAdd.checked then G := -G ;
@@ -771,24 +882,22 @@ begin
      end;
 
 
-procedure TDCLAMPFrm.rbGmaxFixedClick(Sender: TObject);
-begin
-     PanGMaxSteps.Visible := not rbGMaxFixed.Checked ;
-     end;
-
-procedure TDCLAMPFrm.rbGMaxStepsClick(Sender: TObject);
-begin
-     PanGMaxSteps.Visible := not rbGMaxFixed.Checked ;
-     end;
-
 procedure TDCLAMPFrm.rbOffClick(Sender: TObject);
 // ------------------------------
 // Conductance clamp mode changed
 // ------------------------------
 begin
-        SetConductance ;
+        SetConductance( edGMax.Value ) ;
         end;
 
+
+procedure TDCLAMPFrm.bCopyToClipboardClick(Sender: TObject);
+// ----------------------------
+// Copy graph data to clipboard
+// ----------------------------
+begin
+    plplot.CopyDataToClipboard ;
+    end;
 
 procedure TDCLAMPFrm.bLoadSettingsClick(Sender: TObject);
 // ----------------------------
@@ -866,6 +975,16 @@ begin
     end ;
 
 
+procedure TDCLAMPFrm.sgStepsKeyPress(Sender: TObject; var Key: Char);
+var
+    i : Integer ;
+    Temp : Single ;
+begin
+    if Key = #13 then begin
+        for i := 0 to sgSteps.RowCount-1 do Temp := GetStepSize(i) ;
+        end;
+    end;
+
 procedure TDCLAMPFrm.Timer1Timer(Sender: TObject);
 //
 // Send parameters to dynamic clamp
@@ -875,7 +994,7 @@ begin
      if not UpdatesEnabled then Exit ;
 
      case UpdateCounter of
-        0 : SetConductance ;
+        0 : SetConductance( edGMax.Value ) ;
         1 : SetParameter( 'VRV=', edVrev.Value) ;
 
         2 : SetParameter('MVH=', edMSSVHalf.Value ) ;
@@ -1010,22 +1129,13 @@ begin
         ReadFloat( Header, 'GMX=', Value) ;
         edGMax.Value := Value ;
 
-        Value := edGMaxStepSize.Value ;
-        ReadFloat( Header, 'GMXSTEPSIZE=', Value) ;
-        edGMaxStepSize.Value := Value ;
+        Value := edNumSteps.Value ;
+        ReadFloat( Header, 'NUMSTEPS=', Value) ;
+        edNumSteps.Value := Value ;
 
-        Value := edGMaxNumSteps.Value ;
-        ReadFloat( Header, 'GMXNUMSTEPS=', Value) ;
-        edGMaxNumSteps.Value := Value ;
-
-        Value := edGMaxNumRepeats.Value ;
-        ReadFloat( Header, 'GMXNUMREPS=', Value) ;
-        edGMaxNumRepeats.Value := Value ;
-
-        ReadLogical( Header, 'GMXFIXED=', bValue ) ;
-        rbGMaxFixed.Checked := bValue ;
-        rbGMaxSteps.Checked := not bValue ;
-        PanGMaxSteps.Visible := not bValue ;
+        Value := edNumRepeats.Value ;
+        ReadFloat( Header, 'NUMREPS=', Value) ;
+        edNumRepeats.Value := Value ;
 
         Value := edVrev.Value ;
         ReadFloat( Header, 'VRV=', Value) ;
@@ -1140,10 +1250,9 @@ begin
      for i := 1 to sizeof(Header) do Header[i] := chr(0) ;
 
      AppendFloat( Header, 'GMX=', edGMax.Value) ;
-     AppendFloat( Header, 'GMXSTEPSIZE=', edGMaxStepSize.Value );
-     AppendFloat( Header, 'GMXNUMSTEPS=', edGMaxNumSteps.Value );
-     AppendFloat( Header, 'GMXNUMREPS=', edGMaxNumRepeats.Value );
-     AppendLogical( Header, 'GMXFIXED=', rbGMaxFixed.Checked );
+     AppendFloat( Header, 'NUMSTEPS=', edNumSteps.Value );
+     AppendFloat( Header, 'NUMREPS=', edNumRepeats.Value );
+     AppendInt( Header, 'STEPPAR=', SteppedParameter );
 
      AppendFloat( Header, 'VRV=', edVrev.Value) ;
      AppendFloat( Header, 'MVH=', edMSSVHalf.Value) ;

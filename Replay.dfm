@@ -354,6 +354,7 @@ object ReplayFrm: TReplayFrm
         '0'
         '1')
       ParentFont = False
+      ReadOnly = True
       TabOrder = 6
     end
   end

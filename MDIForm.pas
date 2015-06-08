@@ -611,6 +611,10 @@ unit MDIForm;
 //                    in use Amp #1 (lower s.n) Ch.1 1.Primary->AI0,Secondary->AI1, Ch.2 1.Primary->AI2,Secondary->AI3
 //                    Amp #2 (higher s.n) Ch.1 1.Primary->AI4,Secondary->AI5, Ch.2 1.Primary->AI6,Secondary->AI7
                       CED1902u.pas: CED 1902 DC Offset now works.
+   V4.9.3 05.05.15    Multiclamp 700A/B Now correctly allocates Channel 1 of second Multiclamp 700A/B as Amplifier #3
+   V4.9.4 03.06.15    InputChannelSetup.pas: Users updates to channel current units now applied to both
+                      VCLAMP and ICLAMP mode settings if patch clamp does not have mode switched primary/secondary channels.
+   V4.9.5 08.06.15    Multiple files can now be selected for export and channels can now be selected for export formats
   =======================================================================}
 
 interface
@@ -768,9 +772,6 @@ type
     procedure mnDClampClick(Sender: TObject);
   private
 
-    function OpenAssociateFile( var FileHeader : TFileHeader ;
-                                const FileName : string ;
-                                const FileExtension : string ) : boolean ;
     procedure UpdateFileHeaderBlocks ;
 
 
@@ -805,6 +806,9 @@ type
     function CreateNewDataFile(
              FileName : String
              ) : Boolean ;
+    function OpenAssociateFile( var FileHeader : TFileHeader ;
+                                const FileName : string ;
+                                const FileExtension : string ) : boolean ;
 
     procedure ShowChannel( Chan : Integer ; MenuItem : TMenuItem ) ;
     procedure UpdateMDIWindows ;
@@ -856,7 +860,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.9.2';
+      ProgVersion := 'V4.9.5';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
