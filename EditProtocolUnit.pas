@@ -19,6 +19,9 @@ unit EditProtocolUnit;
 // 20.08.13 SetCurrentDir() now used to ensure file dialog boxes open in current protocol directory
 // 25.06.14 Height of Recording settings box increased to ensure External Trigger line is visible
 // 15.12.14 Changes to element parameters no longer lost when a new element dropped on waveform palette
+// 16.06.15 Fixed tick box moved from Sampling Interval to No. of samples/channel. When Fixed is NOT ticked
+//          No. of samples/channel is now altered when sampling interval changed to maintain fixed duration
+//          and vice versa.
 
 interface
 
@@ -330,10 +333,10 @@ type
     GroupBox1: TGroupBox;
     edDACUpdateInterval: TValidatedEdit;
     ckFixedDACUpdateInterval: TCheckBox;
-    ckFixedADCSamplingInterval: TCheckBox;
     GlobalTab: TTabSheet;
     GroupBox4: TGroupBox;
     GlobalVarTable: TStringGrid;
+    ckFixedSamplesPerChannel: TCheckBox;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -2178,7 +2181,7 @@ begin
     edDACUpdateInterval.Value := Prot.AOUpdateIntervalFixed ;
     ckFixedDACUpdateInterval.Checked := Prot.AOUpdateIntervalKeepFixed ;
 
-    ckFixedADCSamplingInterval.Checked := Prot.ADCSamplingIntervalKeepFixed ;
+    ckFixedSamplesPerChannel.Checked := not Prot.ADCSamplingIntervalKeepFixed ;
 
     // Get linked protocol file name
     if Prot.NextProtocolFileName <> '' then
@@ -2238,7 +2241,7 @@ begin
      if ckFixedDACUpdateInterval.Checked then Prot.AOUpdateIntervalFixed := edDACUpdateInterval.Value ;
      Prot.AOUpdateIntervalKeepFixed := ckFixedDACUpdateInterval.Checked ;
 
-     Prot.ADCSamplingIntervalKeepFixed := ckFixedADCSamplingInterval.Checked ;
+     Prot.ADCSamplingIntervalKeepFixed := not ckFixedSamplesPerChannel.Checked ;
 
      // Linked protocol
      if cbNextProtocol.ItemIndex > 0 then begin

@@ -17,6 +17,7 @@ unit DCLAMPUnit;
 // V2.0.1 17-9-14   Current scale factor now expressed as A/V (same as WinWCP)
 // 23-3-15        Incorporated into WinWCP
 // 30-5-15        Activation and inactivation Vhalf and time constants can now be incremented.
+// 17.06.15       Incremented dynamic clamp settings reports in log file and stored in settings
 
 interface
 
@@ -95,7 +96,6 @@ type
     edHFastFraction: TValidatedEdit;
     GroupBox6: TGroupBox;
     ckEnableInhibitInput: TCheckBox;
-    edStatus: TEdit;
     bReset: TButton;
     GraphsTab: TTabSheet;
     plPlot: TXYPlotDisplay;
@@ -118,6 +118,7 @@ type
     ckEnableIncrementing: TCheckBox;
     sgSteps: TStringGrid;
     bCopyToClipboard: TButton;
+    edStatus: TEdit;
     procedure FormShow(Sender: TObject);
     procedure edGMaxKeyPress(Sender: TObject; var Key: Char);
     procedure edVrevKeyPress(Sender: TObject; var Key: Char);
@@ -167,7 +168,7 @@ type
     StepVHInact : Integer ;
     StepTauAct : Integer ;
     StepTauInact : Integer ;
-    StepUnits: Array[0..99] of string ;
+    StepUnits: Array[0..19] of string ;
 
     function OpenDCLAMP : Boolean ;
     procedure CloseDCLAMP ;
@@ -185,6 +186,7 @@ type
     { Public declarations }
     GMax : single ;
     SteppedParameter : Integer ;
+    Status : string ;
     procedure NextStep( Initialise : Boolean ) ;
   end;
 
@@ -470,28 +472,28 @@ begin
       i := 0 ;
       sgSteps.Cells[0,i] := 'Gmax' ;
       StepUnits[i] := '%' ;
-      sgSteps.Cells[1,i] := '10.0 ' + StepUnits[i];
+      sgSteps.Cells[1,i] := '10 ' + StepUnits[i];
       StepGMax := i ;
       Inc(i) ;
       sgSteps.Cells[0,i] := 'V1/2 (activation)' ;
       StepUnits[i] := 'mV' ;
-      sgSteps.Cells[1,i] := '0.0 ' + StepUnits[i];
+      sgSteps.Cells[1,i] := '0 ' + StepUnits[i];
       StepVHAct := i ;
       Inc(i) ;
       sgSteps.Cells[0,i] := 'V1/2 (inactivation)' ;
       StepUnits[i] := 'mV' ;
-      sgSteps.Cells[1,i] := '0.0 ' + StepUnits[i];
+      sgSteps.Cells[1,i] := '0 ' + StepUnits[i];
       StepVHInact := i ;
       Inc(i) ;
       sgSteps.Cells[0,i] := 'Tau (activation)' ;
       StepUnits[i] := '%' ;
-      sgSteps.Cells[1,i] := '0.0 ' + StepUnits[i];
+      sgSteps.Cells[1,i] := '0 ' + StepUnits[i];
 
       StepTauAct := i ;
       Inc(i) ;
       sgSteps.Cells[0,i] := 'Tau (inactivation)' ;
       StepUnits[i] := '%' ;
-      sgSteps.Cells[1,i] := '0.0 ' + StepUnits[i] ;
+      sgSteps.Cells[1,i] := '0 ' + StepUnits[i] ;
       StepTauInAct := i ;
       sgSteps.RowCount := i + 1 ;
 
@@ -566,11 +568,11 @@ begin
      SetParameter('MTVH=', edMTauVHalf.Value ) ;
      SetParameter('MTVS=', edMTauVSlope.Value ) ;
 
-     s := format( 'Act: Hinf(V)= 1/ (V - %.3gmV)/%.3gmV',
+     s := format( 'Act: Minf{V}= 1/(1-exp{-(V - V½)/Vslp}). V½=%.3g, Vslp=%.3gmV',
                   [edMSSVHalf.Value,edMSSVSlope.Value]);
      WriteToLogFile(s) ;
-     s := format( 'Act: TauM(V)= %.3gms + (%.3gms - %.3gms)*exp(-((V - %.3gmV)/%.3gmV)^2)',
-                  [edMTauMin.Value,edMTauMax.Value,edMTauMin.Value,edMTauVHalf.Value,edMTauVSlope.Value]);
+     s := format( 'Act: TauM{V}= TauMin + (TauMax - TauMin)exp{-((V - V½)/Vslp)^2}. TauMin=%.3g, TauMax=%.3gms, V½=%.3g, Vslp=%.3gmV',
+                  [edMTauMin.Value,edMTauMax.Value,edMTauVHalf.Value,edMTauVSlope.Value]);
      WriteToLogFile(s) ;
 
      // Inactivation
@@ -589,15 +591,18 @@ begin
 
      SetParameter( 'HTFF=', edHFastFraction.Value) ;
 
-     s := format( 'Inact: Hinf(V)= 1/ (V - %.3gmV)/%.3gmV',
+     s := format( 'Inact: Hinf{V}= 1/(1-exp{-(V - V½)/Vslp}). V½=%.3g, Vslp=%.3gmV',
                   [edHSSVHalf.Value,edHSSVSlope.Value]);
      WriteToLogFile(s) ;
-     s := format( 'Inact: TauHfast(V)= %.3gms + (%.3gms - %.3gms)*exp(-((V - %.3gms)/%.3gms)^2)',
-                   [edHTauFMin.Value,edHTauFMax.Value,edHTauFMin.Value,edHTauFVHalf.Value,edHTauFVSlope.Value]);
+
+     s := format( 'Inact: TauHfast{V}= TauMin + (TauMax - TauMin)exp{-((V - V½)/Vslp)^2}. TauMin=%.3g, TauMax=%.3gms, V½=%.3g, Vslp=%.3gmV',
+                  [edHTauFMin.Value,edHTauFMax.Value,edHTauFVHalf.Value,edHTauFVSlope.Value]);
      WriteToLogFile(s) ;
-     s := format( 'Inact: TauHslow(V)= %.3gms + (%.3gms - %.3gms)*exp(-((V - %.3gmV)/%.3gmV)^2)',
-                   [edHTauSMin.Value,edHTauSMax.Value,edHTauSMin.Value,edHTauSVHalf.Value,edHTauSVSlope.Value]);
+
+     s := format( 'Inact: TauHslow{V}= TauMin + (TauMax - TauMin)exp{-((V - V½)/Vslp)^2}. TauMin=%.3g, TauMax=%.3gms, V½=%.3g, Vslp=%.3gmV',
+                  [edHTauSmin.Value,edHTauSMax.Value,edHTauSVHalf.Value,edHTauSVSlope.Value]);
      WriteToLogFile(s) ;
+
      s := format('Inact: Fast Fraction=%.3g',[edHFastFraction.Value]);
      WriteToLogFile(s) ;
 
@@ -618,9 +623,12 @@ procedure TDClampFrm.NextStep( Initialise : Boolean ) ;
 // -------------------------------------------
 var
     StepValue,StepSize : single ;
+    LogMessage : string ;
 begin
 
     if not ckEnableIncrementing.Checked then Exit ;
+
+    LogMessage := '' ;
 
     if Initialise then begin
        StepNumber := 0 ;
@@ -635,12 +643,16 @@ begin
        if StepNumber >= Round(edNumSteps.Value) then StepNumber := 0 ;
        end ;
 
+    Status := format('DC Step %d: ',[StepNumber]) ;
+    LogMessage := Status ;
+
     // Gmax
     StepSize := GetStepSize(StepGMax) ;
     if StepSize <> 0.0 then begin
        StepValue := (100.0 + StepSize*StepNumber)*0.01 ;
        SetConductance( edGMax.Value*StepValue ) ;
-       WriteToLogFile(format('GMax = %.4g nS',[edGMax.Value*StepValue]));
+       LogMessage := LogMessage + format('GMax=%.4gnS ',[edGMax.Value*StepValue]);
+//       Status := Status + format('Gmax=%.4g%%, ',[StepValue]);
        end;
 
     // Activation V1/2
@@ -649,9 +661,10 @@ begin
        StepValue := Max(StepSize*StepNumber,0.0) ;
        SetParameter('MVH=', edMSSVHalf.Value + StepValue ) ;
        SetParameter('MTVH=', edMTauVHalf.Value + StepValue ) ;
-       WriteToLogFile(format('Act: V1/2= %.4g, Tau.V1/2 %.4g mV',
-                             [edMSSVHalf.Value + StepValue,
-                              edMTauVHalf.Value + StepValue]));
+       LogMessage := LogMessage + format('V½(a)=%.4g, Tau.V½(a)=%.4g mV, ',
+                                  [edMSSVHalf.Value + StepValue,
+                                   edMTauVHalf.Value + StepValue]);
+//       Status := Status + format('V½(a)=%.4gmV ',[StepValue]);
        end ;
 
     // Inactivation V1/2
@@ -661,10 +674,11 @@ begin
        SetParameter('HVH=', edHSSVHalf.Value + StepValue ) ;
        SetParameter('HTFVH=', edHTauFVHalf.Value + StepValue ) ;
        SetParameter('HTSVH=', edHTauSVHalf.Value + StepValue ) ;
-       WriteToLogFile(format('Inact: V1/2= %.4g, TauF.V1/2 %.4g, TauS.V1/2 %.4g mV',
-                             [edHSSVHalf.Value + StepValue,
-                              edHTauFVHalf.Value + StepValue,
-                              edHTauSVHalf.Value + StepValue]));
+       LogMessage := LogMessage + format('V½(i)=%.4g, TauF.V½(i)=%.4g, TauS.V½(i)=%.4g mV',
+                                  [edHSSVHalf.Value + StepValue,
+                                   edHTauFVHalf.Value + StepValue,
+                                   edHTauSVHalf.Value + StepValue]);
+//       Status := Status + format('V½(i)=%.4gmV ',[StepValue]);
        end ;
 
     StepSize := GetStepSize(StepTauAct) ;
@@ -672,9 +686,10 @@ begin
        StepValue := Max(StepSize*StepNumber,0.0) ;
        SetParameter('MTMN=', edMTauMin.Value*StepValue ) ;
        SetParameter('MTMX=', edMTauMax.Value*StepValue ) ;
-       WriteToLogFile(format('Act: Tau(min)= %.4g, Tau(max) %.4g ms',
-                             [edMTauMin.Value*StepValue,
-                              edMTauMax.Value*StepValue]));
+       LogMessage := LogMessage + format('Min Tau(a)=%.4g, Max Tau(a)=%.4g ms',
+                                  [edMTauMin.Value*StepValue,
+                                   edMTauMax.Value*StepValue]);
+//       Status := Status + format('Tau(a)=%.4g%% ',[StepValue]);
        end ;
 
     StepSize := GetStepSize(StepTauInact) ;
@@ -684,13 +699,16 @@ begin
        SetParameter('HTFMX=', edHTauFMax.Value*StepValue ) ;
        SetParameter('HTSMN=', edHTauSMin.Value*StepValue )  ;
        SetParameter('HTSMX=', edHTauSMax.Value*StepValue ) ;
-       WriteToLogFile(format('Inact: TauF(min)= %.4g, TauF(max) %.4g, TauS(min)= %.4g, TauS(max) %.4g ms',
+       LogMessage := LogMessage + format('Min TauF(i)=%.4g, Max TauF(i)=%.4g, Min TauS(a)=%.4g, Max TauS(a)=%.4g ms',
                              [edHTauFMin.Value*StepValue,
                               edHTauFMax.Value*StepValue,
                               edHTauSMin.Value*StepValue,
-                              edHTauSMax.Value*StepValue]));
+                              edHTauSMax.Value*StepValue]);
+//       Status := Status + format('Tau(i)=%.4g%% ',[StepValue]);
        end ;
 
+    WriteToLogFile(LogMessage) ;
+    edStatus.Text := LogMessage ;
     end;
 
 
@@ -1113,6 +1131,7 @@ procedure TDClampFrm.LoadSettingsFile( const IniFileName : string ) ;
 var
    Header : array[1..HeaderSize] of ANSIchar ;
    IniFileHandle : LongInt ;
+   i : Integer ;
    Value : Single ;
    bValue : Boolean ;
 begin
@@ -1220,6 +1239,12 @@ begin
         ReadFloat( Header, 'CCSF=', Value) ;
         edCurrentCommandScaleFactor.Value := Value ;
 
+        for i := 0 to sgSteps.RowCount-1 do begin
+            Value := 0.0 ;
+            ReadFloat( Header, format('STEPSIZE%d=',[i]), Value) ;
+            sgSteps.Cells[1,i] := format('%.4g %s',[Value,StepUnits[i]]) ;
+            end;
+
         UpdatesEnabled := True ;
         UpdateCounter := 0 ;
 
@@ -1282,6 +1307,10 @@ begin
      AppendLogical( Header, 'ENINH=', ckEnableInhibitInput.Checked ) ;
 
      AppendFloat( Header, 'CCSF=', edCurrentCommandScaleFactor.Value) ;
+
+     for i := 0 to sgSteps.RowCount-1 do begin
+         AppendFloat( Header, format('STEPSIZE%d=',[i]), GetStepSize(i)) ;
+         end;
 
      if FileWrite(IniFileHandle,Header,Sizeof(Header)) <> Sizeof(Header) then
         ShowMessage(INIFileName + ' File Write - Failed ' ) ;

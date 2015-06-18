@@ -52,6 +52,8 @@ unit StimModule;
   18.09.12 FillDigBuf now Round()s rather than Trunc()s time interval to NumPoints, so that
            time duration of digital pulses same as DAC
   06.07.13 Global stimulus protocol variables feature added
+  15.06.15 When .ADCSamplingIntervalKeepFixed=True,  no. of samples per channel
+           now adjusted to keep constant duration when sampling interval changed (or vice versa)
   =============================================}
 
 interface
@@ -939,14 +941,20 @@ begin
 
      if Prot.ADCSamplingIntervalKeepFixed then begin
         // Set record duration from sampling interval & samples/channel
-        //Main.SESLabIO.ADCNumChannels := Prot.NumADCChannels ;
+        Main.SESLabIO.ADCNumChannels := Prot.NumADCChannels ;
         Main.SESLabIO.ADCSamplingInterval := Prot.ADCSamplingInterval ;
         Prot.ADCSamplingInterval := Main.SESLabIO.ADCSamplingInterval ;
+        Prot.NumADCSamplesPerChannel := Round(Prot.RecordDuration/Prot.ADCSamplingInterval) ;
+        Prot.NumADCSamplesPerChannel := Max(Prot.NumADCSamplesPerChannel div 256,1)*256 ;
+        if ((Prot.ADCSamplingInterval*Prot.NumADCSamplesPerChannel)/Prot.RecordDuration) < 0.99 then
+           Prot.NumADCSamplesPerChannel := Prot.NumADCSamplesPerChannel + 256 ;
+        Prot.NumADCSamplesPerChannel := Min( Prot.NumADCSamplesPerChannel,
+                                             Main.SESLabIO.ADCBUfferLimit div Prot.NumADCChannels ) ;
+        Prot.NumADCSamplesPerChannel := Max(Prot.NumADCSamplesPerChannel div 256,1)*256 ;
         Prot.RecordDuration := Prot.ADCSamplingInterval* Prot.NumADCSamplesPerChannel ;
         end
      else begin
         // Set sampling interval from requested duration and samples/channel
-        //Main.SESLabIO.ADCNumChannels := Prot.NumADCChannels ;
         Main.SESLabIO.ADCSamplingInterval := Prot.RecordDuration / Max(Prot.NumADCSamplesPerChannel,1) ;
         Prot.ADCSamplingInterval := Main.SESLabIO.ADCSamplingInterval ;
         end ;

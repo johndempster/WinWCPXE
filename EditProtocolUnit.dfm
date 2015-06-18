@@ -26,7 +26,7 @@ object EditProtocolFrm: TEditProtocolFrm
     Top = 200
     Width = 757
     Height = 441
-    ActivePage = StimulusTab
+    ActivePage = RecordTab
     TabOrder = 0
     OnChange = PageChange
     object RecordTab: TTabSheet
@@ -88,9 +88,9 @@ object EditProtocolFrm: TEditProtocolFrm
             18
             18)
         end
-        object ckFixedADCSamplingInterval: TCheckBox
-          Left = 310
-          Top = 36
+        object ckFixedSamplesPerChannel: TCheckBox
+          Left = 311
+          Top = 126
           Width = 52
           Height = 17
           Hint = 'Keep A/D sampling interval fixed'
@@ -11863,7 +11863,7 @@ object EditProtocolFrm: TEditProtocolFrm
             Hint = 'DAC Output 0 divide factors'
             OnKeyPress = edAO0HoldKeyPress
             AutoSize = False
-            Text = ' -100 mV#'
+            Text = ' -100 mV'
             Value = -100.000000000000000000
             Scale = 1.000000000000000000
             Units = 'mV#'

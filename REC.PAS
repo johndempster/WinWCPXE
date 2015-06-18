@@ -96,6 +96,8 @@ unit Rec;
   15.10.14 .. Stimulus protocol status now updated during sweep and shows time till next stimulus
   23.03.15 .. Incrementing of dynamic clamp Gmax added
   10.04.15 .. Zero level now correctly set to fixed level rather than From Record
+  15.06.15 .. No. of samples/record now adjusted to maintain constant record duration
+              when sampling interval changed.
   ==============================================================================}
 interface
 
@@ -1401,7 +1403,7 @@ begin
 
         // If dynamic clamp in use, add conductance to record ident field.
         if Main.FormExists('DCLAMPFrm') then begin
-           Rh.Ident := format('Gmax=%.4g nS',[DCLAMPFrm.GMax]);
+           Rh.Ident := DCLAMPFrm.Status ; //format('Gmax=%.4g nS',[DCLAMPFrm.GMax]);
            end;
 
         rH.AnalysisAvailable := false ;
@@ -2471,18 +2473,28 @@ begin
      end ;
 
 
-
 procedure TRecordFrm.edRecordDurationKeyPress(Sender: TObject;
   var Key: Char);
+var
+    RecDuration : Single ;
 begin
      if Key = #13 then begin
-        Settings.RecordDuration := edRecordDuration.Value ;
+        RecDuration := edRecordDuration.Value ;
+        edNumSAmples.Value := edRecordDuration.Value/edSamplingInterval.Value ;
+        UpdateNumSamples ;
+        if ((edSamplingInterval.Value*edNumSamples.Value)/RecDuration) < 0.99 then
+           edNumSAmples.Value := edNumSAmples.Value + 256 ;
+        UpdateNumSamples ;
+        edRecordDuration.Value := edSamplingInterval.Value*edNumSamples.Value ;
         UpdateSamplingInterval ;
-        UpdateDisplay ;
         end ;
      end;
 
+
 procedure TRecordFrm.edNumRecordsKeyPress(Sender: TObject; var Key: Char);
+// ----------------------------
+// No. records required changed
+// ----------------------------
 begin
      if Key = #13 then begin
         Settings.NumRecordsRequired := Round(edNumRecords.Value) ;
@@ -2491,12 +2503,30 @@ begin
 
 procedure TRecordFrm.edSamplingIntervalKeyPress(Sender: TObject;
   var Key: Char);
+// -------------------------
+// Sampling interval changed
+// -------------------------
+var
+    RecDuration : Single ;
 begin
      if Key = #13 then begin
-        edRecordDuration.Value := edSamplingInterval.Value*edNumSAmples.Value ;
-        UpdateSamplingInterval ;
+        // Ensure valid sampling interval
+        Main.SESLabIO.ADCNumChannels := Round(edNumChannels.Value) ;
+        edNumChannels.Value := Main.SESLabIO.ADCNumChannels ;
+        Main.SESLabIO.ADCSamplingInterval := edSamplingInterval.Value ;
+        edSamplingInterval.Value := Main.SESLabIO.ADCSamplingInterval ;
+        // Determine no. of samples / channel
+        edNumSAmples.Value := edRecordDuration.Value/edSamplingInterval.Value ;
+        RecDuration := edRecordDuration.Value ;
+        UpdateNumSamples ;
+        // Ensure duration is >=99% that requested
+        if ((edSamplingInterval.Value*edNumSamples.Value)/RecDuration) < 0.99 then
+            edNumSAmples.Value :=  edNumSAmples.Value + 256 ;
+        UpdateNumSamples ;
+        edRecordDuration.Value := edSamplingInterval.Value*edNumSamples.Value
         end ;
      end;
+
 
 procedure TRecordFrm.rbSingleProtocolClick(Sender: TObject);
 begin

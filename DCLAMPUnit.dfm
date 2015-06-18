@@ -2,7 +2,7 @@ object DCLAMPFrm: TDCLAMPFrm
   Left = 0
   Top = 0
   Caption = 'DCLAMP - Dynamic Clamp Control Panel'
-  ClientHeight = 541
+  ClientHeight = 567
   ClientWidth = 780
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -23,21 +23,22 @@ object DCLAMPFrm: TDCLAMPFrm
     Left = 8
     Top = 0
     Width = 769
-    Height = 537
-    ActivePage = GraphsTab
+    Height = 561
+    ActivePage = ControlsTab
     TabOrder = 0
     OnChange = PageChange
     object ControlsTab: TTabSheet
       Caption = 'Controls '
+      ExplicitHeight = 509
       object GroupBox1: TGroupBox
         Left = 3
         Top = 0
         Width = 749
-        Height = 505
+        Height = 497
         TabOrder = 0
         object Label2: TLabel
           Left = 247
-          Top = 412
+          Top = 395
           Width = 52
           Height = 14
           Caption = 'COM Port'
@@ -50,7 +51,7 @@ object DCLAMPFrm: TDCLAMPFrm
         end
         object cbComPort: TComboBox
           Left = 303
-          Top = 412
+          Top = 395
           Width = 65
           Height = 21
           Style = csDropDownList
@@ -67,7 +68,7 @@ object DCLAMPFrm: TDCLAMPFrm
           Left = 392
           Top = 12
           Width = 345
-          Height = 130
+          Height = 142
           Caption = ' Parameter Incrementing '
           TabOrder = 1
           object Label5: TLabel
@@ -147,7 +148,7 @@ object DCLAMPFrm: TDCLAMPFrm
             Left = 162
             Top = 16
             Width = 175
-            Height = 105
+            Height = 116
             Hint = 'Parameter step size table'
             ColCount = 2
             DefaultRowHeight = 20
@@ -169,7 +170,7 @@ object DCLAMPFrm: TDCLAMPFrm
           Left = 8
           Top = 12
           Width = 97
-          Height = 130
+          Height = 142
           Caption = ' Conductance '
           TabOrder = 2
           object rbOff: TRadioButton
@@ -220,14 +221,14 @@ object DCLAMPFrm: TDCLAMPFrm
         end
         object GroupBox2: TGroupBox
           Left = 8
-          Top = 146
+          Top = 156
           Width = 360
           Height = 233
           Caption = ' Activation Parameter (m) '
           TabOrder = 3
           object Label16: TLabel
-            Left = 187
-            Top = 203
+            Left = 222
+            Top = 199
             Width = 71
             Height = 14
             Caption = 'Power factor'
@@ -239,9 +240,9 @@ object DCLAMPFrm: TDCLAMPFrm
             ParentFont = False
           end
           object edmPower: TValidatedEdit
-            Left = 264
-            Top = 203
-            Width = 73
+            Left = 302
+            Top = 199
+            Width = 46
             Height = 21
             OnKeyPress = edmPowerKeyPress
             Text = ' 1 '
@@ -264,8 +265,8 @@ object DCLAMPFrm: TDCLAMPFrm
               Width = 257
               Height = 25
               Caption = 
-                'm<sub>inf</sub>(V) = 1/(1 + exp(-(V-V<sub>1/2</sub>)/V<sub>slp</' +
-                'sub>))'
+                'm<sub>inf</sub>(V) = 1/(1 + exp(-(V-V<sub>'#189'</sub>)/V<sub>slp</su' +
+                'b>))'
               Alignment = taLeftJustify
               LineSpacing = 1.000000000000000000
               Font.Charset = ANSI_CHARSET
@@ -293,7 +294,7 @@ object DCLAMPFrm: TDCLAMPFrm
               Top = 40
               Width = 50
               Height = 25
-              Caption = 'V<sub>1/2</sub>'
+              Caption = 'V<sub>'#189'</sub>'
               Alignment = taLeftJustify
               LineSpacing = 1.000000000000000000
               Font.Charset = ANSI_CHARSET
@@ -333,7 +334,7 @@ object DCLAMPFrm: TDCLAMPFrm
           end
           object GroupBox8: TGroupBox
             Left = 8
-            Top = 92
+            Top = 88
             Width = 340
             Height = 105
             Caption = 'Time constant '
@@ -345,7 +346,7 @@ object DCLAMPFrm: TDCLAMPFrm
               Height = 25
               Caption = 
                 'tau(V) = tau<sub>mn</sub>+(tau<sub>mx</sub>-tau<sub>mn</sub>)exp' +
-                '(-((V-V<sub>1/2</sub>)/V<sub>slp</sub>)<sup>2</sup>)'
+                '(-((V-V<sub>'#189'</sub>)/V<sub>slp</sub>)<sup>2</sup>)'
               Alignment = taLeftJustify
               LineSpacing = 1.000000000000000000
               Font.Charset = ANSI_CHARSET
@@ -387,7 +388,7 @@ object DCLAMPFrm: TDCLAMPFrm
               Top = 68
               Width = 45
               Height = 25
-              Caption = 'V<sub>1/2</sub>'
+              Caption = 'V<sub>'#189'</sub>'
               Alignment = taLeftJustify
               LineSpacing = 1.000000000000000000
               Font.Charset = ANSI_CHARSET
@@ -470,14 +471,14 @@ object DCLAMPFrm: TDCLAMPFrm
         end
         object GroupBox9: TGroupBox
           Left = 374
-          Top = 146
+          Top = 156
           Width = 363
-          Height = 345
+          Height = 333
           Caption = ' Inactivation Parameter (h) '
           TabOrder = 4
           object Label8: TLabel
-            Left = 188
-            Top = 310
+            Left = 196
+            Top = 305
             Width = 70
             Height = 14
             Alignment = taRightJustify
@@ -502,8 +503,8 @@ object DCLAMPFrm: TDCLAMPFrm
               Width = 257
               Height = 25
               Caption = 
-                'h<sub>inf</sub>(V) = 1/(1 + exp(-(V-V<sub>1/2</sub>)/V<sub>slp</' +
-                'sub>))'
+                'h<sub>inf</sub>(V) = 1/(1 + exp(-(V-V<sub>'#189'</sub>)/V<sub>slp</su' +
+                'b>))'
               Alignment = taLeftJustify
               LineSpacing = 1.000000000000000000
               Font.Charset = ANSI_CHARSET
@@ -531,7 +532,7 @@ object DCLAMPFrm: TDCLAMPFrm
               Top = 40
               Width = 50
               Height = 25
-              Caption = 'V<sub>1/2</sub>'
+              Caption = 'V<sub>'#189'</sub>'
               Alignment = taLeftJustify
               LineSpacing = 1.000000000000000000
               Font.Charset = ANSI_CHARSET
@@ -583,7 +584,7 @@ object DCLAMPFrm: TDCLAMPFrm
               Height = 25
               Caption = 
                 'tau(V) = tau<sub>mn</sub>+(tau<sub>mx</sub> - tau<sub>mn</sub>)e' +
-                'xp(((V-V<sub>1/2</sub>)/V<sub>slp</sub>)<sup>2</sup>)'
+                'xp(((V-V<sub>'#189'</sub>)/V<sub>slp</sub>)<sup>2</sup>)'
               Alignment = taLeftJustify
               LineSpacing = 1.000000000000000000
               Font.Charset = ANSI_CHARSET
@@ -625,7 +626,7 @@ object DCLAMPFrm: TDCLAMPFrm
               Top = 68
               Width = 45
               Height = 25
-              Caption = 'V<sub>1/2</sub>'
+              Caption = 'V<sub>'#189'</sub>'
               Alignment = taLeftJustify
               LineSpacing = 1.000000000000000000
               Font.Charset = ANSI_CHARSET
@@ -707,7 +708,7 @@ object DCLAMPFrm: TDCLAMPFrm
           end
           object GroupBox3: TGroupBox
             Left = 8
-            Top = 199
+            Top = 196
             Width = 340
             Height = 105
             Caption = 'Time constant (slow) '
@@ -719,7 +720,7 @@ object DCLAMPFrm: TDCLAMPFrm
               Height = 25
               Caption = 
                 'tau(V) = tau<sub>mn</sub>+(tau<sub>mx</sub> - tau<sub>mn</sub>)e' +
-                'xp(((V-V<sub>1/2</sub>)/V<sub>slp</sub>)<sup>2</sup>)'
+                'xp(((V-V<sub>'#189'</sub>)/V<sub>slp</sub>)<sup>2</sup>)'
               Alignment = taLeftJustify
               LineSpacing = 1.000000000000000000
               Font.Charset = ANSI_CHARSET
@@ -761,7 +762,7 @@ object DCLAMPFrm: TDCLAMPFrm
               Top = 67
               Width = 45
               Height = 25
-              Caption = 'V<sub>1/2</sub>'
+              Caption = 'V<sub>'#189'</sub>'
               Alignment = taLeftJustify
               LineSpacing = 1.000000000000000000
               Font.Charset = ANSI_CHARSET
@@ -842,8 +843,8 @@ object DCLAMPFrm: TDCLAMPFrm
             end
           end
           object edHFastFraction: TValidatedEdit
-            Left = 264
-            Top = 310
+            Left = 272
+            Top = 305
             Width = 73
             Height = 21
             OnKeyPress = edHFastFractionKeyPress
@@ -859,7 +860,7 @@ object DCLAMPFrm: TDCLAMPFrm
           Left = 112
           Top = 12
           Width = 275
-          Height = 130
+          Height = 142
           TabOrder = 5
           object Label3: TLabel
             Left = 55
@@ -962,16 +963,9 @@ object DCLAMPFrm: TDCLAMPFrm
             HiLimit = 1.000000015047466E30
           end
         end
-        object edStatus: TEdit
-          Left = 167
-          Top = 387
-          Width = 201
-          Height = 21
-          TabOrder = 6
-        end
         object bReset: TButton
           Left = 8
-          Top = 387
+          Top = 395
           Width = 153
           Height = 17
           Caption = 'Update Dynamic Clamp'
@@ -981,12 +975,12 @@ object DCLAMPFrm: TDCLAMPFrm
           Font.Name = 'MS Sans Serif'
           Font.Style = [fsBold]
           ParentFont = False
-          TabOrder = 7
+          TabOrder = 6
           OnClick = bResetClick
         end
         object bLoadSettings: TButton
           Left = 8
-          Top = 410
+          Top = 418
           Width = 153
           Height = 17
           Hint = 'Load dynamic clamp conductance settings'
@@ -999,12 +993,12 @@ object DCLAMPFrm: TDCLAMPFrm
           ParentFont = False
           ParentShowHint = False
           ShowHint = True
-          TabOrder = 8
+          TabOrder = 7
           OnClick = bLoadSettingsClick
         end
         object bSaveSettings: TButton
           Left = 8
-          Top = 433
+          Top = 441
           Width = 153
           Height = 17
           Hint = 'Save dynamic clamp conductance settings'
@@ -1017,14 +1011,22 @@ object DCLAMPFrm: TDCLAMPFrm
           ParentFont = False
           ParentShowHint = False
           ShowHint = True
-          TabOrder = 9
+          TabOrder = 8
           OnClick = bSaveSettingsClick
         end
+      end
+      object edStatus: TEdit
+        Left = 3
+        Top = 503
+        Width = 750
+        Height = 21
+        TabOrder = 1
       end
     end
     object GraphsTab: TTabSheet
       Caption = 'Graphs'
       ImageIndex = 1
+      ExplicitHeight = 509
       object plPlot: TXYPlotDisplay
         Left = 8
         Top = 40

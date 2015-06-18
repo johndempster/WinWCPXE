@@ -2,8 +2,8 @@ object EPC9PanelFrm: TEPC9PanelFrm
   Left = 0
   Top = 0
   Caption = 'EPC-9/10 Patch Clamp'
-  ClientHeight = 403
-  ClientWidth = 343
+  ClientHeight = 399
+  ClientWidth = 332
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -22,14 +22,14 @@ object EPC9PanelFrm: TEPC9PanelFrm
   PixelsPerInch = 96
   TextHeight = 13
   object ControlsGrp: TGroupBox
-    Left = 8
+    Left = 4
     Top = 2
-    Width = 321
-    Height = 393
+    Width = 324
+    Height = 391
     TabOrder = 0
     object GroupBox4: TGroupBox
-      Left = 3
-      Top = 3
+      Left = 8
+      Top = 8
       Width = 150
       Height = 120
       Caption = ' Amplifier '
@@ -85,7 +85,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
       end
     end
     object GroupBox5: TGroupBox
-      Left = 3
+      Left = 8
       Top = 128
       Width = 308
       Height = 74
@@ -156,7 +156,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
       end
     end
     object PageControl1: TPageControl
-      Left = 3
+      Left = 8
       Top = 208
       Width = 308
       Height = 113
@@ -210,11 +210,10 @@ object EPC9PanelFrm: TEPC9PanelFrm
           Height = 21
           OnKeyPress = edCfastTauKeyPress
           Text = ' 0 us'
-          Value = 0.000000000000000000
           Scale = 1000000.000000000000000000
           Units = 'us'
           NumberFormat = '%.5g'
-          LoLimit = 0.000000000000000000
+          LoLimit = -1.000000015047466E30
           HiLimit = 1.000000015047466E30
         end
         object bAutoCfast: TButton
@@ -707,8 +706,8 @@ object EPC9PanelFrm: TEPC9PanelFrm
       end
     end
     object ModeGrp: TGroupBox
-      Left = 159
-      Top = 2
+      Left = 161
+      Top = 8
       Width = 155
       Height = 120
       Caption = ' Mode '
@@ -786,7 +785,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
       end
     end
     object StimGrp: TGroupBox
-      Left = 3
+      Left = 8
       Top = 327
       Width = 308
       Height = 51

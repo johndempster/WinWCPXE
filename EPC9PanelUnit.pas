@@ -173,6 +173,8 @@ type
     CCTrackTau : Array[0..MaxEPC9Channels] of Integer ;
     ExtStimPath : Array[0..MaxEPC9Channels] of Integer ;
     EnableStimFilter : Array[0..MaxEPC9Channels] of Boolean ;
+//    CurrentADCINPUT : Array[0..MaxEPC9Channels] of Integer ;
+//    VoltageADCINPUT : Array[0..MaxEPC9Channels] of Integer ;
 
     // XML procedures
 
@@ -317,6 +319,13 @@ begin
     cbExtStimPath.Items.Add('DAC') ;
     cbExtStimPath.Items.Add('Input') ;
 
+    // Current and voltage input channels
+//    cbCurrentChannel.Clear ;
+//    for i := 0 to 7 do cbCurrentChannel.Items.Add(format('ADC%d',[i])) ;
+//    cbVoltageChannel.Items.Assign(cbCurrentChannel.Items);
+//    cbCurrentChannel.ItemIndex := 0 ;
+//    cbVoltageChannel.ItemIndex := 3 ;
+
      //Update patch clamp
      UpdateEPC9Settings(cbChannel.ItemIndex) ;
 
@@ -401,6 +410,7 @@ begin
      edCfastTau.Value := CFastTau[cbChannel.ItemIndex] ;
      end;
 
+
 procedure TEPC9PanelFrm.UpdateEPC9Settings(
           iAmp : Integer)  ;
 // --------------------------------------------
@@ -432,6 +442,8 @@ begin
        Main.SESLabIO.EPC9VPOffset :=  VPOffset[iAmp] ;
        Main.SESLabIO.EPC9VLiquidJunction := VLiquidJunction[iAmp] ;
        Main.SESLabIO.EPC9VHold := VHold[iAmp] ;
+//       Main.SESLabIO.EPC9VoltageADCInput := VoltageADCInput[iAmp];
+//       Main.SESLabIO.EPC9CurrentADCInput := CurrentADCInput[iAmp];
        Main.SESLabIO.EPC9FlushCache ;
 
 //       if RestartSealTest then SealTestFrm.StartADCAndDAC ;
@@ -931,8 +943,8 @@ begin
 
     // Initialise settings
     for i := 0 to MaxEPC9Channels-1 do begin
-        Gain[i] := 0 ;
-        Mode[i] := 0 ;
+       Gain[i] := 0 ;
+       Mode[i] := 0 ;
        CFAST[i] := 0.0 ;
        CFASTTAU[i] := 1E-6 ;
        CSLOWRANGE[i] := 0 ;
@@ -952,6 +964,8 @@ begin
        CCTrackTau[i] := 0 ;
        ExtStimPath[i] := 1 ;
        EnableStimFilter[i] := False ;
+//       CurrentADCINPUT[i] := 0 ;
+//       VoltageADCINPUT[i] := 3 ;
        end;
 
      GentleModeChange := False ;
@@ -1042,6 +1056,8 @@ begin
          AddElementInt( iNode, 'CCGAIN', CCGain[i]);
          AddElementInt( iNode, 'CCTRACKTAU', CCTrackTau[i]);
          AddElementInt( iNode, 'EXTSTIMPATH', ExtStimPath[i]);
+//         AddElementInt( iNode, 'CURRENTADCINPUT', CurrentADCINPUT[i]);
+//         AddElementInt( iNode, 'VOLTAGEADCINPUT', VoltageADCINPUT[i]);
          end ;
 
      s := TStringList.Create;
@@ -1242,6 +1258,8 @@ begin
          GetElementInt( iNode, 'CCGAIN', CCGain[i]);
          GetElementInt( iNode, 'CCTRACKTAU', CCTrackTau[i]);
          GetElementInt( iNode, 'EXTSTIMPATH', ExtStimPath[i]);
+//         GetElementInt( iNode, 'CURRENTADCINPUT', CurrentADCINPUT[i]);
+//         GetElementInt( iNode, 'VOLTAGEADCINPUT', VoltageADCINPUT[i]);
          end ;
         Inc(NodeIndex) ;
         end ;

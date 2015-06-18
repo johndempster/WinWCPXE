@@ -615,6 +615,9 @@ unit MDIForm;
    V4.9.4 03.06.15    InputChannelSetup.pas: Users updates to channel current units now applied to both
                       VCLAMP and ICLAMP mode settings if patch clamp does not have mode switched primary/secondary channels.
    V4.9.5 08.06.15    Multiple files can now be selected for export and channels can now be selected for export formats
+   V4.9.6 16.06.15    Heka EPC9: Voltage & current ADC channels can be remapped
+                      Stimulus Protocols & free run record duration: No. of samples/channel is now altered when sampling interval changed
+                      to maintain fixed duration and vice versa
   =======================================================================}
 
 interface
@@ -860,7 +863,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.9.5';
+      ProgVersion := 'V4.9.6';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
