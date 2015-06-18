@@ -18,6 +18,7 @@ unit DCLAMPUnit;
 // 23-3-15        Incorporated into WinWCP
 // 30-5-15        Activation and inactivation Vhalf and time constants can now be incremented.
 // 17.06.15       Incremented dynamic clamp settings reports in log file and stored in settings
+// 18.06.15       Negative steps of activation V1/2 now work
 
 interface
 
@@ -658,7 +659,7 @@ begin
     // Activation V1/2
     StepSize := GetStepSize(StepVHAct) ;
     if StepSize <> 0.0 then begin
-       StepValue := Max(StepSize*StepNumber,0.0) ;
+       StepValue := StepSize*StepNumber ;
        SetParameter('MVH=', edMSSVHalf.Value + StepValue ) ;
        SetParameter('MTVH=', edMTauVHalf.Value + StepValue ) ;
        LogMessage := LogMessage + format('V½(a)=%.4g, Tau.V½(a)=%.4g mV, ',

@@ -618,6 +618,7 @@ unit MDIForm;
    V4.9.6 16.06.15    Heka EPC9: Voltage & current ADC channels can be remapped
                       Stimulus Protocols & free run record duration: No. of samples/channel is now altered when sampling interval changed
                       to maintain fixed duration and vice versa
+   V4.9.7 18.06.15    DCLAMP: Negative steps of activation V1/2 now work
   =======================================================================}
 
 interface
@@ -863,7 +864,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.9.6';
+      ProgVersion := 'V4.9.7';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

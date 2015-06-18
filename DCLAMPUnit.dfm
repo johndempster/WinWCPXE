@@ -29,7 +29,6 @@ object DCLAMPFrm: TDCLAMPFrm
     OnChange = PageChange
     object ControlsTab: TTabSheet
       Caption = 'Controls '
-      ExplicitHeight = 509
       object GroupBox1: TGroupBox
         Left = 3
         Top = 0
@@ -1026,6 +1025,9 @@ object DCLAMPFrm: TDCLAMPFrm
     object GraphsTab: TTabSheet
       Caption = 'Graphs'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
       ExplicitHeight = 509
       object plPlot: TXYPlotDisplay
         Left = 8
