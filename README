@@ -1,36 +1,12 @@
-The files contained in this archive are the source code for WinWCP.
+WinWCP
+Whole Cell Electrophysiology Data Analysis Program
+The files contained in this archive can be built using Embarcadero Delphi XE (versions 3-8).
 
-The have been compiled using Delphi V7.0. 
+Note. The SESComponents package of common Delphi components used in Strathclyde Electrophysiology Software applications must be downloaded from the SESComponentsXE repository and installed on the Delphi XE toolbar before building the NerveSim application. See the SESComponentsXE repository for details.
 
-To install the source code:
+To build and run the application:
 
-Unpack this archive. Two folders (WinWCP and Components) are created within the ..\Borland\Delphi folder.
-
-The Components folder contains a number of components used by WinWCP. These must be installed on the Delphi component toolbar before you open the WinWCP project. 
-
-To install the components:
-
-Add the components folder to the Delphi library path.
-
-Select the Delphi Tools/Environment Options
-Select the "Library" panel
-Click "..." at the right of Library Path
-Add "$(Delphi)\SESComponents" to the library 
-Click the Add button.
-
-Add the SESComponents package of components
-
-Select File/Open Project
-Select Files of Type "*.dpk"
-Select the "SESComponents" Folder
- Select " SESComponents"
-Click the Install button
-
-Open the WinWCP project
-
-Select File/Open Project
-Select Files of Type "*.dpr"
-Select the "WinWCP" Folder
- Select "WinWCP"
-Click the Open button
-
+1) Clone this repository to a folder in the Delphi XE Projects folder e.g. ..\My Documents\Rad Studio\Projects\WinWCPXE.<br>
+2) Select File->Open Project and open ..\My Documents\Rad Studio\Projects\WinWCPXE\WinWCP.dpr<br>
+3) Select Project->Build WinWCP<br>
+4) Select Run->Run<br>
