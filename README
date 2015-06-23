@@ -6,7 +6,7 @@ Note. The SESComponents package of common Delphi components used in Strathclyde 
 
 To build and run the application:
 
-1) Clone this repository to a folder in the Delphi XE Projects folder e.g. ..\My Documents\Rad Studio\Projects\WinWCPXE.<br>
-2) Select File->Open Project and open ..\My Documents\Rad Studio\Projects\WinWCPXE\WinWCP.dpr<br>
-3) Select Project->Build WinWCP<br>
-4) Select Run->Run<br>
+1) Clone this repository to a folder in the Delphi XE Projects folder e.g. ..\My Documents\Rad Studio\Projects\WinWCPXE.
+2) Select File->Open Project and open ..\My Documents\Rad Studio\Projects\WinWCPXE\WinWCP.dpr
+3) Select Project->Build WinWCP
+4) Select Run->Run
