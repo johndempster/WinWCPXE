@@ -1142,7 +1142,7 @@ object RecordFrm: TRecordFrm
     end
   end
   object Timer: TTimer
-    Interval = 55
+    Interval = 50
     OnTimer = TimerTimer
     Left = 360
     Top = 432

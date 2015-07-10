@@ -619,6 +619,9 @@ unit MDIForm;
                       Stimulus Protocols & free run record duration: No. of samples/channel is now altered when sampling interval changed
                       to maintain fixed duration and vice versa
    V4.9.7 18.06.15    DCLAMP: Negative steps of activation V1/2 now work
+   V4.9.8 10.07.15    Support for Digidata 1550 and 1550A added
+                      Scope displays now use min/max envelope filter to greatly improve
+                      display performance for sweeps with large numbers of samples/record
   =======================================================================}
 
 interface
@@ -864,7 +867,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.9.7';
+      ProgVersion := 'V4.9.8';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

@@ -27,6 +27,7 @@ unit exportUnit;
   05.08.13 ... MAT file export added. Compiled under Delphi XE
   11.02.15 ... No. of exportable channels increased to 32
   04.06.15 ... Multiple files can be exported. Format now selected from drop-down liat.
+  30.06.15 ... IGOR IBW files can now be exported as individual records
   }
 interface
 
@@ -370,7 +371,6 @@ var
    ExportFileName : String ;
 begin
 
-
      if rbAllRecords.Checked then begin
         StartAt := 1 ;
         EndAt := FH.NumRecords ;
@@ -410,31 +410,40 @@ begin
                mtConfirmation, [mbYes, mbNo], 0) <> mrYes then Break ;
             end ;
 
-         // Create empty export data file
-         ExportFile.CreateDataFile( ExportFileName, ftIBW ) ;
-
-         // Set file parameters
-         ExportFile.NumChannelsPerScan := 1 ;
-         ExportFile.NumScansPerRecord := EndAt - StartAt + 1 ;
-         ExportFile.MaxADCValue := FH.MaxADCValue ;
-         ExportFile.MinADCValue := FH.MinADCValue ;
-         ExportFile.ScanInterval := FH.dt ;
-         ExportFile.IdentLine := FH.IdentLine ;
-         ExportFile.RecordNum := 1 ;
-         ExportFile.ABFAcquisitionMode := ftGapFree ;
-         ExportFile.NumChannelsPerScan := 1 ;
-
-         ExportFile.ChannelOffset[0] := 0 ;
-         ExportFile.ChannelADCVoltageRange[0] := FH.ADCVoltageRange ;
-         ExportFile.ChannelName[0] := Channel[ch].ADCName ;
-         ExportFile.ChannelUnits[0] := Channel[ch].ADCUnits ;
-         ExportFile.ChannelScale[0] := Channel[ch].ADCSCale ;
-         ExportFile.ChannelCalibrationFactor[0] := Channel[ch].ADCCalibrationFactor ;
-         ExportFile.ChannelGain[0] := Channel[ch].ADCAmplifierGain ;
-
          //{ Copy records }
          NumRecordsExported := 0 ;
          for iRec := StartAt to EndAt do begin
+
+             if ckCombineRecords.checked and (iRec = StartAt) then begin
+                ExportFile.CreateDataFile( ExportFileName, ftIBW ) ;
+                NumRecordsExported := 0 ;
+                end
+             else begin
+                // Create empty export data file
+                if iRec > StartAt then ExportFile.CloseDataFile ;
+                ExportFile.CreateDataFile( ANSIReplaceText( ExportFileName,'.ibw',
+                                                   format( '.%d.ibw',[iRec])), ftIBW ) ;
+                NumRecordsExported := 0 ;
+                end;
+
+             // Set file parameters
+             ExportFile.NumChannelsPerScan := 1 ;
+             ExportFile.NumScansPerRecord := EndAt - StartAt + 1 ;
+             ExportFile.MaxADCValue := FH.MaxADCValue ;
+             ExportFile.MinADCValue := FH.MinADCValue ;
+             ExportFile.ScanInterval := FH.dt ;
+             ExportFile.IdentLine := FH.IdentLine ;
+             ExportFile.RecordNum := 1 ;
+             ExportFile.ABFAcquisitionMode := ftGapFree ;
+             ExportFile.NumChannelsPerScan := 1 ;
+
+             ExportFile.ChannelOffset[0] := 0 ;
+             ExportFile.ChannelADCVoltageRange[0] := FH.ADCVoltageRange ;
+             ExportFile.ChannelName[0] := Channel[ch].ADCName ;
+             ExportFile.ChannelUnits[0] := Channel[ch].ADCUnits ;
+             ExportFile.ChannelScale[0] := Channel[ch].ADCSCale ;
+             ExportFile.ChannelCalibrationFactor[0] := Channel[ch].ADCCalibrationFactor ;
+             ExportFile.ChannelGain[0] := Channel[ch].ADCAmplifierGain ;
 
              // Read record
             GetRecord(FH,RH,iRec,InBuf^) ;
@@ -761,10 +770,7 @@ begin
 
    ExportType := TADCDataFileType(cbExportFormat.Items.objects[cbExportFormat.ItemIndex]);
    case ExportType of
-     ftMat : begin
-       ckCombineRecords.Visible := true ;
-       end;
-     ftASC : begin
+     ftMat,ftASC,ftIBW : begin
        ckCombineRecords.Visible := true ;
        end;
      else begin

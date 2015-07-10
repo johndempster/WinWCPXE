@@ -78,6 +78,7 @@ unit Sealtest;
   06.09.13 .. EPC9PanelFrm opened if EPC9/10 patch clamp in use.
   21.01.14 .. Sweep shuts down on FormDeactivate to avoid access violations
               when EPC9PanelFrm title bar held down.
+  09.07.15 .. DACScale arrays increased to cope with up to 128 analog output channels
   ==================================================}
 
 interface
@@ -226,7 +227,7 @@ type
   ResetReadout : Boolean ;
   NumTestChannels : Integer ;
   TestPulse : TTestPulse ;
-  DACScale : Array[0..MaxAmplifiers-1] of single ;
+  DACScale : Array[0..MaxDACChannels-1] of single ;
   DACdt : Single ;
   TestDAC : Integer ;                      // DAC channel with seal test
   TimerBusy : boolean ;
@@ -295,7 +296,7 @@ implementation
 uses Mdiform, mmsystem , Rec, TritonPanelUnit, EPC9PanelUnit;
 
 const
-     NumDACChannels = 2 ;
+     //NumDACChannels = 2 ;
      NumTestSamples = 512 ;
      MinDACInterval = 0.0002 ;
      MinPulseWidth = 0.0001 ;
@@ -497,7 +498,7 @@ procedure TSealTestFrm.TimerTimer(Sender: TObject);
   ---------------------}
 
 var
-   ich,ch,T : Integer ;
+   ch,T : Integer ;
    OldADCUnits : Array[0..WCPMaxChannels-1] of String ;
    OldADCName : Array[0..WCPMaxChannels-1] of String ;
    Changed : Boolean ;
@@ -553,7 +554,7 @@ begin
 
                    // Update Amplifier #1 gain display
 
-                   ich := cbCurrentChannel.ItemIndex ;
+//                   ich := cbCurrentChannel.ItemIndex ;
                    if ClampMode[cbAmplifier.ItemIndex] <>
                       Amplifier.ClampMode[cbAmplifier.ItemIndex] then SetClampMode ;
 
@@ -561,8 +562,8 @@ begin
                    if Amplifier.GainTelegraphAvailable[cbAmplifier.ItemIndex] or
                       NewAmplifierGain then begin
                       // Display current amplifier gain
-                      if Main.SESLabIO.LabInterfaceType = Triton then iCh := 1
-                                                                 else iCh := 0 ;
+//                      if Main.SESLabIO.LabInterfaceType = Triton then iCh := 1
+//                                                                 else iCh := 0 ;
                       edAmplifierGain.Units := 'V/' + Amplifier.PrimaryChannelUnits[cbAmplifier.ItemIndex,ClampMode[cbAmplifier.ItemIndex]] ;
                       edAmplifierGain.Value := Amplifier.PrimaryChannelScaleFactor[cbAmplifier.ItemIndex] ;
                       NewAmplifierGain := False ;
