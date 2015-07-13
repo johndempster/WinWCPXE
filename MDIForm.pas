@@ -622,6 +622,8 @@ unit MDIForm;
    V4.9.8 10.07.15    Support for Digidata 1550 and 1550A added
                       Scope displays now use min/max envelope filter to greatly improve
                       display performance for sweeps with large numbers of samples/record
+   V4.9.9 13.07.15    ExportUnit: Long file names no longer corrupted in file name list by
+                      being split accross line.
   =======================================================================}
 
 interface
@@ -867,7 +869,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.9.8';
+      ProgVersion := 'V4.9.9';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

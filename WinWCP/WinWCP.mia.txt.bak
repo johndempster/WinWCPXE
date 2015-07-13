@@ -285,7 +285,8 @@ else
   Install Files E:\Delphi XE3 Projects\WinWCPXE\DD1550fpga.bin to $TARGETDIR$
   Install Files E:\Delphi XE3 Projects\WinWCPXE\DD1550.dll to $TARGETDIR$
   Install Files E:\Delphi XE3 Projects\WinWCPXE\DD1550A.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\wdapi1140.dll to $TARGETDIR$
+  Install Files E:\Delphi XE3 Projects\WinWCPXE\wdapi1140.dll.32 to $TARGETDIR$
+  Install Files E:\Delphi XE3 Projects\WinWCPXE\wdapi1140.dll.64 to $TARGETDIR$
   [DEFINE WEB MEDIA WinWCP]
   Get Component WinWCP Selection State into Variable SELECTED
   if Variable SELECTED Equals TRUE

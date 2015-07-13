@@ -377,6 +377,7 @@ object ExportFrm: TExportFrm
       Lines.Strings = (
         'meFileList')
       TabOrder = 1
+      WordWrap = False
     end
   end
   object GroupBox2: TGroupBox

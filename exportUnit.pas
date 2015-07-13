@@ -28,6 +28,8 @@ unit exportUnit;
   11.02.15 ... No. of exportable channels increased to 32
   04.06.15 ... Multiple files can be exported. Format now selected from drop-down liat.
   30.06.15 ... IGOR IBW files can now be exported as individual records
+  13.07.15 ... WordWrap set to False to prevent file names being split across lines in
+               export file selection list.
   }
 interface
 
@@ -661,8 +663,6 @@ var
     StartAt,EndAt,ch : Integer ;
     s : string ;
 begin
-
-     ChangeFileExt( FileName, '.tmp' ) ;
 
      // Add record range to file name
      if rbAllRecords.Checked then begin
