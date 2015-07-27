@@ -624,6 +624,11 @@ unit MDIForm;
                       display performance for sweeps with large numbers of samples/record
    V4.9.9 13.07.15    ExportUnit: Long file names no longer corrupted in file name list by
                       being split accross line.
+   V5.0.0 13.07.15    Axdd1440.dll updated to V2.0.2.1 to work under 64 bit Windows.
+                      DD1550.DLL compiled with MT rather than MT DLL run-time library
+                      to allow it to load under 64 bit windows.
+   V5.0.1 13.07.15    Digidata 1550: 64/32 bit version of wdapi1140.dll created when O/S detected
+   V5.0.2 27.07.15    Digidata 1440: ADC offset calibration subtracted from inputs
   =======================================================================}
 
 interface
@@ -869,7 +874,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V4.9.9';
+      ProgVersion := 'V5.0.2';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

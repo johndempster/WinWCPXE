@@ -40,6 +40,10 @@ object FitFrm: TFitFrm
     OnChange = PageChange
     object CurveFitTab: TTabSheet
       Caption = 'Fit Curves'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object scDisplay: TScopeDisplay
         Left = 176
         Top = 6

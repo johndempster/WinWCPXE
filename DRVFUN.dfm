@@ -103,7 +103,7 @@ object DrvFunFrm: TDrvFunFrm
       Width = 105
       Height = 20
       AutoSize = False
-      Text = ' 1 / 1.00000001504746624E30 '
+      Text = ' 1 / 1.00000001504746622E30 '
       LoValue = 1.000000000000000000
       HiValue = 1.000000015047466E30
       LoLimit = 1.000000000000000000
@@ -237,7 +237,7 @@ object DrvFunFrm: TDrvFunFrm
         Width = 65
         Height = 20
         AutoSize = False
-        Text = ' 1.00 - 1.00000001504746624E30 '
+        Text = ' 1.00 - 1.00000001504746622E30 '
         LoValue = 1.000000000000000000
         HiValue = 1.000000015047466E30
         LoLimit = 1.000000000000000000

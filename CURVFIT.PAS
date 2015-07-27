@@ -39,6 +39,7 @@ unit Curvfit;
   07.06.13 .. FH.NumZeroAvg now updated when changed in ZeroFrm
   26.07.13 .. Readout cursor added
   09.08.13 .. ADC now allocated by GetMem()
+  27.07.15 .. iline added to .CreateLine() & .AddPointToLine()
   ==========================================================================}
 interface
 
@@ -576,7 +577,7 @@ procedure TFitFrm.DisplayRecord ;
   Display digitised signal record on Page 0 of notebook
   ========================================================}
 var
-   i,j,jTo,jFrom,jEnd,ch : Integer ;
+   i,j,jTo,jFrom,jEnd,ch,iLine : Integer ;
    y,t : single ;
 begin
 
@@ -661,7 +662,8 @@ begin
      erResults.Clear ;
 
      { Create best fit line }
-     scDisplay.CreateLine( ChData, clRed, psSolid, 1 ) ;
+     scDisplay.ClearLines ;
+     iLine := scDisplay.CreateLine( ChData, clRed, psSolid, 1 ) ;
      { Set residuals to zero }
      jTo := ChRes ;
      for i := 0 to scDisplay.NumPoints-1 do begin
@@ -689,7 +691,7 @@ begin
                y := (Func.Value(t)/Channel[RH.FitChan].ADCScale)
                     + Channel[RH.FitChan].ADCZero ;
                { Draw fitted line over data }
-               scDisplay.AddPointToLine( i, y ) ;
+               scDisplay.AddPointToLine( iLine, i, y ) ;
                t := t + RH.dt*nDisplaySkip*Settings.TScale ;
                { Compute residual }
                DispBuf^[j+ChRes] := Round(y) - DispBuf^[j+ChData] ;

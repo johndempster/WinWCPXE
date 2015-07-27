@@ -31,6 +31,7 @@ unit Pwrspec;
   07.12.09 .. Variance analysis parameters now saved in WCP file header
   27.12.12 .. Spectrum frequency scale now correct (half what it was)
   07.06.13 .. FH.NumZeroAvg now updated when changed in ZeroFrm
+  27.07.15 .. iline added to .CreateLine() & .AddPointToLine()
   }
 
 interface
@@ -532,7 +533,7 @@ procedure TPwrSpecFrm.DisplayRecord ;
   -----------------------------------------}
 var
 
-   i,iFrom,iTo,RecordNum,yZero,iShift : Integer ;
+   i,iFrom,iTo,RecordNum,yZero,iShift,iLine : Integer ;
    AvgScale : single ;
    RH : TRecHeader ;
 begin
@@ -580,11 +581,12 @@ begin
         end ;
 
     { Superimpose average on signal record  }
-    scDisplay.CreateLine( ChData, clRed, psSolid, 1 ) ;
+    scDisplay.ClearLines ;
+    iLine := scDisplay.CreateLine( ChData, clRed, psSolid, 1 ) ;
     yZero := Channel[cbChannel.ItemIndex].ADCZero ;
     for i := 0 to RawFH.NumSamples-1 do begin
         iFrom := Min(Max(i+iShift,0),RawFH.NumSamples-1) ;
-        scDisplay.AddPointToLine( i, AvgScale*Avg[iFrom] + yZero ) ;
+        scDisplay.AddPointToLine( iLine, i, AvgScale*Avg[iFrom] + yZero ) ;
         end ;
 
     { Re-plot channels }

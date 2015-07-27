@@ -11,6 +11,7 @@ unit Drvfun;
   01.01.04 .. Out of memory error blocked when windows resized to tiny size
   24.05.10 .. Driving function corrected for changes in parameter order in exponential function
   07.06.13 .. FH.NumZeroAvg now updated when changed in ZeroFrm
+  27.07.15 .. iline added to .CreateLine() & .AddPointToLine()
   ==========================================================================}
 interface
 
@@ -194,10 +195,9 @@ procedure TDrvFunFrm.DisplayRecord ;
 { ===============================
   Display digitised signal record
   ===============================}
-
 var
    y,SumAmp : single ;
-   i,col,nPars,TZeroAt : Integer ;
+   i,col,TZeroAt,iLine : Integer ;
    EqnType : TEqnType ;
 begin
 
@@ -226,8 +226,8 @@ begin
      EqnType := TEqnType(Round(RH.Value[vFitEquation])) ;
      if ((EqnType = Exponential) or
          (EqnType = Exponential2)) then begin
-
-        scDisplay.CreateLine( cbChannel.ItemIndex, clRed, psSolid, 1 ) ;
+        scDisplay.ClearLines ;
+        iLine := scDisplay.CreateLine( cbChannel.ItemIndex, clRed, psSolid, 1 ) ;
         MathFunc.Setup( EqnType,
                         Settings.TUnits,
                         Channel[cbChannel.ItemIndex].ADCUnits)  ;
@@ -243,10 +243,10 @@ begin
                y := MathFunc.Value( (i-TZeroAt)*RH.dt*Settings.TScale )
                     /Channel[cbChannel.ItemIndex].ADCScale
             else y := 0.0 ;
-            scDisplay.AddPointToLine( i, y+Channel[cbChannel.ItemIndex].ADCZero ) ;
+            scDisplay.AddPointToLine( iLine, i, y+Channel[cbChannel.ItemIndex].ADCZero ) ;
             end ;
 
-        nPars := MathFunc.NumParameters ;
+        //nPars := MathFunc.NumParameters ;
         ParametersTable.options := [goFixedVertLine,goFixedHorzLine,
                                     goVertLine,goHorzLine,goEditing] ;
         { Table heading }
