@@ -118,6 +118,7 @@ unit AmpModule;
 //          in use Amp #1 (lower s.n) Ch.1 1.Primary->AI0,Secondary->AI1, Ch.2 1.Primary->AI2,Secondary->AI3
 //                 Amp #2 (higher s.n) Ch.1 1.Primary->AI4,Secondary->AI5, Ch.2 1.Primary->AI6,Secondary->AI7
 // 05.05.15 Multiclamp 700A/B Now correctly allocates Channel 1 of second Multiclamp 700A/B as Amplifier #3
+// 29.07.15 Dagan BVC-700A added.
 
 interface
 
@@ -128,7 +129,6 @@ uses
 const
      MaxAmplifiers = 4 ;
      MaxAmplifierChannels = MaxAmplifiers*2 ;
-     NumAmplifiers = 40 ;
 
 
      amCurrentClamp = 1 ;
@@ -174,7 +174,9 @@ const
      amDaganCA1B = 37 ;
      amHekaEPC9 = 38 ;
      amNPIELC03SX = 39 ;
-
+     amDaganBVC700A = 40
+     ;
+     NumAmplifiers = 41 ;
 
      // Patch clamp mode flags
      VClampMode = 0 ;
@@ -956,7 +958,13 @@ TAXC_GetHeadstageType = function(
           var ChanScale : Single
           ) ;
 
-
+    procedure GetDaganBVC700AChannelSettings(
+          iChan : Integer ;
+          var ChanName : String ;
+          var ChanUnits : String ;
+          var ChanCalFactor : single ;
+          var ChanScale : Single
+          ) ;
 
     function LoadProcedure(
          Hnd : THandle ;       { Library DLL handle }
@@ -1335,6 +1343,7 @@ begin
      List.AddObject('Dagan 3900A (H/S 10nA)',TObject(amDagan3900A10nA)) ;
      List.AddObject('Dagan 3900A (H/S 100nA)',TObject(amDagan3900A100nA)) ;
      List.AddObject('Dagan CA-1B',TObject(amDaganCA1B)) ;
+     List.AddObject('Dagan BVC-700A',TObject(amDaganBVC700A)) ;
 
      List.AddObject('Warner PC501A',TObject(amWarnerPC501A)) ;
      List.AddObject('Warner PC505B',TObject(amWarnerPC505B)) ;
@@ -2358,6 +2367,39 @@ begin
             FModeTelegraphChannel[AmpNumber] := DefModeTelegraphChannel[AmpNumber] ;
             end ;
 
+         amDaganBVC700A  : begin
+            FPrimaryOutputChannel[AmpNumber] := 2*AmpNumber ;
+            FPrimaryOutputChannelName[AmpNumber] := ' I Monitor ' ;
+            FPrimaryOutputChannelNameCC[AmpNumber] := ' I Monitor ' ;
+            FPrimaryChannelUnits[AmpNumber] := 'nA' ;
+            FPrimaryChannelUnitsCC[AmpNumber] :='nA' ;
+            FPrimaryChannelScaleFactorX1Gain[AmpNumber] := 0.01 ;
+            FPrimaryChannelScaleFactorX1GainCC[AmpNumber] := 0.01 ;
+            FPrimaryChannelScaleFactor[AmpNumber] := 0.01 ;
+
+            FSecondaryOutputChannel[AmpNumber] := 2*AmpNumber + 1 ;
+            FSecondaryOutputChannelName[AmpNumber] := ' 10 Vm ' ;
+            FSecondaryOutputChannelNameCC[AmpNumber] := ' 10 Vm ' ;
+            FSecondaryChannelUnits[AmpNumber] := 'mV' ;
+            FSecondaryChannelUnitsCC[AmpNumber] := 'mV' ;
+            FSecondaryChannelScaleFactorX1Gain[AmpNumber] := 0.01 ;
+            FSecondaryChannelScaleFactorX1GainCC[AmpNumber] := 0.01 ;
+            FSecondaryChannelScaleFactor[AmpNumber] := 0.01 ;
+
+            FVoltageCommandScaleFactor[AmpNumber] := 0.02 ; // 50mV/V
+            FVoltageCommandChannel[AmpNumber] := AmpNumber ;
+            FCurrentCommandScaleFactor[AmpNumber] := 20E-9 ; // 20nA/V
+            FCurrentCommandChannel[AmpNumber] := AmpNumber ;
+
+            FGainTelegraphAvailable[AmpNumber] := False ;
+            FModeTelegraphAvailable[AmpNumber] := False ;
+            FNeedsGainTelegraphChannel[AmpNumber] := False ;
+            FNeedsModeTelegraphChannel[AmpNumber] :=  False ;
+            FModeSwitchedPrimaryChannel[AmpNumber] := False ;
+            FGainTelegraphChannel[AmpNumber] := DefGainTelegraphChannel[AmpNumber] ;
+            FModeTelegraphChannel[AmpNumber] := DefModeTelegraphChannel[AmpNumber] ;
+            end ;
+
         else begin
             FPrimaryOutputChannel[AmpNumber] := 2*AmpNumber ;
             FSecondaryOutputChannel[AmpNumber] := 2*AmpNumber + 1 ;
@@ -2462,6 +2504,7 @@ begin
           amDaganCA1B : Result := GetDaganCA1BGain(AmpNumber) ;
           amHekaEPC9 : Result := GetHekaEPC9Gain(AmpNumber) ;
           amNPIELC03SX : Result := GetNPIELC03SXGain(AmpNumber,FGainTelegraphChannel[AmpNumber]) ;
+          amDaganBVC700A : Result := 1.0 ;
           else Result := 1.0 ;
           end ;
      end ;
@@ -2922,6 +2965,13 @@ begin
                                                       ChanUnits,
                                                       ChanCalFactor,
                                                       ChanScale ) ;
+
+          amDaganBVC700A :  GetDaganBVC700AChannelSettings( iChan,
+                                                            ChanName,
+                                                            ChanUnits,
+                                                            ChanCalFactor,
+                                                            ChanScale ) ;
+
           end ;
 
     if ChanCalFactor = 0.0 then ChanCalFactor := 1.0 ;
@@ -5626,6 +5676,44 @@ begin
        else begin
           ChanScale := FPrimaryChannelScaleFactor[AmpNumber]/ FPrimaryChannelScaleFactorX1Gain[AmpNumber]
           end ;
+       end
+    else if IsSecondaryChannel(iChan) then begin
+       ChanName := 'Vm' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
+       ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
+       ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
+       ForceNonZero(FSecondaryChannelScaleFactorX1Gain[AmpNumber]) ;
+       ChanScale := FSecondaryChannelScaleFactor[AmpNumber] /
+                    FSecondaryChannelScaleFactorX1Gain[AmpNumber] ;
+       end ;
+    end ;
+
+
+procedure TAmplifier.GetDaganBVC700AChannelSettings(
+          iChan : Integer ;
+          var ChanName : String ;
+          var ChanUnits : String ;
+          var ChanCalFactor : single ;
+          var ChanScale : Single
+          ) ;
+// -------------------------------------
+// Get Dagan BVC700A channel settings
+// -------------------------------------
+var
+    AmpNumber : Integer ;
+begin
+
+    AmpNumber := AmpNumberOfChannel(iChan) ;
+    if AmpNumber >= MaxAmplifiers then Exit ;
+
+    if IsPrimaryChannel(iChan)then begin
+       ChanName := 'Im' ;
+       AddAmplifierNumber( ChanName, iChan ) ;
+       ChanUnits := FPrimaryChannelUnits[AmpNumber] ;
+       ChanCalFactor := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
+       ForceNonZero(FPrimaryChannelScaleFactorX1Gain[AmpNumber]) ;
+       ChanScale := FPrimaryChannelScaleFactor[AmpNumber] /
+                    FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
        end
     else if IsSecondaryChannel(iChan) then begin
        ChanName := 'Vm' ;

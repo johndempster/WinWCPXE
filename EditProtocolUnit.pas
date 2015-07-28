@@ -22,6 +22,7 @@ unit EditProtocolUnit;
 // 16.06.15 Fixed tick box moved from Sampling Interval to No. of samples/channel. When Fixed is NOT ticked
 //          No. of samples/channel is now altered when sampling interval changed to maintain fixed duration
 //          and vice versa.
+// 28.07.15 Pulse trains with frequency incrementing added
 
 interface
 
@@ -337,6 +338,8 @@ type
     GroupBox4: TGroupBox;
     GlobalVarTable: TStringGrid;
     ckFixedSamplesPerChannel: TCheckBox;
+    pTrainHz: TImage;
+    DigTrainHz: TImage;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -521,6 +524,9 @@ begin
      PTRain.Tag := Ord( wvPTrain ) ;
      WaveShapeImage[PTRain.Tag] := PTRain ;
 
+     PTRainHz.Tag := Ord( wvPTrainHz ) ;
+     WaveShapeImage[PTRainHz.Tag] := PTRainHz ;
+
      Wave.Tag := Ord( wvWave ) ;
      WaveShapeImage[Wave.Tag] := Wave ;
 
@@ -536,6 +542,9 @@ begin
 
      DigTrain.tag := Ord(wvDigTrain) ;
      WaveShapeImage[DigTrain.Tag] := DigTrain ;
+
+     DigTrainHz.tag := Ord(wvDigTrainHz) ;
+     WaveShapeImage[DigTrainHz.Tag] := DigTrainHz ;
 
      DigNone.Tag := Ord(wvDigNone) ;
      WaveShapeImage[DigNone.Tag] := DigNone ;
@@ -1000,6 +1009,8 @@ begin
     ParNames[spDACUpdateInterval] := 'D/A update interval ' ;
     ParNames[spNumPoints] := 'No. points' ;
     ParNames[spNumPointsInc] := 'Starting point (increment)' ;
+    ParNames[spFrequency] := 'Frequency' ;
+    ParNames[spFrequencyInc] := 'Frequency (increment)' ;
 
 
     Table.ColWidths[0] := 120 ;
@@ -1111,6 +1122,26 @@ begin
            ParamList[5].Units := '' ;
            ParamList[5].Scale := 1. ;
            end ;
+        wvPTrainHz : begin
+           ParamList[0].Index := spDelay ;
+           ParamList[0].Units := TUnits ;
+           ParamList[0].Scale := TScale ;
+           ParamList[1].Index := spStartAmplitude ;
+           ParamList[1].Units := StimType ;
+           ParamList[1].Scale := 1. ;
+           ParamList[2].Index := spDuration ;
+           ParamList[2].Units :=  TUnits ;
+           ParamList[2].Scale := TScale ;
+           ParamList[3].Index := spFrequency ;
+           ParamList[3].Units :=  'Hz' ;
+           ParamList[3].Scale := 1.0 ;
+           ParamList[4].Index := spFrequencyInc ;
+           ParamList[4].Units :=  'Hz' ;
+           ParamList[4].Scale := 1.0 ;
+           ParamList[5].Index := spNumRepeats ;
+           ParamList[5].Units := '' ;
+           ParamList[5].Scale := 1. ;
+           end ;
         wvDigStep0 : begin
            ParamList[0].Index := spDelay ;
            ParamList[0].Units := TUnits ;
@@ -1152,6 +1183,26 @@ begin
            ParamList[4].Index := spRepeatPeriodInc ;
            ParamList[4].Units := TUnits ;
            ParamList[4].Scale := TScale ;
+           ParamList[5].Index := spNumRepeats ;
+           ParamList[5].Units := '' ;
+           ParamList[5].Scale := 1. ;
+           end ;
+        wvDigTrainHz : begin
+           ParamList[0].Index := spDelay ;
+           ParamList[0].Units := TUnits ;
+           ParamList[0].Scale := TScale ;
+           ParamList[1].Index := spDigAmplitude ;
+           ParamList[1].Units := '' ;
+           ParamList[1].Scale := 1. ;
+           ParamList[2].Index := spDuration ;
+           ParamList[2].Units := TUnits ;
+           ParamList[2].Scale := TScale ;
+           ParamList[3].Index := spFrequency ;
+           ParamList[3].Units :=  'Hz' ;
+           ParamList[3].Scale := 1.0 ;
+           ParamList[4].Index := spFrequencyInc ;
+           ParamList[4].Units :=  'Hz' ;
+           ParamList[4].Scale := 1.0 ;
            ParamList[5].Index := spNumRepeats ;
            ParamList[5].Units := '' ;
            ParamList[5].Scale := 1. ;
@@ -1322,14 +1373,14 @@ procedure TEditProtocolFrm.AO00DragDrop(Sender, Source: TObject; X,
 { ------------------------------------------------------------
   Accept analogue waveform tool dropped on to waveform icon
   ------------------------------------------------------------}
-var
-   iTag : Integer ;
+//var
+//   iTag : Integer ;
 begin
 
     // Update current parameter table
     UpdateStimulusElement( SelectedStimulusElement ) ;
 
-     iTag := TImage(Sender).Tag ;
+     //iTag := TImage(Sender).Tag ;
      if  TImage(Source).Picture.Height = TImage(Sender).Picture.Height then begin
         TIMage(Sender).Picture := TImage(Source).Picture ;
         Prot.Stimulus[TImage(Sender).Tag].WaveShape := TImage(Source).Tag ;
@@ -1360,10 +1411,7 @@ procedure TEditProtocolFrm.Image31DragDrop(Sender, Source: TObject; X,
 { ------------------------------------------------------------
   Accept digital waveform tool dropped on to waveform icon
   ------------------------------------------------------------}
-var
-   iTag : Integer ;
 begin
-     iTag := TImage(Sender).Tag ;
      if  TImage(Source).Picture.Height = TTLWaveformHeight then begin
         TIMage(Sender).Picture := TImage(Source).Picture ;
         end ;
@@ -1404,6 +1452,8 @@ begin
         Prot.Stimulus[iStimElement].Parameters[spDuration].Value := 1E-2 ;
         Prot.Stimulus[iStimElement].Parameters[spNumRepeats].Value := 2.0 ;
         Prot.Stimulus[iStimElement].Parameters[spRepeatPeriod].Value := 0.02 ;
+        Prot.Stimulus[iStimElement].Parameters[spFrequency].Value := 10.0 ;
+        Prot.Stimulus[iStimElement].Parameters[spFrequencyInc].Value := 0.0 ;
         end;
 
     Table.RowCount := 1 ;
@@ -1722,11 +1772,19 @@ begin
                    end
                 else NumPulses := 1 ;
 
+                // Pulse period
                 if Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Exists then begin
                    PulsePeriod := Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Value ;
                    if Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Exists then begin
                       PulsePeriod := PulsePeriod +
                                      Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Value*Incr ;
+                      end ;
+                   end
+                else if Prot.Stimulus[iElem].Parameters[spFrequency].Exists then begin
+                   PulsePeriod := 1.0/Max(Prot.Stimulus[iElem].Parameters[spFrequency].Value,1E-6) ;
+                   if Prot.Stimulus[iElem].Parameters[spFrequencyInc].Exists then begin
+                      PulsePeriod := 1.0 / Max(1E-6,Prot.Stimulus[iElem].Parameters[spFrequency].Value +
+                                                    Prot.Stimulus[iElem].Parameters[spFrequencyInc].Value*Incr) ;
                       end ;
                    end
                 else PulsePeriod := 0 ;
@@ -1895,6 +1953,7 @@ begin
                    end
                 else NumPulses := 1 ;
 
+                // Pulse period
                 if Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Exists then begin
                    PulsePeriod := Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Value ;
                    if Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Exists then begin
@@ -1902,7 +1961,14 @@ begin
                                      Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Value*Incr ;
                       end ;
                    end
-                else PulsePeriod := 0 ;
+                else if Prot.Stimulus[iElem].Parameters[spFrequency].Exists then begin
+                   PulsePeriod := 1.0/Max(Prot.Stimulus[iElem].Parameters[spFrequency].Value,1E-6) ;
+                   if Prot.Stimulus[iElem].Parameters[spFrequencyInc].Exists then begin
+                      PulsePeriod := 1.0 / Max(1E-6,Prot.Stimulus[iElem].Parameters[spFrequency].Value +
+                                                    Prot.Stimulus[iElem].Parameters[spFrequencyInc].Value*Incr) ;
+                      end ;
+                   end
+                else PulsePeriod := 0.0 ;
 
                 // Pulse state (1/0)
                 if Prot.Stimulus[iElem].Parameters[spDigAmplitude].Exists then begin
@@ -2224,7 +2290,6 @@ begin
 
      Prot.NumADCSamplesPerChannel := Min( Main.SESLabIO.ADCBufferLimit div Prot.NumADCChannels,
                                      Round( ExtractFloat( RecTable.cells[1,6],
-
                                           Prot.NumADCSamplesPerChannel*1.0 ))) ;
 
      Prot.NumADCSamplesPerChannel := Max(Prot.NumADCSamplesPerChannel div 256,1)*256 ;
@@ -2306,8 +2371,6 @@ begin
        end;
 
     end;
-
-
 
 
 procedure TEditProtocolFrm.PageChange(Sender: TObject);
@@ -2428,7 +2491,6 @@ begin
       Prot.Saved := False ;
 
       end ;
-
 
 
 procedure TEditProtocolFrm.cbAO0StimChange(Sender: TObject);
@@ -2718,8 +2780,6 @@ procedure TEditProtocolFrm.ckFixedDACUpdateIntervalClick(Sender: TObject);
 begin
      UpdateRecordingTableParameters ;
      end;
-
-
 
 
 procedure TEditProtocolFrm.cbNextProtocolChange(Sender: TObject);

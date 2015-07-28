@@ -629,6 +629,7 @@ unit MDIForm;
                       to allow it to load under 64 bit windows.
    V5.0.1 13.07.15    Digidata 1550: 64/32 bit version of wdapi1140.dll created when O/S detected
    V5.0.2 27.07.15    Digidata 1440: ADC offset calibration subtracted from inputs
+   V5.0.3 28.07.15    Stimulus protocols: Analog & digital pulse trains with frequency incrementing added
   =======================================================================}
 
 interface
@@ -874,7 +875,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.0.2';
+      ProgVersion := 'V5.0.3';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

@@ -898,10 +898,11 @@ begin
           if Main.SESLabIO.ADCActive then Main.SESLabIO.ADCStop ;
           Main.SESLabIO.ADCTriggerMode := tmWaveGen ;
           Main.SESLabIO.ADCExternalTriggerActiveHigh := False ;
+          // Set A/D and D/A update intervals
           Main.SESLabIO.ADCNumChannels := Stimulator.Prot.NumADCChannels ;
           Main.SESLabIO.ADCNumSamples := Stimulator.Prot.NumADCSamplesPerChannel ;
-          // Set A/D and D/A update intervals
           Stimulator.SetADCDACUpdateIntervals( Stimulator.Prot ) ;
+
           //Stimulator.Prot.RecordDuration := Main.SESLabIO.ADCNumSamples*Main.SESLabIO.ADCSamplingInterval ;
           // Removed 15.6.12
           Main.SESLabIO.ADCCircularBuffer := False ;

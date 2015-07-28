@@ -54,6 +54,7 @@ unit StimModule;
   06.07.13 Global stimulus protocol variables feature added
   15.06.15 When .ADCSamplingIntervalKeepFixed=True,  no. of samples per channel
            now adjusted to keep constant duration when sampling interval changed (or vice versa)
+  28.07.15 Pulse train with frequency incrementing added
   =============================================}
 
 interface
@@ -85,6 +86,8 @@ const
     wvDigStep1 = 8 ;  //  Family of duration incremented digital steps
     wvDigTrain = 9 ;  // Digital pulse train
     wvDigNone = 10 ;  // No digital pulse
+    wvpTrainHz = 11 ;
+    wvDigTrainHz = 12 ;
 
     spNone = -1 ;
     spDelay = 0 ;
@@ -105,7 +108,9 @@ const
     spFileName = 15 ;
     spNumPoints = 16 ;
     spNumPointsInc = 17 ;
-    MaxPars = 17 ;
+    spFrequency = 18 ;
+    spFrequencyInc = 19 ;
+    MaxPars = 19 ;
     MaxRecordingPars = 5 ;
 
      //NumDigChannels = 8 ;
@@ -519,7 +524,7 @@ function TStimulator.CreateWaveform(
   Create command voltage waveforms defined by protocol
   ----------------------------------------------------}
 var
-    i,j,g,sh,iElem :Integer ;
+    ii,i,j,g,sh,iElem :Integer ;
 
     DisplayDuration : Single ;
 
@@ -633,11 +638,19 @@ begin
                 end
              else NumPulses := 1 ;
 
+             // Pulse period
              if Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Exists then begin
                 PulsePeriod := Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Value ;
                 if Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Exists then begin
                    PulsePeriod := PulsePeriod + (Increment*
                                   Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Value) ;
+                   end ;
+                end
+             else if Prot.Stimulus[iElem].Parameters[spFrequency].Exists then begin
+                PulsePeriod := 1.0/Max(Prot.Stimulus[iElem].Parameters[spFrequency].Value,1E-6) ;
+                if Prot.Stimulus[iElem].Parameters[spFrequencyInc].Exists then begin
+                   PulsePeriod := 1.0 / Max(1E-6,Prot.Stimulus[iElem].Parameters[spFrequency].Value +
+                                                 Prot.Stimulus[iElem].Parameters[spFrequencyInc].Value*Increment) ;
                    end ;
                 end
              else PulsePeriod := 0 ;
@@ -777,11 +790,19 @@ begin
                 end
              else NumPulses := 1 ;
 
+             // Pulse period
              if Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Exists then begin
                 PulsePeriod := Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Value ;
                 if Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Exists then begin
                    PulsePeriod := PulsePeriod +
                                   Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Value*Increment ;
+                   end ;
+                end
+             else if Prot.Stimulus[iElem].Parameters[spFrequency].Exists then begin
+                PulsePeriod := 1.0/Max(Prot.Stimulus[iElem].Parameters[spFrequency].Value,1E-6) ;
+                if Prot.Stimulus[iElem].Parameters[spFrequencyInc].Exists then begin
+                   PulsePeriod := 1.0 / Max(1E-6,Prot.Stimulus[iElem].Parameters[spFrequency].Value +
+                                                 Prot.Stimulus[iElem].Parameters[spFrequencyInc].Value*Increment) ;
                    end ;
                 end
              else PulsePeriod := 0 ;
@@ -955,6 +976,7 @@ begin
         end
      else begin
         // Set sampling interval from requested duration and samples/channel
+        Main.SESLabIO.ADCNumChannels := Prot.NumADCChannels ;
         Main.SESLabIO.ADCSamplingInterval := Prot.RecordDuration / Max(Prot.NumADCSamplesPerChannel,1) ;
         Prot.ADCSamplingInterval := Main.SESLabIO.ADCSamplingInterval ;
         end ;
@@ -1880,6 +1902,8 @@ begin
                                  Prot.Stimulus[i].Parameters ) ;
               AddWaveformParameter( iNode, 'REPEATPERIOD', spRepeatPeriod, spRepeatPeriodInc,
                                  Prot.Stimulus[i].Parameters ) ;
+              AddWaveformParameter( iNode, 'FREQUENCY', spFrequency, spFrequencyInc,
+                                 Prot.Stimulus[i].Parameters ) ;
               AddWaveformParameterText( iNode, 'FILENAME', spFileName,
                                         Prot.Stimulus[i].Parameters ) ;
               AddWaveformParameter( iNode, 'DACUPDATEINTERVAL', spDACUpdateInterval, spNone,
@@ -1912,6 +1936,8 @@ begin
               AddWaveformParameter( iNode, 'NUMREPEATS', spNumRepeats, spNumRepeatsInc,
                                  Prot.Stimulus[i].Parameters ) ;
               AddWaveformParameter( iNode, 'REPEATPERIOD', spRepeatPeriod, spRepeatPeriodInc,
+                                 Prot.Stimulus[i].Parameters ) ;
+              AddWaveformParameter( iNode, 'FREQUENCY', spFrequency, spFrequencyInc,
                                  Prot.Stimulus[i].Parameters ) ;
               end ;
            end ;
@@ -2078,11 +2104,11 @@ begin
                               Prot.Stimulus[iElement].Parameters ) ;
         GetWaveformParameter( iNode, 'REPEATPERIOD', spRepeatPeriod, spRepeatPeriodInc,
                               Prot.Stimulus[iElement].Parameters ) ;
+        GetWaveformParameter( iNode, 'FREQUENCY', spFREQUENCY, spFREQUENCYInc,
+                              Prot.Stimulus[iElement].Parameters ) ;
 
         GetWaveformParameterText( iNode, 'FILENAME', spFileName,
                                   Prot.Stimulus[iElement].Parameters ) ;
-
-
 
         GetWaveformParameter( iNode, 'DACUPDATEINTERVAL', spDACUpdateInterval, spNone,
                               Prot.Stimulus[iElement].Parameters ) ;
