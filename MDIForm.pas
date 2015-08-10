@@ -630,6 +630,10 @@ unit MDIForm;
    V5.0.1 13.07.15    Digidata 1550: 64/32 bit version of wdapi1140.dll created when O/S detected
    V5.0.2 27.07.15    Digidata 1440: ADC offset calibration subtracted from inputs
    V5.0.3 28.07.15    Stimulus protocols: Analog & digital pulse trains with frequency incrementing added
+   V5.0.4 04.08.15    Records now plotted correctly again on printer and on clipboard (fixes bug introduces in V4.9.8).
+                      Superimposition of traces now possible in waveform measurement window.
+   V5.0.5 10.08.15    Records with large numbers of points now correctly plotted using YMin-YMax compression
+                      (rather than just Ymin) (scopedisplay.pas).
   =======================================================================}
 
 interface
@@ -875,7 +879,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.0.3';
+      ProgVersion := 'V5.0.5';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
@@ -2807,7 +2811,9 @@ begin
        if MDIChildren[I].Name = 'RecordFrm' then
           TRecordFrm(MDIChildren[I]).SetStoreMode(mnStoreTraces.Checked)
        else if MDIChildren[I].Name = 'ReplayFrm' then
-          TReplayFrm(MDIChildren[I]).SetStoreMode(mnStoreTraces.Checked) ;
+          TReplayFrm(MDIChildren[I]).SetStoreMode(mnStoreTraces.Checked)
+       else if MDIChildren[I].Name = 'MeasureFrm' then
+          TMeasureFrm(MDIChildren[I]).SetStoreMode(mnStoreTraces.Checked) ;
        end ;
      Settings.AutoErase := not mnStoreTraces.Checked ;
      end;

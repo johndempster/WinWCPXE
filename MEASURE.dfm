@@ -153,7 +153,7 @@ object MeasureFrm: TMeasureFrm
           Height = 20
           OnKeyPress = edRecordNumKeyPress
           AutoSize = False
-          Text = ' 0 / 1.00000001504746624E30 '
+          Text = ' 0 / 1.00000001504746622E30 '
           HiValue = 1.000000015047466E30
           HiLimit = 1.000000015047466E30
           Scale = 1.000000000000000000
@@ -254,7 +254,7 @@ object MeasureFrm: TMeasureFrm
             Width = 89
             Height = 20
             AutoSize = False
-            Text = ' 0.00 - 1.00000001504746624E30 '
+            Text = ' 0.00 - 1.00000001504746622E30 '
             HiValue = 1.000000015047466E30
             HiLimit = 1.000000015047466E30
             Scale = 1.000000000000000000
@@ -558,10 +558,6 @@ object MeasureFrm: TMeasureFrm
     end
     object XYPlotTab: TTabSheet
       Caption = 'X/Y Plot'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object plPlot: TXYPlotDisplay
         Left = 152
         Top = 8
@@ -1926,7 +1922,7 @@ object MeasureFrm: TMeasureFrm
       Height = 20
       OnKeyPress = edPlotRangeKeyPress
       AutoSize = False
-      Text = ' 1.00 - 1.00000001504746624E30 '
+      Text = ' 1.00 - 1.00000001504746622E30 '
       LoValue = 1.000000000000000000
       HiValue = 1.000000015047466E30
       LoLimit = 1.000000000000000000

@@ -77,6 +77,7 @@ unit Measure;
               Readout cursor added
   09.08.13 .. ADC now allocated by GetMem()
   25.06.14 .. Access violations prevented when first point in record is peak
+  04.08.15 .. Records now be superimposed when superimpose traces selected
   ==========================================================================}
 interface
 
@@ -375,6 +376,7 @@ TMeasureFrmCursors = Record
     procedure ZoomOut ;
     Function DataAvailable : Boolean ;
     Function ImageAvailable : Boolean ;
+    procedure SetStoreMode( StorageMode : Boolean ) ;
   end;
 
 
@@ -452,6 +454,8 @@ begin
      cbHistEquation.Items.AddObject( '3 Gaussians', TObject(Gaussian3)) ;
 
      ckLockChannelCursors.Checked := Settings.LockChannelCursors ;
+
+     SetStoreMode(Main.mnStoreTraces.Checked) ;
 
      RecordsGrp.Visible := False ;
      KeepCursors := False ;
@@ -742,6 +746,8 @@ begin
      NewTableNeeded := True ;
      HistogramLimitsNeeded := True ;
 
+     SetStoreMode( Main.mnStoreTraces.Checked ) ;
+
      // Update record range (also triggers display of first record
      UpdateScrollBar( sbRecordNum, FH.RecordNum, 1, fH.NumRecords ) ;
 
@@ -764,6 +770,7 @@ begin
 
      edRecordNum.LoValue := SbRecordNum.position ;
      edRecordNum.HiValue := fH.NumRecords ;
+     scDisplay.RecordNumber := fH.CurrentRecord ;
 
      { Read record data from file }
      GetRecord( fH, rH, fH.RecordNum, ADC^ ) ;
@@ -3356,6 +3363,18 @@ procedure TMeasureFrm.ckFixedZeroLevelsClick(Sender: TObject);
 begin
      Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
      end;
+
+procedure TMeasureFrm.SetStoreMode(
+          StorageMode : Boolean
+          ) ;
+{ --------------------------------------------
+  Set oscilloscope display storage mode on/off
+  -------------------------------------------- }
+begin
+     scDisplay.StorageMode := StorageMode ;
+     end ;
+
+
 
 
 end.
