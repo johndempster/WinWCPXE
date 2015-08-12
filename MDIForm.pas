@@ -634,6 +634,8 @@ unit MDIForm;
                       Superimposition of traces now possible in waveform measurement window.
    V5.0.5 10.08.15    Records with large numbers of points now correctly plotted using YMin-YMax compression
                       (rather than just Ymin) (scopedisplay.pas).
+   V5.0.6 12.08.15    dd1440.pas 64/32 bit version of wdapi1140.dll created when O/S detected
+                      Now correctly loads dd1440.dll
   =======================================================================}
 
 interface
@@ -879,7 +881,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.0.5';
+      ProgVersion := 'V5.0.6';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
