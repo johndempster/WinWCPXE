@@ -2004,7 +2004,7 @@ begin
     XMLDOC.LoadFromFile( FileName ) ;
     XMLDoc.Active := True ;
 
-    for i := 0 to  xmldoc.DocumentElement.ChildNodes.Count-1 do
+    //for i := 0 to  xmldoc.DocumentElement.ChildNodes.Count-1 do
         //OutputDebugString( PChar(String(xmldoc.DocumentElement.ChildNodes[i].NodeName))) ;
 
     ProtNode := xmldoc.DocumentElement ;

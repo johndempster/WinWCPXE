@@ -200,7 +200,10 @@ var
    ch,i : Integer ;
 begin
 
-     if RawFH.NumRecords = 0 then RawFH.NumChannels := 2 ;
+     if RawFH.NumRecords = 0 then begin
+        RawFH.NumChannels := 2 ;
+        RawFH.NumSamples := Settings.NumSamples ;
+        end;
 
      { Set up scope display }
      scDisplay.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
@@ -227,7 +230,7 @@ begin
          end ;
 
      scDisplay.xMin := 0 ;
-     scDisplay.xMax := RawFH.NumSamples - 1 ;
+     scDisplay.xMax := Settings.NumSamples - 1 ;
      scDisplay.xOffset := 0 ;
      scDisplay.TScale := RawFH.dt*1000.0 ;
      scDisplay.TUnits := Settings.TUnits ;
@@ -294,7 +297,7 @@ var
    FirstRecord : Boolean ;
    RH : TRecHeader ; { Record header }
    TauC,Ic,ITot : Single ;
-   VOld,IMax,IScale,VScale,VTest,VLeak,Vp: Single ;
+   VOld,IMax,IScale,VScale,VTest,VLeak,Vp,TauV: Single ;
    Tau,TauMax,V : Single ;
    m,h,h0 : Single ;
    Done : Boolean ;
@@ -304,8 +307,6 @@ begin
      bAbort.Enabled := True ;
 
      // Copy settings from edit fields to Settings.VClampSim
-     EditFieldsToSettings ;
-
      EditFieldsToSettings ;
 
      if not CheckNewDataFileNeeded then Exit ;
@@ -340,22 +341,19 @@ begin
      an appropriate scaling factor }
      if RawfH.NumRecords = 0 then begin
 
-        RawfH.NumChannels := scDisplay.NumChannels ;
-        RawFH.NumSamples := scDisplay.NumPoints ;
-
         NewFile ;
 
         UpdateDisplayScale ;
 
         Channel[ChIm].ADCScale := scDisplay.ChanScale[ChIm];
-        RH.ADCVoltageRange[ChIm] := 1. ;
+        RH.ADCVoltageRange[ChIm] := 10. ;
         Channel[ChIm].ADCCalibrationFactor := RH.ADCVoltageRange[ChIm] /
                                   ( Channel[ChIm].ADCScale * (Main.SESLabIO.ADCMaxValue+1) ) ;
 
         { Set voltage channel scaling factor }
         Channel[ChVm].ADCScale := scDisplay.ChanScale[ChVm];
         scDisplay.ChanScale[ChVm] := Channel[ChVm].ADCScale ;
-        RH.ADCVoltageRange[ChVm] := 1. ;
+        RH.ADCVoltageRange[ChVm] := 10. ;
         Channel[ChVm].ADCCalibrationFactor := RH.ADCVoltageRange[ChVm] /
                                   ( Channel[ChVm].ADCScale * (Main.SESLabIO.ADCMaxValue+1) ) ;
 
@@ -421,6 +419,9 @@ begin
      { Amps --> bits scale factor }
      IScale := Channel[ChIm].ADCScale / AmpsTonA ;
 
+     // Command voltage time constant 0.1 ms
+     TauV := 1E-4/RawFH.dt ;
+
      NumRecordsDone := 0 ;
      Done := False ;
      while not Done do begin
@@ -443,9 +444,10 @@ begin
            x := 0. ;
            Ic := 0. ;
            for i := 0 to RawFH.NumSamples-1 do begin
-               if (i >= iStart) and (i <= iEnd) then
-                  Vp := Settings.VClampSim.VHold + VLeak
-               else Vp := Settings.VClampSim.VHold ;
+
+               if (i < iStart) then vp := Settings.VClampSim.VHold
+               else if (i < iEnd) then vp := Settings.VClampSim.VHold + VLeak
+               else vp := Settings.VClampSim.VHold ;
 
                {Voltage channel }
                j := i*RawFH.NumChannels + ChVm ;
@@ -461,7 +463,7 @@ begin
 
                { Add capacity current }
                if Vp <> VOld then begin
-                  Ic := (Vp - Vold) * Settings.VClampSim.GSeries ;
+                  Ic := (Vp - Vold) * Settings.VClampSim.GSeries * 0.1 ;
                   x := 0. ;
                   end ;
                VOld := Vp ;
@@ -502,10 +504,13 @@ begin
                     Settings.VClampSim.h.VSlope ) ;
         Ic := 0. ;
         VOld := Settings.VClampSim.VHold ;
+
         for i := 0 to RawFH.NumSamples-1 do begin
-            if (i > iStart) and (i < iEnd) then
-               Vp := Settings.VClampSim.VHold + VTest
-            else Vp := Settings.VClampSim.VHold ;
+
+            if i < iStart then vp := Settings.VClampSim.VHold
+            else if i < iEnd then vp := Settings.VClampSim.VHold + VTest
+            else vp := Settings.VClampSim.VHold ;
+
             {Voltage channel }
             j := i*RawFH.NumChannels + ChVm ;
 
@@ -557,15 +562,15 @@ begin
 
             { Add capacity current }
             if Vp <> VOld then begin
-               Ic := (Vp - Vold) * Settings.VClampSim.GSeries ;
+               Ic := (Vp - Vold) * Settings.VClampSim.GSeries * 0.1 ;
                x := 0. ;
                end ;
             VOld := Vp ;
-            x := x + RawFH.dt ;
 
             Im := Im + Ic*exp( -x/TauC ) ;
             {Keep within display limits }
-            Im := MaxFlt([MinFlt([Im,IMax]),-IMax]) ;
+            Im := Max(Min(Im,IMax),-IMax) ;
+            x := x + RawFH.dt ;
 
             j := i*RawFH.NumChannels + ChIm ;
             ADC^[j] :=  Round( Im/IScale ) ;
@@ -628,8 +633,8 @@ begin
      GMax := edGMax.Value ;
      VRev := edVRev.Value ;
      GLeak := edGLeak.Value ;
-     IMax := Max( Abs(GMax*(VMax-VRev) + GLeak*VMax),
-                  Abs(GMax*(-VMax-VRev) - GLeak*VMax) ) ;
+
+     IMax := Max((0.05*VMax*edGSeries.Value),GMax*(VMax-VRev) + GLeak*VMax) ;
      if IMax = 0. then IMax := 1E-9 ;
 
      scDisplay.ChanScale[ChIm] := AmpsTonA*IMax / (Main.SESLabIO.ADCMaxValue+1) ;

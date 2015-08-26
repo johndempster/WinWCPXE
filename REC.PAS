@@ -98,6 +98,11 @@ unit Rec;
   10.04.15 .. Zero level now correctly set to fixed level rather than From Record
   15.06.15 .. No. of samples/record now adjusted to maintain constant record duration
               when sampling interval changed.
+  14.08.15 .. LeakSum buffer no longer allocated and deallocated during leak subtraction records
+              fixing spurious values which appeared in first samples of leak subtracted records
+  24.08.15 .. cbdetectEvents menu now set from SESLabIO, not ChannelNames
+              ADCDisplay buffer now only reallocated if size has changed, allowing recorded traces
+              from previous linked protocols to remain on display.
   ==============================================================================}
 interface
 
@@ -132,7 +137,6 @@ type
          BufferCycles : Integer ;
          end ;
 
-
     TStopwatch = record
                ElapsedTime : TDateTime ;
                Hour : Word ;
@@ -145,7 +149,6 @@ type
 TCursors = record
          Base : Array[0..WCPMaxChannels-1] of Integer ;
          end ;
-
 
   TState = ( Idle, SweepInProgress ) ;
   TRecordFrm = class(TForm)
@@ -290,6 +293,8 @@ TCursors = record
    ADCDetected : PSmallIntArray ;
    ADCDisplay : PSmallIntArray ;
 
+   LeakSum : PIntArray ;           // Summation buffer used to average LEAK records
+
    Det : TDet ;
 
    EndOfBuf : Integer ;
@@ -370,9 +375,8 @@ TCursors = record
     procedure StartSweep ;
     procedure StopSweep ;
 
-
     procedure UpdateStimulusProtocolList ;
-    procedure UpdateDisplay ;
+    procedure UpdateDisplay( Clear : Boolean ) ;
 
     procedure StartRecording ;
     procedure StopRecording ;
@@ -382,7 +386,6 @@ TCursors = record
              read GetStimulusProtocol write SetStimulusProtocol ;
     property Running : Boolean read GetRunning ;
     property Recording : Boolean read GetRecording ;
-
 
   end;
 
@@ -513,7 +516,7 @@ begin
      EndofSweep := False ;
      StartingPulseProgramIndex := 0 ;
 
-     UpdateDisplay ;
+     UpdateDisplay(true) ;
 
      Timer.Enabled := True ;
 
@@ -588,12 +591,15 @@ begin
      end ;
 
 
-procedure TRecordFrm.UpdateDisplay ;
+procedure TRecordFrm.UpdateDisplay(
+          Clear : Boolean            // True = clear display
+          ) ;
 { -----------------------------------------------
   Re-initialise display when data file is changed
   ----------------------------------------------- }
 var
    i,ch : Integer ;
+   BufferChanged : Boolean ;
 begin
 
      if cbRecordingMode.ItemIndex = rmProtocol then begin
@@ -611,12 +617,22 @@ begin
         Settings.RecordDuration := Main.SESLabIO.ADCSamplingInterval*Main.SESLabIO.ADCNumSamples ;
         end ;
 
-     // Update number of channels in event detector channel selector
-     cbDetectChannel.items := ChannelNames ;
+     // Determine of buffer size has changed
+     if ((scDisplay.NumChannels <> Main.SESLabIO.ADCNumChannels) or
+        (scDisplay.MaxPoints <> Main.SESLabIO.ADCNumSamples)) or
+        (ADCDisplay = Nil) then BufferChanged := True
+                           else BufferChanged := False ;
+
+     // Set detect events channel selection menu
+     cbDetectChannel.Clear ;
+     for ch := 0 to Main.SESLabIO.ADCNumChannels-1 do
+         cbDetectChannel.items.Add(format('Ch.%d %s',[ch,Main.SESLabIO.ADCChannelName[ch]])) ;
      cbDetectChannel.ItemIndex := IntLimitTo(Settings.EventDetector.Channel,
                                   0,Main.SESLabIO.ADCNumChannels-1) ;
 
      { Set up the number of channels/points in the 'scope display }
+     scDisplay.NumChannels := Main.SESLabIO.ADCNumChannels ;
+     scDisplay.ChanZeroAvg := Main.SESLabIO.ADCChannelNumZero ;
      scDisplay.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
      scDisplay.MinADCValue := Main.SESLabIO.ADCMinValue ;
      scDisplay.DisplayGrid := Settings.DisplayGrid ;
@@ -624,9 +640,6 @@ begin
      scDisplay.MaxPoints := Main.SESLabIO.ADCNumSamples ;
      scDisplay.xMin := 0 ;
      scDisplay.xMax := Main.SESLabIO.ADCNumSamples - 1 ;
-     scDisplay.NumPoints := 0 ;
-     scDisplay.NumChannels := Main.SESLabIO.ADCNumChannels ;
-     scDisplay.ChanZeroAvg := Main.SESLabIO.ADCChannelNumZero ;
 
      {Set channel information }
      for ch := 0 to scDisplay.NumChannels-1 do begin
@@ -663,14 +676,20 @@ begin
      EndofBuf := (Main.SESLabIO.ADCNumSamples*Main.SESLabIO.ADCNumChannels) - 1;
      for i := 0 to EndOfBuf do ADC^[i] := 0 ;
 
-     if ADCDisplay <> Nil then FreeMem( ADCDisplay ) ;
-     GetMem( ADCDisplay, scDisplay.NumChannels*scDisplay.MaxPoints*2 ) ;
-     scDisplay.SetDataBuf( ADCDisplay ) ;
+     // Re-allocate buffer if size has changed
+     if BufferChanged or Clear then begin
+        if ADCDisplay <> Nil then FreeMem( ADCDisplay ) ;
+        GetMem( ADCDisplay, scDisplay.NumChannels*scDisplay.MaxPoints*2 ) ;
+        scDisplay.SetDataBuf( ADCDisplay ) ;
+        scDisplay.NumPoints := 0 ;
+        end ;
 
      { Make sure event detector channel is within valid limits }
-     cbDetectChannel.items := ChannelNames ;
+     cbDetectChannel.Clear ;
+     for ch := 0 to Main.SESLabIO.ADCNumChannels-1 do
+         cbDetectChannel.items.Add(format('Ch.%d %s',[ch,Main.SESLabIO.ADCChannelName[ch]])) ;
      cbDetectChannel.ItemIndex := IntLimitTo(Settings.EventDetector.Channel,
-                                  0,Main.SESLabIO.ADCNumSamples-1) ;
+                                  0,Main.SESLabIO.ADCNumChannels-1) ;
 
      end ;
 
@@ -1339,7 +1358,7 @@ var
    ch,i,j,i0,i1,NumAvg,iStart : Integer ;
    Done,SaveRecord,EmptyRecord : Boolean ;
    ZeroSum : Single ;
-   Sum : PIntArray ; { Summation buffer used to average LEAK records }
+
 begin
 
      // Update channel scaling factors in case amplifier gain has changed
@@ -1366,20 +1385,31 @@ begin
 
      { Special processing if this is a leak current record }
      if Stimulator.LeakRecord then begin
-        GetMem( Sum, (EndOfBuf+1)*4 ) ;
+
         // Clear leak average if first leak record
-        if Stimulator.RepeatCounter = 0 then for i := 0 to EndOfBuf do Sum^[i] := 0 ;
+        if Stimulator.RepeatCounter = 0 then begin
+           if LeakSum <> Nil then FreeMem(LeakSum) ;
+           GetMem( LeakSum, (EndOfBuf+1)*4 ) ;
+           for i := 0 to EndOfBuf do LeakSum^[i] := 0 ;
+           end;
+
         // Add leak record to average
-        for i := 0 to EndOfBuf do Sum^[i] := Sum^[i] + ADC^[i] ;
+        if LeakSum <> Nil then begin
+           for i := 0 to EndOfBuf do LeakSum^[i] := LeakSum^[i] + ADC^[i] ;
+           end;
+
         // Calculate average leak record (and request to be saved)
         if Stimulator.RepeatCounter >= Abs(Stimulator.Prot.NumLeakSubtractionRecords)-1 then begin
            NumAvg := Max( Stimulator.Prot.NumLeakSubtractionRecords,1 ) ;
-           for i := 0 to EndOfBuf do ADC^[i] := Sum^[i] div NumAvg ;
+           if LeakSum <> Nil then begin
+              for i := 0 to EndOfBuf do ADC^[i] := LeakSum^[i] div NumAvg ;
+              end;
            rH.RecType := 'LEAK' ;
            SaveRecord := True ;
+           FreeMem(LeakSum) ;
+           LeakSum := Nil ;
            end
         else SaveRecord := False ;
-        FreeMem(Sum) ;
         end
      else begin
         rH.RecType := 'TEST' ;
@@ -1513,7 +1543,6 @@ begin
      // Force display display update if factors changed
      if Changed then scDisplay.Invalidate ;
 
-
      end ;
 
 
@@ -1622,7 +1651,7 @@ begin
         end ;
 
      // Update display with new settings
-     UpdateDisplay ;
+     UpdateDisplay(true) ;
 
      // Check if a new data file is need due to changes in data file record size
      // or calibration factors etc. and create file if required
@@ -1651,6 +1680,7 @@ begin
 
      StatusCounter := 0 ;
      end;
+
 
 function TRecordFrm.LoadStimulusProtocol(
          Initialise : Boolean              // True = Initialise protocol counter
@@ -1784,7 +1814,7 @@ begin
            end ;
         end ;
 
-     UpdateDisplay ;
+     UpdateDisplay(false) ;
 
      Main.UpdateRecentFilesList ;
 
@@ -1905,9 +1935,11 @@ begin
 
 procedure TRecordFrm.FormDestroy(Sender: TObject);
 begin
-    if ADCCopy = Nil then FreeMem(ADCCopy);
-    if ADCDetected = Nil then FreeMem(ADCDetected);
-    if ADCDisplay = Nil then FreeMem(ADCDisplay) ;
+    if ADCCopy <> Nil then FreeMem(ADCCopy);
+    if ADCDetected <> Nil then FreeMem(ADCDetected);
+    if ADCDisplay <> Nil then FreeMem(ADCDisplay) ;
+    if LeakSum <> Nil then FreeMem(LeakSum) ;
+
     end;
 
 procedure TRecordFrm.edIdentKeyPress(Sender: TObject; var Key: Char);
@@ -2316,6 +2348,7 @@ begin
 
      end ;
 
+
 procedure TRecordFrm.bAddMarkerClick(Sender: TObject);
 // --------------------
 // Add marker to record
@@ -2325,6 +2358,7 @@ begin
     scDisplay.AddMarker( 0, EdMarker.text );
     rh.ident := edMarker.Text ;
     end;
+
 
 procedure TRecordFrm.bSetStimFolderClick(Sender: TObject);
 // -----------------------------
@@ -2355,6 +2389,7 @@ procedure TRecordFrm.cbRecordingModeChange(Sender: TObject);
 begin
     SetRecordingMode( cbRecordingMode.ItemIndex ) ;
     end;
+
 
 procedure TRecordFrm.SetRecordingMode( iMode : Integer ) ;
 // -------------------------
@@ -2400,7 +2435,7 @@ begin
             end ;
         end ;
 
-     UpdateDisplay ;
+     UpdateDisplay(true) ;
 
      end ;
 
@@ -2438,7 +2473,7 @@ begin
           Main.SESLabIO.ADCNumChannels := Round(edNumChannels.Value) ;
           edNumChannels.Value := Main.SESLabIO.ADCNumChannels ;
           UpdateSamplingInterval ;
-          UpdateDisplay ;
+          UpdateDisplay(true) ;
           end ;
      end;
 
@@ -2450,7 +2485,7 @@ begin
      if Key = #13 then begin
         UpdateNumSamples ;
         UpdateSamplingInterval ;
-        UpdateDisplay ;
+        UpdateDisplay(true) ;
         end ;
      end;
 
@@ -2830,7 +2865,7 @@ begin
     ADCDetected := Nil ;
     ADCCircular := Nil ;
     ADCDisplay := Nil ;
-
+    LeakSum := Nil ;
     end;
 
 

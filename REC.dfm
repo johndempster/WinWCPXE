@@ -936,11 +936,12 @@ object RecordFrm: TRecordFrm
           Height = 20
           OnKeyPress = edPreTriggerKeyPress
           AutoSize = False
-          Text = ' 0 %'
+          Text = ' 10 %'
+          Value = 0.100000001490116100
           Scale = 100.000000000000000000
           Units = '%'
           NumberFormat = '%.3g'
-          LoLimit = -1.000000015047466E30
+          LoLimit = 0.000000000000000000
           HiLimit = 1.000000000000000000
         end
       end

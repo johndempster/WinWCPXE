@@ -119,6 +119,7 @@ unit AmpModule;
 //                 Amp #2 (higher s.n) Ch.1 1.Primary->AI4,Secondary->AI5, Ch.2 1.Primary->AI6,Secondary->AI7
 // 05.05.15 Multiclamp 700A/B Now correctly allocates Channel 1 of second Multiclamp 700A/B as Amplifier #3
 // 29.07.15 Dagan BVC-700A added.
+// 26.08.15 Optopatch secondary channel gain and units now set correctly
 
 interface
 
@@ -174,8 +175,7 @@ const
      amDaganCA1B = 37 ;
      amHekaEPC9 = 38 ;
      amNPIELC03SX = 39 ;
-     amDaganBVC700A = 40
-     ;
+     amDaganBVC700A = 40 ;
      NumAmplifiers = 41 ;
 
      // Patch clamp mode flags
@@ -3857,8 +3857,8 @@ begin
           // Voltage-clamp mode
           ChanName := 'Vm' ;
           AddAmplifierNumber( ChanName, iChan ) ;
-          ChanUnits := FSecondaryChannelUnitsCC[AmpNumber] ;
-          ChanCalFactor := FSecondaryChannelScaleFactorX1GainCC[AmpNumber]
+          ChanUnits := FSecondaryChannelUnits[AmpNumber] ;
+          ChanCalFactor := FSecondaryChannelScaleFactorX1Gain[AmpNumber]
           end
        else begin
           // Current-clamp mode

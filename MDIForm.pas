@@ -636,6 +636,13 @@ unit MDIForm;
                       (rather than just Ymin) (scopedisplay.pas).
    V5.0.6 12.08.15    dd1440.pas 64/32 bit version of wdapi1140.dll created when O/S detected
                       Now correctly loads dd1440.dll
+   V5.0.7 14.08.16    export.pas: Export of average, leak subtracted and driving function now works again
+                      rec.pas: Large spurious values appearing in first samples of leak subtracted records fixed
+   V5.0.8 21.08.15    dd1400,dd1550,dd1550A.pas: DLL files now acquired from PCLAMP or AXOCLAMP folders and copied
+                      to settings folder C:\Users\Public\Documents\SESLABIO
+                      Units of voltage channel of OptoPatch amplifier now correct.
+                      Record: Display no longer erased when changing between linked protocols as
+                      as no. channels/samples does not change.
   =======================================================================}
 
 interface
@@ -881,7 +888,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.0.6';
+      ProgVersion := 'V5.0.8';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
@@ -2769,7 +2776,7 @@ procedure TMain.NewFileUpdate ;
   ----------------------------------------------- }
 begin
      if FormExists( 'ReplayFrm' ) then ReplayFrm.NewFile ;
-     if FormExists( 'RecordFrm' ) then RecordFrm.UpdateDisplay ;
+     if FormExists( 'RecordFrm' ) then RecordFrm.UpdateDisplay(False) ;
      if FormExists( 'MeasureFrm' ) then MeasureFrm.NewFile ;
      if FormExists( 'FitFrm' ) then FitFrm.NewFile ;
      if FormExists( 'AvgFrm' ) then AvgFrm.NewFile ;

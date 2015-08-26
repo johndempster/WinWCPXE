@@ -30,6 +30,7 @@ unit exportUnit;
   30.06.15 ... IGOR IBW files can now be exported as individual records
   13.07.15 ... WordWrap set to False to prevent file names being split across lines in
                export file selection list.
+  14.08.15 ... Export of average, leak subtracted and driving function now works
   }
 interface
 
@@ -264,7 +265,7 @@ begin
      for iRec := StartAt to EndAt do begin
 
          // Read record
-         GetRecord(RawFH,RH,iRec,InBuf^) ;
+         GetRecord(FH,RH,iRec,InBuf^) ;
 
          // Skip if record rejected
          if not ANSIContainsText(RH.Status,'ACCEPTED') then continue ;
