@@ -260,8 +260,6 @@ object PrintRecFrm: TPrintRecFrm
       Left = 0
       Top = 0
       Caption = 'Print'
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox1: TGroupBox
         Left = 4
         Top = 2

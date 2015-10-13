@@ -941,7 +941,7 @@ object RecordFrm: TRecordFrm
           Scale = 100.000000000000000000
           Units = '%'
           NumberFormat = '%.3g'
-          LoLimit = 0.000000000000000000
+          LoLimit = -1.000000015047466E30
           HiLimit = 1.000000000000000000
         end
       end

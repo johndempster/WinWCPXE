@@ -79,6 +79,7 @@ unit Sealtest;
   21.01.14 .. Sweep shuts down on FormDeactivate to avoid access violations
               when EPC9PanelFrm title bar held down.
   09.07.15 .. DACScale arrays increased to cope with up to 128 analog output channels
+  02.10.15 .. Zap pulse added to panel
   ==================================================}
 
 interface
@@ -184,6 +185,12 @@ type
     edCMembrane1: TValidatedEdit;
     edSmoothingFactor: TValidatedEdit;
     Label22: TLabel;
+    ZapGrp: TGroupBox;
+    bzap: TButton;
+    edZapAmplitude: TValidatedEdit;
+    edZapDuration: TValidatedEdit;
+    Label23: TLabel;
+    Label24: TLabel;
     procedure TimerTimer(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure edHoldingVoltage1KeyPress(Sender: TObject; var Key: Char);
@@ -215,6 +222,9 @@ type
     procedure cbNumChannelsChange(Sender: TObject);
     procedure edSmoothingFactorKeyPress(Sender: TObject; var Key: Char);
     procedure FormCreate(Sender: TObject);
+    procedure bzapClick(Sender: TObject);
+    procedure edZapAmplitudeKeyPress(Sender: TObject; var Key: Char);
+    procedure edZapDurationKeyPress(Sender: TObject; var Key: Char);
   private
     { Private declarations }
   Initialised : Boolean ;
@@ -339,7 +349,7 @@ begin
              end ;
           end;
 
-     ClientWidth := CellGrp.Left + CellGrp.Width + 5 ;
+     ClientWidth := ZapGrp.Left + ZapGrp.Width + 5 ;
 
      { Get pointers to start of lab. interface A/D and D/A buffer }
      Main.SESLabIO.GetADCBuffer( ADC ) ;
@@ -421,6 +431,9 @@ begin
      edHoldingVoltage1.Value := Settings.SealTest.HoldingVoltage1 ;
      edHoldingVoltage2.Value := Settings.SealTest.HoldingVoltage2 ;
      edHoldingVoltage3.Value := Settings.SealTest.HoldingVoltage3 ;
+
+     edZapAmplitude.Value := Settings.SealTest.ZapAmplitude ;
+     edZapDuration.Value := Settings.SealTest.ZapDuration ;
 
      { Select test pulse to use }
      case Settings.SealTest.Use of
@@ -677,9 +690,11 @@ begin
     ChangeUnits( edHoldingVoltage1, Units, Scale ) ;
     ChangeUnits( edHoldingVoltage2, Units, Scale ) ;
     ChangeUnits( edHoldingVoltage3, Units, Scale ) ;
+
     ChangeUnits( edPulseHeight1, Units, Scale ) ;
     ChangeUnits( edPulseHeight2, Units, Scale ) ;
     ChangeUnits( edPulseHeight3, Units, Scale ) ;
+    ChangeUnits( edZapAmplitude, Units, Scale ) ;
 
     end ;
 
@@ -769,9 +784,6 @@ var
    HoldDACLevel : Array[0..MaxAmplifiers-1] of Integer ;
 begin
 
-     // Select output channel
-     //TestDAC := cbDACOut.ItemIndex ;
-
      { Select test pulse to use }
      case Settings.SealTest.Use of
           2 : begin
@@ -788,6 +800,10 @@ begin
               end ;
           end ;
 
+     if not bZap.Enabled then begin
+        Settings.SealTest.PulseHeight := edZapAmplitude.Value ;
+        end;
+
      { D/A channel voltage -> bits scaling factors }
      for ch := 0 to Main.SESLabIO.DACMaxChannels-1 do begin
          DACScale[ch] := Main.SESLabIO.DACMaxValue/Main.SESLabIO.DACVoltageRange[ch] ;
@@ -795,6 +811,12 @@ begin
 
      { Test pulse duration and recording sweep length }
      TestPulse.Duration := Settings.SealTest.PulseWidth ;
+
+     if not bZap.Enabled then begin
+        TestPulse.Duration := edZapDuration.Value ;
+        bZap.Enabled := True ;
+        end;
+
      TestPulse.TStart := Max(TestPulse.Duration*0.15,0.002) ;
      TestPulse.TEnd := TestPulse.TStart + TestPulse.Duration ;
      TestPulse.RecordLength := TestPulse.TEnd + TestPulse.TStart*1.5 ;
@@ -1209,7 +1231,7 @@ procedure TSealTestFrm.edHoldingVoltage1KeyPress(Sender: TObject; var Key: Char)
   Set Voltage clamp holding voltage #1
   ------------------------------------}
 begin
-     if key = char(13) then begin
+     if key = #13 then begin
          Settings.SealTest.HoldingVoltage1 := edHoldingVoltage1.Value ;
         ResetReadout := True ;
         end ;
@@ -1222,7 +1244,7 @@ procedure TSealTestFrm.edHoldingVoltage2KeyPress(Sender: TObject; var Key: Char)
   Set Voltage clamp holding voltage #2
   ------------------------------------}
 begin
-     if key = char(13) then begin
+     if key = #13 then begin
         Settings.SealTest.HoldingVoltage2 := edHoldingVoltage2.Value ;
         ResetReadout := True ;
         end ;
@@ -1236,7 +1258,7 @@ procedure TSealTestFrm.EdHoldingVoltage3KeyPress(Sender: TObject;
   Set Voltage clamp holding voltage #3
   ------------------------------------}
 begin
-     if key = char(13) then begin
+     if key = #13 then begin
         Settings.SealTest.HoldingVoltage3 := edHoldingVoltage3.Value ;
         ResetReadout := True ;
         end ;
@@ -1251,7 +1273,7 @@ begin
      { Set holding voltage and pulse height to group #1 }
      Settings.SealTest.Use := 1 ;
      Settings.SealTest.HoldingVoltage1 := edHoldingVoltage1.Value ;
-     Settings.SealTest.PulseHeight1 :=edPulseHeight1.Value ;
+     Settings.SealTest.PulseHeight1 := edPulseHeight1.Value ;
      end;
 
 
@@ -1311,7 +1333,7 @@ procedure TSealTestFrm.edPulseWidthKeyPress(Sender: TObject; var Key: Char);
   Set width of seal test pulse
   ----------------------------}
 begin
-     if key = chr(13) then begin
+     if key = #13 then begin
         Settings.SealTest.PulseWidth := edPulseWidth.Value ;
         { Note. Force a re-start of D/A waveform so that D/A cycle
           time is updated }
@@ -1420,6 +1442,7 @@ begin
      VoltsGrp.Top := ClientHeight - VoltsGrp.Height - 5 ;
      CurrentGrp.Top := VoltsGrp.Top ;
      CellGrp.Top := VoltsGrp.Top ;
+     ZapGrp.Top := VoltsGrp.Top ;
 
      ckAutoScale.Top := VoltsGrp.Top - ckAutoScale.Height - 5 ;
      scDisplay.Width := Max(ClientWidth - scDisplay.Left - 5,2) ;
@@ -1496,6 +1519,13 @@ begin
         end ;
      end;
 
+
+procedure TSealTestFrm.bzapClick(Sender: TObject);
+//
+/// Zap button clicked
+begin
+    bZap.Enabled := False ;
+    end;
 
 procedure TSealTestFrm.edAmplifierGainKeyPress(Sender: TObject;
   var Key: Char);
@@ -1754,6 +1784,26 @@ begin
     if Key = #13 then begin
        Settings.SealTest.SmoothingFactor := 1.0 / edSmoothingFactor.Value
        end ;
+     end;
+
+procedure TSealTestFrm.edZapAmplitudeKeyPress(Sender: TObject; var Key: Char);
+// ---------------------
+// Zap amplitude changed
+// ---------------------
+begin
+     if key = #13 then begin
+        Settings.SealTest.ZapAmplitude := edZapAmplitude.Value ;
+        end ;
+     end;
+
+procedure TSealTestFrm.edZapDurationKeyPress(Sender: TObject; var Key: Char);
+// ---------------------
+// Zap duration changed
+// ---------------------
+begin
+     if key = #13 then begin
+        Settings.SealTest.ZapDuration := edZapDuration.Value ;
+        end ;
      end;
 
 end.

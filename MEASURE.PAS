@@ -78,6 +78,7 @@ unit Measure;
   09.08.13 .. ADC now allocated by GetMem()
   25.06.14 .. Access violations prevented when first point in record is peak
   04.08.15 .. Records now be superimposed when superimpose traces selected
+  29.09.15 .. Readout cursor no longer lost when Lock Cursors clicked.
   ==========================================================================}
 interface
 
@@ -3313,6 +3314,8 @@ begin
 
         end ;
 
+    Cursors.R := scDisplay.AddVerticalCursor(AllChannels,clGreen,'?y?t') ;
+    scDisplay.VerticalCursors[Cursors.R] := FH.NumSamples div 2 ;
     Cursors.T0 := scDisplay.AddVerticalCursor(AllChannels,clGreen,'t=0') ;
     scDisplay.VerticalCursors[Cursors.T0] := T0CursorPosition ;
 

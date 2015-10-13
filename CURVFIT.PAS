@@ -458,9 +458,9 @@ begin
            { Set initial position of alignment cursors }
            scDisplay.ClearVerticalCursors ;
            Cursors.T0 := scDisplay.AddVerticalCursor(AllChannels,clGreen,'t=0') ;
-           Cursors.C0 := scDisplay.AddVerticalCursor(AllChannels,clOlive,'?t0') ;
+           Cursors.C0 := scDisplay.AddVerticalCursor(AllChannels,clOlive,'?t') ;
            scDisplay.VerticalCursors[Cursors.C0] := Round(FH.NumSamples*0.1) ;
-           Cursors.C1 := scDisplay.AddVerticalCursor(AllChannels,clOlive,'?t1') ;
+           Cursors.C1 := scDisplay.AddVerticalCursor(AllChannels,clOlive,'?t') ;
            scDisplay.VerticalCursors[Cursors.C1] := Round(FH.NumSamples*0.9) ;
            scDisplay.LinkVerticalCursors( Cursors.C0, Cursors.C1 ) ;
 

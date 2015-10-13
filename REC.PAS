@@ -117,6 +117,11 @@ const
      rmFreeRun = 1 ;
      rmExtTrig = 2 ;
      rmDetect = 3 ;
+    DCL_None = 0 ;
+    DCL_Initialise = 1 ;
+    DCL_NextRecord = 2 ;
+    DCL_NextProtocol = 3 ;
+
 
 type
 
@@ -328,6 +333,8 @@ TCursors = record
     ProtocolFileName : String ;         // Currently selected stimulus protocol file
 
     DataFileIndex : Integer ;
+
+    DCLAMPAction : Integer ;            // Dynamic clamp action required
 
     procedure SaveSweep ;
     procedure InitialiseEventDetector ;
@@ -799,10 +806,8 @@ begin
                   { Save sweep data to file }
                   SaveSweep ;
 
-                  // If Dynamic clamp in use, update to next Gmax value
-                  if Main.FormExists('DCLAMPFrm') then begin
-                     DCLAMPFrm.NextStep(false) ;
-                     end;
+                  // If Dynamic clamp in use, inform it that a record has been collected
+                  if Main.FormExists('DCLAMPFrm') then DCLAMPAction := DCL_NextRecord ;
 
                   { If in repeated sweep modes request another sweep
                     (unless recording aborted by user) }
@@ -821,6 +826,10 @@ begin
                      Stimulator.NextWaveform ;
 
                      if Stimulator.EndOfProtocol then begin
+
+                        // If Dynamic clamp in use, update to next Gmax value
+                        if Main.FormExists('DCLAMPFrm') then DCLAMPAction := DCL_NextProtocol ;
+
                         { If at the end of the current set of voltage pulses
                           for the current protocol either load and begin
                           the next protocol in a linked sequence or list OR
@@ -863,6 +872,21 @@ begin
               end ;
 
           end ;
+
+        case DCLAMPAction of
+             DCL_Initialise : begin
+               DCLAMPFrm.Initialise ;
+               DCLAMPAction := DCL_None ;
+               end;
+             DCL_NextRecord : Begin
+               DCLAMPFrm.NextRecord ;
+               DCLAMPAction := DCL_None ;
+               end;
+             DCL_NextProtocol : Begin
+               DCLAMPFrm.NextProtocol ;
+               DCLAMPAction := DCL_None ;
+               end;
+             end;
 
         UpdateStopwatch ;
         TimerBusy := False ;
@@ -1039,9 +1063,7 @@ begin
     RestoreIdleState ;
 
     // If Dynamic clamp in use, Reset to initial settings
-    if Main.FormExists('DCLAMPFrm') then begin
-       DCLAMPFrm.NextStep(True) ;
-       end;
+    if Main.FormExists('DCLAMPFrm') then DCLAMPAction := DCL_Initialise ;
 
     end ;
 
@@ -1667,7 +1689,7 @@ begin
 
      // If Dynamic clamp in use, Select first Gmax value in sequence
      if Main.FormExists('DCLAMPFrm') then begin
-        DCLAMPFrm.NextStep(True) ;
+  //      DCLAMPFrm.Initialise ;
         end;
 
      StartSweep ;
@@ -2866,6 +2888,7 @@ begin
     ADCCircular := Nil ;
     ADCDisplay := Nil ;
     LeakSum := Nil ;
+    DCLAMPAction := DCL_None ;
     end;
 
 

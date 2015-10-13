@@ -12,7 +12,7 @@ interface
 
 uses WinTypes, WinProcs, Classes, Graphics, Forms, Controls, Buttons,
   StdCtrls, ExtCtrls,Printers,Global,Shared, Grids, SysUtils, Spin, fileio,
-  ValEdit,  ScopeDisplay, ChartDisplay, ValidatedEdit, Dialogs ;
+  ValEdit,  ScopeDisplay, ValidatedEdit, Dialogs ;
 
 type
   TDestination = (dePrinter,deClipboard) ;
@@ -295,7 +295,6 @@ function TPrintRecFrm.GetCurrentPrinterName : string ;
 const
     MaxSize = 256 ;
 var
-   n,ch,Row : Integer ;
    DeviceName,DeviceDriver,Port : PChar ;
    DeviceMode : THandle ;
 begin
@@ -303,7 +302,7 @@ begin
         GetMem( DeviceDriver, MaxSize*SizeOf(Char) ) ;
         GetMem( Port, MaxSize*SizeOf(Char) ) ;
         {$IF CompilerVersion > 7.0}
-        Printer.GetPrinter( DeviceName, DeviceDriver,Port,DeviceMode );
+        Printer.GetPrinter( DeviceName, DeviceDriver,Port, DeviceMode );
         {$ELSE}
         Printer.GetPrinter( DeviceName, DeviceDriver,Port, DeviceMode );
         {$ENDIF}

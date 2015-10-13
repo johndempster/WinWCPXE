@@ -81,6 +81,7 @@ unit Fileio;
   26.06.14 ...
   20.03.15 ... VERPROG= added (WinWCP program version which created file)
   24.03.15 ... 'FNINCDATE=', Settings.FileNameIncludeDate 'FNPREFIX=', Settings.FileNamePrefix added
+  02/10/15 ..  'STZAPA=', Settings.SealTest.ZapAmplitude'STZAPD=', Settings.SealTest.ZapDuration added to INI file
 
   }
 
@@ -607,6 +608,8 @@ begin
            ReadLogical( Header, 'STASC=', Settings.SealTest.AutoScale ) ;
            ReadLogical( Header, 'STFRU=', Settings.SealTest.FreeRun ) ;
            ReadFloat( Header, 'STSMF=', Settings.SealTest.SmoothingFactor ) ;
+           ReadFloat( Header, 'STZAPA=', Settings.SealTest.ZapAmplitude ) ;
+           ReadFloat( Header, 'STZAPD=', Settings.SealTest.ZapDuration ) ;
 
            { Note. For compatibility with older Strathclyde
              programs 'ADCVoltageRange' is written to file
@@ -903,6 +906,8 @@ begin
      AppendLogical( Header, 'STASC=', Settings.SealTest.AutoScale ) ;
      AppendLogical( Header, 'STFRU=', Settings.SealTest.FreeRun ) ;
      AppendFloat( Header, 'STSMF=', Settings.SealTest.SmoothingFactor ) ;
+     AppendFloat( Header, 'STZAPA=', Settings.SealTest.ZapAmplitude ) ;
+     AppendFloat( Header, 'STZAPD=', Settings.SealTest.ZapDuration ) ;
 
      AppendInt( Header, 'NC=', RawFH.NumChannels ) ;
 

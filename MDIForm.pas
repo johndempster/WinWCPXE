@@ -643,6 +643,9 @@ unit MDIForm;
                       Units of voltage channel of OptoPatch amplifier now correct.
                       Record: Display no longer erased when changing between linked protocols as
                       as no. channels/samples does not change.
+   V5.0.9 02.10.15    DCLAMP updated: time constant and steady-state activation v1/2s can be incremented
+                      individually. Incrementing after protocol added.
+                      Zap button added to seal test.
   =======================================================================}
 
 interface
@@ -888,7 +891,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.0.8';
+      ProgVersion := 'V5.0.9';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
@@ -1052,6 +1055,9 @@ begin
      Settings.SealTest.AutoScale := True ;
      Settings.SealTest.DisplayScale := 1 ;
      Settings.SealTest.SmoothingFactor := 1.0 ;
+
+     Settings.SealTest.ZapAmplitude := 0.2 ;
+     Settings.SealTest.ZapDuration := 0.1 ;
      
      { Set flag indicating this is the first sweep, to force an autoscale }
      Settings.SealTest.FirstSweep := True ;
@@ -1662,7 +1668,9 @@ var
    i : Integer ;
 begin
      { Close all child windows }
-     for i := 0 to Main.MDIChildCount-1 do Main.MDICHildren[i].Close ;
+     for i := 0 to Main.MDIChildCount-1 do begin
+         if Main.MDICHildren[i].Name <> 'DCLAMPFrm' then Main.MDICHildren[i].Close ;
+         end;
 
      Application.ProcessMessages ;
 

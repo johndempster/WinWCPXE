@@ -3,7 +3,7 @@ object SealTestFrm: TSealTestFrm
   Top = 186
   Caption = 'Pipette Seal Test / Signal Monitor'
   ClientHeight = 655
-  ClientWidth = 653
+  ClientWidth = 730
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
   Font.Color = clBlack
@@ -383,10 +383,6 @@ object SealTestFrm: TSealTestFrm
         Font.Name = 'Arial'
         Font.Style = [fsBold]
         ParentFont = False
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object Label9: TLabel
           Left = 4
           Top = 16
@@ -416,10 +412,6 @@ object SealTestFrm: TSealTestFrm
       end
       object CellTab: TTabSheet
         Caption = 'Cell (G)'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object Label15: TLabel
           Left = 12
           Top = 4
@@ -523,10 +515,6 @@ object SealTestFrm: TSealTestFrm
       object CellRTab: TTabSheet
         Caption = 'Cell (R)'
         ImageIndex = 2
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object Label18: TLabel
           Left = 12
           Top = 4
@@ -883,6 +871,7 @@ object SealTestFrm: TSealTestFrm
       Top = 34
       Width = 65
       Height = 20
+      Hint = 'Pulse #1: holding voltage'
       OnKeyPress = edHoldingVoltage1KeyPress
       AutoSize = False
       Text = ' 0 mV'
@@ -897,8 +886,10 @@ object SealTestFrm: TSealTestFrm
       Top = 58
       Width = 65
       Height = 20
+      Hint = 'Pulse #1: Amplitude'
       OnKeyPress = edPulseHeight1KeyPress
       AutoSize = False
+      ShowHint = True
       Text = ' 0 mV'
       Scale = 1.000000000000000000
       Units = 'mV'
@@ -911,6 +902,7 @@ object SealTestFrm: TSealTestFrm
       Top = 106
       Width = 65
       Height = 20
+      Hint = 'Pulse #2: holding voltage'
       OnKeyPress = edHoldingVoltage2KeyPress
       AutoSize = False
       Text = ' 0 mV'
@@ -925,8 +917,10 @@ object SealTestFrm: TSealTestFrm
       Top = 130
       Width = 65
       Height = 20
+      Hint = 'Pulse #2: Amplitude'
       OnKeyPress = edPulseheight2KeyPress
       AutoSize = False
+      ShowHint = True
       Text = ' 0 mV'
       Scale = 1.000000000000000000
       Units = 'mV'
@@ -936,9 +930,10 @@ object SealTestFrm: TSealTestFrm
     end
     object edHoldingVoltage3: TValidatedEdit
       Left = 72
-      Top = 180
+      Top = 178
       Width = 65
       Height = 20
+      Hint = 'Pulse #3: holding voltage'
       OnKeyPress = EdHoldingVoltage3KeyPress
       AutoSize = False
       Text = ' 0 mV'
@@ -949,18 +944,20 @@ object SealTestFrm: TSealTestFrm
       HiLimit = 1.000000015047466E29
     end
     object edPulseWidth: TValidatedEdit
-      Left = 80
-      Top = 244
+      Left = 78
+      Top = 243
       Width = 57
       Height = 20
+      Hint = 'Pulse duration'
       OnKeyPress = edPulseWidthKeyPress
       AutoSize = False
+      ShowHint = True
       Text = ' 100 ms'
       Value = 0.100000001490116100
       Scale = 1000.000000000000000000
       Units = 'ms'
       NumberFormat = '%.4g'
-      LoLimit = -1.000000015047466E30
+      LoLimit = 0.000000000000000000
       HiLimit = 1.000000015047466E29
     end
     object edPulseheight3: TValidatedEdit
@@ -968,8 +965,10 @@ object SealTestFrm: TSealTestFrm
       Top = 204
       Width = 65
       Height = 20
+      Hint = 'Pulse #3: Amplitude'
       OnKeyPress = edPulseheight3KeyPress
       AutoSize = False
+      ShowHint = True
       Text = ' 0 mV'
       Scale = 1.000000000000000000
       Units = 'mV'
@@ -1133,6 +1132,91 @@ object SealTestFrm: TSealTestFrm
       TabOrder = 0
       Text = 'cbNumChannels'
       OnChange = cbNumChannelsChange
+    end
+  end
+  object ZapGrp: TGroupBox
+    Left = 575
+    Top = 402
+    Width = 89
+    Height = 223
+    Caption = ' Zap '
+    TabOrder = 9
+    object Label23: TLabel
+      Left = 8
+      Top = 41
+      Width = 72
+      Height = 20
+      Caption = 'Amplitude'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -12
+      Font.Name = 'Arial'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label24: TLabel
+      Left = 8
+      Top = 84
+      Width = 72
+      Height = 15
+      Caption = 'Pulse width'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -12
+      Font.Name = 'Arial'
+      Font.Style = []
+      ParentFont = False
+    end
+    object bzap: TButton
+      Left = 8
+      Top = 18
+      Width = 73
+      Height = 17
+      Hint = 'Apply zap pulse to perforate membrane and form whole-cell patch'
+      Caption = 'Zap'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -12
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+      OnClick = bzapClick
+    end
+    object edZapAmplitude: TValidatedEdit
+      Left = 8
+      Top = 58
+      Width = 72
+      Height = 20
+      Hint = 'Zap pulse amplitude'
+      OnKeyPress = edZapAmplitudeKeyPress
+      AutoSize = False
+      ShowHint = True
+      Text = ' 0 mV'
+      Scale = 1.000000000000000000
+      Units = 'mV'
+      NumberFormat = '%.4g'
+      LoLimit = -1.000000015047466E29
+      HiLimit = 1.000000015047466E29
+    end
+    object edZapDuration: TValidatedEdit
+      Left = 8
+      Top = 100
+      Width = 72
+      Height = 20
+      Hint = 'Zap pulse width'
+      OnKeyPress = edZapDurationKeyPress
+      AutoSize = False
+      ShowHint = True
+      Text = ' 0 ms'
+      Value = 0.000000000000000000
+      Scale = 1000.000000000000000000
+      Units = 'ms'
+      NumberFormat = '%.4g'
+      LoLimit = 0.000000000000000000
+      HiLimit = 1.000000015047466E29
     end
   end
   object Timer: TTimer

@@ -8,6 +8,7 @@ unit Global;
   07/12/9 ... Non-stationary variance settings added to WCP file header
   24/3/10 ... Now supports 128 channels, file and record headers increased to 10Kbytes byte
   22/8/11 ... Settings.NumHorizontalGridLines & NumVerticalGridLines removed
+  02/10/15 .. ZapAmplitude & ZapDuration added to TSealTest
 }
 
 interface
@@ -255,6 +256,8 @@ TSealTest = record
           FreeRun : Boolean ;
           FirstSweep : Boolean ;
           SmoothingFactor : Single ;
+          ZapAmplitude : single ;
+          ZapDuration : single ;
           end ;
 
 TVCommand = record

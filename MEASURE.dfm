@@ -29,7 +29,7 @@ object MeasureFrm: TMeasureFrm
     Top = 2
     Width = 639
     Height = 631
-    ActivePage = XYPlotTab
+    ActivePage = AnalysisTab
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -12
@@ -40,10 +40,6 @@ object MeasureFrm: TMeasureFrm
     OnChange = PageChange
     object AnalysisTab: TTabSheet
       Caption = 'Analysis'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object scDisplay: TScopeDisplay
         Left = 148
         Top = 6
@@ -1001,10 +997,6 @@ object MeasureFrm: TMeasureFrm
     end
     object HistogramTab: TTabSheet
       Caption = 'Histogram'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object plHist: TXYPlotDisplay
         Left = 152
         Top = 8
@@ -1319,10 +1311,6 @@ object MeasureFrm: TMeasureFrm
     end
     object SummaryTab: TTabSheet
       Caption = 'Summary'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object SummaryGrp: TGroupBox
         Left = 4
         Top = 4
@@ -1565,10 +1553,6 @@ object MeasureFrm: TMeasureFrm
     end
     object TablesTab: TTabSheet
       Caption = 'Tables'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Table: TStringGrid
         Left = 145
         Top = 4
