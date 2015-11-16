@@ -120,6 +120,7 @@ unit AmpModule;
 // 05.05.15 Multiclamp 700A/B Now correctly allocates Channel 1 of second Multiclamp 700A/B as Amplifier #3
 // 29.07.15 Dagan BVC-700A added.
 // 26.08.15 Optopatch secondary channel gain and units now set correctly
+// 14.10.15 Axoclamp 900A no longer in DEMO mode, diagnostic code added
 
 interface
 
@@ -440,12 +441,35 @@ TAXC_Signal = record
     Valid : Boolean ;
     end ;
 
+TAXC_MeterData = packed record
+   // meter values
+   Meter1 : double ;           // value of meter 1 (SI units)
+   Meter2 : double ;           // value of meter 2 (SI units)
+   Meter3 : double ;           // value of meter 3 (SI units)
+   Meter4 : double ;           // value of meter 4 (SI units)
+   bOvldMeter1: LongBool ;       // meter 1 overload status
+   bOvldMeter2: LongBool ;       // meter 2 overload status
+   bOvldMeter3: LongBool ;       // meter 3 overload status
+   bOvldMeter4: LongBool ;       // meter 4 overload status
+
+   // status
+   bPowerFail: LongBool ;        // power loss since last inquiry ?
+   bPresenceChan1: LongBool ;    // channel 1 headstage present ?
+   bPresenceChan2: LongBool ;    // channel 2 headstage present ?
+   bPresenceAux1: LongBool ;     // auxiliary 1 headstage present ?
+   bPresenceAux2: LongBool ;     // auxiliary 2 headstage present ?
+   bIsVClampChan1: LongBool ;    // channel 1 operating in VClamp mode ?
+   bIsVClampChan2: LongBool ;    // channel 2 operating in VClamp mode ?
+   bOscKillerChan1: LongBool ;   // channel 1 oscillation killer active?
+   bOscKillerChan2: LongBool ;   // channel 2 oscillation killer active ?
+   end ;
+
 // Create the Axoclamp device object and return a handle.
 
 TAXC_CheckAPIVersion = function(QueryVersion : pANSIChar ) : Boolean ;
 
 TAXC_CreateHandle = function(
-                    bDemo : Boolean ;
+                    bDemo : LongBool ;
                     var Error : Integer ) : Integer ; stdcall ;
 
 // Destroy the Axoclamp device object specified by handle.
@@ -459,39 +483,45 @@ TAXC_FindFirstDevice = function(
                        AxHandle : Integer ;
                        pszSerialNum : pANSIChar ;
                        uBufSize : Integer ;
-                       var Error : Integer ) : Boolean ; stdcall ;
+                       var Error : Integer ) : LongBool ; stdcall ;
 
 // Find next Axoclamp 900x and return device info, returns FALSE when all Axoclamp 900x devices have been found.
 TAXC_FindNextDevice = function(
                        AxHandle : Integer ;
                        pszSerialNum : pANSIChar ;
                        uBufSize : Integer ;
-                       var Error : Integer ) : Boolean ; stdcall ;
+                       var Error : Integer ) : LongBool ; stdcall ;
 
 // Open Axoclamp 900x device.
 TAXC_OpenDevice = function(
                   AxHandle : Integer ;
                   pszSerialNum : pANSIChar ;
-                  bReadHardware : Boolean ;
-                  var Error : Integer ) : Boolean  ; stdcall ;
+                  bReadHardware : LongBool ;
+                  var Error : Integer ) : LongBool  ; stdcall ;
 
 // Close Axoclamp 900x device.
 TAXC_CloseDevice = function(
                    AxHandle : Integer ;
-                   var Error : Integer ) : Boolean  ; stdcall ;
+                   var Error : Integer ) : LongBool  ; stdcall ;
 
 // Get Axoclamp 900x device serial number.
 TAXC_GetSerialNumber = function(
                        AxHandle : Integer ;
                        pszSerialNum : pANSIChar ;
                        uBufSize : Integer ;
-                       var Error : Integer ) : Boolean  ; stdcall ;
+                       var Error : Integer ) : LongBool  ; stdcall ;
 
 // Is an Axoclamp 900x device open?
 TAXC_IsDeviceOpen = function(
                      AxHandle : Integer ;
-                     var pbOpen : Boolean ;
-                     var Error : Integer ) : Boolean  ; stdcall ;
+                     var pbOpen : LongBool ;
+                     var Error : Integer ) : LongBool  ; stdcall ;
+
+// Is an Axoclamp 900x device open?
+TAXC_IsDemo = function(
+                     AxHandle : Integer ;
+                     var pbOpen : LongBool ;
+                     var Error : Integer ) : LongBool  ; stdcall ;
 
 // Get scaled output signal
 TAXC_GetScaledOutputSignal = function(
@@ -499,7 +529,7 @@ TAXC_GetScaledOutputSignal = function(
                              var Signal : Integer ;
                              Channel : Integer ;
                              Mode : Integer ;
-                             var Error : Integer) : Boolean  ; stdcall ;
+                             var Error : Integer) : LongBool  ; stdcall ;
 
 // Set scaled output signal
 TAXC_SetScaledOutputSignal = function(
@@ -507,7 +537,7 @@ TAXC_SetScaledOutputSignal = function(
                              Signal : Integer ;
                              Channel : Integer ;
                              Mode : Integer ;
-                             var Error : Integer) : Boolean  ; stdcall ;
+                             var Error : Integer) : LongBool  ; stdcall ;
 
 
 // Get scaled output gain
@@ -516,7 +546,7 @@ TAXC_GetScaledOutputGain = function(
                            var Gain : Double ;
                            Channel : Integer ;
                            Mode : Integer ;
-                           var Error : Integer) : Boolean  ; stdcall ;
+                           var Error : Integer) : LongBool  ; stdcall ;
 
 // Get scaled output gain
 TAXC_SetScaledOutputGain = function(
@@ -524,45 +554,50 @@ TAXC_SetScaledOutputGain = function(
                            Gain : Double ;
                            Channel : Integer ;
                            Mode : Integer ;
-                           var Error : Integer) : Boolean  ; stdcall ;
+                           var Error : Integer) : LongBool  ; stdcall ;
 
 
 TAXC_GetMode = function(
                AxHandle : Integer ;
                Channel : Integer ;
                var Mode : Integer ;
-               var Error : Integer) : Boolean  ; stdcall ;
+               var Error : Integer) : LongBool  ; stdcall ;
 
 TAXC_GetDeviceName = function(
                      AxHandle : Integer ;
                      Name : pANSIChar ;
                      BufSize : Integer ;
-                     var Error : Integer ) : Boolean  ; stdcall ;
+                     var Error : Integer ) : LongBool  ; stdcall ;
 
 TAXC_SetMode = function(
                AxHandle : Integer ;
                Channel : Integer ;
                Mode : Integer ;
-               var Error : Integer ) : Boolean  ; stdcall ;
+               var Error : Integer ) : LongBool  ; stdcall ;
 
 TAXC_BuildErrorText = function(
                   AxHandle : Integer ;
                   ErrorNum : Integer ;
                   ErrorText : pANSIChar ;
-                  MaxLen : Integer ) : Boolean  ; stdcall ;
+                  MaxLen : Integer ) : LongBool  ; stdcall ;
 
 TAXC_GetSignalScaleFactor = function(
                             AxHandle : Integer ;
                             var ScaleFactor : Double ;
                             Signal : Integer ;
-                            var Error : Integer) : Boolean  ; stdcall ;
+                            var Error : Integer) : LongBool  ; stdcall ;
 
 TAXC_GetHeadstageType = function(
                         AxHandle : Integer ;
                         var HeadstageType : Integer ;
                         Channel : Integer ;
-                        Auxiliary : Boolean ;
-                        var Error : Integer ) : Boolean  ; stdcall ;
+                        Auxiliary : LongBool ;
+                        var Error : Integer ) : LongBool  ; stdcall ;
+
+TAXC_AcquireMeterData = function(
+                        AxHandle : Integer ;
+                        var AXC_MeterData : TAXC_MeterData ;
+                        var Error : Integer ) : LongBool  ; stdcall ;
 
   TAmplifier = class(TDataModule)
     procedure AmplifierCreate(Sender: TObject);
@@ -901,6 +936,10 @@ TAXC_GetHeadstageType = function(
     procedure OpenAxoclamp900A ;
     procedure CloseAxoclamp900A ;
     procedure CheckErrorAxoclamp900A( Err : Integer ) ;
+    procedure DisplayAxoclamp900AError(
+         Hnd : Integer ;
+         Err : Integer ) ;
+
 
     function GetHekaEPC800Gain(
              AmpNumber : Integer ) : single ;
@@ -1209,6 +1248,7 @@ var
   AXC_CloseDevice : TAXC_CloseDevice ;
   AXC_GetSerialNumber : TAXC_GetSerialNumber ;
   AXC_IsDeviceOpen : TAXC_IsDeviceOpen ;
+  AXC_IsDemo : TAXC_IsDemo ;
   AXC_GetScaledOutputSignal : TAXC_GetScaledOutputSignal ;
   AXC_SetScaledOutputSignal : TAXC_SetScaledOutputSignal ;
   AXC_GetScaledOutputGain : TAXC_GetScaledOutputGain ;
@@ -1219,6 +1259,7 @@ var
   AXC_BuildErrorText : TAXC_BuildErrorText ;
   AXC_GetSignalScaleFactor : TAXC_GetSignalScaleFactor ;
   AXC_GetHeadstageType : TAXC_GetHeadstageType ;
+  AXC_AcquireMeterData : TAXC_AcquireMeterData ;
 
 procedure TAmplifier.AmplifierCreate(Sender: TObject);
 // ---------------------------------------------
@@ -5739,6 +5780,7 @@ const
 var
    Gain : Double ;
    Mode,Err : Integer ;
+   AXC_MeterData : TAXC_MeterData ;
 begin
 
      // Note. Don't interrupt A/D sampling if it in progress.
@@ -5747,13 +5789,31 @@ begin
      if not Axoclamp900AOpen then OpenAxoclamp900A ;
      if not Axoclamp900AOpen then Exit ;
 
+//     AXC_AcquireMeterData( Axoclamp900AHnd,AXC_MeterData,Err) ;
+//     outputdebugstring(pchar(format( '%.4g',[AXC_MeterData.Meter1])));
+
      ChanNumber := Min(Max(ChanNumber,0),1) ;
+     Err := 0 ;
      AXC_GetMode( Axoclamp900AHnd, ChanNumber, Mode, Err ) ;
+     if Err <> 0 then WriteToLogFile( format('Axoclamp 900A (AXC_GetMode): Error=%d',[Err]));
+
      Gain := -1 ;
      AXC_GetScaledOutputGain( Axoclamp900AHnd, Gain, ChanNumber, Mode, Err ) ;
+     if Err <> 0 then WriteToLogFile( format('Axoclamp 900A (AXC_GetScaledOutputGain): Error=%d',[Err]));
 
      Result := Gain ;
      end ;
+
+procedure TAmplifier.DisplayAxoclamp900AError(
+         Hnd : Integer ;
+         Err : Integer ) ;
+var
+    Msg : array[0..255] of ANSIChar ;
+begin
+      if Err = 0 then Exit ;
+      AXC_BuildErrorText( Hnd, Err, Msg, High(Msg));
+      ShowMessage( ANSIString(Msg)) ;
+      end;
 
 
 function TAmplifier.GetAxoclamp900AMode(
@@ -5774,8 +5834,6 @@ begin
                                         else LastMode[AmpNumber] := VCLAMPMode ;
      Result := LastMode[AmpNumber] ;
      end ;
-
-
 
 
 procedure TAmplifier.GetAxoclamp900AChannelSettings(
@@ -5806,7 +5864,11 @@ begin
           // Primary channel
 
        AXC_GetMode( Axoclamp900AHnd, iChan mod 2, iMode, Err ) ;
+       if Err <> 0 then WriteToLogFile( format('Axoclamp 900A (AXC_GetMode): Error=%d',[Err]));
+
        AXC_GetScaledOutputSignal( Axoclamp900AHnd, iSignal, AmpNumber, iMode, Err ) ;
+       if Err <> 0 then WriteToLogFile( format('Axoclamp 900A (AXC_GetScaledOutputSignal): Error=%d',[Err]));
+
        ChanName := AXC_SignalName[iSignal] ;
        ChanUnits := AXC_SignalUnits[iSignal] ;
 
@@ -5880,7 +5942,9 @@ procedure TAmplifier.OpenAxoclamp900A ;
 var
     Err : Integer ;
     SerialNum : Array[0..15] of ANSIChar ;
-    DemoMode : Boolean ;
+    APIVersion : Array[0..255] of ANSIChar ;
+    cBuf : Array[0..255] of ANSIChar ;
+    DemoMode,IsOpen : LongBool ;
 //    Devicename : Array[0..32] of Char ;
 begin
 
@@ -5915,6 +5979,7 @@ begin
      @AXC_CloseDevice := LoadProcedure( Axoclamp900ALibHnd, 'AXC_CloseDevice' ) ;
      @AXC_GetSerialNumber := LoadProcedure( Axoclamp900ALibHnd, '_AXC_GetSerialNumber@16' ) ;
      @AXC_IsDeviceOpen := LoadProcedure( Axoclamp900ALibHnd, '_AXC_IsDeviceOpen@12' ) ;
+     @AXC_IsDemo := LoadProcedure( Axoclamp900ALibHnd, '_AXC_IsDemo@12' ) ;
      @AXC_GetScaledOutputSignal := LoadProcedure( Axoclamp900ALibHnd, '_AXC_GetScaledOutputSignal@20' ) ;
      AXC_SetScaledOutputSignal := LoadProcedure( Axoclamp900ALibHnd, '_AXC_SetScaledOutputSignal@20' ) ;
      @AXC_GetScaledOutputGain := LoadProcedure( Axoclamp900ALibHnd, '_AXC_GetScaledOutputGain@20' ) ;
@@ -5925,44 +5990,35 @@ begin
      @AXC_BuildErrorText := LoadProcedure( Axoclamp900ALibHnd, 'AXC_BuildErrorText' ) ;
      @AXC_GetSignalScaleFactor := LoadProcedure( Axoclamp900ALibHnd, '_AXC_GetSignalScaleFactor@16' ) ;
      @AXC_GetHeadstageType := LoadProcedure( Axoclamp900ALibHnd, '_AXC_GetHeadstageType@20' ) ;
+     @AXC_AcquireMeterData := LoadProcedure( Axoclamp900ALibHnd, '_AXC_AcquireMeterData@12' ) ;
 
-     DemoMode := TRue ;
+     //AXC_CheckAPIVersion( APIVersion ) ;
+     //ShowMessage( ANSIString(APIVersion)) ;
+
+     DemoMode := false ;
      Err := 0 ;
      Axoclamp900AHnd := AXC_CreateHandle( DemoMode, Err ) ;
      AXC_FindFirstDevice( Axoclamp900AHnd, SerialNum, High(SerialNum), Err ) ;
      if Err <> 0 then begin
+     //   DisplayAxoclamp900AError(Axoclamp900AHnd,Err);
         ShowMessage('ERROR! Unable to find Axoclamp 900A') ;
+        AXC_DestroyHandle(Axoclamp900AHnd) ;
+        Axoclamp900AHnd := -1 ;
+        exit ;
         end ;
-//     CheckErrorAxoclamp900A(Err) ;
 
      if Err = 0 then begin
-        AXC_OpenDevice( Axoclamp900AHnd, SerialNum, True, Err ) ;
+        AXC_OpenDevice( Axoclamp900AHnd, SerialNum, true, Err ) ;
         if Err <> 0 then begin
            ShowMessage('ERROR! Unable to open Axoclamp 900A') ;
+           AXC_DestroyHandle(Axoclamp900AHnd) ;
+           Axoclamp900AHnd := -1 ;
+           exit ;
            end ;
         end ;
 
-     //CheckErrorAxoclamp900A(Err) ;
-
-
-{     const UINT AXC_MODE_IZERO             = 0;
-const UINT AXC_MODE_ICLAMP            = 1;
-const UINT AXC_MODE_DCC               = 2;
-const UINT AXC_MODE_HVIC              = 3;
-const UINT AXC_MODE_DSEVC             = 4;
-const UINT AXC_MODE_TEVC              = 5;
-const UINT AXC_MAX_MODES              = 6;
-
-const UINT AXC_MODE_NONE              = 6;
-const UINT AXC_MODE_ALL               = 7;
-
-     AXC_SetMode( Axoclamp900AHnd, 0, 2, Err ) ;
-     AXC_SetScaledOutputSignal( Axoclamp900AHnd, AXC_SIGNAL_ID_I2, 0, AXC_MODE_ICLAMP, Err ) ;
-     AXC_SetScaledOutputGain( Axoclamp900AHnd, 1.0, 0, 2, Err ) ;
-     AXC_SetScaledOutputSignal( Axoclamp900AHnd, AXC_SIGNAL_ID_10V1, 1, AXC_MODE_ICLAMP, Err ) ;
-     AXC_SetScaledOutputGain( Axoclamp900AHnd, 2.0, 1, 2, Err ) ; }
-
-     //CheckErrorAxoclamp900A(Err) ;
+     AXC_GetSerialNumber( Axoclamp900AHnd, cbuf, High(cbuf), Err ) ;
+     WriteToLogFile('Axoclamp 900A s/n ' + ansistring(cbuf));
 
      Axoclamp900AOpen := True ;
 

@@ -12,7 +12,7 @@ unit LabInterfaceSetup;
 //          Interface information box now updated when A/D input mode changed
 // 20.08.13 Unnecessary update of Main.SESLABIO.ADCInputMode when OK button pressed removed
 //          to remove delay caused by resetting of NIDAQmx devices.
-
+// 05.11.15 HekaEPC9USB interface added
 interface
 
 uses
@@ -143,7 +143,7 @@ begin
             Amplifier.AmplifierType[2] := amNone ;
             Amplifier.AmplifierType[3] := amNone ;
             end;
-          HekaEPC9,HekaEPC10,HekaEPC10USB :begin
+          HekaEPC9,HekaEPC10,HekaEPC10USB,HekaEPC9USB :begin
             Amplifier.AmplifierType[0] := amHekaEPC9 ;
             Amplifier.AmplifierType[1] := amNone ;
             Amplifier.AmplifierType[2] := amNone ;

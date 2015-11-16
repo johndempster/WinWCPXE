@@ -40,6 +40,8 @@ unit Curvfit;
   26.07.13 .. Readout cursor added
   09.08.13 .. ADC now allocated by GetMem()
   27.07.15 .. iline added to .CreateLine() & .AddPointToLine()
+  16.10.15 .. Residual plot data now limited to MinADCValue-MaxADCValue range to avoid roll-over
+              when  very large deviations occur
   ==========================================================================}
 interface
 
@@ -694,7 +696,8 @@ begin
                scDisplay.AddPointToLine( iLine, i, y ) ;
                t := t + RH.dt*nDisplaySkip*Settings.TScale ;
                { Compute residual }
-               DispBuf^[j+ChRes] := Round(y) - DispBuf^[j+ChData] ;
+               DispBuf^[j+ChRes] := Min(Max( Round(y) - DispBuf^[j+ChData],
+                                             scDisplay.MinADCValue),scDisplay.MaxADCValue);
                end
             else ADC^[j+ChRes] := 0 ;
             j := j + NumFitChannels ;

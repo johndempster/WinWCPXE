@@ -48,7 +48,7 @@ object RecordFrm: TRecordFrm
     OnCursorChange = scDisplayCursorChange
     CursorChangeInProgress = False
     NumChannels = 1
-    NumPoints = 0
+    NumPoints = 1
     MaxPoints = 1024
     XMin = 0
     XMax = 1023
@@ -560,21 +560,6 @@ object RecordFrm: TRecordFrm
       ParentFont = False
       TabOrder = 2
       Text = ' '
-    end
-    object bAddMarker: TButton
-      Left = 144
-      Top = 54
-      Width = 57
-      Height = 18
-      Caption = 'Add '
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Arial'
-      Font.Style = [fsBold]
-      ParentFont = False
-      TabOrder = 3
-      OnClick = bAddMarkerClick
     end
   end
   object OnLineAnalysisGrp: TGroupBox

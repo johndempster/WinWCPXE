@@ -383,6 +383,10 @@ object SealTestFrm: TSealTestFrm
         Font.Name = 'Arial'
         Font.Style = [fsBold]
         ParentFont = False
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Label9: TLabel
           Left = 4
           Top = 16
@@ -412,6 +416,10 @@ object SealTestFrm: TSealTestFrm
       end
       object CellTab: TTabSheet
         Caption = 'Cell (G)'
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Label15: TLabel
           Left = 12
           Top = 4
@@ -515,6 +523,10 @@ object SealTestFrm: TSealTestFrm
       object CellRTab: TTabSheet
         Caption = 'Cell (R)'
         ImageIndex = 2
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Label18: TLabel
           Left = 12
           Top = 4
@@ -957,7 +969,6 @@ object SealTestFrm: TSealTestFrm
       Scale = 1000.000000000000000000
       Units = 'ms'
       NumberFormat = '%.4g'
-      LoLimit = 0.000000000000000000
       HiLimit = 1.000000015047466E29
     end
     object edPulseheight3: TValidatedEdit
@@ -1144,8 +1155,8 @@ object SealTestFrm: TSealTestFrm
     object Label23: TLabel
       Left = 8
       Top = 41
-      Width = 72
-      Height = 20
+      Width = 55
+      Height = 15
       Caption = 'Amplitude'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
@@ -1157,7 +1168,7 @@ object SealTestFrm: TSealTestFrm
     object Label24: TLabel
       Left = 8
       Top = 84
-      Width = 72
+      Width = 64
       Height = 15
       Caption = 'Pulse width'
       Font.Charset = DEFAULT_CHARSET
@@ -1211,11 +1222,9 @@ object SealTestFrm: TSealTestFrm
       AutoSize = False
       ShowHint = True
       Text = ' 0 ms'
-      Value = 0.000000000000000000
       Scale = 1000.000000000000000000
       Units = 'ms'
       NumberFormat = '%.4g'
-      LoLimit = 0.000000000000000000
       HiLimit = 1.000000015047466E29
     end
   end

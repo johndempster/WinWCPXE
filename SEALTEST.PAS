@@ -80,6 +80,7 @@ unit Sealtest;
               when EPC9PanelFrm title bar held down.
   09.07.15 .. DACScale arrays increased to cope with up to 128 analog output channels
   02.10.15 .. Zap pulse added to panel
+// 05.11.15 HekaEPC9USB interface added
   ==================================================}
 
 interface
@@ -341,7 +342,7 @@ begin
                 Main.mnTriton.Click ;
                 end ;
              end ;
-          HekaEPC9,HekaEPC10,HekaEPC10Plus,HekaEPC10USB : begin
+          HekaEPC9,HekaEPC10,HekaEPC10Plus,HekaEPC10USB,HekaEPC9USB : begin
              if not Main.FormExists( 'EPC9PanelFrm' ) then begin
                 Main.mnEPC9Panel.Enabled := True ;
                 Main.mnEPC9Panel.Click ;

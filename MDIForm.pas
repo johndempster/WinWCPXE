@@ -646,6 +646,15 @@ unit MDIForm;
    V5.0.9 02.10.15    DCLAMP updated: time constant and steady-state activation v1/2s can be incremented
                       individually. Incrementing after protocol added.
                       Zap button added to seal test.
+   V5.1.0 14.10.15    Axoclamp 900A code updated (still untested with actual patch clamp)
+                      scopedisplay: Data exported to clipboard now min/max compressed to less than 20000 points.
+                      CurveFit: Residual plot now kept within min-max ADCValue limits to avoid numerical roll-over of data points
+   V5.1.1 05.11.15    Record: Add Marker Add button removed. Marker text added automatically
+                      QuantFrm: Now opens top/left
+                      USB-6002/3 P1.0->PFI0+PFI1 now used as trigger line for A/D and D/A start synchronisation
+                      Heka EPC9-USB lab. interface option. Current gain scale factor can be corrected
+                      using 'HekaGCF.txt' correction factor file.
+                      Heka EPC9/10 Now correctly maps gain list to gain excluding skipped index numbers.
   =======================================================================}
 
 interface
@@ -891,7 +900,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.0.9';
+      ProgVersion := 'V5.1.1';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
@@ -2472,22 +2481,19 @@ procedure TMain.mnQuantalContentClick(Sender: TObject);
 { - Menu Item ----------------------------------
   Run quantal content analysis module (qanal.pas)
   ----------------------------------------------}
-var
-   QuantFrmExists : Boolean ;
-   i : Integer ;
 begin
 
-     QuantFrmExists := False ;
-     for i := 0 to Main.MDIChildCount-1 do
-         if MDIChildren[i].Name = 'QuantFrm' then QuantFrmExists := True ;
-
-     if QuantFrmExists then begin
+     if FormExists('QuantFrm') then begin
         // Make form visible, active and on top
         if QuantFrm.WindowState = wsMinimized then QuantFrm.WindowState := wsNormal ;
         QuantFrm.BringToFront ;
         QuantFrm.SetFocus ;
         end
-     else QuantFrm := TQuantFrm.Create(Self) ;
+     else begin
+       QuantFrm := TQuantFrm.Create(Self) ;
+       QuantFrm.Left := 10 ;
+       QuantFrm.Top := 10 ;
+       end;
 
      end;
 
@@ -3612,7 +3618,7 @@ begin
      case SESLabIO.LabInterfaceType of
           Triton : mnTriton.Enabled := True ;
           VP500 : mnVP500.Enabled := True ;
-          HekaEPC9,HekaEPC10,HekaEPC10Plus,HekaEPC10USB : mnEPC9Panel.Enabled := True ;
+          HekaEPC9,HekaEPC10,HekaEPC10Plus,HekaEPC10USB,HekaEPC9USB : mnEPC9Panel.Enabled := True ;
 
           end ;
 

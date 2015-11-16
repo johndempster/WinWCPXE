@@ -103,6 +103,8 @@ unit Rec;
   24.08.15 .. cbdetectEvents menu now set from SESLabIO, not ChannelNames
               ADCDisplay buffer now only reallocated if size has changed, allowing recorded traces
               from previous linked protocols to remain on display.
+  05.11.15 .. Marker Add button removed. Marker text now added automatically to record
+// 05.11.15 HekaEPC9USB interface added
   ==============================================================================}
 interface
 
@@ -175,7 +177,6 @@ TCursors = record
     bOpenOLAWindow: TButton;
     bCloseOLAWindow: TButton;
     edMarker: TEdit;
-    bAddMarker: TButton;
     Label6: TLabel;
     Label8: TLabel;
     Bevel4: TBevel;
@@ -265,7 +266,6 @@ TCursors = record
     procedure FormActivate(Sender: TObject);
     procedure bOpenOLAWindowClick(Sender: TObject);
     procedure bCloseOLAWindowClick(Sender: TObject);
-    procedure bAddMarkerClick(Sender: TObject);
     procedure bSetStimFolderClick(Sender: TObject);
     procedure cbRecordingModeChange(Sender: TObject);
     procedure edNumChannelsKeyPress(Sender: TObject; var Key: Char);
@@ -446,7 +446,7 @@ begin
                 Main.mnTriton.Click ;
                 end ;
              end ;
-          HekaEPC9,HekaEPC10,HekaEPC10Plus,HekaEPC10USB : begin
+          HekaEPC9,HekaEPC10,HekaEPC10Plus,HekaEPC10USB,HekaEPC9USB : begin
              if not Main.FormExists( 'EPC9PanelFrm' ) then begin
                 Main.mnEPC9Panel.Enabled := True ;
                 Main.mnEPC9Panel.Click ;
@@ -1457,10 +1457,17 @@ begin
         // If dynamic clamp in use, add conductance to record ident field.
         if Main.FormExists('DCLAMPFrm') then begin
            Rh.Ident := DCLAMPFrm.Status ; //format('Gmax=%.4g nS',[DCLAMPFrm.GMax]);
+           end
+        else begin
+           // Add user-entered marker
+           Rh.Ident := edmarker.Text ;
+           scDisplay.ClearMarkers ;
+           scDisplay.AddMarker( 0, EdMarker.text );
            end;
 
         rH.AnalysisAvailable := false ;
         rH.EqnType := None ;
+
         PutRecord( RawfH, rH, RawfH.NumRecords, ADC^ ) ;
 
         // Calculate zero levels
@@ -2369,17 +2376,6 @@ begin
      bOpenOLAWindow.Enabled := True ;
 
      end ;
-
-
-procedure TRecordFrm.bAddMarkerClick(Sender: TObject);
-// --------------------
-// Add marker to record
-// --------------------
-begin
-    scDisplay.ClearMarkers ;
-    scDisplay.AddMarker( 0, EdMarker.text );
-    rh.ident := edMarker.Text ;
-    end;
 
 
 procedure TRecordFrm.bSetStimFolderClick(Sender: TObject);

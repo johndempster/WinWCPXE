@@ -935,11 +935,14 @@ begin
      end;
 
 procedure TReplayFrm.EdRecordIdentChange(Sender: TObject);
+// -------------------------
+// Record ident text changed
+// -------------------------
 begin
-        RH.Ident := EdRecordIdent.text ;
-        PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+     RH.Ident := EdRecordIdent.text ;
+     PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+     end;
 
-end;
 
 procedure TReplayFrm.ckFixedZeroLevelsClick(Sender: TObject);
 // --------------------------------
