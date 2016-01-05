@@ -79,6 +79,7 @@ unit Measure;
   25.06.14 .. Access violations prevented when first point in record is peak
   04.08.15 .. Records now be superimposed when superimpose traces selected
   29.09.15 .. Readout cursor no longer lost when Lock Cursors clicked.
+  8.11.15 .. TMeasureFrmCursors.Base removed since use was redundant.
   ==========================================================================}
 interface
 
@@ -690,11 +691,7 @@ begin
 
      scDisplay.ClearHorizontalCursors ;
      for ch := 0 to FH.NumChannels-1 do begin
-               Cursors.Base[ch] := scDisplay.AddHorizontalCursor(
-                                   ch,
-                                   Settings.Colors.Cursors,
-                                   True,
-                                   'z' ) ;
+               scDisplay.AddHorizontalCursor(ch,Settings.Colors.Cursors,True,'z' ) ;
                scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
                end ;
 
@@ -778,7 +775,7 @@ begin
 
      for ch := 0 to FH.NumChannels-1 do begin
          // Zero level
-         scDisplay.HorizontalCursors[Cursors.Base[ch]] := Channel[ch].ADCZero ;
+         scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
          // Start of area from which zero level was computed (-1 indicates fixed zero level)
          scDisplay.ChanZeroAt[ch] := Channel[ch].ADCZeroAt ;
          // Signal scaling factor

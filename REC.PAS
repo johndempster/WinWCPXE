@@ -104,7 +104,8 @@ unit Rec;
               ADCDisplay buffer now only reallocated if size has changed, allowing recorded traces
               from previous linked protocols to remain on display.
   05.11.15 .. Marker Add button removed. Marker text now added automatically to record
-// 05.11.15 HekaEPC9USB interface added
+  05.11.15 HekaEPC9USB interface added
+  8.11.15 .. TMeasureFrmCursors.Base removed since use was redundant.
   ==============================================================================}
 interface
 
@@ -153,9 +154,7 @@ type
                TickStart : single ;
                OldSeconds : single ;
                end ;
-TCursors = record
-         Base : Array[0..WCPMaxChannels-1] of Integer ;
-         end ;
+
 
   TState = ( Idle, SweepInProgress ) ;
   TRecordFrm = class(TForm)
@@ -318,7 +317,6 @@ TCursors = record
    AbortRecording : boolean ;
    EraseScreen : boolean ;
    NumBlocksDone : Integer ;
-   Cursors : TCursors ;
    EmptyFlag : Integer ;
     NewAmplifierGain : Boolean ;
 
@@ -662,11 +660,7 @@ begin
      { Create a set of zero level cursors }
      scDisplay.ClearHorizontalCursors ;
      for ch := 0 to scDisplay.NumChannels-1 do begin
-         Cursors.Base[ch] := scDisplay.AddHorizontalCursor(
-                             ch,
-                             Settings.Colors.Cursors,
-                             True,
-                             'z' ) ;
+         scDisplay.AddHorizontalCursor(ch,Settings.Colors.Cursors,True,'z' ) ;
          scDisplay.HorizontalCursors[ch] := Main.SESLabIO.ADCChannelZero[ch] ;
          Channel[ch].ADCZeroAt := Main.SESLabIO.ADCChannelZeroAt[ch] ;
          Channel[ch].ADCZero := Main.SESLabIO.ADCChannelZero[ch] ;
@@ -2085,11 +2079,11 @@ begin
          Main.SESLabIO.ADCChannelVisible[ch] := scDisplay.ChanVisible[ch] ;
 
          if Settings.FixedZeroLevels or (Main.SESLabIO.ADCChannelZeroAt[ch] >= 0) then begin
-            if scDisplay.HorizontalCursors[Cursors.Base[ch]] <> Main.SESLabIO.ADCChannelZero[ch] then begin
-               scDisplay.HorizontalCursors[Cursors.Base[ch]] := Main.SESLabIO.ADCChannelZero[ch] ;
+            if scDisplay.HorizontalCursors[ch] <> Main.SESLabIO.ADCChannelZero[ch] then begin
+               scDisplay.HorizontalCursors[ch] := Main.SESLabIO.ADCChannelZero[ch] ;
                end ;
             end
-         else Main.SESLabIO.ADCChannelZero[ch] := scDisplay.HorizontalCursors[Cursors.Base[ch]] ;
+         else Main.SESLabIO.ADCChannelZero[ch] := scDisplay.HorizontalCursors[ch] ;
          scDisplay.ChanZeroAt[ch] := Main.SESLabIO.ADCChannelZeroAt[ch] ;
          Channel[ch].ADCZeroAt := Main.SESLabIO.ADCChannelZeroAt[ch] ;
          Channel[ch].ADCZero := Main.SESLabIO.ADCChannelZero[ch] ;

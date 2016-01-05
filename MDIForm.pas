@@ -649,12 +649,14 @@ unit MDIForm;
    V5.1.0 14.10.15    Axoclamp 900A code updated (still untested with actual patch clamp)
                       scopedisplay: Data exported to clipboard now min/max compressed to less than 20000 points.
                       CurveFit: Residual plot now kept within min-max ADCValue limits to avoid numerical roll-over of data points
-   V5.1.1 05.11.15    Record: Add Marker Add button removed. Marker text added automatically
+   V5.1.1 18.11.15    Record: Add Marker Add button removed. Marker text added automatically
                       QuantFrm: Now opens top/left
                       USB-6002/3 P1.0->PFI0+PFI1 now used as trigger line for A/D and D/A start synchronisation
                       Heka EPC9-USB lab. interface option. Current gain scale factor can be corrected
                       using 'HekaGCF.txt' correction factor file.
                       Heka EPC9/10 Now correctly maps gain list to gain excluding skipped index numbers.
+                      RecEdit.pas: Repeated display updated problem when multiple channels in file fixed
+                      Replay.pas and others: T???Cursors.Base remove since redundant
   =======================================================================}
 
 interface

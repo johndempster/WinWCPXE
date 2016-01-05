@@ -25,6 +25,8 @@ unit Recedit;
   26.07.13 .. All files now backed up. Undo button now works consistently, undoing all changes
               Various problems with X and Y shifts fixed
   09.08.13    ADC,Buf now allocated by GetMem()
+  18.11.15 .. scDisplay.HorizontalCursor() now defined for each channel to fix repeated display update
+              problem when multiple channels in file. TCursors.Base removed
   ========================================================== }
 interface
 
@@ -131,7 +133,6 @@ implementation
 uses          MDIForm , REC;
 type
     TCursors = record
-             Base : Integer ;
              Read : Integer ;
              C0 : Integer ;
              C1 : Integer ;
@@ -261,13 +262,10 @@ begin
      scDisplay.TUnits := Settings.TUnits ;
 
      scDisplay.ClearHorizontalCursors ;
-     { Channel baseline }
-     Cursors.Base := scDisplay.AddHorizontalCursor(
-                     cbChannel.ItemIndex,
-                     Settings.Colors.Cursors,
-                     True,
-                     'z') ;
-     scDisplay.HorizontalCursors[Cursors.Base] := Channel[cbChannel.ItemIndex].ADCZero ;
+     for ch := 0 to FH.NumChannels-1 do begin
+         scDisplay.AddHorizontalCursor(ch,Settings.Colors.Cursors,True,'z') ;
+         scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
+         end;
 
      scDisplay.ClearVerticalCursors ;
      { Readout cursor position }
@@ -291,6 +289,8 @@ procedure TEditFrm.DisplayRecord ;
 { ===============================
   Display digitised signal record
   ===============================}
+var
+    ch : Integer ;
 begin
 
      if fH.NumRecords > 0 then begin
@@ -310,8 +310,10 @@ begin
         scDisplay.SetDataBuf( ADC ) ;
 
         // Set zero level cursor
-        scDisplay.HorizontalCursors[Cursors.Base] := Channel[cbChannel.ItemIndex].ADCZero ;
-        scDisplay.ChanZeroAt[cbChannel.ItemIndex] := Channel[cbChannel.ItemIndex].ADCZeroAt ;
+        for ch := 0 to FH.NumChannels-1 do begin
+            scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
+            scDisplay.ChanZeroAt[ch] := Channel[ch].ADCZeroAt ;
+            end;
         scDisplay.ChanZeroAvg := FH.NumZeroAvg ;
 
         edRecordNum.LoValue := sbRecordNum.position ;

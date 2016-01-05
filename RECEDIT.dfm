@@ -219,7 +219,7 @@ object EditFrm: TEditFrm
       Width = 137
       Height = 23
       OnKeyPress = edRecordNumKeyPress
-      Text = ' 1 / 1.00000001504746624E30 '
+      Text = ' 1 / 1.00000001504746622E30 '
       LoValue = 1.000000000000000000
       HiValue = 1.000000015047466E30
       LoLimit = 1.000000000000000000
@@ -482,7 +482,7 @@ object EditFrm: TEditFrm
         Width = 105
         Height = 20
         AutoSize = False
-        Text = ' 0.00 - 1.00000001504746624E30 '
+        Text = ' 0.00 - 1.00000001504746622E30 '
         HiValue = 1.000000015047466E30
         HiLimit = 1.000000015047466E30
         Scale = 1.000000000000000000

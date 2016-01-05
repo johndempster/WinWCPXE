@@ -383,10 +383,6 @@ object SealTestFrm: TSealTestFrm
         Font.Name = 'Arial'
         Font.Style = [fsBold]
         ParentFont = False
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object Label9: TLabel
           Left = 4
           Top = 16
@@ -969,6 +965,7 @@ object SealTestFrm: TSealTestFrm
       Scale = 1000.000000000000000000
       Units = 'ms'
       NumberFormat = '%.4g'
+      LoLimit = -1.000000015047466E30
       HiLimit = 1.000000015047466E29
     end
     object edPulseheight3: TValidatedEdit
@@ -1225,6 +1222,7 @@ object SealTestFrm: TSealTestFrm
       Scale = 1000.000000000000000000
       Units = 'ms'
       NumberFormat = '%.4g'
+      LoLimit = -1.000000015047466E30
       HiLimit = 1.000000015047466E29
     end
   end

@@ -41,6 +41,7 @@ unit Replay;
               ADC now allocated by GetMem()
   27.08.13 .. Time of day when record acquired now displayed
   23.09.13 .. Recording start time now encoded in en-GB format
+  18.11.15 .. TReplayCursors.Base removed since use was redundant.
   ===================================================}
 interface
 
@@ -53,7 +54,7 @@ uses
 type
 
   TReplayCursors = record
-             Base : Array[0..WCPMaxChannels-1] of Integer ;
+             //Base : Array[0..WCPMaxChannels-1] of Integer ;
              C0 : Integer ;
              C1 : Integer ;
              Value : Array[0..WCPMaxChannels*2] of Single ;
@@ -217,9 +218,7 @@ begin
         { Create horizontal cursors }
         scDisplay.ClearHorizontalCursors ;
         for ch := 0 to FH.NumChannels-1 do
-            Cursors.Base[ch] := scDisplay.AddHorizontalCursor(ch,clGreen,
-                                                              True,
-                                                              'z') ;
+            scDisplay.AddHorizontalCursor(ch,clGreen,True,'z') ;
 
         { Continuous record display channel }
         scDisplay.MaxADCValue := RawFH.MaxADCValue ;
@@ -398,7 +397,7 @@ begin
      { Set horizontal zero baseline cursors }
      for ch := 0 to FH.NumChannels-1 do begin
          // Zero level
-         scDisplay.HorizontalCursors[Cursors.Base[ch]] := Channel[ch].ADCZero ;
+         scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
          // Start of area from which zero level was computed (-1 indicates fixed zero level)
          scDisplay.ChanZeroAt[ch] := Channel[ch].ADCZeroAt ;
          // Signal scaling factor
