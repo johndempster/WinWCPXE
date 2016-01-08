@@ -730,6 +730,7 @@ begin
      if OpenDialog.execute then begin
         Amplifier.LoadFromXMLFile(OpenDialog.FileName) ;
         Main.SESLabIO.LoadFromXMLFile(OpenDialog.FileName) ;
+     //   Main.SESLabIO.LabInterfaceType := Main.SESLabIO.LabInterfaceType ;
         FillAmplifierSettings ;
         FillChannelSettings ;
         end ;

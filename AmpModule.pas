@@ -121,7 +121,7 @@ unit AmpModule;
 // 29.07.15 Dagan BVC-700A added.
 // 26.08.15 Optopatch secondary channel gain and units now set correctly
 // 14.10.15 Axoclamp 900A no longer in DEMO mode, diagnostic code added
-
+// 08.01.16 LoadFromXMLFile1() now checks if XML file contains settings and avoids access violation.
 interface
 
 uses
@@ -131,7 +131,6 @@ uses
 const
      MaxAmplifiers = 4 ;
      MaxAmplifierChannels = MaxAmplifiers*2 ;
-
 
      amCurrentClamp = 1 ;
      amVoltageClamp = 0 ;
@@ -6704,6 +6703,14 @@ begin
        NodeIndex := 0 ;
        FindXMLNode(xmldoc.DocumentElement,'AMPLIFIERSETTINGS',ProtNode,NodeIndex);
        end ;
+
+    // Exit if settings cannot be found
+    if ProtNode = Nil then begin
+       ShowMessage( 'Cannot find AMPLIFIERSETTINGS in ' + FileName ) ;
+       XMLDoc.Active := False ;
+       XMLDoc.Free ;
+       Exit ;
+       end;
 
     // Amplifiers
     NodeIndex := 0 ;

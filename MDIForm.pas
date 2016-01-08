@@ -657,6 +657,11 @@ unit MDIForm;
                       Heka EPC9/10 Now correctly maps gain list to gain excluding skipped index numbers.
                       RecEdit.pas: Repeated display updated problem when multiple channels in file fixed
                       Replay.pas and others: T???Cursors.Base remove since redundant
+   V5.1.2 05.01.16    SESLABIO.pas: Now ensures FADCNumChannels > 1 when settings loaded by LoadFromXMLFile(). XML settings file
+                      now checked for LABINTERFACESETTINGS record to avoid access violation if not present.
+                      Digidata 1440,1550,1550A: Now loads DLLs from C:\Users\Public\Documents\SESLABIO
+                      rather than (WinWCP program folder).
+                      Amplifiers: XML settings file now checked for AMPLIFIERSETTINGS record to avoid access violation if not present.
   =======================================================================}
 
 interface
@@ -902,7 +907,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.1.1';
+      ProgVersion := 'V5.1.2';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
