@@ -662,6 +662,8 @@ unit MDIForm;
                       Digidata 1440,1550,1550A: Now loads DLLs from C:\Users\Public\Documents\SESLABIO
                       rather than (WinWCP program folder).
                       Amplifiers: XML settings file now checked for AMPLIFIERSETTINGS record to avoid access violation if not present.
+   V5.1.3 04.02.16    Multiclamp 700A: Detected channels now correctly assigned to Amplifier #1/#2 instead of #3/#4.
+
   =======================================================================}
 
 interface
@@ -907,7 +909,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.1.2';
+      ProgVersion := 'V5.1.3';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

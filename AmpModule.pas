@@ -122,6 +122,9 @@ unit AmpModule;
 // 26.08.15 Optopatch secondary channel gain and units now set correctly
 // 14.10.15 Axoclamp 900A no longer in DEMO mode, diagnostic code added
 // 08.01.16 LoadFromXMLFile1() now checks if XML file contains settings and avoids access violation.
+// 04.02.16 Multiclamp 700A: Now Com port # now correctly isolated from message code
+//          allowing Amplifier #1/#2 to be correctly selected instead of #3/#4
+
 interface
 
 uses
@@ -6996,7 +6999,7 @@ begin
             MaxComPortID := 0 ;
             MinComPortID := High(MinComPortID) ;
             for i  := 0 to MCNumChannels-1 do begin
-                ComPortID := MCChannels[i] and $FFFF ;
+                ComPortID := MCChannels[i] and $FF ;
                 if ComPortID > MaxComPortID then MaxComPortID := ComPortID ;
                 if ComPortID < MinComPortID then MinComPortID := ComPortID ;
                 end ;
