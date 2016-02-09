@@ -663,7 +663,9 @@ unit MDIForm;
                       rather than (WinWCP program folder).
                       Amplifiers: XML settings file now checked for AMPLIFIERSETTINGS record to avoid access violation if not present.
    V5.1.3 04.02.16    Multiclamp 700A: Detected channels now correctly assigned to Amplifier #1/#2 instead of #3/#4.
-
+   V5.1.4 09.02.16    Digidata 1440/1550 interfaces: wdapi1140.dll now loaded before axdd????.dll to allow dll to be loaded under Windows XP
+                      File->Open Data File / File->Import: File Name box now cleared to ensure list of available file displayed
+                      in Windows 7 standard desktop dialog box.
   =======================================================================}
 
 interface
@@ -909,7 +911,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.1.3';
+      ProgVersion := 'V5.1.4';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
@@ -1298,9 +1300,12 @@ begin
 
      OpenDialog.options := [ofPathMustExist] ;
      OpenDialog.DefaultExt := 'WCP' ;
-     if Settings.DataDirectory <> '' then
+     if Settings.DataDirectory <> '' then begin
         SetCurrentDir(Settings.DataDirectory) ;
         OpenDialog.InitialDir := Settings.DataDirectory ;
+        end;
+     OpenDialog.FileName := '' ;
+
      OpenDialog.Filter := ' WCP Files (*.WCP)|*.WCP';
      OpenDialog.Title := 'Open File ' ;
 
@@ -3103,6 +3108,7 @@ begin
          OpenDialog.Filter := OpenDialog.Filter + Filters[i].Ext ;
      OpenDialog.options := [ofPathMustExist] ;
      OpenDialog.DefaultExt := 'DAT' ;
+     OpenDialog.FileName := '' ;
 
      OpenDialog.Title := 'Import File ' ;
      if Settings.DataDirectory <> '' then begin
