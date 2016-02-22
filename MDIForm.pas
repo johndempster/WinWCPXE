@@ -666,6 +666,9 @@ unit MDIForm;
    V5.1.4 09.02.16    Digidata 1440/1550 interfaces: wdapi1140.dll now loaded before axdd????.dll to allow dll to be loaded under Windows XP
                       File->Open Data File / File->Import: File Name box now cleared to ensure list of available file displayed
                       in Windows 7 standard desktop dialog box.
+   V5.1.5 22.02.16    4 byte packing added to end TDD1440_Protocol record to avoid 'Error writing to device' error
+                      when external trigger selected and running under 64 bit O/S Not clear why this is necessary
+                      wdapi1140.dll no longer loaded before axdd1400.dll since not required by axdd1440.dll
   =======================================================================}
 
 interface
@@ -911,7 +914,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.1.4';
+      ProgVersion := 'V5.1.5';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
