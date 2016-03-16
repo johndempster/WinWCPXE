@@ -106,6 +106,7 @@ unit Rec;
   05.11.15 .. Marker Add button removed. Marker text now added automatically to record
   05.11.15 HekaEPC9USB interface added
   8.11.15 .. TMeasureFrmCursors.Base removed since use was redundant.
+  16.03.16 .. scDisplay.recordnumber incremented after SaveSweep to make storage mode work correctly
   ==============================================================================}
 interface
 
@@ -778,9 +779,11 @@ begin
                    scDisplay.SetDataBuf( ADCDisplay ) ;
                    scDisplay.NumPoints := 0 ;
                    scDisplay.TScale := Main.SESLabIO.ADCSamplingInterval*Settings.TScale ;
+
                    if (not scDisplay.StorageMode) or
                       (Abs(Main.SESLabIO.ADCSamplingInterval - rH.dt) > 1E-5) or
                       EraseScreen then scDisplay.Invalidate ;
+
                    EraseScreen := False ;
                    NewSweep := False ;
                    end ;
@@ -799,6 +802,8 @@ begin
 
                   { Save sweep data to file }
                   SaveSweep ;
+
+                  scDisplay.RecordNumber := scDisplay.RecordNumber + 1 ;
 
                   // If Dynamic clamp in use, inform it that a record has been collected
                   if Main.FormExists('DCLAMPFrm') then DCLAMPAction := DCL_NextRecord ;
@@ -1000,6 +1005,7 @@ begin
      RawFH.ADCVoltageRange := Main.SESLabIO.ADCVoltageRange ;
      RawfH.dt := Main.SESLabIO.ADCSamplingInterval ;
      scDisplay.TScale := Main.SESLabIO.ADCSamplingInterval*Settings.TScale ;
+
 
      // Update file channel settings with recording settings
      for ch := 0 to Main.SESLabIO.ADCNumChannels-1 do begin
@@ -1702,6 +1708,7 @@ begin
         end ;
 
      StatusCounter := 0 ;
+     //scDisplay.RecordNumber := 0 ;
      end;
 
 
@@ -2000,11 +2007,23 @@ begin
      if bRecord.Enabled then begin
         { Erase screen immediately if not recording }
         scDisplay.NumPoints := 0 ;
+        if scDisplay.StorageMode then
+           begin
+           scDisplay.StorageMode := False ;
+           scDisplay.StorageMode := True ;
+           end;
+
         scDisplay.Invalidate ;
         end
      else begin
         { Request that the screen be erased at the beginning of the next sweep }
         EraseScreen := True ;
+        if scDisplay.StorageMode then
+           begin
+           scDisplay.StorageMode := False ;
+           scDisplay.StorageMode := True ;
+           end;
+
         end ;
      end;
 

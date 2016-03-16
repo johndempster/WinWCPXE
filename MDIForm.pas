@@ -669,6 +669,7 @@ unit MDIForm;
    V5.1.5 22.02.16    4 byte packing added to end TDD1440_Protocol record to avoid 'Error writing to device' error
                       when external trigger selected and running under 64 bit O/S Not clear why this is necessary
                       wdapi1140.dll no longer loaded before axdd1400.dll since not required by axdd1440.dll
+   V5.1.6 16.03.16    View->Superimpose traces now works correctly again in recording window
   =======================================================================}
 
 interface
@@ -914,7 +915,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.1.5';
+      ProgVersion := 'V5.1.6';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
