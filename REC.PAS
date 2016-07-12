@@ -107,6 +107,8 @@ unit Rec;
   05.11.15 HekaEPC9USB interface added
   8.11.15 .. TMeasureFrmCursors.Base removed since use was redundant.
   16.03.16 .. scDisplay.recordnumber incremented after SaveSweep to make storage mode work correctly
+  11.07.16 .. UpdateChannelSettings() removed from SaveSweep() to speed it up allow 5 HZ repeat
+              rates. Now called by brecord.click and when a protocol loaded
   ==============================================================================}
 interface
 
@@ -710,7 +712,7 @@ procedure TRecordFrm.TimerTimer(Sender: TObject);
   Timed Event scheduler
   ---------------------}
 var
-   i,i0,i1 : Integer ;
+   i,i0,i1,t0 : Integer ;
    Done : Boolean ;
 begin
 
@@ -794,7 +796,7 @@ begin
 
                { End of sweep processing }
                if EndOfSweep then begin
-
+                  t0 := timegettime ;
                   { Stop A/D conversion ... unless in detect event mode }
                   if cbRecordingMode.ItemIndex <> rmDetect then begin
                      Main.SESLabIO.ADCStop ;
@@ -829,6 +831,9 @@ begin
                         // If Dynamic clamp in use, update to next Gmax value
                         if Main.FormExists('DCLAMPFrm') then DCLAMPAction := DCL_NextProtocol ;
 
+                        // Update channel scaling factors in case amplifier gain has changed
+                        UpdateChannelSettings ;
+
                         { If at the end of the current set of voltage pulses
                           for the current protocol either load and begin
                           the next protocol in a linked sequence or list OR
@@ -848,6 +853,7 @@ begin
                           StopSweep
                      else StartSweep ; ;
                      end ;
+                     outputdebugstring(pchar(format('%d',[TimeGetTime-t0])));
                   end ;
 
                End ;
@@ -1005,7 +1011,6 @@ begin
      RawFH.ADCVoltageRange := Main.SESLabIO.ADCVoltageRange ;
      RawfH.dt := Main.SESLabIO.ADCSamplingInterval ;
      scDisplay.TScale := Main.SESLabIO.ADCSamplingInterval*Settings.TScale ;
-
 
      // Update file channel settings with recording settings
      for ch := 0 to Main.SESLabIO.ADCNumChannels-1 do begin
@@ -1377,14 +1382,12 @@ procedure TRecordFrm.SaveSweep ;
   Save recording sweep to file
   --------------------------- }
 var
-   ch,i,j,i0,i1,NumAvg,iStart : Integer ;
+   ch,i,j,i0,i1,NumAvg,iStart,t0 : Integer ;
    Done,SaveRecord,EmptyRecord : Boolean ;
    ZeroSum : Single ;
 
 begin
-
-     // Update channel scaling factors in case amplifier gain has changed
-     UpdateChannelSettings ;
+     t0 := TimeGetTime ;
 
      { Replace any Empty flags in the buffer with the most recently
        recorded sample for that channel }
@@ -1397,6 +1400,7 @@ begin
         end ;
      if i < (EndOfBuf div 10) then  EmptyRecord := True
                               else  EmptyRecord := False ;
+
 
      if i < EndofBuf then begin
         iStart := ((i - Settings.NumChannels) div Main.SESLabIO.ADCNumChannels)*Main.SESLabIO.ADCNumChannels ;
@@ -1516,7 +1520,7 @@ begin
            end ;
 
         end ;
-
+ //    outputdebugstring(pchar(format('%d',[TimeGetTime-t0])));
      End ;
 
 
@@ -1635,6 +1639,9 @@ begin
      MainMenus( Disable ) ;
 
      WriteToLogFile( 'Recording Started ' ) ;
+
+     // Update channel scaling factors in case amplifier gain has changed
+     UpdateChannelSettings ;
 
      // Stop timer
      // (Forces a call to Main.SESLabIO.StartTimer in PulseProgram

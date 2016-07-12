@@ -23,6 +23,7 @@ unit EditProtocolUnit;
 //          No. of samples/channel is now altered when sampling interval changed to maintain fixed duration
 //          and vice versa.
 // 28.07.15 Pulse trains with frequency incrementing added
+// 11.07.16 Warning displayed when stimulus duration not more than 150 ms less than repeat period
 
 interface
 
@@ -340,6 +341,7 @@ type
     ckFixedSamplesPerChannel: TCheckBox;
     pTrainHz: TImage;
     DigTrainHz: TImage;
+    lbError: TLabel;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -2256,6 +2258,9 @@ begin
                                     ExtractFileNameOnly(Prot.NextProtocolFileName)))
      else cbNextProtocol.ItemIndex := 0 ;
 
+    if Prot.RecordDuration >= (Prot.StimulusPeriod - 0.15) then
+       lbError.Caption := 'Warning! Recording Duration must be at least 150ms smaller than Stimulus Repeat Period'
+       else lbError.Caption := '';
 
     end ;
 

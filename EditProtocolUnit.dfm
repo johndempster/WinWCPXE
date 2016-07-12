@@ -31,6 +31,19 @@ object EditProtocolFrm: TEditProtocolFrm
     OnChange = PageChange
     object RecordTab: TTabSheet
       Caption = 'Recording'
+      object lbError: TLabel
+        Left = 376
+        Top = 8
+        Width = 3
+        Height = 13
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clRed
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        WordWrap = True
+      end
       object GroupBox3: TGroupBox
         Left = 4
         Top = 250

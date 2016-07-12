@@ -414,7 +414,7 @@ begin
         Caption := Main.UpdateCaption( FH, 'Curve Fit ' ) ;
 
         if DispBuf <> Nil then FreeMem( DispBuf ) ;
-        GetMem( DispBuf, FH.NumSamples*4 ) ;
+        GetMem( DispBuf, FH.NumSamples*4*2 ) ;
         if ADC <> Nil then FreeMem( ADC ) ;
         GetMem( ADC, FH.NumSamples*FH.NumChannels*2 ) ;
 
@@ -617,6 +617,7 @@ begin
      scDisplay.SetDataBuf( DispBuf ) ;
 
      { Set vertical cursors }
+
      if (RH.EqnType <> None) and
         (RH.FitCursor1 <> RH.FitCursor2) then begin
         { Set cursors to positions used to compute fit }
@@ -672,7 +673,7 @@ begin
          DispBuf^[jTo] := 0 ;
          jTo := jTo + NumFitChannels ;
          end ;
-
+     RH.EqnType := None ;
      if RH.EqnType <> None then begin
 
         { Draw fitted line on record }
