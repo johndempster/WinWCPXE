@@ -671,6 +671,9 @@ unit MDIForm;
                       wdapi1140.dll no longer loaded before axdd1400.dll since not required by axdd1440.dll
    V5.1.6 16.03.16    View->Superimpose traces now works correctly again in recording window
    v5.1.7 07.07.16    4 byte packing added to end TDD1550_Protocol & TDD1550A_Protocol record to avoid 'Error writing to device' error
+   V5.1.7 13.07.16    curvefit.pas Access violation when T=0 cursor > half of display width fixed.
+                      HekaUnit.pas Correct output channels now set by Heka_WriteDACS()
+//                    fixing bug which caused holding voltage to be set to zero.
   =======================================================================}
 
 interface

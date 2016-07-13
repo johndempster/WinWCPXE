@@ -42,7 +42,6 @@ unit Curvfit;
   27.07.15 .. iline added to .CreateLine() & .AddPointToLine()
   16.10.15 .. Residual plot data now limited to MinADCValue-MaxADCValue range to avoid roll-over
               when  very large deviations occur
-  13.07.16 .. Access violation when T=0 cursor > half of display width fixed.
   ==========================================================================}
 interface
 
@@ -415,7 +414,7 @@ begin
         Caption := Main.UpdateCaption( FH, 'Curve Fit ' ) ;
 
         if DispBuf <> Nil then FreeMem( DispBuf ) ;
-        GetMem( DispBuf, FH.NumSamples*4 ) ;
+        GetMem( DispBuf, FH.NumSamples*4*2 ) ;
         if ADC <> Nil then FreeMem( ADC ) ;
         GetMem( ADC, FH.NumSamples*FH.NumChannels*2 ) ;
 
@@ -617,7 +616,10 @@ begin
      scDisplay.TScale := RH.dt*Settings.TScale ;
      scDisplay.SetDataBuf( DispBuf ) ;
 
-     if (RH.EqnType <> None) and (RH.FitCursor1 <> RH.FitCursor2) then begin
+     { Set vertical cursors }
+
+     if (RH.EqnType <> None) and
+        (RH.FitCursor1 <> RH.FitCursor2) then begin
         { Set cursors to positions used to compute fit }
         scDisplay.VerticalCursors[Cursors.T0] := RH.FitCursor0 div nDisplaySkip ;
         scDisplay.VerticalCursors[Cursors.C0] := RH.FitCursor1 div nDisplaySkip  ;
@@ -671,11 +673,13 @@ begin
          DispBuf^[jTo] := 0 ;
          jTo := jTo + NumFitChannels ;
          end ;
-
+     RH.EqnType := None ;
      if RH.EqnType <> None then begin
 
         { Draw fitted line on record }
-        Func.Setup( RH.EqnType, Settings.TUnits,Channel[RH.FitChan].ADCUnits ) ;
+        Func.Setup( RH.EqnType,
+                    Settings.TUnits,
+                    Channel[RH.FitChan].ADCUnits ) ;
 
         for i := 0 to Func.NumParameters-1 do begin
             Func.Parameters[i] := RH.Value[i*MaxAnalysisVariables + vFitPar] ;
@@ -687,16 +691,16 @@ begin
         j := 0 ;
         for i := 0 to scDisplay.NumPoints-1 do begin
             if i >= scDisplay.VerticalCursors[Cursors.T0] then begin
-              y := (Func.Value(t)/Channel[RH.FitChan].ADCScale)
+               y := (Func.Value(t)/Channel[RH.FitChan].ADCScale)
                     + Channel[RH.FitChan].ADCZero ;
-               // Draw fitted line over data
+               { Draw fitted line over data }
                scDisplay.AddPointToLine( iLine, i, y ) ;
                t := t + RH.dt*nDisplaySkip*Settings.TScale ;
-               // Compute residual
+               { Compute residual }
                DispBuf^[j+ChRes] := Min(Max( Round(y) - DispBuf^[j+ChData],
                                              scDisplay.MinADCValue),scDisplay.MaxADCValue);
                end
-            else DispBuf^[j+ChRes] := 0 ;
+            else ADC^[j+ChRes] := 0 ;
             j := j + NumFitChannels ;
             end ;
 
@@ -735,6 +739,7 @@ begin
                                     [Channel[ch].ADCName,
                                      RH.Value[MaxAnalysisVariables*ch + VFitAvg],
                                      Channel[ch].ADCUnits] ) ) ;
+
         end
      else begin
         RH.FitChan := cbFitChannel.ItemIndex ;

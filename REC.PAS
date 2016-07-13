@@ -668,7 +668,6 @@ begin
          Channel[ch].ADCZeroAt := Main.SESLabIO.ADCChannelZeroAt[ch] ;
          Channel[ch].ADCZero := Main.SESLabIO.ADCChannelZero[ch] ;
          scDisplay.ChanZeroAt[ch] := Main.SESLabIO.ADCChannelZeroAt[ch] ;
-
          end ;
 
      scDisplay.TScale := Main.SESLabIO.ADCSamplingInterval*Settings.TScale ;
@@ -712,7 +711,7 @@ procedure TRecordFrm.TimerTimer(Sender: TObject);
   Timed Event scheduler
   ---------------------}
 var
-   i,i0,i1,t0 : Integer ;
+   i,i0,i1,t0 : integer ;
    Done : Boolean ;
 begin
 
@@ -796,7 +795,7 @@ begin
 
                { End of sweep processing }
                if EndOfSweep then begin
-                  t0 := timegettime ;
+    //              t0 := timegettime ;
                   { Stop A/D conversion ... unless in detect event mode }
                   if cbRecordingMode.ItemIndex <> rmDetect then begin
                      Main.SESLabIO.ADCStop ;
@@ -853,7 +852,7 @@ begin
                           StopSweep
                      else StartSweep ; ;
                      end ;
-                     outputdebugstring(pchar(format('%d',[TimeGetTime-t0])));
+  //                outputdebugstring(pchar(format('%d',[timegettime-t0])));
                   end ;
 
                End ;
@@ -1382,13 +1381,11 @@ procedure TRecordFrm.SaveSweep ;
   Save recording sweep to file
   --------------------------- }
 var
-   ch,i,j,i0,i1,NumAvg,iStart,t0 : Integer ;
+   ch,i,j,i0,i1,NumAvg,iStart : Integer ;
    Done,SaveRecord,EmptyRecord : Boolean ;
    ZeroSum : Single ;
 
 begin
-     t0 := TimeGetTime ;
-
      { Replace any Empty flags in the buffer with the most recently
        recorded sample for that channel }
      Done := False ;
@@ -1520,7 +1517,7 @@ begin
            end ;
 
         end ;
- //    outputdebugstring(pchar(format('%d',[TimeGetTime-t0])));
+
      End ;
 
 

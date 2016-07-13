@@ -222,16 +222,6 @@ else
   Create Shortcut $SHORTCUTFOLDER$\WinWCP User Guide to $TARGETDIR$\WinWCP User Guide.pdf
   Create Shortcut $SHORTCUTFOLDER$\Install Digidata1200 Win 95-98 Support to $TARGETDIR$\Digidata 1200 Support\Win 95-98\DD1200 Win 95 Support.exe
   Create Shortcut $SHORTCUTFOLDER$\Install Digidata 1200 Driver (Windows NT,2000,XP) to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP\Install Digidata 1200 Driver (Windows NT,2000,XP).bat
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\vprot\digpulse.XML to $ALLDOCUMENTS$\WinWCP\VProt
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\vprot\ISteps 10-100pA 100ms.XML to $ALLDOCUMENTS$\WinWCP\VProt
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\vprot\sinewave.xml to $ALLDOCUMENTS$\WinWCP\VProt
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\vprot\sinewave.DAT to $ALLDOCUMENTS$\WinWCP\VProt
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\vprot\tail current.XML to $ALLDOCUMENTS$\WinWCP\VProt
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\vprot\VSteps 10-100mV 100ms.xml to $ALLDOCUMENTS$\WinWCP\VProt
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\vprot\Pulse Train 100x100Hz.XML to $ALLDOCUMENTS$\WinWCP\VProt
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\vprot\Ramp -100..100mV 1s.xml to $ALLDOCUMENTS$\WinWCP\VProt
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\wdapi1140.dll.32 to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\wdapi1140.dll.64 to $TARGETDIR$
   Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW64.iss to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
   Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\cpd64.exe to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
   Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\Install Digidata 1200 Driver (Windows 95,98,ME).bat to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
@@ -289,6 +279,16 @@ else
   Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\WinWCP VBSCRIPT Example.vbs to $TARGETDIR$
   Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\WinWCP.chm to $TARGETDIR$
   Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\winwcp.exe to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\digpulse.XML to $ALLDOCUMENTS$\WinWCP\VProt
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\ISteps 10-100pA 100ms.XML to $ALLDOCUMENTS$\WinWCP\VProt
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\Pulse Train 100x100Hz.XML to $ALLDOCUMENTS$\WinWCP\VProt
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\Ramp -100..100mV 1s.xml to $ALLDOCUMENTS$\WinWCP\VProt
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\Ramp -100..100mV 1s.xml to $ALLDOCUMENTS$\WinWCP\VProt
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\sinewave.DAT to $ALLDOCUMENTS$\WinWCP\VProt
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\tail current.XML to $ALLDOCUMENTS$\WinWCP\VProt
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\VSteps 10-100mV 100ms.xml to $ALLDOCUMENTS$\WinWCP\VProt
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\sinewave.txt to $ALLDOCUMENTS$\WinWCP\VProt
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\sinewave.xml to $ALLDOCUMENTS$\WinWCP\VProt
   [DEFINE WEB MEDIA WinWCP]
   Get Component WinWCP Selection State into Variable SELECTED
   if Variable SELECTED Equals TRUE
