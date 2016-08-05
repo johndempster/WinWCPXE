@@ -674,6 +674,9 @@ unit MDIForm;
    V5.1.7 13.07.16    curvefit.pas Access violation when T=0 cursor > half of display width fixed.
                       HekaUnit.pas Correct output channels now set by Heka_WriteDACS()
 //                    fixing bug which caused holding voltage to be set to zero.
+   V5.1.8 05.08.16    DCLAMPUnit.pas DCLAMP parameters now updated when form opened
+                      sealtest.pas Holding potential setting in use now updated with default holding potential of selected amplifier
+
   =======================================================================}
 
 interface
@@ -919,7 +922,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.1.7';
+      ProgVersion := 'V5.1.8';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

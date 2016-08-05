@@ -80,7 +80,9 @@ unit Sealtest;
               when EPC9PanelFrm title bar held down.
   09.07.15 .. DACScale arrays increased to cope with up to 128 analog output channels
   02.10.15 .. Zap pulse added to panel
-// 05.11.15 HekaEPC9USB interface added
+  05.11.15 .. HekaEPC9USB interface added
+  05.08.16 .. Holding potential setting in use now updated with default holding potential of selected amplifier
+              (Change to SetCLampMode)
   ==================================================}
 
 interface
@@ -405,7 +407,6 @@ begin
 
      scDisplay.TUnits := Settings.TUnits ;
 
-
      // Show available output channels
      ckPulseToAO0.Visible := False ;
      ckPulseToAO1.Visible := False ;
@@ -429,6 +430,8 @@ begin
      edPulseWidth.Value := Settings.SealTest.PulseWidth ;
 
      { Update holding potential text boxes }
+
+
      edHoldingVoltage1.Value := Settings.SealTest.HoldingVoltage1 ;
      edHoldingVoltage2.Value := Settings.SealTest.HoldingVoltage2 ;
      edHoldingVoltage3.Value := Settings.SealTest.HoldingVoltage3 ;
@@ -696,6 +699,23 @@ begin
     ChangeUnits( edPulseHeight2, Units, Scale ) ;
     ChangeUnits( edPulseHeight3, Units, Scale ) ;
     ChangeUnits( edZapAmplitude, Units, Scale ) ;
+
+    // Use current default holding potential for selected AO channel
+    TestDAC := Min(Max(TestDAC,0),Main.SESLabIO.DACNumChannels-1) ;
+    case Settings.SealTest.Use of
+          2 : begin
+             Settings.SealTest.HoldingVoltage2 :=  Main.SESLabIO.DACHoldingVoltage[TestDAC] ;
+             edHoldingVoltage2.Value := Settings.SealTest.HoldingVoltage2 ;
+              end ;
+          3 : begin
+              Settings.SealTest.HoldingVoltage3 :=  Main.SESLabIO.DACHoldingVoltage[TestDAC] ;
+              edHoldingVoltage3.Value := Settings.SealTest.HoldingVoltage3 ;
+              end ;
+          else begin
+              Settings.SealTest.HoldingVoltage1 :=  Main.SESLabIO.DACHoldingVoltage[TestDAC] ;
+              edHoldingVoltage1.Value := Settings.SealTest.HoldingVoltage1 ;
+              end ;
+          end ;
 
     end ;
 
@@ -1406,24 +1426,15 @@ begin
      case Key of
           { F3 selects holding voltage #1 }
           VK_F3 : begin
-//               Settings.SealTest.Use := 1 ;
-//               Settings.DAC[TestDAC].HoldingVoltage := edHoldingVoltage1.Value ;
-//               Settings.SealTest.PulseHeight := edPulseHeight1.Value ;
                rbUseHoldingVoltage1.checked := True ;
                end ;
           { F4 selects holding voltage #2 }
           VK_F4 : begin
-//               Settings.SealTest.Use := 2 ;
-//               Settings.DAC[TestDAC].HoldingVoltage := edHoldingVoltage2.value ;
-//               Settings.SealTest.PulseHeight :=edPulseHeight2.Value ;
                rbUseHoldingVoltage2.checked := True ;
                end ;
           { F5 selects holding voltage #3 }
           VK_F5 : begin
                rbUseHoldingVoltage3.checked := True ;
-//               Settings.SealTest.Use := 3 ;
-//               Settings.DAC[TestDAC].HoldingVoltage := edHoldingVoltage3.Value ;
-//               Settings.SealTest.PulseHeight := 0.0 ;
                end ;
           end ;
      end;

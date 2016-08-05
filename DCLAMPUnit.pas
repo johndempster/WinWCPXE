@@ -23,6 +23,7 @@ unit DCLAMPUnit;
 // 29.09.15       DCLAMP Increments now take place either at end of protocol
 //                or after Nth record
 //                Updating time now reported in status bar
+// 05.08.16       DCLAMP parameters now updated when form opened
 
 interface
 
@@ -166,7 +167,7 @@ type
     ComHandle : Integer ;
     OverLapStructure : POverlapped ;
     INIFileName : String ;
-    UpdatesEnabled : Boolean ;
+//    UpdatesEnabled : Boolean ;
 //    UpdateCounter : Integer ;
     StepCounter : Integer ;             // Gmax step number (in steps mode)
     RecordCounter : Integer ;          // Record counter (for Increment after record)
@@ -449,7 +450,7 @@ procedure TDCLAMPFrm.FormCreate(Sender: TObject);
 // Initialisations when form created
 // ---------------------------------
 begin
-    UpdatesEnabled := False ;
+//    UpdatesEnabled := False ;
     StepCounter := 0 ;
     UpdateTicks := 0 ;
     UpdateTicksMax := 0 ;
@@ -570,8 +571,9 @@ begin
      cbPlot.Items.Add('Time constants vs V') ;
      cbPlot.ItemIndex := 0 ;
 
-     // Request update of dynamic clamp
-     UpdatesEnabled := True ;
+     // Update of dynamic clamp
+     UpdateDClamp ;
+//     UpdatesEnabled := True ;
 
      end;
 
@@ -1291,7 +1293,7 @@ begin
             sgSteps.Cells[1,i] := format('%.4g %s',[Value,StepUnits[i]]) ;
             end;
 
-        UpdatesEnabled := True ;
+//        UpdatesEnabled := True ;
 //        UpdateCounter := 0 ;
 
         end ;

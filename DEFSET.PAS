@@ -191,6 +191,7 @@ procedure TDefSetFrm.SetAOHoldingVoltage(
 begin
     if not Initialised then Exit ;
     Main.SESLabIO.DACHoldingVoltage[AONum] := edLevel.Value ;
+
     end ;
 
 
