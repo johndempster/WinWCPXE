@@ -124,6 +124,7 @@ unit AmpModule;
 // 08.01.16 LoadFromXMLFile1() now checks if XML file contains settings and avoids access violation.
 // 04.02.16 Multiclamp 700A: Now Com port # now correctly isolated from message code
 //          allowing Amplifier #1/#2 to be correctly selected instead of #3/#4
+// 10.08.16 Axoclamp 2: Default current gains now correct (10,1,0.1 V/nA) for (HS10,1,0.1)
 
 interface
 
@@ -2152,9 +2153,9 @@ begin
             FPrimaryChannelUnits[AmpNumber] := 'nA' ;
             FPrimaryChannelUnitsCC[AmpNumber] := 'nA' ;
             case FAmpType[AmpNumber] of
-               amAxoclamp2HS01 : FPrimaryChannelScaleFactorX1Gain[AmpNumber] := 0.001 ;
-               amAxoclamp2HS1 : FPrimaryChannelScaleFactorX1Gain[AmpNumber] := 0.01 ;
-               amAxoclamp2HS10 : FPrimaryChannelScaleFactorX1Gain[AmpNumber] := 0.1 ;
+               amAxoclamp2HS01 : FPrimaryChannelScaleFactorX1Gain[AmpNumber] := 0.1 ;
+               amAxoclamp2HS1 : FPrimaryChannelScaleFactorX1Gain[AmpNumber] := 1.0 ;
+               amAxoclamp2HS10 : FPrimaryChannelScaleFactorX1Gain[AmpNumber] := 10.0 ;
                end ;
             FPrimaryChannelScaleFactorX1GainCC[AmpNumber] := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;
             FPrimaryChannelScaleFactor[AmpNumber] := FPrimaryChannelScaleFactorX1Gain[AmpNumber] ;

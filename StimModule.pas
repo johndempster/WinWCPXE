@@ -886,7 +886,7 @@ begin
     if LeakRecord then begin
        Result := format( 'Stim: %s Step %d/%d Leak %d/%d ',
                  [ANSIReplaceText(ExtractFileName(FileName),'.xml',''),
-                 Increment+1,Stimulator.Prot.NumRecords div Stimulator.Prot.NumRepeatsPerIncrement,
+                 Increment+1,Stimulator.Prot.NumRecords div Max(Stimulator.Prot.NumRepeatsPerIncrement,1),
                   Stimulator.RepeatCounter+1,Stimulator.Prot.NumLeakSubtractionRecords]) ;
        end
     else begin
@@ -894,7 +894,7 @@ begin
                                       else LeakOffset := 0 ;
        Result := format( 'Stim: %s Step %d/%d Repeat %d/%d ',
                  [ANSIReplaceText(ExtractFileName(FileName),'.xml',''),
-                  Increment+1,Stimulator.Prot.NumRecords div Stimulator.Prot.NumRepeatsPerIncrement,
+                  Increment+1,Stimulator.Prot.NumRecords div Max(Stimulator.Prot.NumRepeatsPerIncrement,1),
                   Stimulator.RepeatCounter+1-LeakOffset,
                   Stimulator.Prot.NumRepeatsPerIncrement]) ;
        end ;

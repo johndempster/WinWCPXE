@@ -109,6 +109,8 @@ unit Rec;
   16.03.16 .. scDisplay.recordnumber incremented after SaveSweep to make storage mode work correctly
   11.07.16 .. UpdateChannelSettings() removed from SaveSweep() to speed it up allow 5 HZ repeat
               rates. Now called by brecord.click and when a protocol loaded
+  10.08.16 .. TImer interval reduced to 30ms to make reading of data from NIDAQ boards faster
+
   ==============================================================================}
 interface
 
