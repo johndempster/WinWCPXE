@@ -677,6 +677,8 @@ unit MDIForm;
    V5.1.8 05.08.16    DCLAMPUnit.pas DCLAMP parameters now updated when form opened
                       sealtest.pas Holding potential setting in use now updated with default holding potential of selected amplifier
    V5.1.9 10.08.16    ampmodule.pas Axoclamp 2: Default current gains now correct (10,1,0.1 V/nA) for (HS10,1,0.1)
+   V5.2.0 30.08.16    Record to Disk: Record scaling now updated correcting again after amplifier gain
+                      is changed (fixes bug introduced in V5.1.7)
   =======================================================================}
 
 interface
@@ -922,7 +924,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.1.9';
+      ProgVersion := 'V5.2.0';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

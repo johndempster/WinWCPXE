@@ -110,7 +110,9 @@ unit Rec;
   11.07.16 .. UpdateChannelSettings() removed from SaveSweep() to speed it up allow 5 HZ repeat
               rates. Now called by brecord.click and when a protocol loaded
   10.08.16 .. TImer interval reduced to 30ms to make reading of data from NIDAQ boards faster
-
+  30.08.16 .. RH.ADCVoltageRange now updated in SaveSweep() to account for changes
+              in amplifier gain (previously done by UpdateChannelSettings() which
+              was removed from SaveSweep() to speed up saving to file.
   ==============================================================================}
 interface
 
@@ -713,7 +715,7 @@ procedure TRecordFrm.TimerTimer(Sender: TObject);
   Timed Event scheduler
   ---------------------}
 var
-   i,i0,i1,t0 : integer ;
+   i,i0,i1 : integer ;
    Done : Boolean ;
 begin
 
@@ -1443,6 +1445,12 @@ begin
 
      { *** Save data to file *** (unless in leak mode) }
      if SaveRecord and (not EmptyRecord) then begin
+
+       //   UpdateChannelSettings (removed to reduce inter-sweep dead time);
+       // Update record voltage range to reflect gain change in amplifier
+        for ch := 0 to  Main.SESLabIO.ADCNumChannels-1 do
+            RH.ADCVoltageRange[ch] := Main.SESLabIO.ADCVoltageRange /
+                                      Main.SESLabIO.ADCChannelGain[ch] ;
 
         RawfH.NumRecords := RawfH.NumRecords + 1 ;
         RawFH.CurrentRecord := RawFH.NumRecords ;
