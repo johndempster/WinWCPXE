@@ -679,6 +679,8 @@ unit MDIForm;
    V5.1.9 10.08.16    ampmodule.pas Axoclamp 2: Default current gains now correct (10,1,0.1 V/nA) for (HS10,1,0.1)
    V5.2.0 30.08.16    Record to Disk: Record scaling now updated correcting again after amplifier gain
                       is changed (fixes bug introduced in V5.1.7)
+   V5.2.1 04.09.16    Digidata 1440,1550,1550A support updated to be compatible with drivers installed by PCLAMP V10.7
+          09.09.16    Digidata 1550B supported added to SESLabIO component.
   =======================================================================}
 
 interface
@@ -924,7 +926,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.2.0';
+      ProgVersion := 'V5.2.1';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
