@@ -98,6 +98,12 @@ procedure PutRecord ( var fHDR : TFileHeader;
                      var rH : TRecHeader ;
                      RecordNum : Integer ;
                      var dBuf : Array of SmallInt ) ;
+procedure PutRecord32(
+          var fHDR : TFileHeader;      { Data file header }
+          var rH : TRecHeader ;        { Record header }
+          RecordNum : Integer ;        { Record number }
+          var dBuf : Array of Integer { A/D data array }
+          ) ;
 procedure PutRecordHeaderOnly( var fHDR : TFileHeader;
                                var rH : TRecHeader ;
                                RecordNum : Integer ) ;
@@ -1297,6 +1303,33 @@ begin
     FreeMem(dBuf16) ; // Free buffer
 
     end ;
+
+
+procedure PutRecord32(
+          var fHDR : TFileHeader;      { Data file header }
+          var rH : TRecHeader ;        { Record header }
+          RecordNum : Integer ;        { Record number }
+          var dBuf : Array of Integer { A/D data array }
+          ) ;
+// --------------------------------------------
+// Save A/D data from record into 32 bit buffer
+// --------------------------------------------
+var
+    i : Integer ;
+    dBuf16 : PSmallIntArray ;
+begin
+
+    GetMem( dBuf16, FH.NumSamples*fh.NumChannels*2) ;
+
+    for i := 0 to fHDR.NumSamples*fHDR.NumChannels-1 do dBuf16[i] := dBuf[i]  ;
+
+    // Read data from file
+    PutRecord( fHDR, rH, RecordNum, dBuf16^ ) ;
+
+    FreeMem(dBuf16) ; // Free buffer
+
+    end ;
+
 
 
 procedure GetRecordHeaderOnly(

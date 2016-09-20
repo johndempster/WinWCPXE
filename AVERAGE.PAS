@@ -21,6 +21,7 @@ unit Average;
               Buffers now static allocation
   07.06.13 .. FH.NumZeroAvg now updated when changed in ZeroFrm
   09.08.13 .. ADC,Buf now allocated by GetMem()
+  20.09.16 .. Interleaved averaging mode added
   ========================================================================== }
 interface
 
@@ -41,15 +42,18 @@ type
     Label7: TLabel;
     bDoAverages: TButton;
     cbRecTypeToBeAveraged: TComboBox;
-    Label6: TLabel;
     bAbort: TButton;
     cbAlignMode: TComboBox;
     Label8: TLabel;
     edRange: TRangeEdit;
-    edBlockSize: TValidatedEdit;
     edRecordNum: TRangeEdit;
     scDisplay: TScopeDisplay;
     ckFixedZeroLevels: TCheckBox;
+    GroupBox1: TGroupBox;
+    Label6: TLabel;
+    edBlockSize: TValidatedEdit;
+    rbSequentialRecords: TRadioButton;
+    rbInterleavedRecords: TRadioButton;
     procedure sbRecordNumChange(Sender: TObject);
     procedure bDoAveragesClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -94,7 +98,8 @@ type
 
 var
    Sum : PSingleArray ;
-   ADC : PSmallIntArray ;
+   ADC16 : PSmallIntArray ;
+   ADC : PIntArray ;
    RH : TRecHeader ;
    LastUsedRH : TRecHeader ;
    Cursor0 : Integer ;
@@ -158,8 +163,10 @@ var
 begin
 
      // Reallocate A/D sample buffer
+     if ADC16 <> Nil then FreeMem(ADC16) ;
+     GetMem( ADC16, Max(RawFH.NumSamples*RawFH.NumChannels*2,1024) ) ;
      if ADC <> Nil then FreeMem(ADC) ;
-     GetMem( ADC, Max(RawFH.NumSamples*RawFH.NumChannels*2,1024) ) ;
+     GetMem( ADC, Max(RawFH.NumSamples*RawFH.NumChannels*4,1024) ) ;
      if Sum <> Nil then FreeMem(Sum) ;
      GetMem( Sum, Max(RawFH.NumSamples*RawFH.NumChannels*4,1024) ) ;
 
@@ -235,7 +242,7 @@ procedure TAvgFrm.DisplayRecord ;
   Display digitised signal record
   ===============================}
 var
-    ch : Integer ;
+    ch,i : Integer ;
 begin
 
      if ADC = Nil then Exit ;
@@ -243,7 +250,7 @@ begin
      RawfH.RecordNum := SbRecordNum.position ;
 
      { Read record data from file }
-     GetRecord( RawfH, RH, RawfH.RecordNum, ADC^ ) ;
+     GetRecord( RawfH, RH, RawfH.RecordNum, ADC16^ ) ;
 
      scDisplay.TScale := RawFH.dt*Settings.TScale ;
 
@@ -258,8 +265,7 @@ begin
      // No. of samples in zero level area
      scDisplay.ChanZeroAvg := FH.NumZeroAvg ;
 
-     scDisplay.SetDataBuf( ADC ) ;
-
+     scDisplay.SetDataBuf( ADC16 ) ;
 
      { Show whether record has been rejected by operator }
      if RH.Status = 'ACCEPTED' then ckBadRecord.checked := False
@@ -291,6 +297,7 @@ var
    StartOfBlock,EndOfBlock,BlockSize,NumRecordsAveraged : Integer ;
    iStart,iEnd : Integer ;
    Done, OK : Boolean ;
+   RepeatCounter,NumRepeats : Integer ;
 begin
 
      bDoAverages.Enabled := False ;
@@ -322,13 +329,27 @@ begin
           OK := False ;
           end ;
 
+
      { Initial averaging loop }
      StartAtRec := Round(edRange.LoValue) ;
      EndAtRec := Round(edRange.HiValue) ;
      BlockSize := Round(edBlockSize.Value) ;
+
+     if rbSequentialRecords.Checked then begin
+        // Sequential record averaging
+        StartOfBlock := StartAtRec ;
+        EndOfBlock := StartAtRec + BlockSize - 1 ;
+        NumRepeats := 1 ;
+        end
+     else begin
+        // Interleaved record averaging
+        StartOfBlock := StartAtRec ;
+        EndOfBlock := EndAtRec ;
+        NumRepeats := BlockSize ;
+        end ;
+
      RecordNum := StartAtRec ;
-     StartOfBlock := StartAtRec ;
-     EndOfBlock := StartAtRec + BlockSize - 1 ;
+     RepeatCounter := 0 ;
      NumRecordsAveraged := 0 ;
      Done := not OK ;
 
@@ -336,7 +357,10 @@ begin
      while not Done do begin
 
         { Read record data from file }
-        GetRecord( RawfH, RH, RecordNum, ADC^ ) ;
+        if RecordNum <= EndAtRec then begin
+           GetRecord( RawfH, RH, RecordNum, ADC16^ ) ;
+           for i := 0 to RawFH.NumSamples*RawFH.NumChannels-1 do ADC^[i] := ADC16^[i] ;
+           end;
 
         { If no records in buffer yet ... Initialise averaging array }
         if NumRecordsAveraged = 0 then begin
@@ -344,9 +368,8 @@ begin
            LastUsedRH := RH ;
            end ;
 
-        { If record is of the right type and is ACCEPTED for use
-        ... add it to average }
-        if (RH.Status = 'ACCEPTED') and
+        // If record is of the right type and is ACCEPTED for use ... add it to average
+        if (RH.Status = 'ACCEPTED') and (RecordNum <= EndAtRec) and
            ( (RH.RecType = cbRecTypeToBeAveraged.text ) or
            ( cbRecTypeToBeAveraged.text = 'ALL') ) then begin
 
@@ -435,16 +458,15 @@ begin
         and  write it to average file. (Note ... if Do Averages button enabled
         indicates user has aborted averaging) }
 
-        if (RecordNum >= EndOfBlock) or (RecordNum >= EndAtRec)
-           or bDoAverages.Enabled then begin
+        if (RecordNum >= EndOfBlock) or (RecordNum >= EndAtRec) or bDoAverages.Enabled then begin
 
            if NumRecordsAveraged > 0 then begin
               for ch := 0 to RawFH.NumChannels-1 do begin
                   j := Channel[ch].ChannelOffset ;
                   for i := 0 to RawFH.NumSamples-1 do begin
-                      ADC^[j] := Trunc( Sum^[j] /
-                                 (NumRecordsAveraged*Channel[ch].ADCScale) )
-                                 + Channel[ch].ADCZero ;
+                      ADC^[j] := Round( Sum^[j] /
+                                 (NumRecordsAveraged*Channel[ch].ADCScale) + Channel[ch].ADCZero )
+                                  ;
                       j := j + RawFH.NumChannels ;
                       end ;
                   end ;
@@ -468,10 +490,19 @@ begin
                                                    NumRecordsAveraged] ) ;
            LastUsedRH.AnalysisAvailable := false ;
            LastUsedRH.EqnType := None ;
-           PutRecord( AvgfH, LastUsedRH, AvgfH.NumRecords, ADC^ ) ;
+           for i := 0 to RawFH.NumSamples*RawFH.NumChannels-1 do ADC16^[i] := ADC^[i] ;
+           PutRecord( AvgfH, LastUsedRH, AvgfH.NumRecords, ADC16^ ) ;
 
-           StartOfBlock :=  EndofBlock + 1 ;
-           EndofBlock := EndOfBlock + BlockSize ;
+           if rbSequentialRecords.Checked then begin
+              // Only increment averaging block range in sequential mode
+              StartOfBlock :=  EndofBlock + 1 ;
+              EndofBlock := EndOfBlock + BlockSize ;
+              end
+           else begin
+              // Increment repeat counter in interleaved mode and reset record to start
+              Inc(RepeatCounter) ;
+              RecordNum := StartAtRec + RepeatCounter - BlockSize ;
+              end ;
            NumRecordsAveraged := 0 ;
            end ;
 
@@ -480,11 +511,19 @@ begin
         ' Signal Average : Adding record %d/%d to average %d ',
             [RecordNum,EndAtRec,AvgfH.NumRecords+1]) ;
 
-        Inc(RecordNum) ;
+        // Increment to next record
+        if rbSequentialRecords.Checked then Inc(RecordNum)
+                                       else RecordNum := RecordNum + BlockSize ;
 
         { Terminate the job if that was the last record
         or the user has clicked the abort button }
-        if (RecordNum > EndAtRec) or bDoAverages.Enabled then Done := True ;
+        if RecordNum > EndAtRec then begin
+           // Terminate if at end of range in sequential mode
+           // or if required number of repeats acquired in interleaved mode
+           if rbSequentialRecords.Checked then Done := True
+           else if RepeatCounter >= NumRepeats then Done := True ;
+           end;
+        if bDoAverages.Enabled then Done := True ;
 
         { Allow other activities }
         Application.ProcessMessages ;
@@ -497,7 +536,6 @@ begin
      Main.StatusBar.SimpleText := format(
      ' Signal Average : %d-%d (%d averages created)',
             [StartAtRec,EndAtRec,AvgfH.NumRecords]) ;
-
 
      { Restore buttons }
      Screen.Cursor := crDefault ;
@@ -538,6 +576,7 @@ procedure TAvgFrm.FormDestroy(Sender: TObject);
 // ------------------------------
 begin
     if ADC <> Nil then FreeMem(ADC) ;
+    if ADC16 <> Nil then FreeMem(ADC16) ;
     if Sum <> Nil then FreeMem(Sum) ;
     end;
 

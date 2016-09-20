@@ -2,8 +2,8 @@ object AvgFrm: TAvgFrm
   Left = 299
   Top = 132
   Caption = 'Signal Averager'
-  ClientHeight = 302
-  ClientWidth = 459
+  ClientHeight = 378
+  ClientWidth = 520
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -24,10 +24,10 @@ object AvgFrm: TAvgFrm
   PixelsPerInch = 96
   TextHeight = 16
   object scDisplay: TScopeDisplay
-    Left = 144
-    Top = 6
+    Left = 163
+    Top = 8
     Width = 289
-    Height = 265
+    Height = 339
     OnMouseUp = scDisplayMouseUp
     OnCursorChange = scDisplayCursorChange
     CursorChangeInProgress = False
@@ -68,7 +68,7 @@ object AvgFrm: TAvgFrm
   object RecordGrp: TGroupBox
     Left = 4
     Top = 0
-    Width = 129
+    Width = 153
     Height = 113
     Caption = ' Record'
     Font.Charset = DEFAULT_CHARSET
@@ -92,8 +92,8 @@ object AvgFrm: TAvgFrm
       ParentFont = False
     end
     object cbRecordType: TComboBox
-      Left = 40
-      Top = 60
+      Left = 64
+      Top = 64
       Width = 81
       Height = 23
       Hint = 'Type of record currently on display'
@@ -106,7 +106,7 @@ object AvgFrm: TAvgFrm
     object ckBadRecord: TCheckBox
       Left = 8
       Top = 88
-      Width = 81
+      Width = 137
       Height = 17
       Hint = 'Rejected records are excluded from the average'
       Caption = 'Rejected'
@@ -118,7 +118,7 @@ object AvgFrm: TAvgFrm
     object sbRecordNum: TScrollBar
       Left = 8
       Top = 38
-      Width = 113
+      Width = 137
       Height = 17
       PageSize = 0
       TabOrder = 2
@@ -127,10 +127,10 @@ object AvgFrm: TAvgFrm
     object edRecordNum: TRangeEdit
       Left = 8
       Top = 16
-      Width = 113
+      Width = 137
       Height = 20
       AutoSize = False
-      Text = ' 0 / 1.00000001504746624E30 '
+      Text = ' 0 / 1.00000001504746622E30 '
       HiValue = 1.000000015047466E30
       HiLimit = 1.000000015047466E30
       Scale = 1.000000000000000000
@@ -140,8 +140,8 @@ object AvgFrm: TAvgFrm
   object AverageGrp: TGroupBox
     Left = 4
     Top = 112
-    Width = 129
-    Height = 193
+    Width = 153
+    Height = 257
     Caption = ' Average '
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
@@ -159,21 +159,14 @@ object AvgFrm: TAvgFrm
     end
     object Label7: TLabel
       Left = 8
-      Top = 112
+      Top = 181
       Width = 25
       Height = 15
       Caption = 'Type'
     end
-    object Label6: TLabel
-      Left = 14
-      Top = 84
-      Width = 62
-      Height = 15
-      Caption = 'In blocks of'
-    end
     object Label8: TLabel
-      Left = 7
-      Top = 138
+      Left = 8
+      Top = 206
       Width = 90
       Height = 15
       Caption = 'Alignment mode'
@@ -181,7 +174,7 @@ object AvgFrm: TAvgFrm
     object bDoAverages: TButton
       Left = 8
       Top = 16
-      Width = 113
+      Width = 137
       Height = 17
       Hint = 'Compute averaged record(s)'
       Caption = 'Do Averages'
@@ -197,9 +190,9 @@ object AvgFrm: TAvgFrm
       OnClick = bDoAveragesClick
     end
     object cbRecTypeToBeAveraged: TComboBox
-      Left = 40
-      Top = 112
-      Width = 81
+      Left = 48
+      Top = 177
+      Width = 98
       Height = 23
       Hint = 'Type of record(s) to be included in average'
       Style = csDropDownList
@@ -228,8 +221,8 @@ object AvgFrm: TAvgFrm
     end
     object cbAlignMode: TComboBox
       Left = 8
-      Top = 155
-      Width = 113
+      Top = 224
+      Width = 137
       Height = 23
       Hint = 
         'Determines whether records are aligned by the mid-points of thei' +
@@ -246,30 +239,82 @@ object AvgFrm: TAvgFrm
     object edRange: TRangeEdit
       Left = 56
       Top = 60
-      Width = 65
+      Width = 89
       Height = 20
       AutoSize = False
-      Text = ' 0 - 1.00000001504746624E30 '
+      Text = ' 0 - 1.00000001504746622E30 '
       HiValue = 1.000000015047466E30
       HiLimit = 1.000000015047466E30
       Scale = 1.000000000000000000
       NumberFormat = '%.0f - %.0f'
     end
-    object edBlockSize: TValidatedEdit
-      Left = 80
-      Top = 84
-      Width = 41
-      Height = 23
-      Text = ' 0 '
-      Scale = 1.000000000000000000
-      NumberFormat = '%g'
-      LoLimit = -1.000000015047466E30
-      HiLimit = 1.000000015047466E30
+    object GroupBox1: TGroupBox
+      Left = 8
+      Top = 86
+      Width = 137
+      Height = 89
+      Caption = 'Record Grouping '
+      TabOrder = 5
+      object Label6: TLabel
+        Left = 8
+        Top = 18
+        Width = 74
+        Height = 15
+        Caption = 'In groups of'
+      end
+      object edBlockSize: TValidatedEdit
+        Left = 88
+        Top = 18
+        Width = 41
+        Height = 23
+        Hint = 'No. of records to be averaged (n)'
+        ShowHint = True
+        Text = ' 0 '
+        Scale = 1.000000000000000000
+        NumberFormat = '%g'
+        LoLimit = -1.000000015047466E30
+        HiLimit = 1.000000015047466E30
+      end
+      object rbSequentialRecords: TRadioButton
+        Left = 8
+        Top = 40
+        Width = 121
+        Height = 17
+        Hint = 'Average groups of n sequential records (i,i+1,..i+n-1) '
+        ParentCustomHint = False
+        Caption = 'Sequential'
+        Checked = True
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -12
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 1
+        TabStop = True
+      end
+      object rbInterleavedRecords: TRadioButton
+        Left = 8
+        Top = 58
+        Width = 121
+        Height = 17
+        Hint = 'Average groups of interleaved records (i,i+n,i+2n..)'
+        Caption = 'Interleaved'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -12
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        ParentFont = False
+        TabOrder = 2
+      end
     end
   end
   object ckFixedZeroLevels: TCheckBox
-    Left = 142
-    Top = 276
+    Left = 163
+    Top = 353
     Width = 102
     Height = 17
     Caption = 'Fix Zero Levels'
