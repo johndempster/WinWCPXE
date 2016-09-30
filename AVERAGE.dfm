@@ -258,7 +258,7 @@ object AvgFrm: TAvgFrm
       object Label6: TLabel
         Left = 8
         Top = 18
-        Width = 74
+        Width = 65
         Height = 15
         Caption = 'In groups of'
       end
@@ -270,9 +270,10 @@ object AvgFrm: TAvgFrm
         Hint = 'No. of records to be averaged (n)'
         ShowHint = True
         Text = ' 0 '
+        Value = 1.000000000000000000
         Scale = 1.000000000000000000
         NumberFormat = '%g'
-        LoLimit = -1.000000015047466E30
+        LoLimit = 1.000000000000000000
         HiLimit = 1.000000015047466E30
       end
       object rbSequentialRecords: TRadioButton

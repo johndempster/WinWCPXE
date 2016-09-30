@@ -82,7 +82,6 @@ var
    CharWidth,CharHeight,ColHeight,Row,Col,w : Integer ;
    PageLeft,PageTop,PageBottom,Line,ColLeft,PageNum,LastPage : Integer ;
    ColWidth : Array[0..20] of Integer ;
-   NewPage : boolean ;
    mmToPixels : Single ;
 begin
 
@@ -160,7 +159,6 @@ begin
 
             printer.canvas.textout(PageLeft,Line, fH.IdentLine) ;
             Line := Line + ColHeight*2 ;
-            NewPage := False ;
             end ;
 
          { Print row }
@@ -212,7 +210,6 @@ function TPrintTableFrm.GetCurrentPrinterName : string ;
 const
     MaxSize = 256 ;
 var
-   n,ch,Row : Integer ;
    DeviceName,DeviceDriver,Port : PChar ;
    DeviceMode : THandle ;
 begin

@@ -24,6 +24,9 @@ unit EditProtocolUnit;
 //          and vice versa.
 // 28.07.15 Pulse trains with frequency incrementing added
 // 11.07.16 Warning displayed when stimulus duration not more than 150 ms less than repeat period
+// 23.09.16 File dialogs initialised to vprot folder when form opened
+//          to try to fix failure to open in default protocol folder
+//          when WinWCP installed first time.
 
 interface
 
@@ -2654,7 +2657,7 @@ begin
      OpenDialog.options := [ofOverwritePrompt,ofHideReadOnly,ofPathMustExist] ;
      OpenDialog.FileName := '*.xml' ;//ExtractFileName( SaveDialog.FileName ) ;
      OpenDialog.InitialDir := Settings.VProtDirectory ;
-     SetCurrentDir(Settings.VProtDirectory) ;
+ //    SetCurrentDir(Settings.VProtDirectory) ;
      OpenDialog.Title := 'Load Stimulus Protocol' ;
      if OpenDialog.execute then begin
         FileName := OpenDialog.FileName ;
@@ -2767,6 +2770,10 @@ procedure TEditProtocolFrm.FormCreate(Sender: TObject);
 var
     i : Integer ;
 begin
+    // Initialise file dialog boxes
+    OpenDialog.InitialDir := Settings.VProtDirectory ;
+    OpenWaveDialog.InitialDir := Settings.VProtDirectory ;
+    SaveDialog.InitialDir := Settings.VProtDirectory ;
 
     // Initialise waveform buffer to empty
     for i := 0 to High(Prot.Stimulus) do begin

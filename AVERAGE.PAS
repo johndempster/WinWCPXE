@@ -22,6 +22,8 @@ unit Average;
   07.06.13 .. FH.NumZeroAvg now updated when changed in ZeroFrm
   09.08.13 .. ADC,Buf now allocated by GetMem()
   20.09.16 .. Interleaved averaging mode added
+              ADC32 and Sum buffers now allocated inside bDoAveragesClick procedure
+              Averaged signals at upper/lower limits of signal range no longer wrap around.
   ========================================================================== }
 interface
 
@@ -68,10 +70,18 @@ type
     procedure scDisplayMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure ckFixedZeroLevelsClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
+    ADC16 : PSmallIntArray ;
+    RH : TRecHeader ;
+    LastUsedRH : TRecHeader ;
+    Cursor0 : Integer ;
+    Cursor1 : Integer ;
+    AlignAt : array[0..WCPMaxChannels-1] of Integer ;
+    OldNumChannels : Integer ;
+
     procedure DisplayRecord ;
   public
     { Public declarations }
@@ -95,17 +105,6 @@ const
      OnNegativeRise = 2 ;
 type
     TAlignMode = ( PositivePeaks,NegativePeaks,AbsPeaks ) ;
-
-var
-   Sum : PSingleArray ;
-   ADC16 : PSmallIntArray ;
-   ADC : PIntArray ;
-   RH : TRecHeader ;
-   LastUsedRH : TRecHeader ;
-   Cursor0 : Integer ;
-   Cursor1 : Integer ;
-   AlignAt : array[0..WCPMaxChannels-1] of Integer ;
-   OldNumChannels : Integer ;
 
 
 procedure TAvgFrm.FormShow(Sender: TObject);
@@ -159,16 +158,13 @@ procedure TAvgFrm.NewFile ;
   Update controls/display to account for change of data file
   ---------------------------------------------------------}
 var
-   ch,i : Integer ;
+   ch : Integer ;
 begin
 
      // Reallocate A/D sample buffer
      if ADC16 <> Nil then FreeMem(ADC16) ;
      GetMem( ADC16, Max(RawFH.NumSamples*RawFH.NumChannels*2,1024) ) ;
-     if ADC <> Nil then FreeMem(ADC) ;
-     GetMem( ADC, Max(RawFH.NumSamples*RawFH.NumChannels*4,1024) ) ;
-     if Sum <> Nil then FreeMem(Sum) ;
-     GetMem( Sum, Max(RawFH.NumSamples*RawFH.NumChannels*4,1024) ) ;
+     scDisplay.SetDataBuf( ADC16 ) ;
 
      if RawFH.NumRecords > 0 then begin
         { Set up scope display }
@@ -218,10 +214,9 @@ begin
             scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
             end ;
 
-        { Clear summation buffer }
-        for i := 0 to (RawFH.NumChannels*RawFH.NumSamples)-1 do Sum^[i] := 0. ;
+        
 
-        scDisplay.SetDataBuf( ADC ) ;
+
         end
      else Close ;
 
@@ -242,10 +237,10 @@ procedure TAvgFrm.DisplayRecord ;
   Display digitised signal record
   ===============================}
 var
-    ch,i : Integer ;
+    ch : Integer ;
 begin
 
-     if ADC = Nil then Exit ;
+     if ADC16 = Nil then Exit ;
 
      RawfH.RecordNum := SbRecordNum.position ;
 
@@ -263,7 +258,7 @@ begin
          scDisplay.ChanScale[ch] := Channel[ch].ADCScale ;
          end ;
      // No. of samples in zero level area
-     scDisplay.ChanZeroAvg := FH.NumZeroAvg ;
+     scDisplay.ChanZeroAvg := RawFH.NumZeroAvg ;
 
      scDisplay.SetDataBuf( ADC16 ) ;
 
@@ -275,7 +270,7 @@ begin
         cbRecordType.ItemIndex := cbRecordType.items.indexOf(RH.RecType);
 
      { Update record number display }
-     edRecordNum.HiValue := fH.NumRecords ;
+     edRecordNum.HiValue := RawfH.NumRecords ;
      edRecordNum.LoValue := sbRecordNum.position ;
 
      end ;
@@ -298,6 +293,9 @@ var
    iStart,iEnd : Integer ;
    Done, OK : Boolean ;
    RepeatCounter,NumRepeats : Integer ;
+   ADC32 : PIntArray ;
+   Sum : PSingleArray ;
+   RH : TRecHeader ;
 begin
 
      bDoAverages.Enabled := False ;
@@ -309,6 +307,11 @@ begin
      OldHandle := AvgFH.FileHandle ;
      AvgfH := RawfH ;
      AvgFH.FileHandle := OldHandle ;
+
+     // Allocate buffer
+     GetMem( ADC32, RawFH.NumSamples*RawFH.NumChannels*SizeOf(Integer));
+     GetMem( Sum, RawFH.NumSamples*RawFH.NumChannels*SizeOf(Single));
+     for i := 0 to (RawFH.NumChannels*RawFH.NumSamples)-1 do Sum^[i] := 0. ;
 
      { The averages data file name has the same name as the original file
        but with the extension .avg }
@@ -358,8 +361,7 @@ begin
 
         { Read record data from file }
         if RecordNum <= EndAtRec then begin
-           GetRecord( RawfH, RH, RecordNum, ADC16^ ) ;
-           for i := 0 to RawFH.NumSamples*RawFH.NumChannels-1 do ADC^[i] := ADC16^[i] ;
+           GetRecord32( RawfH, RH, RecordNum, ADC32^ ) ;
            end;
 
         { If no records in buffer yet ... Initialise averaging array }
@@ -382,7 +384,7 @@ begin
                { Subtract zero level }
                j := Channel[ch].ChannelOffset ;
                for i := 0 to RawFH.NumSamples-1 do begin
-                   ADC^[j] := ADC^[j] - Channel[ch].ADCZero ;
+                   ADC32^[j] := ADC32^[j] - Channel[ch].ADCZero ;
                    j := j +  RawFH.NumChannels ;
                    end ;
 
@@ -406,7 +408,7 @@ begin
                   PeakNegative := RawFH.MaxADCValue*2 ;
                   j := iStart*RawFH.NumChannels + Channel[ch].ChannelOffset ;
                   for i := iStart to iEnd do begin
-                      iY := ADC^[j] ;
+                      iY := ADC32^[j] ;
                       if iY > PeakPositive then begin
                          PeakPositive := iY ;
                          PeakPositiveAt := i ;
@@ -432,7 +434,7 @@ begin
                   HalfPeakAt := PeakAt ;
                   while (iY >= HalfPeak) and (HalfPeakAt > iStart) do begin
                       j := HalfPeakAt*RawFH.NumChannels + Channel[ch].ChannelOffset ;
-                      iY := Abs(ADC^[j]) ;
+                      iY := Abs(ADC32^[j]) ;
                       HalfPeakAt := HalfPeakAt - 1;
                       end ;
 
@@ -447,7 +449,7 @@ begin
                    iFrom := Max(Min(i + Shift,RawFH.NumSamples-1),0) ;
                    jFrom := iFrom*RawFH.NumChannels + Channel[ch].ChannelOffset ;
                    jTo := i*RawFH.NumChannels + Channel[ch].ChannelOffset ;
-                   Sum^[jTo] := Sum^[jTo] + ADC^[jFrom]*Channel[ch].ADCScale ;
+                   Sum^[jTo] := Sum^[jTo] + ADC32^[jFrom]*Channel[ch].ADCScale ;
                    end ;
                end ;
 
@@ -464,9 +466,9 @@ begin
               for ch := 0 to RawFH.NumChannels-1 do begin
                   j := Channel[ch].ChannelOffset ;
                   for i := 0 to RawFH.NumSamples-1 do begin
-                      ADC^[j] := Round( Sum^[j] /
-                                 (NumRecordsAveraged*Channel[ch].ADCScale) + Channel[ch].ADCZero )
-                                  ;
+                      ADC32^[j] := Round( Sum^[j] /
+                                 (NumRecordsAveraged*Channel[ch].ADCScale) + Channel[ch].ADCZero ) ;
+                      ADC32^[j] := Min(Max(ADC32^[j],RawFH.MinADCValue),RawFH.MaxADCValue);           ;
                       j := j + RawFH.NumChannels ;
                       end ;
                   end ;
@@ -476,7 +478,7 @@ begin
               for ch := 0 to RawFH.NumChannels-1 do begin
                   j := Channel[ch].ChannelOffset ;
                   for i := 0 to RawFH.NumSamples-1 do begin
-                      ADC^[j] := Channel[ch].ADCZero ;
+                      ADC32^[j] := Channel[ch].ADCZero ;
                       j := j + RawFH.NumChannels ;
                       end ;
                   end ;
@@ -490,8 +492,7 @@ begin
                                                    NumRecordsAveraged] ) ;
            LastUsedRH.AnalysisAvailable := false ;
            LastUsedRH.EqnType := None ;
-           for i := 0 to RawFH.NumSamples*RawFH.NumChannels-1 do ADC16^[i] := ADC^[i] ;
-           PutRecord( AvgfH, LastUsedRH, AvgfH.NumRecords, ADC16^ ) ;
+           PutRecord32( AvgfH, LastUsedRH, AvgfH.NumRecords, ADC32^ ) ;
 
            if rbSequentialRecords.Checked then begin
               // Only increment averaging block range in sequential mode
@@ -542,6 +543,9 @@ begin
      bDoAverages.Enabled := True ;
      bAbort.Enabled := False ;
 
+     FreeMem(ADC32);
+     FreeMem(Sum) ;
+
      { Close form }
      Close ;
 
@@ -561,23 +565,16 @@ begin
 
 
 procedure TAvgFrm.FormCreate(Sender: TObject);
-// ---------------------------------
-// Initialisations when form created
-// ---------------------------------
 begin
-    ADC := Nil ;
-    Sum := Nil ;
+    OldNumChannels := 0 ;
     end;
-
 
 procedure TAvgFrm.FormDestroy(Sender: TObject);
 // ------------------------------
 // Tidy up when form is destroyed
 // ------------------------------
 begin
-    if ADC <> Nil then FreeMem(ADC) ;
     if ADC16 <> Nil then FreeMem(ADC16) ;
-    if Sum <> Nil then FreeMem(Sum) ;
     end;
 
 
@@ -625,7 +622,6 @@ begin
      RH.RecType := cbRecordType.text ;
      PutRecordHeaderOnly( RawfH, RH, RawfH.RecordNum ) ;
      end;
-
 
 
 procedure TAvgFrm.bAbortClick(Sender: TObject);
@@ -747,6 +743,4 @@ begin
      Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
      end;
 
-Initialization
-    OldNumChannels := 0 ;
 end.

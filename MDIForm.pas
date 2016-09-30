@@ -681,7 +681,10 @@ unit MDIForm;
                       is changed (fixes bug introduced in V5.1.7)
    V5.2.1 04.09.16    Digidata 1440,1550,1550A support updated to be compatible with drivers installed by PCLAMP V10.7
           09.09.16    Digidata 1550B supported added to SESLabIO component.
-  =======================================================================}
+          23.09.16    Interleaved mode added to averaging module
+                      Stimulus editor dialog boxes now open in default protocol folder
+                      after first installation of WinWCP.
+            =======================================================================}
 
 interface
 
