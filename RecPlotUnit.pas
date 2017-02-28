@@ -16,6 +16,8 @@ unit RecPlotUnit;
 //          Incorrect slope scaling on first recording sweep fixed
 //          Channel[].ADCScale scaling replaced with SESLabIO.ADCUnitsPerBit
 // 10.02.15 plPlot.CreateLine() Label name added to arguments
+// 27.02.17 Average within cursors added
+//          On line analysis settings now stored in Settings.RecPlot and saved in INI file
 
 interface
 
@@ -25,23 +27,9 @@ uses
   ExtCtrls, fileio, RangeEdit ;
 
 const
-    MaxPlots = 10 ;
     NumCursorSets = 2 ;
 
 type
-
-  TRecPlotData = Record
-      PlotNum : Integer ;
-      LineNum : Integer ;
-      VarNum : Integer ;
-      ChanNum : Integer ;
-      YLabel : String ;
-      ListEntry : String ;
-      Polarity : Integer ;
-      RateofRiseSmoothing : Integer ;
-      CursorSet : Integer ;
-      StimProtocol : String ;
-      end ;
 
   TRecPlotFrm = class(TForm)
     ControlsGrp: TGroupBox;
@@ -86,8 +74,7 @@ type
     procedure bCopyToClipboardClick(Sender: TObject);
   private
     { Private declarations }
-    Plot : Array[0..MaxPlots-1] of TRecPlotData ;
-    NumPlots : Integer ;
+
     PlotsChanged : Boolean ;
     ResetTimeZero : Boolean ;
     TZero : DWORD ;
@@ -128,8 +115,6 @@ type
           Polarity : Integer
           ) : Single ;
 
-
-
   public
     { Public declarations }
     procedure UpdatePlot(
@@ -169,6 +154,7 @@ const
     vC3 = 7 ;
     vC4 = 8 ;
     vRisingSlope = 9 ;
+    vAverage = 10 ;
 
     PosPolarity = 0 ;
     NegPolarity = 1 ;
@@ -217,7 +203,9 @@ var
     yC2 : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
     yC3 : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
     yC4 : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    y,ySum,y90,y10,yDiffMax,yPos,yNeg,YHiPrev,YLoPrev : Single ;
+    yAverage : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
+
+    y,ySum,y90,y10,yDiffMax,yPos,yNeg,YHiPrev,YLoPrev,Sum : Single ;
     RScale : Single ;
     nAvg : Integer ;
     t : single ;
@@ -321,6 +309,15 @@ begin
                   end ;
                end ;
 
+           // Calculate average
+           Sum := 0.0 ;
+           for i := iStart to iEnd do begin
+               j := i*Main.SESLabIO.ADCNumChannels + YChanOffset ;
+               y := ((ADC[j] - YZeroLevel)*YScale) - YZero[ch,CursorSet] ;
+               Sum := Sum + y ;
+               end ;
+           yAverage[ch,CursorSet] := Sum / Max(iEnd - iStart + 1,1) ;
+
             // Max rise time to positive peak
             yMaxTRise[ch,CursorSet] := RiseTime ( ADC,
                                        iStart,
@@ -411,26 +408,31 @@ begin
     // Add variable column titles to log file
     if PlotsChanged then begin
        s := #9 + 'Record' + #9 + 'Time (s)';
-       for iPlot := 0 to NumPlots-1 do begin
-           s := s + #9 + Plot[iPlot].YLabel ;
+       for iPlot := 0 to Settings.RecPlot.NumPlots-1 do begin
+           s := s + #9 + Settings.RecPlot.Plot[iPlot].YLabel ;
            end ;
        WriteToLogFile(s) ;
        PlotsChanged := False ;
        end ;
 
-    for iP := 0 to NumPlots-1 do
-        if (Plot[iP].StimProtocol = StimProtocolInUse) or
-           (Plot[iP].StimProtocol = '') then begin
+    for iP := 0 to Settings.RecPlot.NumPlots-1 do
+        if (Settings.RecPlot.Plot[iP].StimProtocol = StimProtocolInUse) or
+           (Settings.RecPlot.Plot[iP].StimProtocol = '') then begin
 
-        plPlot.PlotNum := Plot[iP].PlotNum ;
-        iChan := Plot[iP].ChanNum ;
-        CursorSet := Plot[iP].CursorSet ;
+        plPlot.PlotNum := Settings.RecPlot.Plot[iP].PlotNum ;
+        iChan := Settings.RecPlot.Plot[iP].ChanNum ;
+        CursorSet := Settings.RecPlot.Plot[iP].CursorSet ;
 
-        case Plot[iP].VarNum of
+        case Settings.RecPlot.Plot[iP].VarNum of
+
+           // Average
+           vAverage : begin
+              y := yAverage[iChan,CursorSet] ;
+              end ;
 
            // Peak
            vPeak : begin
-              case Plot[iP].Polarity of
+              case Settings.RecPlot.Plot[iP].Polarity of
                  PosPolarity : y := yMax[iChan,CursorSet] ;
                  NegPolarity : y := yMin[iChan,CursorSet] ;
                 else begin
@@ -444,7 +446,7 @@ begin
 
            // Rise time
            vTRise : begin
-              case Plot[iP].Polarity of
+              case Settings.RecPlot.Plot[iP].Polarity of
                  PosPolarity : y := yMaxTRise[iChan,CursorSet] ;
                  NegPolarity : y := yMinTRise[iChan,CursorSet] ;
                 else begin
@@ -458,7 +460,7 @@ begin
 
            // Rate of rise
            vRateOfRise : begin
-              case Plot[iP].RateofRiseSmoothing of
+              case Settings.RecPlot.Plot[iP].RateofRiseSmoothing of
                  ForwardDifference : begin
                     YPos := yMaxRateOfRiseFD[iChan,CursorSet] ;
                     YNeg := yMinRateOfRiseFD[iChan,CursorSet] ;
@@ -473,7 +475,7 @@ begin
                     end ;
                  end ;
 
-              case Plot[iP].Polarity of
+              case Settings.RecPlot.Plot[iP].Polarity of
                   PosPolarity : y := YPos ;
                   NegPolarity : y := YNeg ;
                   AbsPolarity : begin
@@ -486,7 +488,7 @@ begin
            vSlope : y := ySlope[iChan,CursorSet] ;
 
            vRisingSlope : begin
-              case Plot[iP].Polarity of
+              case Settings.RecPlot.Plot[iP].Polarity of
                  PosPolarity : y := yMaxRisingSlope[iChan,CursorSet] ;
                  NegPolarity : y := yMinRisingSlope[iChan,CursorSet] ;
                  else begin
@@ -512,7 +514,7 @@ begin
            end ;
 
         t := (TimeGetTime - TZero)*0.001 ;
-        plPlot.AddPoint( Plot[iP].LineNum, t, y ) ;
+        plPlot.AddPoint( Settings.RecPlot.Plot[iP].LineNum, t, y ) ;
 
         // Add record number and time at beginning of line
         if iP = 0 then s := format('%s%d%s%.5g',[#9,RecordNum,#9,t] ) ;
@@ -770,6 +772,7 @@ begin
 
      // Measurement variables
      cbPlotVar.Clear ;
+     cbPlotVar.Items.AddObject( 'Average', TObject(vAverage) ) ;
      cbPlotVar.Items.AddObject( 'Peak', TObject(vPeak) ) ;
      cbPlotVar.Items.AddObject( 'Rise time', TObject(vTRise) ) ;
      cbPlotVar.Items.AddObject( 'Rate of Rise', TObject(vRateOfRise) ) ;
@@ -794,8 +797,6 @@ begin
      cbRateofRiseSmooth.Items.Add('7 points') ;
      cbRateofRiseSmooth.ItemIndex := 0 ;
 
-     NumPlots := 0 ;
-
      // Channels
      cbPlotChan.Clear ;
      for ch := 0 to Main.SESLabIO.ADCNumChannels-1 do begin
@@ -817,6 +818,8 @@ begin
      ShowControls ;
 
      ClientHeight := ControlsGrp.Top + ControlsGrp.Height + 5 ;
+
+     bClearPoints.Click ;
 
      Resize ;
 
@@ -867,31 +870,32 @@ var
 begin
      { Add new Y Axis to plot }
 
-     if NumPlots >= MaxPlots then Exit ;
+     if Settings.RecPlot.NumPlots >= MaxOnLinePlots then Exit ;
 
-     Plot[NumPlots].PlotNum := plPlot.CreatePlot ;
-     Plot[NumPlots].Polarity := cbPolarity.ItemIndex ;
-     Plot[NumPlots].RateofRiseSmoothing := cbRateofRiseSmooth.ItemIndex ;
-     Plot[NumPlots].StimProtocol := cbPulseProgram.Text ;
-     if Plot[NumPlots].StimProtocol = ' ' then Plot[NumPlots].StimProtocol := '' ;
+     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].PlotNum := plPlot.CreatePlot ;
+     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].Polarity := cbPolarity.ItemIndex ;
+     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].RateofRiseSmoothing := cbRateofRiseSmooth.ItemIndex ;
+     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].StimProtocol := cbPulseProgram.Text ;
+     if Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].StimProtocol = ' ' then
+        Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].StimProtocol := '' ;
 
      // Ensure there is enough space allocated for line
      plPlot.MaxPointsPerLine := 100000 ;
 
      // Add`new line to plot
-     Plot[NumPlots].LineNum := plPlot.CreateLine( clBlue, msOpenSquare,psSolid, '' ) ;
+     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].LineNum := plPlot.CreateLine( clBlue, msOpenSquare,psSolid, '' ) ;
 
-     Plot[NumPlots].VarNum := Integer( cbPlotVar.Items.Objects[cbPlotVar.ItemIndex] ) ;
-     Plot[NumPlots].ChanNum := cbPlotChan.ItemIndex ;
-     Plot[NumPlots].CursorSet := cbCursorSet.ItemIndex ;
+     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].VarNum := Integer( cbPlotVar.Items.Objects[cbPlotVar.ItemIndex] ) ;
+     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].ChanNum := cbPlotChan.ItemIndex ;
+     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].CursorSet := cbCursorSet.ItemIndex ;
 
      plPlot.XAxisLabel := 's' ;
      plPlot.YAxisLabel := cbPlotVar.Text  ;
 
      // Add polarity (if required)
-     case Plot[NumPlots].VarNum of
+     case Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].VarNum of
         vPeak,vTRise,vRateofRise,vRisingSlope : begin
-           case Plot[NumPlots].Polarity of
+           case Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].Polarity of
                 PosPolarity : plPlot.YAxisLabel := plPlot.YAxisLabel + '(+)' ;
                 NegPolarity : plPlot.YAxisLabel := plPlot.YAxisLabel +  '(-)' ;
                 else plPlot.YAxisLabel := plPlot.YAxisLabel + '(a)' ;
@@ -900,9 +904,9 @@ begin
         end ;
 
      // Smoothing
-     case Plot[NumPlots].VarNum of
+     case Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].VarNum of
         vRateofRise : begin
-          case Plot[NumPlots].RateofRiseSmoothing of
+          case Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].RateofRiseSmoothing of
             0 : plPlot.YAxisLabel := plPlot.YAxisLabel + '(1)' ;
             1 : plPlot.YAxisLabel := plPlot.YAxisLabel + '(5)' ;
             else plPlot.YAxisLabel := plPlot.YAxisLabel + '(7)' ;
@@ -914,24 +918,24 @@ begin
      plPlot.YAxisLabel := plPlot.YAxisLabel + ' ' + cbPlotChan.Text ;
 
      // Add cursor set
-     if (Plot[NumPlots].VarNum <> vC1) and
-        (Plot[NumPlots].VarNum <> vc2) and
-        (Plot[NumPlots].VarNum <> vC3) and
-        (Plot[NumPlots].VarNum <> vC4) then begin
+     if (Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].VarNum <> vC1) and
+        (Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].VarNum <> vc2) and
+        (Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].VarNum <> vC3) and
+        (Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].VarNum <> vC4) then begin
         plPlot.YAxisLabel := plPlot.YAxisLabel + ' ' + format(' (%d-%d)',
-                             [2*Plot[NumPlots].CursorSet+1,
-                             2*Plot[NumPlots].CursorSet+2]) ;
+                             [2*Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].CursorSet+1,
+                             2*Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].CursorSet+2]) ;
         end ;
 
      // Update list of variables displayed
-     Plot[NumPlots].ListEntry := plPlot.YAxisLabel ;
-     mePlotList.Lines.Add(Plot[NumPlots].ListEntry) ;
-     if Plot[NumPlots].StimProtocol <> '' then
-        mePlotList.Lines.Add('from ' + Plot[NumPlots].StimProtocol) ;
+     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].ListEntry := plPlot.YAxisLabel ;
+     mePlotList.Lines.Add(Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].ListEntry) ;
+     if Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].StimProtocol <> '' then
+        mePlotList.Lines.Add('from ' + Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].StimProtocol) ;
 
      // Add units
-     YUnits := Main.SESLabIO.ADCChannelUnits[Plot[NumPlots].ChanNum] ;
-     case Plot[NumPlots].VarNum of
+     YUnits := Main.SESLabIO.ADCChannelUnits[Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].ChanNum] ;
+     case Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].VarNum of
 
         vPeak : begin
             plPlot.YAxisLabel := plPlot.YAxisLabel + ' (' + YUnits + ')' ;
@@ -949,7 +953,7 @@ begin
             plPlot.YAxisLabel := plPlot.YAxisLabel + ' (' + YUnits + ')' ;
             end ;
         end ;
-     Plot[NumPlots].YLabel := plPlot.YAxisLabel ;
+     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].YLabel := plPlot.YAxisLabel ;
 
 
      { Plot graph of currently selected variables }
@@ -958,7 +962,7 @@ begin
 
      plPlot.Invalidate ;
 
-     Inc(NumPlots) ;
+     Inc(Settings.RecPlot.NumPlots) ;
 
      PlotsChanged := True ;
 
@@ -989,11 +993,11 @@ procedure TRecPlotFrm.Button1Click(Sender: TObject);
 // -----------
 begin
      plPlot.ClearAllPlots ;
-     //plPlot.ClearAllLines ;
      mePlotList.Clear ;
      ResetTimeZero := True ;
-     NumPlots := 0 ;
+     Settings.RecPlot.NumPlots := 0 ;
      end;
+
 
 procedure TRecPlotFrm.bClearPointsClick(Sender: TObject);
 // ------------------------
@@ -1004,7 +1008,6 @@ var
 begin
 
      plPlot.ClearAllPlots ;
-     //plPlot.ClearAllLines ;
      mePlotList.Clear ;
 
      ResetTimeZero := True ;
@@ -1013,16 +1016,16 @@ begin
      plPlot.MaxPointsPerLine := 100000 ;
      plPlot.XAxisLabel := 's' ;
 
-     for iPlot := 0 to NumPlots-1 do begin
+     for iPlot := 0 to Settings.RecPlot.NumPlots-1 do begin
 
-         Plot[iPlot].PlotNum := plPlot.CreatePlot ;
+        Settings.RecPlot.Plot[iPlot].PlotNum := plPlot.CreatePlot ;
 
          // Add`new line to plot
-        Plot[iPlot].LineNum := plPlot.CreateLine( clBlue, msOpenSquare,psSolid, '' ) ;
+        Settings.RecPlot.Plot[iPlot].LineNum := plPlot.CreateLine( clBlue, msOpenSquare,psSolid, '' ) ;
 
-        plPlot.YAxisLabel := Plot[iPlot].YLabel ;
+        plPlot.YAxisLabel := Settings.RecPlot.Plot[iPlot].YLabel ;
 
-        mePlotList.Lines.Add(Plot[iPlot].ListEntry) ;
+        mePlotList.Lines.Add(Settings.RecPlot.Plot[iPlot].ListEntry) ;
 
         { Plot graph of currently selected variables }
         plPlot.xAxisAutoRange := True ;
@@ -1049,16 +1052,10 @@ procedure TRecPlotFrm.Print ;
   Print graph plot(s) on display
   ------------------------------ }
 begin
-//     PrintGraphFrm.Plot := plPlot ;
-//     PrintGraphFrm.ToPrinter := True ;
-//     PrintGraphFrm.MultiYPlot := True ;
-//     PrintGraphFrm.ShowModal ;
-//     if PrintGraphFrm.ModalResult = mrOK then begin
         plPlot.ClearPrinterTitle ;
         plPlot.AddPrinterTitleLine( ' File : ' + FH.FileName ) ;
         plPlot.AddPrinterTitleLine( ' ' + FH.IdentLine ) ;
         plPlot.Print ;
-//        end ;
      end ;
 
 
@@ -1067,11 +1064,6 @@ procedure TRecPlotFrm.CopyImageToClipboard ;
   Copy image of graph plot(s) to clipboard as Windows metafile
   ------------------------------------------------------------ }
 begin
-//     PrintGraphFrm.Plot := plPlot ;
-//     PrintGraphFrm.ToPrinter := False ;
-//     PrintGraphFrm.MultiYPlot := True ;
-//     PrintGraphFrm.ShowModal ;
-//     if PrintGraphFrm.ModalResult = mrOK then
      plPlot.CopyImageToClipboard ;
      end ;
 

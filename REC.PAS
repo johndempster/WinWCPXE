@@ -23,7 +23,7 @@ unit Rec;
   18.03.04 .. A/D resolution now checked for compatibility with data in file
               before form is opened
   30.07.04 .. StartRecording & StopRecording states now replaced with
-              StartSweep & StopSweep procedures. Recording sweeps can now
+              StartSweep & StopSweep procedures. Recording sweeps can now                         c0
               be acquired at 10 sweeps/second
   02.08.04 .. ADCDisplay buffer added to ensure trace remains displayed correctly
               between sweeps
@@ -113,6 +113,9 @@ unit Rec;
   30.08.16 .. RH.ADCVoltageRange now updated in SaveSweep() to account for changes
               in amplifier gain (previously done by UpdateChannelSettings() which
               was removed from SaveSweep() to speed up saving to file.
+  12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
+  27.02.17 .. UpdateDisplay now called during .bOpenOLAWindowClick to ensure
+              window duration is valid when on-line window opened.
   ==============================================================================}
 interface
 
@@ -1029,11 +1032,11 @@ begin
         end ;
 
      if not bOpenOLAWindow.Enabled then begin
-        scDisplay.VerticalCursors[C0Cursor] := Round(Settings.RecCursor0*scDisplay.MaxPoints) ;
-        scDisplay.VerticalCursors[C1Cursor] := Round(Settings.RecCursor1*scDisplay.MaxPoints) ;
-        scDisplay.VerticalCursors[C2Cursor] := Round(Settings.RecCursor2*scDisplay.MaxPoints) ;
-        scDisplay.VerticalCursors[C3Cursor] := Round(Settings.RecCursor3*scDisplay.MaxPoints) ;
-        scDisplay.VerticalCursors[C4Cursor] := Round(Settings.RecCursor4*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C0Cursor] := Round(Settings.RecPlot.Cursor0*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C1Cursor] := Round(Settings.RecPlot.Cursor1*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C2Cursor] := Round(Settings.RecPlot.Cursor2*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C3Cursor] := Round(Settings.RecPlot.Cursor3*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C4Cursor] := Round(Settings.RecPlot.Cursor4*scDisplay.MaxPoints) ;
         end ;
 
      { Start voltage/digital output program (if needed) }
@@ -1509,11 +1512,11 @@ begin
 
         if Main.FormExists( 'RecPlotFrm' ) and (not AbortRecording) then begin
            RecPlotFrm.UpdatePlot( ADC^,
-                                  scDisplay.VerticalCursors[C0Cursor],
-                                  scDisplay.VerticalCursors[C1Cursor],
-                                  scDisplay.VerticalCursors[C2Cursor],
-                                  scDisplay.VerticalCursors[C3Cursor],
-                                  scDisplay.VerticalCursors[C4Cursor],
+                                  Round(scDisplay.VerticalCursors[C0Cursor]),
+                                  Round(scDisplay.VerticalCursors[C1Cursor]),
+                                  Round(scDisplay.VerticalCursors[C2Cursor]),
+                                  Round(scDisplay.VerticalCursors[C3Cursor]),
+                                  Round(scDisplay.VerticalCursors[C4Cursor]),
                                   cbPulseProgram.Text,
                                   RawfH.NumRecords ) ;
            end ;
@@ -2116,7 +2119,7 @@ begin
                scDisplay.HorizontalCursors[ch] := Main.SESLabIO.ADCChannelZero[ch] ;
                end ;
             end
-         else Main.SESLabIO.ADCChannelZero[ch] := scDisplay.HorizontalCursors[ch] ;
+         else Main.SESLabIO.ADCChannelZero[ch] := Round(scDisplay.HorizontalCursors[ch]) ;
          scDisplay.ChanZeroAt[ch] := Main.SESLabIO.ADCChannelZeroAt[ch] ;
          Channel[ch].ADCZeroAt := Main.SESLabIO.ADCChannelZeroAt[ch] ;
          Channel[ch].ADCZero := Main.SESLabIO.ADCChannelZero[ch] ;
@@ -2124,11 +2127,11 @@ begin
 
      // Readout cursors
      if not bOpenOLAWindow.Enabled then begin
-        Settings.RecCursor0 := scDisplay.VerticalCursors[C0Cursor]/scDisplay.MaxPoints ;
-        Settings.RecCursor1 := scDisplay.VerticalCursors[C1Cursor]/scDisplay.MaxPoints ;
-        Settings.RecCursor2 := scDisplay.VerticalCursors[C2Cursor]/scDisplay.MaxPoints ;
-        Settings.RecCursor3 := scDisplay.VerticalCursors[C3Cursor]/scDisplay.MaxPoints ;
-        Settings.RecCursor4 := scDisplay.VerticalCursors[C4Cursor]/scDisplay.MaxPoints ;
+        Settings.RecPlot.Cursor0 := scDisplay.VerticalCursors[C0Cursor]/scDisplay.MaxPoints ;
+        Settings.RecPlot.Cursor1 := scDisplay.VerticalCursors[C1Cursor]/scDisplay.MaxPoints ;
+        Settings.RecPlot.Cursor2 := scDisplay.VerticalCursors[C2Cursor]/scDisplay.MaxPoints ;
+        Settings.RecPlot.Cursor3 := scDisplay.VerticalCursors[C3Cursor]/scDisplay.MaxPoints ;
+        Settings.RecPlot.Cursor4 := scDisplay.VerticalCursors[C4Cursor]/scDisplay.MaxPoints ;
         end ;
 
      end;
@@ -2347,28 +2350,31 @@ procedure TRecordFrm.bOpenOLAWindowClick(Sender: TObject);
 // ----------------------------
 begin
 
+     // Update display to ensure window duration is valid
+     UpdateDisplay(False) ;
+
      scDisplay.ClearVerticalCursors ;
 
      C0Cursor := scDisplay.AddVerticalCursor(-1,clOlive,'0') ;
-     if Settings.RecCursor0 < 0 then Settings.RecCursor0 := 1/scDisplay.MaxPoints ;
-     scDisplay.VerticalCursors[C0Cursor] := Round(Settings.RecCursor0*scDisplay.MaxPoints) ;
+     if Settings.RecPlot.Cursor0 < 0 then Settings.RecPlot.Cursor0 := 1/scDisplay.MaxPoints ;
+     scDisplay.VerticalCursors[C0Cursor] := Round(Settings.RecPlot.Cursor0*scDisplay.MaxPoints) ;
 
      C1Cursor := scDisplay.AddVerticalCursor(-1,clGreen,'1') ;
-     if Settings.RecCursor1 < 0 then Settings.RecCursor1 := 0.05 ;
-     scDisplay.VerticalCursors[C1Cursor] := Round(Settings.RecCursor1*scDisplay.MaxPoints) ;
+     if Settings.RecPlot.Cursor1 < 0 then Settings.RecPlot.Cursor1 := 0.05 ;
+     scDisplay.VerticalCursors[C1Cursor] := Round(Settings.RecPlot.Cursor1*scDisplay.MaxPoints) ;
 
      C2Cursor := scDisplay.AddVerticalCursor(-1,clGreen,'2') ;
-     if Settings.RecCursor2 < 0 then Settings.RecCursor2 := 0.8 ;
-     scDisplay.VerticalCursors[C2Cursor] := Round(Settings.RecCursor2*scDisplay.MaxPoints) ;
+     if Settings.RecPlot.Cursor2 < 0 then Settings.RecPlot.Cursor2 := 0.8 ;
+     scDisplay.VerticalCursors[C2Cursor] := Round(Settings.RecPlot.Cursor2*scDisplay.MaxPoints) ;
      scDisplay.LinkVerticalCursors(C1Cursor,C2Cursor) ;
 
      C3Cursor := scDisplay.AddVerticalCursor(-1,clGreen,'3') ;
-     if Settings.RecCursor3 < 0 then Settings.RecCursor3 := 0.9 ;
-     scDisplay.VerticalCursors[C3Cursor] := Round(Settings.RecCursor3*scDisplay.MaxPoints) ;
+     if Settings.RecPlot.Cursor3 < 0 then Settings.RecPlot.Cursor3 := 0.9 ;
+     scDisplay.VerticalCursors[C3Cursor] := Round(Settings.RecPlot.Cursor3*scDisplay.MaxPoints) ;
 
      C4Cursor := scDisplay.AddVerticalCursor(-1,clGreen,'4') ;
-     if Settings.RecCursor4 < 0 then Settings.RecCursor4 := 0.95 ;
-     scDisplay.VerticalCursors[C4Cursor] := Round(Settings.RecCursor4*scDisplay.MaxPoints) ;
+     if Settings.RecPlot.Cursor4 < 0 then Settings.RecPlot.Cursor4 := 0.95 ;
+     scDisplay.VerticalCursors[C4Cursor] := Round(Settings.RecPlot.Cursor4*scDisplay.MaxPoints) ;
      scDisplay.LinkVerticalCursors(C3Cursor,C4Cursor) ;
 
      scDisplay.Invalidate ;

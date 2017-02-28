@@ -2,7 +2,7 @@ object MeasureFrm: TMeasureFrm
   Left = 829
   Top = 41
   Caption = 'Waveform Analysis '
-  ClientHeight = 634
+  ClientHeight = 702
   ClientWidth = 758
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
@@ -28,7 +28,7 @@ object MeasureFrm: TMeasureFrm
     Left = 2
     Top = 2
     Width = 639
-    Height = 631
+    Height = 692
     ActivePage = AnalysisTab
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
@@ -40,6 +40,7 @@ object MeasureFrm: TMeasureFrm
     OnChange = PageChange
     object AnalysisTab: TTabSheet
       Caption = 'Analysis'
+      ExplicitHeight = 601
       object scDisplay: TScopeDisplay
         Left = 148
         Top = 6
@@ -160,7 +161,7 @@ object MeasureFrm: TMeasureFrm
         Left = 4
         Top = 116
         Width = 135
-        Height = 485
+        Height = 543
         Caption = ' Analyse '
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
@@ -313,7 +314,7 @@ object MeasureFrm: TMeasureFrm
         end
         object GroupBox5: TGroupBox
           Left = 8
-          Top = 248
+          Top = 298
           Width = 121
           Height = 44
           Caption = ' Rate of rise '
@@ -368,7 +369,7 @@ object MeasureFrm: TMeasureFrm
         end
         object GroupBox7: TGroupBox
           Left = 8
-          Top = 296
+          Top = 348
           Width = 121
           Height = 44
           Caption = ' Rise time '
@@ -398,7 +399,7 @@ object MeasureFrm: TMeasureFrm
         end
         object GroupBox9: TGroupBox
           Left = 8
-          Top = 344
+          Top = 396
           Width = 121
           Height = 45
           Caption = ' T.x% decay time '
@@ -443,7 +444,7 @@ object MeasureFrm: TMeasureFrm
         end
         object GroupBox12: TGroupBox
           Left = 8
-          Top = 392
+          Top = 444
           Width = 121
           Height = 81
           Caption = ' Cursors '
@@ -485,6 +486,44 @@ object MeasureFrm: TMeasureFrm
             State = cbChecked
             TabOrder = 1
             OnClick = ckLockChannelCursorsClick
+          end
+        end
+        object QuantileGrp: TGroupBox
+          Left = 8
+          Top = 248
+          Width = 121
+          Height = 45
+          Caption = ' Quantile '
+          TabOrder = 9
+          object Label13: TLabel
+            Left = 26
+            Top = 16
+            Width = 23
+            Height = 15
+            Alignment = taRightJustify
+            Caption = 'Q.%'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clBlack
+            Font.Height = -12
+            Font.Name = 'Arial'
+            Font.Style = []
+            ParentFont = False
+          end
+          object edQuantilePercentage: TValidatedEdit
+            Left = 55
+            Top = 16
+            Width = 57
+            Height = 20
+            Hint = '% Quantile to calculate (0% = Min. 100% = Max.)'
+            OnKeyPress = edDecayTimePercentageKeyPress
+            AutoSize = False
+            ShowHint = True
+            Text = ' 99.0 %'
+            Value = 99.000000000000000000
+            Scale = 1.000000000000000000
+            Units = '%'
+            NumberFormat = '%.1f'
+            HiLimit = 100.000000000000000000
           end
         end
       end
@@ -554,6 +593,7 @@ object MeasureFrm: TMeasureFrm
     end
     object XYPlotTab: TTabSheet
       Caption = 'X/Y Plot'
+      ExplicitHeight = 601
       object plPlot: TXYPlotDisplay
         Left = 152
         Top = 8
@@ -992,11 +1032,13 @@ object MeasureFrm: TMeasureFrm
           ReadOnly = True
           ScrollBars = ssVertical
           TabOrder = 2
+          Zoom = 100
         end
       end
     end
     object HistogramTab: TTabSheet
       Caption = 'Histogram'
+      ExplicitHeight = 601
       object plHist: TXYPlotDisplay
         Left = 152
         Top = 8
@@ -1306,11 +1348,13 @@ object MeasureFrm: TMeasureFrm
           ReadOnly = True
           ScrollBars = ssVertical
           TabOrder = 2
+          Zoom = 100
         end
       end
     end
     object SummaryTab: TTabSheet
       Caption = 'Summary'
+      ExplicitHeight = 601
       object SummaryGrp: TGroupBox
         Left = 4
         Top = 4
@@ -1325,8 +1369,8 @@ object MeasureFrm: TMeasureFrm
         ParentFont = False
         TabOrder = 0
         object VariablesGrp: TGroupBox
-          Left = 8
-          Top = 88
+          Left = 11
+          Top = 92
           Width = 121
           Height = 313
           Hint = 'Waveform measurements to be included in summary'
@@ -1520,6 +1564,17 @@ object MeasureFrm: TMeasureFrm
             TabOrder = 15
             OnClick = ckVariable0Click
           end
+          object ckVariable15: TCheckBox
+            Left = 8
+            Top = 289
+            Width = 89
+            Height = 17
+            Caption = 'ckVariable15'
+            Checked = True
+            State = cbChecked
+            TabOrder = 16
+            OnClick = ckVariable0Click
+          end
         end
       end
       object Summary: TStringGrid
@@ -1553,6 +1608,7 @@ object MeasureFrm: TMeasureFrm
     end
     object TablesTab: TTabSheet
       Caption = 'Tables'
+      ExplicitHeight = 601
       object Table: TStringGrid
         Left = 145
         Top = 4
@@ -1579,7 +1635,7 @@ object MeasureFrm: TMeasureFrm
         Left = 4
         Top = 4
         Width = 135
-        Height = 517
+        Height = 541
         Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
         Font.Height = -12
@@ -1588,8 +1644,8 @@ object MeasureFrm: TMeasureFrm
         ParentFont = False
         TabOrder = 1
         object bClearTable: TButton
-          Left = 6
-          Top = 464
+          Left = 8
+          Top = 488
           Width = 122
           Height = 17
           Caption = 'ClearTable'
@@ -1606,7 +1662,7 @@ object MeasureFrm: TMeasureFrm
           Left = 6
           Top = 89
           Width = 122
-          Height = 369
+          Height = 393
           Hint = 'Waveform measurements to be included in summary'
           Caption = ' Variables '
           Font.Charset = DEFAULT_CHARSET
@@ -1777,7 +1833,7 @@ object MeasureFrm: TMeasureFrm
           end
           object bAddVariable: TButton
             Left = 8
-            Top = 300
+            Top = 316
             Width = 106
             Height = 18
             Caption = 'Add Variable'
@@ -1806,7 +1862,7 @@ object MeasureFrm: TMeasureFrm
           end
           object bClearAllTableVariables: TButton
             Left = 8
-            Top = 322
+            Top = 338
             Width = 106
             Height = 18
             Caption = 'Clear All'
@@ -1821,7 +1877,7 @@ object MeasureFrm: TMeasureFrm
           end
           object bSet: TButton
             Left = 8
-            Top = 344
+            Top = 360
             Width = 106
             Height = 18
             Caption = 'Set All'
@@ -1837,7 +1893,7 @@ object MeasureFrm: TMeasureFrm
           object ckTabVar14: TCheckBox
             Tag = 14
             Left = 8
-            Top = 272
+            Top = 270
             Width = 89
             Height = 17
             Caption = 'ckVariable0'
@@ -1846,10 +1902,22 @@ object MeasureFrm: TMeasureFrm
             TabOrder = 18
             OnClick = ckVariable0Click
           end
+          object ckTabVar15: TCheckBox
+            Tag = 14
+            Left = 8
+            Top = 287
+            Width = 89
+            Height = 17
+            Caption = 'ckVariable0'
+            Checked = True
+            State = cbChecked
+            TabOrder = 19
+            OnClick = ckVariable0Click
+          end
         end
         object bSaveTableToFile: TButton
-          Left = 6
-          Top = 488
+          Left = 8
+          Top = 512
           Width = 122
           Height = 17
           Caption = 'Save to File'

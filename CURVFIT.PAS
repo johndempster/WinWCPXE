@@ -43,6 +43,7 @@ unit Curvfit;
   16.10.15 .. Residual plot data now limited to MinADCValue-MaxADCValue range to avoid roll-over
               when  very large deviations occur
   13.07.16 .. Access violation when T=0 cursor > half of display width fixed.
+  12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
   ==========================================================================}
 interface
 
@@ -834,10 +835,10 @@ begin
               if rbAutoCursors.checked then SetFittingDataCursors ;
 
               { Get range of samples to be fitted from positions of cursors 0 and 1 }
-              iStart := nDisplaySkip*Min( scDisplay.VerticalCursors[Cursors.C0],
-                                          scDisplay.VerticalCursors[Cursors.C1] ) ;
-              iEnd :=   nDisplaySkip*Max( scDisplay.VerticalCursors[Cursors.C0],
-                                          scDisplay.VerticalCursors[Cursors.C1] ) ;
+              iStart := nDisplaySkip*Min( Round(scDisplay.VerticalCursors[Cursors.C0]),
+                                          Round(scDisplay.VerticalCursors[Cursors.C1]) ) ;
+              iEnd :=   nDisplaySkip*Max( Round(scDisplay.VerticalCursors[Cursors.C0]),
+                                          Round(scDisplay.VerticalCursors[Cursors.C1]) ) ;
 
               { Calculate average of data within cursors for each channel }
               for ch := 0 to fh.NumChannels-1 do begin
@@ -856,7 +857,7 @@ begin
               i := iStart ;
               ChFit := cbFitChannel.ItemIndex ;
               yZero := Channel[ChFit].ADCZero ;
-              TZero := nDisplaySkip*scDisplay.VerticalCursors[Cursors.T0] ;
+              TZero := nDisplaySkip*Round(scDisplay.VerticalCursors[Cursors.T0]) ;
               repeat
                   FitData^.x[nFit] := (i - TZero)*RH.dt*Settings.TScale ;
                   j := i*fH.NumChannels + Channel[ChFit].ChannelOffset ;
@@ -993,10 +994,10 @@ begin
                     Channel[FitCh].ADCUnits ) ;
 
         { Get range of samples to be fitted from positions of cursors 0 and 1 }
-        iStart := Min( scDisplay.VerticalCursors[Cursors.C0],
-                       scDisplay.VerticalCursors[Cursors.C1] ) ;
-        iEnd :=   Max( scDisplay.VerticalCursors[Cursors.C0],
-                       scDisplay.VerticalCursors[Cursors.C1] ) ;
+        iStart := Min( Round(scDisplay.VerticalCursors[Cursors.C0]),
+                       Round(scDisplay.VerticalCursors[Cursors.C1]) ) ;
+        iEnd :=   Max( Round(scDisplay.VerticalCursors[Cursors.C0]),
+                       Round(scDisplay.VerticalCursors[Cursors.C1]) ) ;
 
         { Copy data points into fitting array }
         nPoints := 0 ;
@@ -1043,7 +1044,7 @@ var
 begin
 
      ChFit := cbFitChannel.ItemIndex ;
-     yZero := scDisplay.HorizontalCursors[Cursors.Base[ChData]] ;
+     yZero := Round(scDisplay.HorizontalCursors[Cursors.Base[ChData]]) ;
 
      { Find the location of the peak of the transient }
      yPeak := 0 ;
@@ -2310,8 +2311,8 @@ begin
         if scDisplay.ActiveHorizontalCursor >= 0 then begin
            if Channel[RH.FitChan].ADCZeroAt < 0 then begin
               // Fixed baseline level (update zero level to new position)
-              Channel[RH.FitChan].ADCZero :=
-              scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor] ;
+              Channel[RH.FitChan].ADCZero := Round(
+              scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor]) ;
               end
            else begin
               // Baseline level computed from record (return to computed level)
@@ -2353,7 +2354,7 @@ begin
                scDisplay.HorizontalCursors[chData] := Channel[chData].ADCZero ;
                end ;
             end
-         else Channel[chData].ADCZero := scDisplay.HorizontalCursors[chData] ;
+         else Channel[chData].ADCZero := Round(scDisplay.HorizontalCursors[chData]) ;
 
 
         if (RH.EqnType <> None) and (RH.FitChan >= 0) then begin

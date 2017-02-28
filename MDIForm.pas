@@ -684,6 +684,10 @@ unit MDIForm;
           23.09.16    Interleaved mode added to averaging module
                       Stimulus editor dialog boxes now open in default protocol folder
                       after first installation of WinWCP.
+   V5.2.2 12.01.17   .VerticalCursors() now single type and converted to integer by round()
+   V5.2.4 28.02.17   On-line analysis: Average within cursors added. settings now stored in
+                     Settings.RecPlot and saved in INI file
+                     Stimulus Protocols: DigWave protocol added. Scale/Offset parameters added to Wave
             =======================================================================}
 
 interface
@@ -929,7 +933,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.2.1';
+      ProgVersion := 'V5.2.4';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
@@ -1205,11 +1209,11 @@ begin
 
      // On-line analysis cursor positions
      Settings.OpenNewFileOnRecord := False ;
-     Settings.RecCursor0 := -1 ;
-     Settings.RecCursor1 := -1 ;
-     Settings.RecCursor2 := -1 ;
-     Settings.RecCursor3 := -1 ;
-     Settings.RecCursor4 := -1 ;
+     Settings.RecPlot.Cursor0 := -1 ;
+     Settings.RecPlot.Cursor1 := -1 ;
+     Settings.RecPlot.Cursor2 := -1 ;
+     Settings.RecPlot.Cursor3 := -1 ;
+     Settings.RecPlot.Cursor4 := -1 ;
 
      { Set the file names and handles for all header blocks to null }
      RawFH.FileHandle := -1 ;
@@ -1276,10 +1280,6 @@ begin
          Channel[ch].xMax := RawfH.NumSamples-1 ;
          Channel[ch].yMin := SESLabIO.ADCMinValue ;
          Channel[ch].yMax := SESLabIO.ADCMaxValue ;
-//         RecChannel[ch].xMin := 0. ;
-//         RecChannel[ch].xMax := Settings.NumSamples-1 ;
-//         RecChannel[ch].yMin := SESLabIO.ADCMinValue ;
-//         RecChannel[ch].yMax := SESLabIO.ADCMaxValue ;
          end ;
 
      if ANSIContainsText( ExtractFileExt(FileName),'.wcp') then begin
@@ -3315,7 +3315,6 @@ begin
         FileClose( RawFH.FileHandle ) ;
         RawFH.FileHandle := FileOpen(  RawFH.FileName, fmOpenReadWrite or fmShareDenyWrite ) ;
         end ;
-     //RawFH.NumBytesInHeader := MaxBytesInFileHeader ;
 
      // Time created
      RawFH.CreationTime := DateToStr(Now) ;

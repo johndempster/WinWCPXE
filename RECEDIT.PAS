@@ -27,6 +27,7 @@ unit Recedit;
   09.08.13    ADC,Buf now allocated by GetMem()
   18.11.15 .. scDisplay.HorizontalCursor() now defined for each channel to fix repeated display update
               problem when multiple channels in file. TCursors.Base removed
+  12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
   ========================================================== }
 interface
 
@@ -518,8 +519,8 @@ begin
                    + Channel[cbChannel.ItemIndex].ADCZero ;
 
          { Shift the channel selected for editing up/down }
-         for i := scDisplay.VerticalCursors[Cursors.C0] to
-                  scDisplay.VerticalCursors[Cursors.C1] do begin
+         for i := Round(scDisplay.VerticalCursors[Cursors.C0]) to
+                  Round(scDisplay.VerticalCursors[Cursors.C1]) do begin
              j := (i*FH.NumChannels) + Channel[cbChannel.ItemIndex].ChannelOffset ;
              ADC^[j] := iValue ;
              end ;
@@ -697,7 +698,7 @@ begin
                scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
                end ;
             end
-         else Channel[ch].ADCZero := scDisplay.HorizontalCursors[ch] ;
+         else Channel[ch].ADCZero := Round(scDisplay.HorizontalCursors[ch]) ;
          
          end ;
 
@@ -807,8 +808,8 @@ begin
         if scDisplay.ActiveHorizontalCursor >= 0 then begin
            if Channel[cbChannel.ItemIndex].ADCZeroAt < 0 then begin
               // Fixed baseline level (update zero level to new position)
-              Channel[cbChannel.ItemIndex].ADCZero :=
-              scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor] ;
+              Channel[cbChannel.ItemIndex].ADCZero :=Round(
+              scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor]) ;
               end
            else begin
               // Baseline level computed from record (return to computed level)

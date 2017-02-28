@@ -27,6 +27,7 @@ unit Leaksub;
   14.08.07 .. ILeak only mode no longer disabled whe cursor moved
   16.01.13 .. Display cursor update loop which occurred when more than 2 channels in data file fixed.
   07.06.13 .. FH.NumZeroAvg now updated when changed in ZeroFrm
+  12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
   ===================================================================}
 interface
 
@@ -411,8 +412,8 @@ begin
      IOffset := Channel[cbCurrent.ItemIndex].ChannelOffset;
      VOffset := Channel[cbVoltage.ItemIndex].ChannelOffset;
 
-     VHoldCursor := scDisplay.VerticalCursors[Cursors.VHold] ;
-     VTestCursor := scDisplay.VerticalCursors[Cursors.VTest] ;
+     VHoldCursor := Round(scDisplay.VerticalCursors[Cursors.VHold]) ;
+     VTestCursor := Round(scDisplay.VerticalCursors[Cursors.VTest]) ;
 
      { If in FILE MODE ... compute an averaged leak record
        from all the LEAK type records in the file }
@@ -437,9 +438,9 @@ begin
                if rbAutoScaling.Checked then begin
                   { Use levels under VHold cursor as zero references
                     when voltage scaling is in use}
-                  IZero := ADC^[scDisplay.VerticalCursors[Cursors.VHold]*RawFH.NumChannels
+                  IZero := ADC^[Round(scDisplay.VerticalCursors[Cursors.VHold])*RawFH.NumChannels
                            + IOffset] ;
-                  VZero := ADC^[scDisplay.VerticalCursors[Cursors.VHold]*RawFH.NumChannels
+                  VZero := ADC^[Round(scDisplay.VerticalCursors[Cursors.VHold])*RawFH.NumChannels
                            + VOffset] ;
                   end
                else begin
@@ -882,7 +883,7 @@ begin
                scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
                end ;
             end
-         else Channel[ch].ADCZero := scDisplay.HorizontalCursors[ch] ;
+         else Channel[ch].ADCZero := Round(scDisplay.HorizontalCursors[ch]) ;
 
          end ;
 
@@ -965,8 +966,8 @@ begin
         if scDisplay.ActiveHorizontalCursor >= 0 then begin
            if Channel[scDisplay.ActiveHorizontalCursor].ADCZeroAt < 0 then begin
               // Fixed baseline level (update zero level to new position)
-              Channel[scDisplay.ActiveHorizontalCursor].ADCZero :=
-              scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor] ;
+              Channel[scDisplay.ActiveHorizontalCursor].ADCZero := Round(
+              scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor]) ;
               end
            else begin
               // Baseline level computed from record (return to computed level)

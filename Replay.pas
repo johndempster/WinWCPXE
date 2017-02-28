@@ -42,6 +42,7 @@ unit Replay;
   27.08.13 .. Time of day when record acquired now displayed
   23.09.13 .. Recording start time now encoded in en-GB format
   18.11.15 .. TReplayCursors.Base removed since use was redundant.
+  12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
   ===================================================}
 interface
 
@@ -285,9 +286,9 @@ var
 begin
 
      // Get old cursor positions
-     if Cursors.C0 >= 0 then OldC0 := scDisplay.VerticalCursors[Cursors.C0]
+     if Cursors.C0 >= 0 then OldC0 := Round(scDisplay.VerticalCursors[Cursors.C0])
                         else OldC0 := 0 ;
-     if Cursors.C1 >= 0 then OldC1 := scDisplay.VerticalCursors[Cursors.C1]
+     if Cursors.C1 >= 0 then OldC1 := Round(scDisplay.VerticalCursors[Cursors.C1])
                         else OldC1 := Round((scDisplay.xMin + scDisplay.xMax)*0.5) ;
 
      { Create and initialise vertical cursors }
@@ -633,8 +634,8 @@ begin
      s := format('%d',[FH.RecordNum] ) ;
 
      { Time zero cursor }
-     Cursor0Pos := scDisplay.VerticalCursors[Cursors.C0] ;
-     Cursor1Pos := scDisplay.VerticalCursors[Cursors.C1] ;
+     Cursor0Pos := Round(scDisplay.VerticalCursors[Cursors.C0]) ;
+     Cursor1Pos := Round(scDisplay.VerticalCursors[Cursors.C1]) ;
 
      // Time values
      if rbUseC0CursorasZero.Checked then begin
@@ -715,7 +716,7 @@ begin
                      scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
                      end ;
                   end
-               else Channel[ch].ADCZero := scDisplay.HorizontalCursors[ch] ;
+               else Channel[ch].ADCZero := Round(scDisplay.HorizontalCursors[ch]) ;
                end ;
             end ;
         Channel[0].xMin := scDisplay.xMin ;
@@ -772,8 +773,8 @@ begin
            if Channel[scDisplay.ActiveHorizontalCursor].ADCZeroAt < 0 then begin
               // Fixed baseline level (update zero level to new position)
               if not Settings.FixedZeroLevels then begin
-                 Channel[scDisplay.ActiveHorizontalCursor].ADCZero :=
-                 scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor] ;
+                 Channel[scDisplay.ActiveHorizontalCursor].ADCZero := Round(
+                 scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor]) ;
                  end ;
               end
            else begin

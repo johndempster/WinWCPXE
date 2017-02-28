@@ -32,6 +32,7 @@ unit Pwrspec;
   27.12.12 .. Spectrum frequency scale now correct (half what it was)
   07.06.13 .. FH.NumZeroAvg now updated when changed in ZeroFrm
   27.07.15 .. iline added to .CreateLine() & .AddPointToLine()
+  12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
   }
 
 interface
@@ -922,10 +923,10 @@ begin
      for i := 0 to RawFH.NumSamples-1 do VarBuf[i] := 0.0 ;
 
      { Get range of samples to be plotted }
-     Variance.StartSample := Min( scDisplay.VerticalCursors[DispCursors.C0],
-                                  scDisplay.VerticalCursors[DispCursors.C1]) ;
-     Variance.EndSample := Max( scDisplay.VerticalCursors[DispCursors.C0],
-                                scDisplay.VerticalCursors[DispCursors.C1]) ;
+     Variance.StartSample := Min( Round(scDisplay.VerticalCursors[DispCursors.C0]),
+                                  Round(scDisplay.VerticalCursors[DispCursors.C1])) ;
+     Variance.EndSample := Max( Round(scDisplay.VerticalCursors[DispCursors.C0]),
+                                Round(scDisplay.VerticalCursors[DispCursors.C1])) ;
 
      { Compute average signal from selected range of records }
      ComputeAverage ;
@@ -1996,13 +1997,12 @@ begin
                                      Variance.EndAtRec] ) ;
 
        { Get range of samples to be plotted }
-       Variance.StartSample := Min( scDisplay.VerticalCursors[DispCursors.C0],
-                                    scDisplay.VerticalCursors[DispCursors.C1]) ;
-       Variance.EndSample := Max( scDisplay.VerticalCursors[DispCursors.C0],
-                                  scDisplay.VerticalCursors[DispCursors.C1]) ;
+       Variance.StartSample := Min( Round(scDisplay.VerticalCursors[DispCursors.C0]),
+                                    Round(scDisplay.VerticalCursors[DispCursors.C1])) ;
+       Variance.EndSample := Max( Round(scDisplay.VerticalCursors[DispCursors.C0]),
+                                  Round(scDisplay.VerticalCursors[DispCursors.C1])) ;
        lbPlotSampleRange.Caption := format('Samples: %d-%d',
-                                    [Variance.StartSample,
-                                     Variance.EndSample] ) ;
+                                    [Variance.StartSample,Variance.EndSample] ) ;
 
         { Main.ZoomMenus( False ) ;}
         end
@@ -2127,11 +2127,11 @@ begin
               scDisplay.HorizontalCursors[ChData] := Channel[ChData].ADCZero ;
               end ;
            end
-        else Channel[ChData].ADCZero := scDisplay.HorizontalCursors[ChData] ;
+        else Channel[ChData].ADCZero := Round(scDisplay.HorizontalCursors[ChData]) ;
 
         // Save analysis cursor settings
-        RawFH.NSVAnalysisCursor0 := scDisplay.VerticalCursors[DispCursors.C0] ;
-        RawFH.NSVAnalysisCursor1 := scDisplay.VerticalCursors[DispCursors.C1] ;
+        RawFH.NSVAnalysisCursor0 := Round(scDisplay.VerticalCursors[DispCursors.C0]) ;
+        RawFH.NSVAnalysisCursor1 := Round(scDisplay.VerticalCursors[DispCursors.C1]) ;
         SaveHeader( RawFH ) ;
 
         TScopeDisplay(Sender).CursorChangeInProgress := False ;
@@ -2201,7 +2201,7 @@ procedure TPwrSpecFrm.scDisplayMouseUp(Sender: TObject;
   --------------------------- }
 begin
      if (Button = mbRight) and (scDisplay.ActiveHorizontalCursor =0) then begin
-        Channel[cbChannel.ItemIndex].ADCZero := scDisplay.HorizontalCursors[0] ;
+        Channel[cbChannel.ItemIndex].ADCZero := Round(scDisplay.HorizontalCursors[0]) ;
         ZeroFrm.EnableFromRecord := True ;
         ZeroFrm.Chan := cbChannel.ItemIndex ;
         ZeroFrm.Level := Channel[ZeroFrm.Chan].ADCZero ;
@@ -2230,8 +2230,8 @@ begin
         if scDisplay.ActiveHorizontalCursor >= 0 then begin
            if Channel[cbChannel.ItemIndex].ADCZeroAt < 0 then begin
               // Fixed baseline level (update zero level to new position)
-              Channel[cbChannel.ItemIndex].ADCZero :=
-              scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor] ;
+              Channel[cbChannel.ItemIndex].ADCZero := Round(
+              scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor]) ;
               end
            else begin
               // Baseline level computed from record (return to computed level)

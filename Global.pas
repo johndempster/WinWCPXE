@@ -9,6 +9,8 @@ unit Global;
   24/3/10 ... Now supports 128 channels, file and record headers increased to 10Kbytes byte
   22/8/11 ... Settings.NumHorizontalGridLines & NumVerticalGridLines removed
   02/10/15 .. ZapAmplitude & ZapDuration added to TSealTest
+  28/02/17 .. On line analysis settings for RecPlotFrm now stored in Settings.RecPlot and saved in INI file
+              vQuantile measurement variable added
 }
 
 interface
@@ -21,9 +23,8 @@ const
      Enable = True ;
      Disable = False ;
      MinDT = 1.5E-5 ;
-     //NumDACChannels = 2 ;
      WCPMaxChannels = 128 ;
-     MaxAnalysisBytesPerRecord = 10240 ; // Increased from 1024 to 10240 24/3/10
+//     MaxAnalysisBytesPerRecord = 10240 ; // Increased from 1024 to 10240 24/3/10
      MaxBytesInFileHeader = 10240 ;      // Increased from 1024 to 10240 24/3/10
 
      { Signal analysis variable constants }
@@ -42,7 +43,8 @@ const
      vInterval = 12 ;
      vBaseline = 13 ;
      vConductance = 14 ;
-     LastMeasureVariable = 14;
+     vQuantile = 15 ;
+     LastMeasureVariable = 15 ;
 
      // Curve fitting variable
      vFitEquation = LastMeasureVariable+1 ;
@@ -58,8 +60,6 @@ const
      vFitParSD = LastMeasureVariable+11 ;
 
      FitVarLimit = 11 ;
-     //MaxTBuf = 131072 ;
-     //MaxPoints = MaxTBuf+1 ;
      VoltsTomV = 1000. ;
      mVToVolts = 1E-3 ;
      AmpsTonA = 1E9 ;
@@ -74,6 +74,8 @@ const
      MaxAnalysisVariables = 28 ;
      BitMapsMinSize = 16 ;
      BitMapsMaxSize = 10000 ;
+
+     MaxOnLinePlots = 10 ;
 
 type
     TDestination = (ToPrinter,ToClipboard) ;
@@ -127,7 +129,8 @@ TFileHeader = packed record
             RateOfRiseMode : Integer ;              // Rate of rise measurement mode
             NumPointsAveragedAtPeak : Integer ;     // No. of sample point averaged at peak
             RiseTimeLo : Single ;                   // Rise time lower limit (fraction of peak)
-            RiseTimeHi : Single ;                   //Rise time upper limit (fraction of peak)
+            RiseTimeHi : Single ;                   // Rise time upper limit (fraction of peak)
+            QuantilePercentage : Single ;           // Quantile % value
             // Non-stationary variance analysis parameters
             NSVChannel : Integer ;          // Current channel to be analysed
             NSVType : Integer ;             // Type of record to analyse
@@ -341,7 +344,6 @@ TSynapseSimParameters = record
      Units : String ;
      end ;
 
-
     TMEPSCSimParameters = record
          NumRecords : Integer ;
          RecordDuration : Single ;
@@ -369,7 +371,29 @@ TSynapseSimParameters = record
          t : double ;
          end ;
 
+  TRecPlotData = Record
+      PlotNum : Integer ;
+      LineNum : Integer ;
+      VarNum : Integer ;
+      ChanNum : Integer ;
+      YLabel : String ;
+      ListEntry : String ;
+      Polarity : Integer ;
+      RateofRiseSmoothing : Integer ;
+      CursorSet : Integer ;
+      StimProtocol : String ;
+      end ;
 
+TRecPlotSettings = Record
+    Plot : Array[0..MaxOnLinePlots-1] of TRecPlotData ;
+    NumPlots : Integer ;
+    // On-line analysis measurement cursor positions (fraction of recordin sweep)
+    Cursor0 : Single ;
+    Cursor1 : Single ;
+    Cursor2 : Single ;
+    Cursor3 : Single ;
+    Cursor4 : Single ;
+    End;
 
 TSettings = record
           Resolution16Bit : Boolean ;
@@ -410,7 +434,6 @@ TSettings = record
           TUnScale : single ;
           BitmapWidth : LongInt ;
           BitmapHeight : LongInt ;
-          //SectorWriteTime : single ;
           DataDirectory : string ;
           ProgDirectory : string ;
           VProtDirectory : string ;
@@ -437,13 +460,8 @@ TSettings = record
           VClampSim : TVClampSimParameters ;
           SynapseSim : TSynapseSimParameters ;
           MEPSCSim : TMEPSCSimParameters ;
+          RecPlot : TRecPlotSettings ;
           OpenNewFileOnRecord : Boolean ;
-          // On-line analysis measurement cursor positions (fraction of recordin sweep)
-          RecCursor0 : Single ;
-          RecCursor1 : Single ;
-          RecCursor2 : Single ;
-          RecCursor3 : Single ;
-          RecCursor4 : Single ;
           end ;
 
 

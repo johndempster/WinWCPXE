@@ -526,6 +526,8 @@ begin
      if not TimerBusy then begin
           TimerBusy := True ;
 
+          outputdebugstring(pchar(format('%d State=%d',[TimeGetTime(),State])));
+
           if LoadEPC9Panel then begin
                Main.mnEPC9Panel.Enabled := True ;
                 Main.mnEPC9Panel.Click ;
@@ -618,7 +620,9 @@ begin
                    { Erase display & Draw horizontal zero level cursor(s) }
 
                    { Update A/D buffer with samples from interface }
+
                    Main.SESLabIO.ADCBufferRefresh ;
+
 
                    // if all samples have been acquired, display on screen
                    if ADC[EndOfBuf] <> -EmptyFlag then Inc(EndOfSweepCount) ;
@@ -626,20 +630,23 @@ begin
                    if EndOfSweepCount >= 2 then begin
                       // Clear display
                       InitialiseDisplay ;
+
                       // Update with new points
                       scDisplay.DisplayNewPoints( NumTestSamples ) ;
+
                       // Stop recording
                       if Main.SESLabIO.ADCActive then Main.SESLabIO.ADCStop ;
                       if Main.SESLabIO.DACActive then Main.SESLabIO.DACStop ;
+
                       State := EndOfSweep ;
                       end ;
 
                    { Procedure to be done when recording sweep completes }
                    if State = EndOfSweep then begin
+
                        { Analyse and display test pulse results }
                        Main.SESLabIO.ADCStop ;
                        Main.SESLabIO.DACStop ;
-
                        AnalyseTestPulse ;
 
                        FirstSweep := False ;

@@ -27,6 +27,7 @@ unit EditProtocolUnit;
 // 23.09.16 File dialogs initialised to vprot folder when form opened
 //          to try to fix failure to open in default protocol folder
 //          when WinWCP installed first time.
+// 09.02.17 DigWave added. Scale/Offset added to Wave
 
 interface
 
@@ -345,6 +346,7 @@ type
     pTrainHz: TImage;
     DigTrainHz: TImage;
     lbError: TLabel;
+    DigWave: TImage;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -490,7 +492,7 @@ begin
      Page.Width := ParameterTableGrp.Left +  ParameterTableGrp.Width + 10 ;
      Height := Page.Height + 100 ;
      Width := Page.Left + Page.Width + 10 ;
-     Width := 940 ;
+     Width := 960 ;
 
      Prot.RecordDuration := 1.0 ;
      Prot.StimulusPeriod := 1.0 ;
@@ -502,14 +504,14 @@ begin
      Prot.NumDOChannels := 1 ;
      cbNumDOChannels.ItemIndex := Prot.NumDOChannels-1 ;
 
-    // Initialise to voltage channels
-    for i := 0 to MaxAOChannels-1 do Prot.AOChannelUnits[i] := 'mV' ;
+     // Initialise to voltage channels
+     for i := 0 to MaxAOChannels-1 do Prot.AOChannelUnits[i] := 'mV' ;
 
-    // Populate Next Protocol list
-    Stimulator.CreateProtocolList( cbNextProtocol ) ;
+     // Populate Next Protocol list
+     Stimulator.CreateProtocolList( cbNextProtocol ) ;
 
-    // Clear
-    Stimulator.ClearProtocol(Prot) ;
+     // Clear
+     Stimulator.ClearProtocol(Prot) ;
 
      // Set tag and hint properties of wave shape components
      // Note. tags contain the waveform type used in the TWaveform record }
@@ -550,6 +552,9 @@ begin
 
      DigTrainHz.tag := Ord(wvDigTrainHz) ;
      WaveShapeImage[DigTrainHz.Tag] := DigTrainHz ;
+
+     DigWave.tag := Ord(wvDigWave) ;
+     WaveShapeImage[DigWave.Tag] := DigWave ;
 
      DigNone.Tag := Ord(wvDigNone) ;
      WaveShapeImage[DigNone.Tag] := DigNone ;
@@ -853,7 +858,9 @@ begin
      cbAO2Stim.ItemIndex := 0 ;
      cbAO3Stim.ItemIndex := 0 ;
 
-     AdjustWaveformPalettes ;
+     RecordingParametersTableChanged := False ;
+     StimulusParametersTableChanged := False ;
+     DisableUpdates := False ;
 
      if (Settings.VProgramFileName = '') or
         ANSIContainsText(Settings.VProgramFileName,'\ .') or
@@ -867,12 +874,9 @@ begin
         Caption := 'Protocol: ' + FileName ;
         LoadProtocolFromXMLFile( FileName ) ;
         end ;
-
-     RecordingParametersTableChanged := False ;
-     StimulusParametersTableChanged := False ;
-     DisableUpdates := False ;
-
      Resize ;
+
+     AdjustWaveformPalettes ;
 
      end;
 
@@ -893,10 +897,8 @@ begin
     DO6Panel.Visible := False ;
     DO7Panel.Visible := False ;
 
-
     AO0Tab.Caption := 'AO0' ;
     AO0StimGrp.Visible := True ;
-
 
     NumAOChannels := cbNumAOChannels.ItemIndex + 1 ;
     if NumAOChannels > 1 then begin
@@ -998,32 +1000,34 @@ begin
     // Stimulus waveform element parameter names
 
     ParNames[spDelay] := 'Delay' ;
-    ParNames[spDelayInc] := 'Delay (increment)' ;
-    ParNames[spStartAmplitude] := 'Amplitude' ;
-    ParNames[spStartAmplitudeInc] := 'Amplitude (increment)' ;
-    ParNames[spEndAmplitude] :=  'End Amplitude' ; ;
-    ParNames[spEndAmplitudeInc] := 'End Amplitude (increment)' ; ;
-    ParNames[spDuration] := 'Duration' ;
-    ParNames[spDurationInc] := 'Duration (increment)' ;
-    ParNames[spNumRepeats] := 'No. repeats' ;
-    ParNames[spNumRepeatsInc] := 'No. repeats (increment)' ;
-    ParNames[spRepeatPeriod] := 'Repeat period' ;
-    ParNames[spRepeatPeriodInc] := 'Repeat period (increment)' ;
-    ParNames[spDigAmplitude]  := 'State (0=0V,1=5V)' ;
+    ParNames[spDelayInc] := 'Delay (increment) ' ;
+    ParNames[spStartAmplitude] := 'Amplitude ' ;
+    ParNames[spStartAmplitudeInc] := 'Amplitude (increment) ' ;
+    ParNames[spEndAmplitude] :=  'End Amplitude ' ; ;
+    ParNames[spEndAmplitudeInc] := 'End Amplitude (increment) ' ; ;
+    ParNames[spDuration] := 'Duration ' ;
+    ParNames[spDurationInc] := 'Duration (increment) ' ;
+    ParNames[spNumRepeats] := 'No. repeats ' ;
+    ParNames[spNumRepeatsInc] := 'No. repeats (increment) ' ;
+    ParNames[spRepeatPeriod] := 'Repeat period ' ;
+    ParNames[spRepeatPeriodInc] := 'Repeat period (increment) ' ;
+    ParNames[spDigAmplitude]  := 'State (0=0V,1=5V) ' ;
     ParNames[spFileName] := 'File name ' ;
     ParNames[spDACUpdateInterval] := 'D/A update interval ' ;
-    ParNames[spNumPoints] := 'No. points' ;
-    ParNames[spNumPointsInc] := 'Starting point (increment)' ;
-    ParNames[spFrequency] := 'Frequency' ;
-    ParNames[spFrequencyInc] := 'Frequency (increment)' ;
+    ParNames[spNumPoints] := 'No. points ' ;
+    ParNames[spNumPointsInc] := 'Starting point (increment) ' ;
+    ParNames[spFrequency] := 'Frequency ' ;
+    ParNames[spFrequencyInc] := 'Frequency (increment) ' ;
+    ParNames[spScale] := 'Scale by ' ;
+    ParNames[spScaleInc] := 'Scale by (increment) ' ;
+    ParNames[spOffset] := 'Offset by ' ;
+    ParNames[spOffsetInc] := 'Offset by (increment) ' ;
 
-
-    Table.ColWidths[0] := 120 ;
+    Table.ColWidths[0] := 150 ;
     for i := 0 to High(ParNames) do begin
         Table.ColWidths[0] := Max( Table.ColWidths[0],
                                    Table.canvas.TextWidth(ParNames[i]) ) ;
         end ;
-    //Table.ColWidths[0] := Table.ColWidths[0] + Table.canvas.TextWidth(' (pA) ') ;
     TUnits := 'ms' ;
     TScale := 1000.0 ;
 
@@ -1228,6 +1232,35 @@ begin
            ParamList[4].Index := spNumPointsInc ;
            ParamList[4].Units := '' ;
            ParamList[4].Scale := 1.0 ;
+           ParamList[5].Index := spScale ;
+           ParamList[5].Units := '' ;
+           ParamList[5].Scale := 1.0 ;
+           ParamList[6].Index := spScaleInc ;
+           ParamList[6].Units := '' ;
+           ParamList[6].Scale := 1.0 ;
+           ParamList[7].Index := spOffset ;
+           ParamList[7].Units := StimType ;
+           ParamList[7].Scale := 1.0 ;
+           ParamList[8].Index := spOffsetInc ;
+           ParamList[8].Units := StimType ;
+           ParamList[8].Scale := 1.0 ;
+           end ;
+        wvDigWave : begin
+           ParamList[0].Index := spDelay ;
+           ParamList[0].Units := TUnits ;
+           ParamList[0].Scale := TScale ;
+           ParamList[1].Index := spFileName ;
+           ParamList[1].Units := '' ;
+           ParamList[1].Scale := 0.0 ;
+           ParamList[2].Index := spDACUpdateInterval ;
+           ParamList[2].Units := TUnits ;
+           ParamList[2].Scale := TScale ;
+           ParamList[3].Index := spNumPoints ;
+           ParamList[3].Units := '' ;
+           ParamList[3].Scale := 1.0 ;
+           ParamList[4].Index := spNumPointsInc ;
+           ParamList[4].Units := '' ;
+           ParamList[4].Scale := 1.0 ;
            end ;
 
         end ;
@@ -1308,7 +1341,7 @@ begin
      Action := caFree ;
      end;
 
-     
+
 procedure TEditProtocolFrm.FormResize(Sender: TObject);
 // ---------------------------------
 // Adjust controls when form resized
@@ -1459,6 +1492,10 @@ begin
         Prot.Stimulus[iStimElement].Parameters[spRepeatPeriod].Value := 0.02 ;
         Prot.Stimulus[iStimElement].Parameters[spFrequency].Value := 10.0 ;
         Prot.Stimulus[iStimElement].Parameters[spFrequencyInc].Value := 0.0 ;
+        Prot.Stimulus[iStimElement].Parameters[spScale].Value := 1.0 ;
+        Prot.Stimulus[iStimElement].Parameters[spScaleInc].Value := 0.0 ;
+        Prot.Stimulus[iStimElement].Parameters[spOffset].Value := 0.0 ;
+        Prot.Stimulus[iStimElement].Parameters[spOffsetInc].Value := 0.0 ;
         end;
 
     Table.RowCount := 1 ;
@@ -1653,7 +1690,7 @@ var
     State : Integer ;
     s : string ;
     StartAt,EndAt,NumPoints : Integer ;
-
+    Scale,Offset : single ;
 begin
 
      pbDisplay.canvas.Font.Size := 8 ;
@@ -1874,10 +1911,28 @@ begin
                       NumPoints := Prot.Stimulus[iElem].NumPointsInBuf ;
                       end ;
 
+                   // Scaling applied to user defined wave form
+                   if Prot.Stimulus[iElem].Parameters[spScale].Exists then begin
+                      Scale := Prot.Stimulus[iElem].Parameters[spScale].Value ;
+                      if Prot.Stimulus[iElem].Parameters[spScaleInc].Exists then begin
+                         Scale := Scale + Prot.Stimulus[iElem].Parameters[spScaleInc].Value*Incr ;
+                         end ;
+                      end
+                   else Scale := 1.0 ;
+
+                   // Offset applied to user defined wave form
+                   if Prot.Stimulus[iElem].Parameters[spOffset].Exists then begin
+                      Offset := Prot.Stimulus[iElem].Parameters[spOffset].Value ;
+                      if Prot.Stimulus[iElem].Parameters[spOffsetInc].Exists then begin
+                         Offset := Offset + Prot.Stimulus[iElem].Parameters[spOffsetInc].Value*Incr ;
+                         end ;
+                      end
+                   else Offset := 0 ;
+
                    StartAt := Min(Max(StartAt,0),Prot.Stimulus[iElem].NumPointsInBuf-1) ;
                    EndAt := Min(Max(StartAt + NumPoints - 1,0),Prot.Stimulus[iElem].NumPointsInBuf-1) ;
                    for j := StartAt to EndAt do begin
-                       Y := Prot.AOHoldingLevel[AONum] + Prot.Stimulus[iElem].Buf^[j] ;
+                       Y := Prot.AOHoldingLevel[AONum] + Scale*Prot.Stimulus[iElem].Buf^[j] + Offset ;
                        T := T + dT ;
                        pbDisplay.canvas.LineTo( XScale( AOPlot[AONum],0.0, StimulusDuration, T ),
                                                 YScale(AOPlot[AONum],YMin,YMax,Y)) ;
@@ -1992,36 +2047,73 @@ begin
                                             YScaleDig(DOPlot,DONum,Prot.DOHoldingLevel[DONum])) ;
                    end ;
 
-                for iPulse := 0 to NumPulses-1 do begin
 
-                    if iPulse > 0 then begin
-                       // Back to holding level
+                // Plot user-defined digital waveform
+                if (Prot.Stimulus[iElem].WaveShape = Ord(wvDigWave)) and
+                   (Prot.Stimulus[iElem].Buf <> Nil) then
+                   begin
+
+                   // D/A update interval (Note All elements must have the same update interval
+                   if (Prot.Stimulus[iElem].Parameters[spDACUpdateInterval].Exists) and
+                      (dT = 0.0) then begin
+                      dT := Prot.Stimulus[iElem].Parameters[spDACUpdateInterval].Value ;
+                      end ;
+
+                   // No. points in waveform to be plotted and starting point in waveform buffer
+                   NumPoints := Prot.Stimulus[iElem].NumPointsInBuf ;
+                   if Prot.Stimulus[iElem].Parameters[spNumPoints].Exists then
+                      NumPoints := Round(Prot.Stimulus[iElem].Parameters[spNumPoints].Value) ;
+                   StartAt := 0 ;
+                   if Prot.Stimulus[iElem].Parameters[spNumPointsInc].Exists then
+                         StartAt := Round(Prot.Stimulus[iElem].Parameters[spNumPointsInc].Value*Incr) ;
+
+                   StartAt := Min(Max(StartAt,0),Prot.Stimulus[iElem].NumPointsInBuf-1) ;
+                   EndAt := Min(Max(StartAt + NumPoints - 1,0),Prot.Stimulus[iElem].NumPointsInBuf-1) ;
+                   for j := StartAt to EndAt do
+                       begin
                        pbDisplay.canvas.LineTo( XScale( DOPlot,0.0, StimulusDuration, T ),
-                                             YScaleDig(DOPlot,DONum,Prot.DOHoldingLevel[DONum])) ;
-                       // Inter-pulse period
-                       T := T + PulsePeriod - Duration ;
+                                                YScaleDig(DOPlot,DONum,Round(Prot.Stimulus[iElem].Buf^[j])));
+                       T := T + dT ;
                        pbDisplay.canvas.LineTo( XScale( DOPlot,0.0, StimulusDuration, T ),
-                                                YScaleDig(DOPlot,DONum,Prot.DOHoldingLevel[DONum])) ;
+                                                YScaleDig(DOPlot,DONum,Round(Prot.Stimulus[iElem].Buf^[j])));
                        end ;
 
-                    // Start of pulse
-                    pbDisplay.canvas.LineTo( XScale( DOPlot,0.0, StimulusDuration, T ),
-                                             YScaleDig(DOPlot,DONum,State)) ;
-                    // End of pulse
-                    T := T + Duration ;
-                    pbDisplay.canvas.LineTo( XScale( DOPlot,0.0, StimulusDuration, T ),
-                                             YScaleDig(DOPlot,DONum,State)) ;
+                   // Return to holding level
+                   pbDisplay.canvas.LineTo( XScale( DOPlot,0.0, StimulusDuration, T ),
+                                            YScaleDig(DOPlot,DONum,Prot.DOHoldingLevel[DONum])) ;
 
+                   end
+                else begin
+                   // Plot other digital waveforms
+                   for iPulse := 0 to NumPulses-1 do
+                       begin
 
+                       if iPulse > 0 then
+                          begin
+                          // Back to holding level
+                          pbDisplay.canvas.LineTo( XScale( DOPlot,0.0, StimulusDuration, T ),
+                                                   YScaleDig(DOPlot,DONum,Prot.DOHoldingLevel[DONum])) ;
+                          // Inter-pulse period
+                          T := T + PulsePeriod - Duration ;
+                          pbDisplay.canvas.LineTo( XScale( DOPlot,0.0, StimulusDuration, T ),
+                                                YScaleDig(DOPlot,DONum,Prot.DOHoldingLevel[DONum])) ;
+                          end ;
+
+                       // Start of pulse
+                       pbDisplay.canvas.LineTo( XScale( DOPlot,0.0, StimulusDuration, T ),
+                                                YScaleDig(DOPlot,DONum,State)) ;
+                       // End of pulse
+                       T := T + Duration ;
+                       pbDisplay.canvas.LineTo( XScale( DOPlot,0.0, StimulusDuration, T ),
+                                             YScaleDig(DOPlot,DONum,State)) ;
+                       end ;
                     end ;
                 end ;
-
              // Draw to end of display
 
              // Back to holding level
              pbDisplay.canvas.LineTo( XScale( DOPlot,0.0, StimulusDuration, T ),
                                       YScaleDig(DOPlot,DONum,Prot.DOHoldingLevel[DONum])) ;
-
              pbDisplay.canvas.LineTo( XScale( DOPlot, 0.0, StimulusDuration, StimulusDuration ),
                                       YScaleDig(DOPlot,DONum,Prot.DOHoldingLevel[DONum])) ;
 
@@ -2048,7 +2140,7 @@ procedure TEditProtocolFrm.GetAmplitudeRange(
 var
     i,j,iElem : Integer ;
     NumIncrements : Integer ;
-    Y : Single ;
+    Y,Scale0,Scale1,Offset0,Offset1 : Single ;
 begin
 
      YMin := Prot.AOHoldingLevel[AONum] ;
@@ -2087,11 +2179,31 @@ begin
 
          // User-defined waveform
          if (Prot.Stimulus[iElem].Parameters[spFileName].Exists) and
-            (Prot.Stimulus[iElem].Buf <> Nil) then begin
+            (Prot.Stimulus[iElem].Buf <> Nil) then
+            begin
+
+            // Scaling applied to user defined wave form
+            Scale0 := 1.0 ;
+            if Prot.Stimulus[iElem].Parameters[spScale].Exists then
+               Scale0 := Prot.Stimulus[iElem].Parameters[spScale].Value ;
+            Scale1 := Scale0 ;
+            if Prot.Stimulus[iElem].Parameters[spScaleInc].Exists then
+               Scale1 := Scale1 + Prot.Stimulus[iElem].Parameters[spScaleInc].Value*NumIncrements ;
+
+            // Offset applied to user defined wave form
+            Offset0 := 0.0 ;
+            if Prot.Stimulus[iElem].Parameters[spOffset].Exists then
+               Offset0 := Prot.Stimulus[iElem].Parameters[spOffset].Value ;
+            Offset1 := Offset0 ;
+            if Prot.Stimulus[iElem].Parameters[spOffsetInc].Exists then
+               Offset1 := Offset1 + Prot.Stimulus[iElem].Parameters[spOffsetInc].Value*NumIncrements ;
+
             for j := 0 to Prot.Stimulus[iElem].NumPointsInBuf-1 do begin
                 Y := Prot.Stimulus[iElem].Buf[j] + Prot.AOHoldingLevel[AONum] ;
-                YMax := Max(YMax,Y) ;
-                YMin := Min(YMin,Y) ;
+                YMax := Max(YMax,Y*Scale0 + Offset0) ;
+                YMin := Min(YMin,Y*Scale0 + Offset0) ;
+                YMax := Max(YMax,Y*Scale1 + Offset1) ;
+                YMin := Min(YMin,Y*Scale1 + Offset1) ;
                 end ;
             end ;
          end ;
@@ -2389,7 +2501,6 @@ begin
      if RecordingParametersTableChanged then UpdateRecordingTableParameters ;
      if StimulusParametersTableChanged then UpdateStimulusElement( SelectedStimulusElement ) ;
      if GlobalVarsTableChanged then UpdateGlobalVars ;
-
      end;
 
 
@@ -2551,7 +2662,6 @@ begin
     end ;
 
 
-
 function TEditProtocolFrm.SaveProtocolToXMLFile(
           FileName : String
           ) : String ;
@@ -2601,8 +2711,8 @@ begin
     FillWaveShapes ;
     FillHolding ;
     FillGlobalVarsTable ;
-    FillParameterTable( SelectedStimulusElement ) ;
     AdjustWaveformPalettes ;
+    FillParameterTable( SelectedStimulusElement ) ;
 
     pbDisplay.Invalidate ;
 
@@ -2610,7 +2720,6 @@ begin
     Prot.Saved := True ;
 
     end ;
-
 
 
 procedure TEditProtocolFrm.bSaveAsClick(Sender: TObject);
@@ -2655,9 +2764,8 @@ begin
         end ;
 
      OpenDialog.options := [ofOverwritePrompt,ofHideReadOnly,ofPathMustExist] ;
-     OpenDialog.FileName := '*.xml' ;//ExtractFileName( SaveDialog.FileName ) ;
+     OpenDialog.FileName := '*.xml' ;
      OpenDialog.InitialDir := Settings.VProtDirectory ;
- //    SetCurrentDir(Settings.VProtDirectory) ;
      OpenDialog.Title := 'Load Stimulus Protocol' ;
      if OpenDialog.execute then begin
         FileName := OpenDialog.FileName ;
@@ -2750,7 +2858,7 @@ procedure TEditProtocolFrm.bLoadFileClick(Sender: TObject);
 begin
 
      OpenWaveDialog.options := [ofOverwritePrompt,ofHideReadOnly,ofPathMustExist] ;
-     OpenWaveDialog.FileName := '*.txt' ;//ExtractFileName( SaveDialog.FileName ) ;
+     OpenWaveDialog.FileName := '*.txt' ;
      OpenWaveDialog.InitialDir := Settings.VProtDirectory ;
      SetCurrentDir(Settings.VProtDirectory);
      OpenWaveDialog.Title := 'Load user-defined waveform' ;

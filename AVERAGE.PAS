@@ -24,6 +24,7 @@ unit Average;
   20.09.16 .. Interleaved averaging mode added
               ADC32 and Sum buffers now allocated inside bDoAveragesClick procedure
               Averaged signals at upper/lower limits of signal range no longer wrap around.
+  12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
   ========================================================================== }
 interface
 
@@ -389,10 +390,10 @@ begin
                    end ;
 
                { Get range of samples to be averaged from positions of cursors 0 and 1 }
-               iStart := Min( scDisplay.VerticalCursors[Cursor0],
-                              scDisplay.VerticalCursors[Cursor1] ) ;
-               iEnd :=   Max( scDisplay.VerticalCursors[Cursor0],
-                              scDisplay.VerticalCursors[Cursor1] ) ;
+               iStart := Min( Round(scDisplay.VerticalCursors[Cursor0]),
+                              Round(scDisplay.VerticalCursors[Cursor1]) ) ;
+               iEnd :=   Max( Round(scDisplay.VerticalCursors[Cursor0]),
+                              Round(scDisplay.VerticalCursors[Cursor1]) ) ;
 
                if cbAlignMode.ItemIndex = NoAlignment then begin
                   { No re-alignment }
@@ -646,7 +647,7 @@ begin
                scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
                end ;
             end
-         else Channel[ch].ADCZero := scDisplay.HorizontalCursors[ch] ;
+         else Channel[ch].ADCZero := Round(scDisplay.HorizontalCursors[ch]) ;
 
          end ;
 
@@ -720,8 +721,8 @@ begin
         if scDisplay.ActiveHorizontalCursor >= 0 then begin
            if Channel[scDisplay.ActiveHorizontalCursor].ADCZeroAt < 0 then begin
               // Fixed baseline level (update zero level to new position)
-              Channel[scDisplay.ActiveHorizontalCursor].ADCZero :=
-              scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor] ;
+              Channel[scDisplay.ActiveHorizontalCursor].ADCZero := Round(
+              scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor]) ;
               end
            else begin
               // Baseline level computed from record (return to computed level)

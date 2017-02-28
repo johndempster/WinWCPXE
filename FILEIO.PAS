@@ -82,7 +82,8 @@ unit Fileio;
   20.03.15 ... VERPROG= added (WinWCP program version which created file)
   24.03.15 ... 'FNINCDATE=', Settings.FileNameIncludeDate 'FNPREFIX=', Settings.FileNamePrefix added
   02/10/15 ..  'STZAPA=', Settings.SealTest.ZapAmplitude'STZAPD=', Settings.SealTest.ZapDuration added to INI file
-
+  28/02/17 ... On line analysis settings for RecPlotFrm now stored in Settings.RecPlot and saved in INI file
+               'QUPERC=', fHDR.QuantilePercentage added to WCP header
   }
 
 
@@ -235,6 +236,8 @@ begin
      // T.(x%) waveform measurement percentage decay time
      AppendFloat( Header, 'TXPERC=', fHDR.DecayTimePercentage ) ;
      AppendInt( Header, 'PKPAVG=', fHDR.NumPointsAveragedAtPeak ) ;
+     // Quantile percentage measurement in use
+     AppendFloat( Header, 'QUPERC=', fHDR.QuantilePercentage ) ;
 
      // Non-stationary variance analysis settings
      AppendInt( Header, 'NSVCHAN=', fHDR.NSVChannel ) ;
@@ -437,6 +440,9 @@ begin
           fHDR.DecayTimePercentage := 50.0 ; // Default value
           ReadFloat( Header, 'TXPERC=', fHDR.DecayTimePercentage ) ;
           ReadInt( Header, 'PKPAVG=', fHDR.NumPointsAveragedAtPeak ) ;
+
+          // Quantile percentage measurement in use
+          ReadFloat( Header, 'QUPERC=', fHDR.QuantilePercentage ) ;
 
           // Non-stationary variance analysis settings
           ReadInt( Header, 'NSVCHAN=', fHDR.NSVChannel ) ;
@@ -798,12 +804,25 @@ begin
 
           ReadLogical( Header, 'NEWFILEONREC=', Settings.OpenNewFileOnRecord) ;
 
-          // On-line analysis cursor positions
-          ReadFloat( Header, 'RECCURS0=',Settings.RecCursor0) ;
-          ReadFloat( Header, 'RECCURS1=',Settings.RecCursor1) ;
-          ReadFloat( Header, 'RECCURS2=',Settings.RecCursor2) ;
-          ReadFloat( Header, 'RECCURS3=',Settings.RecCursor3) ;
-          ReadFloat( Header, 'RECCURS4=',Settings.RecCursor4) ;
+         // On-line analysis settings
+         ReadInt( Header, 'RECPNPLOTS=',Settings.RecPlot.NumPlots ) ;
+         for i := 0 to Settings.RecPlot.NumPlots-1 do
+           begin
+           ReadInt( Header, format('RECPVAR%d=',[i]),Settings.RecPlot.Plot[i].VarNum ) ;
+           ReadInt( Header, format('RECPCHAN%d=',[i]),Settings.RecPlot.Plot[i].ChanNum ) ;
+           ReadString( Header, format('RECPYLAB%d=',[i]),Settings.RecPlot.Plot[i].YLabel ) ;
+           ReadString( Header, format('RECPLE%d=',[i]),Settings.RecPlot.Plot[i].ListEntry ) ;
+           ReadInt( Header, format('RECPPOL%d=',[i]),Settings.RecPlot.Plot[i].Polarity ) ;
+           ReadInt( Header, format('RECPRRS%d=',[i]),Settings.RecPlot.Plot[i].RateofRiseSmoothing ) ;
+           ReadInt( Header, format('RECPCS%d=',[i]),Settings.RecPlot.Plot[i].CursorSet ) ;
+           ReadString( Header, format('RECPSTIM%d=',[i]),Settings.RecPlot.Plot[i].StimProtocol ) ;
+           end;
+
+         ReadFloat( Header, 'RECPCURS0=',Settings.RecPlot.Cursor0) ;
+         ReadFloat( Header, 'RECPCURS1=',Settings.RecPlot.Cursor1) ;
+         ReadFloat( Header, 'RECPCURS2=',Settings.RecPlot.Cursor2) ;
+         ReadFloat( Header, 'RECPCURS3=',Settings.RecPlot.Cursor3) ;
+         ReadFloat( Header, 'RECPCURS4=',Settings.RecPlot.Cursor4) ;
 
           // Read stimulator global variables
           for i := 0 to MaxStimGlobalVars-1 do begin
@@ -1024,22 +1043,22 @@ begin
      AppendFloat( Header, 'VCSIMHTAUVH=', Settings.VClampSim.h.TauVHalf  );
      AppendFloat( Header, 'VCSIMHTAUVS=', Settings.VClampSim.h.TauVslope  );
 
-          // Synapse simulation settings (SynapseSim)
-          AppendInt( Header, 'SYSIMNRECS=',Settings.SynapseSim.NumRecords ) ;
-          AppendFloat( Header, 'SYSIMDUR=',Settings.SynapseSim.RecordDuration ) ;
-          AppendFloat( Header, 'SYSIMTAURISE=',Settings.SynapseSim.TauRise ) ;
-          AppendFloat( Header, 'SYSIMTAU1=',Settings.SynapseSim.Tau1 ) ;
-          AppendFloat( Header, 'SYSIMLATENCY=',Settings.SynapseSim.Latency ) ;
-          AppendFloat( Header, 'SYSIMTAU2=',Settings.SynapseSim.Tau2 ) ;
-          AppendLogical( Header, 'SYSSIMDEXP=',Settings.SynapseSim.DoubleExponentialDecay ) ;
-          AppendFloat( Header, 'SYSIMA2F=',Settings.SynapseSim.A2Fraction ) ;
-          AppendFloat( Header, 'SYSIMQAMP=',Settings.SynapseSim.QuantumAmplitude ) ;
-          AppendFloat( Header, 'SYSIMQSTD=',Settings.SynapseSim.QuantumStDev ) ;
-          AppendFloat( Header, 'SYSIMN=',Settings.SynapseSim.n ) ;
-          AppendFloat( Header, 'SYSIMP=',Settings.SynapseSim.p ) ;
-          AppendFloat( Header, 'SYSIMNOISE=',Settings.SynapseSim.NoiseRMS ) ;
-          AppendFloat( Header, 'SYSIMDRANGE=',Settings.SynapseSim.DisplayRange ) ;
-          AppendFloat( Header, 'SYSIMVREST=',Settings.SynapseSim.VRest ) ;
+     // Synapse simulation settings (SynapseSim)
+     AppendInt( Header, 'SYSIMNRECS=',Settings.SynapseSim.NumRecords ) ;
+     AppendFloat( Header, 'SYSIMDUR=',Settings.SynapseSim.RecordDuration ) ;
+     AppendFloat( Header, 'SYSIMTAURISE=',Settings.SynapseSim.TauRise ) ;
+     AppendFloat( Header, 'SYSIMTAU1=',Settings.SynapseSim.Tau1 ) ;
+     AppendFloat( Header, 'SYSIMLATENCY=',Settings.SynapseSim.Latency ) ;
+     AppendFloat( Header, 'SYSIMTAU2=',Settings.SynapseSim.Tau2 ) ;
+     AppendLogical( Header, 'SYSSIMDEXP=',Settings.SynapseSim.DoubleExponentialDecay ) ;
+     AppendFloat( Header, 'SYSIMA2F=',Settings.SynapseSim.A2Fraction ) ;
+     AppendFloat( Header, 'SYSIMQAMP=',Settings.SynapseSim.QuantumAmplitude ) ;
+     AppendFloat( Header, 'SYSIMQSTD=',Settings.SynapseSim.QuantumStDev ) ;
+     AppendFloat( Header, 'SYSIMN=',Settings.SynapseSim.n ) ;
+     AppendFloat( Header, 'SYSIMP=',Settings.SynapseSim.p ) ;
+     AppendFloat( Header, 'SYSIMNOISE=',Settings.SynapseSim.NoiseRMS ) ;
+     AppendFloat( Header, 'SYSIMDRANGE=',Settings.SynapseSim.DisplayRange ) ;
+     AppendFloat( Header, 'SYSIMVREST=',Settings.SynapseSim.VRest ) ;
 
      // MEPSCSim settings
      AppendInt( Header, 'MEPSIMNR=',Settings.MEPSCSim.NumRecords) ;
@@ -1063,12 +1082,25 @@ begin
      AppendLogical( Header, 'FIXZERO=', Settings.FixedZeroLevels) ;
      AppendLogical( Header, 'NEWFILEONREC=', Settings.OpenNewFileOnRecord) ;
 
-     // On-line analysis cursor positions
-     AppendFloat( Header, 'RECCURS0=',Settings.RecCursor0) ;
-     AppendFloat( Header, 'RECCURS1=',Settings.RecCursor1) ;
-     AppendFloat( Header, 'RECCURS2=',Settings.RecCursor2) ;
-     AppendFloat( Header, 'RECCURS3=',Settings.RecCursor3) ;
-     AppendFloat( Header, 'RECCURS4=',Settings.RecCursor4) ;
+     // On-line analysis settings
+     AppendInt( Header, 'RECPNPLOTS=',Settings.RecPlot.NumPlots ) ;
+     for i := 0 to Settings.RecPlot.NumPlots-1 do
+         begin
+         AppendInt( Header, format('RECPVAR%d=',[i]),Settings.RecPlot.Plot[i].VarNum ) ;
+         AppendInt( Header, format('RECPCHAN%d=',[i]),Settings.RecPlot.Plot[i].ChanNum ) ;
+         AppendString( Header, format('RECPYLAB%d=',[i]),Settings.RecPlot.Plot[i].YLabel ) ;
+         AppendString( Header, format('RECPLE%d=',[i]),Settings.RecPlot.Plot[i].ListEntry ) ;
+         AppendInt( Header, format('RECPPOL%d=',[i]),Settings.RecPlot.Plot[i].Polarity ) ;
+         AppendInt( Header, format('RECPRRS%d=',[i]),Settings.RecPlot.Plot[i].RateofRiseSmoothing ) ;
+         AppendInt( Header, format('RECPCS%d=',[i]),Settings.RecPlot.Plot[i].CursorSet ) ;
+         AppendString( Header, format('RECPSTIM%d=',[i]),Settings.RecPlot.Plot[i].StimProtocol ) ;
+         end;
+
+     AppendFloat( Header, 'RECPCURS0=',Settings.RecPlot.Cursor0) ;
+     AppendFloat( Header, 'RECPCURS1=',Settings.RecPlot.Cursor1) ;
+     AppendFloat( Header, 'RECPCURS2=',Settings.RecPlot.Cursor2) ;
+     AppendFloat( Header, 'RECPCURS3=',Settings.RecPlot.Cursor3) ;
+     AppendFloat( Header, 'RECPCURS4=',Settings.RecPlot.Cursor4) ;
 
      // Save stimulator global variables
      for i := 0 to MaxStimGlobalVars-1 do begin
@@ -1144,17 +1176,17 @@ begin
      fHDR.NumBytesPerRecord := fHDR.NumDataBytesPerRecord +
                                fHDR.NumAnalysisBytesPerRecord  ;
 
-    // Copy record details in values array
-    RH.Value[vRecord] := RecordNum ;
-    RH.Value[vGroup] := RH.Number ;
-    RH.Value[vTime] := RH.Time ;
+     // Copy record details in values array
+     RH.Value[vRecord] := RecordNum ;
+     RH.Value[vGroup] := RH.Number ;
+     RH.Value[vTime] := RH.Time ;
 
      // Copy equation data to values table
-    RH.Value[vFitEquation] := Integer(RH.EqnType) ;
-    RH.Value[vFitCursor0] := RH.FitCursor0 ;
-    RH.Value[vFitCursor1] := RH.FitCursor1 ;
-    RH.Value[vFitCursor2] := RH.FitCursor2 ;
-    RH.Value[vFitChan] := RH.FitChan ;
+     RH.Value[vFitEquation] := Integer(RH.EqnType) ;
+     RH.Value[vFitCursor0] := RH.FitCursor0 ;
+     RH.Value[vFitCursor1] := RH.FitCursor1 ;
+     RH.Value[vFitCursor2] := RH.FitCursor2 ;
+     RH.Value[vFitChan] := RH.FitChan ;
 
      { Write record header block to file }
      FileSeek( FHDR.FileHandle,

@@ -635,6 +635,7 @@ object PwrSpecFrm: TPwrSpecFrm
           ReadOnly = True
           ScrollBars = ssVertical
           TabOrder = 2
+          Zoom = 100
         end
       end
     end
@@ -974,6 +975,7 @@ object PwrSpecFrm: TPwrSpecFrm
           ReadOnly = True
           ScrollBars = ssVertical
           TabOrder = 2
+          Zoom = 100
         end
       end
     end

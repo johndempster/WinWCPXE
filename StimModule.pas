@@ -55,6 +55,8 @@ unit StimModule;
   15.06.15 When .ADCSamplingIntervalKeepFixed=True,  no. of samples per channel
            now adjusted to keep constant duration when sampling interval changed (or vice versa)
   28.07.15 Pulse train with frequency incrementing added
+  09.02.17 DigWave added. Scale/Offset parameters added to Wave
+           SetADCDACUpdateIntervals() now sets D/A update to digWave user-def. waveforms.
   =============================================}
 
 interface
@@ -88,6 +90,7 @@ const
     wvDigNone = 10 ;  // No digital pulse
     wvpTrainHz = 11 ;
     wvDigTrainHz = 12 ;
+    wvDigWave = 13 ;     // User defined digital pattern
 
     spNone = -1 ;
     spDelay = 0 ;
@@ -110,7 +113,11 @@ const
     spNumPointsInc = 17 ;
     spFrequency = 18 ;
     spFrequencyInc = 19 ;
-    MaxPars = 19 ;
+    spScale = 20 ;
+    spScaleInc = 21 ;
+    spOffset = 22 ;
+    spOffsetInc = 23 ;
+    MaxPars = 23 ;
     MaxRecordingPars = 5 ;
 
      //NumDigChannels = 8 ;
@@ -137,8 +144,6 @@ const
      DAC1 = 1 ;
 
      MaxStimGlobalVars = 5 ;
-
-     //WaveformCreationTime = 0.05 ;
 
 type
 
@@ -299,6 +304,8 @@ TWaveform = packed record
           var VBuf : Array of Single ;         // Voltage waveform to be added
           StartAt : Integer ;                 // Start at buffer point
           EndAt : Integer ;                   // End at buffer point
+          Scale : single ;                    // Scaling factor
+          Offset : single ;                   // DC Offset
           var Buf : Array of SmallInt ;       // Output buffer
           var DACCounter : Integer
           ) ;
@@ -340,8 +347,6 @@ TWaveform = packed record
               var Prot : TStimulusProtocol ;           // Protocol record to be loaded
               FileName : String
               ) ;
-
-
 
   public
     { Public declarations }
@@ -543,6 +548,7 @@ var
     DigWord,Bit : Integer ;
     DACCounter,DigCounter : Integer ;
     StartAt,EndAt,NumPoints : Integer ;
+    Scale,Offset : single ;
 begin
 
      // Calculate DAC update interval
@@ -717,7 +723,8 @@ begin
 
              // Plot user-defined waveform
              if (Prot.Stimulus[iElem].WaveShape = Ord(wvWave)) and
-                (Prot.Stimulus[iElem].Buf <> Nil) then begin
+                (Prot.Stimulus[iElem].Buf <> Nil) then
+                begin
 
                 // No. points in waveform to be plotted and starting point in waveform buffer
                 if Prot.Stimulus[iElem].Parameters[spNumPoints].Exists then begin
@@ -732,6 +739,21 @@ begin
                    NumPoints := Prot.Stimulus[iElem].NumPointsInBuf ;
                    end ;
 
+                // Scaling applied to user defined waveform
+                Scale := 1.0 ;
+                if Prot.Stimulus[iElem].Parameters[spScale].Exists then
+                   Scale := Prot.Stimulus[iElem].Parameters[spScale].Value ;
+                if Prot.Stimulus[iElem].Parameters[spScaleInc].Exists then
+                   Scale := Scale + Prot.Stimulus[iElem].Parameters[spScaleInc].Value*Increment ;
+
+                // Offset applied to user defined waveform
+                Offset := 0.0 ;
+                if Prot.Stimulus[iElem].Parameters[spOffset].Exists then
+                   Offset := Prot.Stimulus[iElem].Parameters[spOffset].Value ;
+                if Prot.Stimulus[iElem].Parameters[spOffsetInc].Exists then
+                   Offset := Offset + Prot.Stimulus[iElem].Parameters[spOffsetInc].Value*Increment ;
+
+                // Section of waveform to output
                 StartAt := Min(Max(StartAt,0),Prot.Stimulus[iElem].NumPointsInBuf-1) ;
                 EndAt := Min(Max(StartAt + NumPoints - 1,0),Prot.Stimulus[iElem].NumPointsInBuf-1) ;
 
@@ -740,6 +762,8 @@ begin
                                 Prot.Stimulus[iElem].Buf^,
                                 StartAt,
                                 EndAt,
+                                Scale,
+                                Offset,
                                 Buf,
                                 DACCounter) ;
                 end ;
@@ -949,7 +973,7 @@ procedure TStimulator.SetADCDACUpdateIntervals(
 // Calculate DAC update interval
 // -----------------------------
 var
-    i,AONum,iElem : Integer ;
+    i,AONum,DONum,iElem : Integer ;
     dt,MinDACdt : Single ;
     MaxDACPoints : Integer ;
 begin
@@ -1008,6 +1032,18 @@ begin
                 end ;
              end ;
          end ;
+
+     for DONum := 0 to Prot.NumDOChannels-1 do begin
+         for i := 0 to MaxStimElementsPerChannels-1 do begin
+             iElem := i + DONum*MaxStimElementsPerChannels  + DOElementsStart ;
+             if (Prot.Stimulus[iElem].WaveShape = Ord(wvDigWave)) and
+                Prot.Stimulus[iElem].Parameters[spDACUpdateInterval].Exists and
+                (dT = 0.0) then begin
+                dT := Prot.Stimulus[iElem].Parameters[spDACUpdateInterval].Value ;
+                end ;
+             end ;
+         end ;
+
       if dt <> 0.0 then DACUpdateInterval := dt ;
 
      // If fixed (user set) D/A update interval flag set, over-ride with fixed value
@@ -1160,10 +1196,11 @@ procedure TStimulator.FillDACBufWave(
           var VBuf : Array of Single ;         // Voltage waveform to be added
           StartAt : Integer ;                 // Start at buffer point
           EndAt : Integer ;                   // End at buffer point
+          Scale : single ;                    // Scaling factor
+          Offset : single ;                   // DC Offset
           var Buf : Array of SmallInt ;       // Output buffer
           var DACCounter : Integer
           ) ;
-
 // -----------------------
 // Add waveform to buffer
 // -----------------------
@@ -1181,7 +1218,7 @@ begin
      j := DACCounter*NumDACChannels + Chan ;
      DACBufLimit := Main.SESLabIO.ADCBufferLimit ;
      for i := StartAt to EndAt do if j <= DACBufLimit then begin
-         DACValue := Round(DACScale*(VBuf[i] + Prot.AOHoldingLevel[Chan])) ;
+         DACValue := Round(DACScale*(Scale*VBuf[i] + Offset + Prot.AOHoldingLevel[Chan])) ;
          DACValue := Max( Min( DACValue, Main.SESLabIO.DACMaxValue ),
                                         -Main.SESLabIO.DACMaxValue-1 ) ;
          Buf[j] := DACValue ;
@@ -1910,6 +1947,10 @@ begin
                                  Prot.Stimulus[i].Parameters ) ;
               AddWaveformParameter( iNode, 'NUMPOINTS', spNumPoints, spNumPointsInc,
                                  Prot.Stimulus[i].Parameters ) ;
+              AddWaveformParameter( iNode, 'SCALE', spScale, spScaleInc,
+                                 Prot.Stimulus[i].Parameters ) ;
+              AddWaveformParameter( iNode, 'OFFSET', spOffset, spOffsetInc,
+                                 Prot.Stimulus[i].Parameters ) ;
 
               end ;
            end ;
@@ -1938,6 +1979,12 @@ begin
               AddWaveformParameter( iNode, 'REPEATPERIOD', spRepeatPeriod, spRepeatPeriodInc,
                                  Prot.Stimulus[i].Parameters ) ;
               AddWaveformParameter( iNode, 'FREQUENCY', spFrequency, spFrequencyInc,
+                                 Prot.Stimulus[i].Parameters ) ;
+              AddWaveformParameterText( iNode, 'FILENAME', spFileName,
+                                        Prot.Stimulus[i].Parameters ) ;
+              AddWaveformParameter( iNode, 'NUMPOINTS', spNumPoints, spNumPointsInc,
+                                 Prot.Stimulus[i].Parameters ) ;
+              AddWaveformParameter( iNode, 'DACUPDATEINTERVAL', spDACUpdateInterval, spNone,
                                  Prot.Stimulus[i].Parameters ) ;
               end ;
            end ;
@@ -2116,8 +2163,16 @@ begin
         GetWaveformParameter( iNode, 'NUMPOINTS', spNumPoints, spNumPointsInc,
                               Prot.Stimulus[iElement].Parameters ) ;
 
+        GetWaveformParameter( iNode, 'SCALE', spScale, spScaleInc,
+                              Prot.Stimulus[iElement].Parameters ) ;
+
+        GetWaveformParameter( iNode, 'OFFSET', spOffset, spOffsetInc,
+                              Prot.Stimulus[iElement].Parameters ) ;
+
         // Load user-defined waveform
-        if Prot.Stimulus[iElement].WaveShape = Ord(wvWave) then begin
+        if (Prot.Stimulus[iElement].WaveShape = Ord(wvWave)) or
+           (Prot.Stimulus[iElement].WaveShape = Ord(wvDigWave)) then
+           begin
 
            // Get file name of .dat file
            WaveFileName := ExtractFileName(Prot.Stimulus[iElement].Parameters[spFileName].Text) ;
@@ -2243,7 +2298,8 @@ begin
      Result := False ;
 
      // Exit if this stimulus is not an externally defined wave
-     if  Prot.Stimulus[iStimElement].WaveShape <> Ord(wvWave) then begin
+     if  (Prot.Stimulus[iStimElement].WaveShape <> Ord(wvWave)) and
+         (Prot.Stimulus[iStimElement].WaveShape <> Ord(wvDigWave)) then begin
          //Prot.Stimulus[iStimElement].NumPoints := 0 ;
          Exit ;
          end ;
@@ -2307,7 +2363,11 @@ var
 begin
 
      // Exit if this stimulus is not an externally defined wave
-     if  Prot.Stimulus[iStimElement].WaveShape <> Ord(wvWave) then Exit ;
+     if  (Prot.Stimulus[iStimElement].WaveShape <> Ord(wvWave)) and
+         (Prot.Stimulus[iStimElement].WaveShape <> Ord(wvDigWave)) then begin
+         Exit ;
+         end ;
+
      if Prot.Stimulus[iStimElement].Buf = Nil then Exit ;
 
      // Create DAT file

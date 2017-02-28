@@ -12,6 +12,7 @@ unit Drvfun;
   24.05.10 .. Driving function corrected for changes in parameter order in exponential function
   07.06.13 .. FH.NumZeroAvg now updated when changed in ZeroFrm
   27.07.15 .. iline added to .CreateLine() & .AddPointToLine()
+  12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
   ==========================================================================}
 interface
 
@@ -684,7 +685,7 @@ begin
                scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
                end ;
             end
-         else Channel[ch].ADCZero := scDisplay.HorizontalCursors[ch] ;
+         else Channel[ch].ADCZero := Round(scDisplay.HorizontalCursors[ch]) ;
 
          end ;
      end;
@@ -720,8 +721,8 @@ begin
         if scDisplay.ActiveHorizontalCursor >= 0 then begin
            if Channel[cbChannel.ItemIndex].ADCZeroAt < 0 then begin
               // Fixed baseline level (update zero level to new position)
-              Channel[cbChannel.ItemIndex].ADCZero :=
-              scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor] ;
+              Channel[cbChannel.ItemIndex].ADCZero := Round(
+              scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor]) ;
               end
            else begin
               // Baseline level computed from record (return to computed level)

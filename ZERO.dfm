@@ -3,8 +3,8 @@ object ZeroFrm: TZeroFrm
   Top = 156
   BorderStyle = bsDialog
   Caption = 'Zero Level'
-  ClientHeight = 202
-  ClientWidth = 151
+  ClientHeight = 226
+  ClientWidth = 152
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
   Font.Color = clWindowText
@@ -17,9 +17,9 @@ object ZeroFrm: TZeroFrm
   TextHeight = 15
   object TypeGrp: TGroupBox
     Left = 8
-    Top = 32
+    Top = 35
     Width = 137
-    Height = 137
+    Height = 160
     Caption = 'Zero level modes'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
@@ -30,7 +30,7 @@ object ZeroFrm: TZeroFrm
     TabOrder = 0
     object Label1: TLabel
       Left = 24
-      Top = 40
+      Top = 38
       Width = 48
       Height = 14
       Caption = 'At sample'
@@ -55,8 +55,8 @@ object ZeroFrm: TZeroFrm
       ParentFont = False
     end
     object Label3: TLabel
-      Left = 48
-      Top = 104
+      Left = 43
+      Top = 128
       Width = 26
       Height = 14
       Caption = 'Level'
@@ -69,7 +69,7 @@ object ZeroFrm: TZeroFrm
     end
     object rbFromRecord: TRadioButton
       Left = 8
-      Top = 24
+      Top = 20
       Width = 97
       Height = 17
       Hint = 
@@ -89,7 +89,7 @@ object ZeroFrm: TZeroFrm
     end
     object rbFixed: TRadioButton
       Left = 8
-      Top = 88
+      Top = 110
       Width = 89
       Height = 17
       Hint = 'Zero level fixed at a constant level for all records'
@@ -119,7 +119,7 @@ object ZeroFrm: TZeroFrm
     end
     object edAtSample: TValidatedEdit
       Left = 80
-      Top = 40
+      Top = 38
       Width = 49
       Height = 23
       Text = ' 1 '
@@ -131,7 +131,7 @@ object ZeroFrm: TZeroFrm
     end
     object edFixedLevel: TValidatedEdit
       Left = 80
-      Top = 104
+      Top = 128
       Width = 49
       Height = 23
       Text = ' 1 '
@@ -153,7 +153,7 @@ object ZeroFrm: TZeroFrm
   end
   object bOK: TButton
     Left = 8
-    Top = 176
+    Top = 199
     Width = 49
     Height = 20
     Caption = 'OK'
@@ -169,7 +169,7 @@ object ZeroFrm: TZeroFrm
   end
   object bCancel: TButton
     Left = 64
-    Top = 176
+    Top = 200
     Width = 57
     Height = 17
     Caption = 'Cancel'

@@ -80,6 +80,8 @@ unit Measure;
   04.08.15 .. Records now be superimposed when superimpose traces selected
   29.09.15 .. Readout cursor no longer lost when Lock Cursors clicked.
   8.11.15 .. TMeasureFrmCursors.Base removed since use was redundant.
+  12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
+  28.02.17 .. 0-100% quantile measurement added
   ==========================================================================}
 interface
 
@@ -250,6 +252,11 @@ TMeasureFrmCursors = Record
     ckTabVar14: TCheckBox;
     scDisplay: TScopeDisplay;
     ckFixedZeroLevels: TCheckBox;
+    QuantileGrp: TGroupBox;
+    Label13: TLabel;
+    edQuantilePercentage: TValidatedEdit;
+    ckVariable15: TCheckBox;
+    ckTabVar15: TCheckBox;
     procedure bDoAnalysisClick(Sender: TObject);
     procedure bAbortClick(Sender: TObject);
     procedure bNewXYPlotClick(Sender: TObject);
@@ -367,6 +374,11 @@ TMeasureFrmCursors = Record
          ) : Boolean ;   // Returns TRUE if valid conductance calculated
 
     function TidyNumber( const RawNumber : string ) : string ;
+
+    procedure SortBuffer(
+              var SortBuf : Array of Single ;
+              nPoints : Integer
+              ) ;
 
   public
     { Public declarations }
@@ -556,7 +568,10 @@ begin
      for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := 'mS' ;
      CreateVariable(vConductance,'Conductance',VarUnits, 1. ) ;
 
-//     rH.Analysis.NumVariables := vBaseline + 1 ;
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := Channel[ch].ADCUnits ;
+     CreateVariable( vQuantile,
+                     format('%.1f%% Quantile',[edQuantilePercentage.Value]),
+                     VarUnits, 1.0 ) ;
 
         { Set up captions of variables to be summarised }
         SetCheckBoxCaption( ckVariable0, 0 ) ;
@@ -574,6 +589,7 @@ begin
         SetCheckBoxCaption( ckVariable12, 12 ) ;
         SetCheckBoxCaption( ckVariable13, 13 ) ;
         SetCheckBoxCaption( ckVariable14, 14 ) ;
+        SetCheckBoxCaption( ckVariable15, 15 ) ;
 
         { Set up captions of TabVars to be summarised }
         SetCheckBoxCaption( ckTabVar0, 0 ) ;
@@ -591,6 +607,7 @@ begin
         SetCheckBoxCaption( ckTabVar12, 12 ) ;
         SetCheckBoxCaption( ckTabVar13, 13 ) ;
         SetCheckBoxCaption( ckTabVar14, 14 ) ;
+        SetCheckBoxCaption( ckTabVar15, 15 ) ;
 
      { Create variable name list for X/Y plot }
      cbXVariable.items := VarNames  ;
@@ -880,6 +897,10 @@ var
 
    InBuf : ^TSmallIntArray ; // 16 bit integer A/D buffer
    ADC : ^TSingleArray ;     // Floating point A/D buffer
+   // Quantile variables
+   SortBuf : ^TSingleArray ;     // Floating point A/D buffer
+   nSort,iQuantile : Integer ;
+
 begin
 
      // Create buffers
@@ -963,12 +984,12 @@ begin
                     end ;
 
                 { Get range of samples to be analysed from positions of cursors 0 and 1 }
-                iStart := Min( scDisplay.VerticalCursors[Cursors.C0[ch]],
-                               scDisplay.VerticalCursors[Cursors.C1[ch]] ) ;
-                iEnd :=   Max( scDisplay.VerticalCursors[Cursors.C0[ch]],
-                               scDisplay.VerticalCursors[Cursors.C1[ch]] ) ;
+                iStart := Min( Round(scDisplay.VerticalCursors[Cursors.C0[ch]]),
+                               Round(scDisplay.VerticalCursors[Cursors.C1[ch]]) ) ;
+                iEnd :=   Max( Round(scDisplay.VerticalCursors[Cursors.C0[ch]]),
+                               Round(scDisplay.VerticalCursors[Cursors.C1[ch]]) ) ;
                 { Zero time cursor }
-                iTimeZero := scDisplay.VerticalCursors[Cursors.t0] ;
+                iTimeZero := Round(scDisplay.VerticalCursors[Cursors.t0]) ;
 
                 { Calculate average and area within cursors 0-1 }
                 Sum := 0. ;
@@ -1152,7 +1173,6 @@ begin
 
                 rH.Value[vStart + vT90] := (i-PeakAt)*rH.dt + dDecay ;
 
-
                 // T.x% Duration from Peak - user selected % decay from peak
                 // V4.0.5 Exact decay point determined by interpolation between
                 // first point below threshold and last point above threshold
@@ -1186,6 +1206,22 @@ begin
                 NumAvg := (i1 - i0) + 1 ;
                 Avg := Sum / NumAvg ;
                 rH.Value[vStart + vBaseline] := (Avg*Channel[ch].ADCScale) ;
+
+                // Calculate X% quantile
+                GetMem(SortBuf,Max(iEnd-iStart + 1,1)*SizeOf(Single));
+                j := iStart*fH.NumChannels + Channel[ch].ChannelOffset ;
+                nSort := 0 ;
+                for i := iStart to iEnd do
+                    begin
+                    SortBuf^[nSort] := ADC^[j] ;
+                    j := j + fH.NumChannels ;
+                    Inc(nSort) ;
+                    end ;
+                SortBuffer(SortBuf^,nSort) ;
+                iQuantile := Max(Round(edQuantilePercentage.Value*nSort*0.01)-1,0);
+                rH.Value[vStart + vQuantile] := SortBuf^[iQuantile]*Channel[ch].ADCScale ;
+                FreeMem(SortBuf) ;
+
                 end ;
 
             { Update time of previous record }
@@ -1385,8 +1421,6 @@ begin
 
      plPlot.yAxisLabel := '' ;
      if yVar = vConductance then begin
-        // Conductance Y label
-        //plPlot.yAxisLabel := Channel[yCh].ADCName + ' ' + VarName[yVar] + cbCondUnits.text ;
         // Update conductance variable units
         for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := cbCondUnits.Text ;
         CreateVariable(vConductance,'Conductance',VarUnits, 1. ) ;
@@ -1893,6 +1927,7 @@ begin
      else if ckVariable12.Tag = VarNum then Result := ckVariable12.Checked
      else if ckVariable13.Tag = VarNum then Result := ckVariable13.Checked
      else if ckVariable14.Tag = VarNum then Result := ckVariable14.Checked
+     else if ckVariable15.Tag = VarNum then Result := ckVariable15.Checked
      else Result := True ;
      end ;
 
@@ -2240,7 +2275,6 @@ begin
      end ;
 
 
-
 procedure TMeasureFrm.FormResize(Sender: TObject);
 { ------------------------------------------------------
   Adjust size/position of controls when form is re-sized
@@ -2490,8 +2524,8 @@ begin
         if scDisplay.ActiveHorizontalCursor >= 0 then begin
            if Channel[scDisplay.ActiveHorizontalCursor].ADCZeroAt < 0 then begin
               // Fixed baseline level (update zero level to new position)
-              Channel[scDisplay.ActiveHorizontalCursor].ADCZero :=
-              scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor] ;
+              Channel[scDisplay.ActiveHorizontalCursor].ADCZero := Round(
+              scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor]) ;
               end
            else begin
               // Baseline level computed from record (return to computed level)
@@ -2530,7 +2564,7 @@ begin
                   end ;
                end
             else begin
-               Channel[ch].ADCZero := scDisplay.HorizontalCursors[ch] ;
+               Channel[ch].ADCZero := Round(scDisplay.HorizontalCursors[ch]) ;
                end ;
 
             end ;
@@ -3157,6 +3191,7 @@ begin
    AddVariableToTable( ckTabVar12) ;
    AddVariableToTable( ckTabVar13 ) ;
    AddVariableToTable( ckTabVar14 ) ;
+   AddVariableToTable( ckTabVar15 ) ;
 
    FillTable ;
 
@@ -3276,10 +3311,10 @@ begin
 
     // Save existing cursor positions
     for ch := 0 to FH.NumChannels-1 do begin
-        C0CursorPosition[ch] :=  scDisplay.VerticalCursors[Cursors.C0[ch]] ;
-        C1CursorPosition[ch] :=  scDisplay.VerticalCursors[Cursors.C1[ch]] ;
+        C0CursorPosition[ch] :=  Round(scDisplay.VerticalCursors[Cursors.C0[ch]]) ;
+        C1CursorPosition[ch] :=  Round(scDisplay.VerticalCursors[Cursors.C1[ch]]) ;
         end ;
-    T0CursorPosition := scDisplay.VerticalCursors[Cursors.T0] ;
+    T0CursorPosition := Round(scDisplay.VerticalCursors[Cursors.T0]) ;
 
     scDisplay.ClearVerticalCursors ;
 
@@ -3288,8 +3323,8 @@ begin
         if ckLockChannelCursors.Checked then begin
            // Single set of cursors for all channels
            if ch = 0 then begin
-              Cursors.C0[ch] := scDisplay.AddVerticalCursor(AllChannels,clOlive,'?t') ;
-              Cursors.C1[ch] := scDisplay.AddVerticalCursor(AllChannels,clOlive,'?t') ;
+              Cursors.C0[ch] := Round(scDisplay.AddVerticalCursor(AllChannels,clOlive,'?t')) ;
+              Cursors.C1[ch] := Round(scDisplay.AddVerticalCursor(AllChannels,clOlive,'?t')) ;
               end
            else begin
               Cursors.C0[ch] := Cursors.C0[0] ;
@@ -3374,6 +3409,27 @@ begin
      scDisplay.StorageMode := StorageMode ;
      end ;
 
+procedure TMeasureFrm.SortBuffer(
+          var SortBuf : Array of Single ; // Buffer to be sorted
+          nPoints : Integer           // No. of points in buffer
+          ) ;
+// --------------------------------
+// Sort buffer into ascending order
+// --------------------------------
+var
+   Current,Last : Integer ;
+   Temp : single ;
+begin
+     for Last := (nPoints-1) DownTo 1 do begin
+         for Current := 0 to Last-1 do begin
+             if SortBuf[Current] >  SortBuf[Current+1] then begin
+                Temp := SortBuf[Current] ;
+                SortBuf[Current] := SortBuf[Current+1] ;
+                SortBuf[Current+1] := Temp ;
+                end ;
+             end ;
+         end ;
+     end ;
 
 
 
