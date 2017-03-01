@@ -494,6 +494,9 @@ begin
      Width := Page.Left + Page.Width + 10 ;
      Width := 960 ;
 
+     TUnits := 'ms' ;
+     TScale := 1000.0 ;
+
      Prot.RecordDuration := 1.0 ;
      Prot.StimulusPeriod := 1.0 ;
      Prot.NumRecords := 10 ;
@@ -1028,8 +1031,8 @@ begin
         Table.ColWidths[0] := Max( Table.ColWidths[0],
                                    Table.canvas.TextWidth(ParNames[i]) ) ;
         end ;
-    TUnits := 'ms' ;
-    TScale := 1000.0 ;
+//    TUnits := 'ms' ;
+//    TScale := 1000.0 ;
 
     SelectedStimulusElement := 0 ;
 

@@ -116,6 +116,7 @@ unit Rec;
   12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
   27.02.17 .. UpdateDisplay now called during .bOpenOLAWindowClick to ensure
               window duration is valid when on-line window opened.
+  01.03.17 .. Display time scaling no longer changes between and within sweeps.
   ==============================================================================}
 interface
 
@@ -531,7 +532,8 @@ begin
      EndofSweep := False ;
      StartingPulseProgramIndex := 0 ;
 
-     UpdateDisplay(true) ;
+     // Set recording mode to force update of signal display to current settings
+     SetRecordingMode( cbRecordingMode.ItemIndex ) ;
 
      Timer.Enabled := True ;
 
@@ -786,7 +788,10 @@ begin
                    { Erase display once sweep has started (if required) }
                    scDisplay.SetDataBuf( ADCDisplay ) ;
                    scDisplay.NumPoints := 0 ;
-                   scDisplay.TScale := Main.SESLabIO.ADCSamplingInterval*Settings.TScale ;
+
+//                   scDisplay.TScale := Main.SESLabIO.ADCSamplingInterval*Settings.TScale ;
+//                   1.3.17 Removed because it was changing display scaling slightly between
+//                   and during sweeps with some lab. interfaces
 
                    if (not scDisplay.StorageMode) or
                       (Abs(Main.SESLabIO.ADCSamplingInterval - rH.dt) > 1E-5) or
@@ -859,7 +864,6 @@ begin
                           StopSweep
                      else StartSweep ; ;
                      end ;
-  //                outputdebugstring(pchar(format('%d',[timegettime-t0])));
                   end ;
 
                End ;
@@ -1218,7 +1222,6 @@ begin
      if ADCCircular^[PointerPlus1] = EFlag then Done := True
                                            else Done := False ;
 
-        //outputdebugString(PChar(format('%d %d',[Det.Pointer,Det.EndofBuf])));
      { Check new A/D samples in buffer }
      while not Done do begin
         { Extract sample from A/D data buffer }
@@ -1920,6 +1923,8 @@ begin
         Settings.VProgramFileName := UpdateVProgramFileName(cbPulseProgram.text) ;
         if FileExists( Settings.VProgramFileName ) then begin
            Stimulator.LoadProtocol(Settings.VProgramFileName) ;
+           // Update display with new settings
+           UpdateDisplay(true) ;
            end ;
         end
      else Settings.VProgramFileName := '' ;
@@ -2029,7 +2034,6 @@ begin
            scDisplay.StorageMode := False ;
            scDisplay.StorageMode := True ;
            end;
-
         scDisplay.Invalidate ;
         end
      else begin
@@ -2040,7 +2044,6 @@ begin
            scDisplay.StorageMode := False ;
            scDisplay.StorageMode := True ;
            end;
-
         end ;
      end;
 
@@ -2465,6 +2468,9 @@ begin
             panSingleProtocol.Visible := rbSingleProtocol.Checked ;
             panProtocolList.Visible := rbProtocolList.Checked ;
             LoadProtocolList ;
+            Settings.VProgramFileName := UpdateVProgramFileName(cbPulseProgram.text) ;
+            if FileExists( Settings.VProgramFileName ) then
+               Stimulator.LoadProtocol(Settings.VProgramFileName) ;
             end ;
         rmFreeRun : Begin
             RecordParametersPanel.Visible := True ;
@@ -2574,6 +2580,7 @@ begin
         UpdateNumSamples ;
         edRecordDuration.Value := edSamplingInterval.Value*edNumSamples.Value ;
         UpdateSamplingInterval ;
+        UpdateDisplay(true) ;
         end ;
      end;
 
@@ -2610,7 +2617,8 @@ begin
         if ((edSamplingInterval.Value*edNumSamples.Value)/RecDuration) < 0.99 then
             edNumSAmples.Value :=  edNumSAmples.Value + 256 ;
         UpdateNumSamples ;
-        edRecordDuration.Value := edSamplingInterval.Value*edNumSamples.Value
+        edRecordDuration.Value := edSamplingInterval.Value*edNumSamples.Value ;
+        UpdateDisplay(true) ;
         end ;
      end;
 

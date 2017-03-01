@@ -31,7 +31,6 @@ object EditProtocolFrm: TEditProtocolFrm
     OnChange = PageChange
     object RecordTab: TTabSheet
       Caption = 'Recording'
-      ExplicitWidth = 749
       object lbError: TLabel
         Left = 376
         Top = 8
@@ -243,7 +242,6 @@ object EditProtocolFrm: TEditProtocolFrm
     object StimulusTab: TTabSheet
       Caption = 'Stimulus'
       ImageIndex = 1
-      ExplicitWidth = 749
       object ProtocolGrp: TGroupBox
         Left = 103
         Top = 0
@@ -11036,7 +11034,6 @@ object EditProtocolFrm: TEditProtocolFrm
     object GlobalTab: TTabSheet
       Caption = 'Global Variables'
       ImageIndex = 2
-      ExplicitWidth = 749
       object GroupBox4: TGroupBox
         Left = 0
         Top = 0

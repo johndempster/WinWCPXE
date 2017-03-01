@@ -57,6 +57,7 @@ unit StimModule;
   28.07.15 Pulse train with frequency incrementing added
   09.02.17 DigWave added. Scale/Offset parameters added to Wave
            SetADCDACUpdateIntervals() now sets D/A update to digWave user-def. waveforms.
+  01.03.17 FillDigWave() function added. TScale & TUnits now set in FormShow()
   =============================================}
 
 interface
@@ -280,8 +281,6 @@ TWaveform = packed record
      Saved : Boolean ;
      end ;
 
-
-
   TStimulator = class(TDataModule)
     procedure DataModuleCreate(Sender: TObject);
   private
@@ -316,6 +315,15 @@ TWaveform = packed record
           Time : Single ;          // Duration of fill
           var Buf : Array of SmallInt ; // Digital waveform buffer
           var DigCounter : Integer    // Current pointer position in Buf
+          ) ;
+
+    procedure FillDigBufWave(
+          DigChannel : Integer ;                    // Digital channel to be updated
+          var VBuf : Array of Single ;        // Digital waveform to be added
+          StartAt : Integer ;                 // Start at buffer point
+          EndAt : Integer ;                   // End at buffer point
+          var Buf : Array of SmallInt ;       // Output buffer
+          var DigCounter : Integer
           ) ;
 
       procedure SetElement(
@@ -854,6 +862,37 @@ begin
                  FillDigBuf( DONum,State,Duration,DigBuf,DigCounter) ;
 
                  end ;
+
+             // Output user-defined waveform
+             if (Prot.Stimulus[iElem].WaveShape = Ord(wvDigWave)) and
+                (Prot.Stimulus[iElem].Buf <> Nil) then
+                begin
+
+                // No. points in waveform to be plotted and starting point in waveform buffer
+                if Prot.Stimulus[iElem].Parameters[spNumPoints].Exists then begin
+                   NumPoints := Round(Prot.Stimulus[iElem].Parameters[spNumPoints].Value) ;
+                   if Prot.Stimulus[iElem].Parameters[spNumPointsInc].Exists then begin
+                      StartAt := Round(Prot.Stimulus[iElem].Parameters[spNumPointsInc].Value*Increment) ;
+                      end
+                   else StartAt := 0 ;
+                   end
+                else begin
+                   StartAt := 0 ;
+                   NumPoints := Prot.Stimulus[iElem].NumPointsInBuf ;
+                   end ;
+
+                // Section of waveform to output
+                StartAt := Min(Max(StartAt,0),Prot.Stimulus[iElem].NumPointsInBuf-1) ;
+                EndAt := Min(Max(StartAt + NumPoints - 1,0),Prot.Stimulus[iElem].NumPointsInBuf-1) ;
+
+                FillDigBufWave( DONum,
+                                Prot.Stimulus[iElem].Buf^,
+                                StartAt,
+                                EndAt,
+                                DigBuf,
+                                DigCounter) ;
+                end ;
+
              end ;
 
          end ;
@@ -1130,8 +1169,6 @@ begin
 
      NumPoints := Max( Round(Time/DACUpdateInterval),1) ;
 
-     //outputdebugstring(pchar(format('DAC %d',[NumPoints])));
-
      jLimit := Main.SESLabIO.ADCBufferLimit ;
      j := DACCounter*NumDACChannels + Chan ;
      DACValue := StartValue ;
@@ -1148,6 +1185,7 @@ begin
      DACCounter := DACCounter + NumPoints ;
 
      end ;
+
 
 function TStimulator.DACScaleFactor( Chan : Integer ) : Single ;
 // -----------------------------------
@@ -1252,7 +1290,6 @@ begin
 
      NumPoints := Max( Round(Time/DACUpdateInterval ),1 ) ;
      EndOfBuf := Main.SESLabIO.DACBufferLimit -1 ;
-//     outputdebugstring(pchar(format('DIG %d',[NumPoints])));
 
      { Clear the bit defined by BitMask, all other bits left untouched }
      Bit := 1 shl DigChannel ;
@@ -1264,6 +1301,38 @@ begin
          end ;
 
     end ;
+
+
+procedure TStimulator.FillDigBufWave(
+          DigChannel : Integer ;                    // Digital channel to be updated
+          var VBuf : Array of Single ;        // Digital waveform to be added
+          StartAt : Integer ;                 // Start at buffer point
+          EndAt : Integer ;                   // End at buffer point
+          var Buf : Array of SmallInt ;       // Output buffer
+          var DigCounter : Integer
+          ) ;
+// ------------------------------
+// Add digital waveform to buffer
+// ------------------------------
+var
+   i : Integer ;
+   Bit : SmallInt ;
+   BitMask : SmallInt ;
+   DACBufLimit : Integer ;
+begin
+
+     Bit := 1 shl DigChannel ;
+     BitMask := not Bit ;
+
+     // Load waveform
+     DACBufLimit := Main.SESLabIO.ADCBufferLimit ;
+     for i := StartAt to EndAt do if DigCounter <= DACBufLimit then begin
+         Buf[DigCounter] := Buf[DigCounter] and BitMask ;
+         if VBuf[i] <> 0.0 then Buf[DigCounter] := Buf[DigCounter] or Bit ;
+         Inc(DigCounter) ;
+         end ;
+
+     end ;
 
 
 procedure TStimulator.LoadProtocol(

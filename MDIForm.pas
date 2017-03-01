@@ -688,6 +688,7 @@ unit MDIForm;
    V5.2.4 28.02.17   On-line analysis: Average within cursors added. settings now stored in
                      Settings.RecPlot and saved in INI file
                      Stimulus Protocols: DigWave protocol added. Scale/Offset parameters added to Wave
+          01.03.17   User-defined digital waveform now working
             =======================================================================}
 
 interface
