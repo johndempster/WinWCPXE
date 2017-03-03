@@ -689,6 +689,8 @@ unit MDIForm;
                      Settings.RecPlot and saved in INI file
                      Stimulus Protocols: DigWave protocol added. Scale/Offset parameters added to Wave
           01.03.17   User-defined digital waveform now working
+   V5.2.5 03.03.17   Recompiled with Delphi XE6 to correct missing .Zoom property
+                     from TRichEdit component which has been added since XE3
             =======================================================================}
 
 interface
@@ -934,7 +936,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.2.4';
+      ProgVersion := 'V5.2.5';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

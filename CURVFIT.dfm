@@ -17,6 +17,7 @@ object FitFrm: TFitFrm
   Visible = True
   OnActivate = FormActivate
   OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
@@ -25,7 +26,7 @@ object FitFrm: TFitFrm
   PixelsPerInch = 96
   TextHeight = 15
   object Page: TPageControl
-    Left = 4
+    Left = 8
     Top = 2
     Width = 649
     Height = 543
@@ -40,10 +41,6 @@ object FitFrm: TFitFrm
     OnChange = PageChange
     object CurveFitTab: TTabSheet
       Caption = 'Fit Curves'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object scDisplay: TScopeDisplay
         Left = 176
         Top = 6
@@ -478,10 +475,6 @@ object FitFrm: TFitFrm
     end
     object XYPlotTab: TTabSheet
       Caption = 'X/Y Plot'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object plPlot: TXYPlotDisplay
         Left = 176
         Top = 8
@@ -653,10 +646,6 @@ object FitFrm: TFitFrm
     end
     object HistogramTab: TTabSheet
       Caption = 'Histogram'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object plHist: TXYPlotDisplay
         Left = 176
         Top = 8
@@ -889,10 +878,6 @@ object FitFrm: TFitFrm
     end
     object SummaryTab: TTabSheet
       Caption = 'Summary'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Summary: TStringGrid
         Left = 171
         Top = 4
@@ -1060,10 +1045,6 @@ object FitFrm: TFitFrm
     end
     object TablesTab: TTabSheet
       Caption = 'Tables'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Table: TStringGrid
         Left = 172
         Top = 4

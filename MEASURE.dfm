@@ -17,6 +17,7 @@ object MeasureFrm: TMeasureFrm
   Visible = True
   OnActivate = FormActivate
   OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
@@ -40,7 +41,6 @@ object MeasureFrm: TMeasureFrm
     OnChange = PageChange
     object AnalysisTab: TTabSheet
       Caption = 'Analysis'
-      ExplicitHeight = 601
       object scDisplay: TScopeDisplay
         Left = 148
         Top = 6
@@ -511,7 +511,7 @@ object MeasureFrm: TMeasureFrm
           end
           object edQuantilePercentage: TValidatedEdit
             Left = 55
-            Top = 16
+            Top = 22
             Width = 57
             Height = 20
             Hint = '% Quantile to calculate (0% = Min. 100% = Max.)'
@@ -593,7 +593,6 @@ object MeasureFrm: TMeasureFrm
     end
     object XYPlotTab: TTabSheet
       Caption = 'X/Y Plot'
-      ExplicitHeight = 601
       object plPlot: TXYPlotDisplay
         Left = 152
         Top = 8
@@ -1038,7 +1037,6 @@ object MeasureFrm: TMeasureFrm
     end
     object HistogramTab: TTabSheet
       Caption = 'Histogram'
-      ExplicitHeight = 601
       object plHist: TXYPlotDisplay
         Left = 152
         Top = 8
@@ -1354,7 +1352,6 @@ object MeasureFrm: TMeasureFrm
     end
     object SummaryTab: TTabSheet
       Caption = 'Summary'
-      ExplicitHeight = 601
       object SummaryGrp: TGroupBox
         Left = 4
         Top = 4
@@ -1608,7 +1605,6 @@ object MeasureFrm: TMeasureFrm
     end
     object TablesTab: TTabSheet
       Caption = 'Tables'
-      ExplicitHeight = 601
       object Table: TStringGrid
         Left = 145
         Top = 4

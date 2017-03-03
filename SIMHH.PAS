@@ -15,6 +15,9 @@ unit Simhh;
   17.06.10 .. Settings now stored in Settings. and in INI file
   16.11.11 .. No. Samples box added to control panel
   09.08.13 .. ADC now allocated by GetMem()
+  03.03.17 .. .Close form event now terminates bStart.Click event before
+              closing form to prevent access violation
+
   ================================================================== }
 interface
 
@@ -114,6 +117,8 @@ type
   private
     { Private declarations }
     ADC : PSmallIntarray ;
+    CloseFormASAP : Boolean ;
+
     procedure UpdateDisplayScale ;
     function TauFunction(
           V : Single ;
@@ -241,6 +246,8 @@ begin
      for i := 0 to Settings.NumSamples*scDisplay.NumChannels-1 do ADC^[i] := 0 ;
      scDisplay.SetDataBuf( ADC ) ;
 
+     CloseFormASAP := False ;
+
      end;
 
 procedure TVClampSim.EditFieldsToSettings ;
@@ -305,6 +312,7 @@ begin
 
      bStart.Enabled := False ;
      bAbort.Enabled := True ;
+     CloseFormASAP := False ;
 
      // Copy settings from edit fields to Settings.VClampSim
      EditFieldsToSettings ;
@@ -604,6 +612,8 @@ begin
         scDisplay.Invalidate ;
         Application.ProcessMessages ;
 
+        if CloseFormASAP then Done := True ;
+
         end ;
 
      { Save file header data }
@@ -613,9 +623,11 @@ begin
      ' Voltage-activated Currents Simulation : %d records created.',
      [NumRecordsDone] ) ;
 
-
      bStart.Enabled := True ;
      bAbort.Enabled := False ;
+
+     // Close form if requested
+     if CloseFormASAP then Close ;
 
      end ;
 
@@ -703,6 +715,7 @@ procedure TVClampSim.FormCloseQuery(Sender: TObject;
 begin
      if not bStart.Enabled then CanClose := False
                            else CanClose := True ;
+     CloseFormASAP := True ;
      end;
 
 procedure TVClampSim.FormCreate(Sender: TObject);

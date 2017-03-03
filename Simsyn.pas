@@ -18,6 +18,9 @@ unit Simsyn;
               Settings now saved in INI file
   16.11.11 .. No. Samples box added to control panel
   09.08.13 .. ADC,Buf now allocated by GetMem()
+  03.03.17 .. .Close form event now terminates bStart.Click event before
+              closing form to prevent access violation
+
   ==================================================================}
 
 interface
@@ -93,7 +96,8 @@ type
   private
     { Private declarations }
     ADC : PSmallIntArray ;
-    
+    CloseFormASAP : Boolean ;
+
     procedure SetUnits( Units : string ) ;
     procedure EditFieldsToSettings ;
     function CheckNewDataFileNeeded : Boolean ;
@@ -143,6 +147,7 @@ begin
 
      bStart.Enabled := True ;
      bAbort.Enabled := False ;
+     CloseFormASAP := False ;
 
      rbCurrents.checked := True ;
 
@@ -275,6 +280,7 @@ begin
 
      bStart.Enabled := False ;
      bAbort.Enabled := True ;
+     CloseFormASAP := False ;
      NumRecordsDone := 0 ;
 
      Channel[ChSim].ADCUnits := Settings.SynapseSim.Units ;
@@ -424,6 +430,9 @@ begin
 
          scDisplay.Invalidate ;
          Application.ProcessMessages ;
+
+         if CloseFormASAP then Done := True ;
+
          end ;
 
      SaveHeader( RawFH ) ;
@@ -432,9 +441,11 @@ begin
                                   'Nerve-evoked EPSC simulation : %d records created.',
                                   [NumRecordsDone] ) ;
 
-
      bStart.Enabled := True ;
      bAbort.Enabled := False ;
+
+     // Close form if requested
+     if CloseFormASAP then Close ;
 
      end;
 
@@ -634,6 +645,7 @@ procedure TSynapseSim.FormCloseQuery(Sender: TObject;
 begin
      if not bStart.Enabled then CanClose := False
                            else CanClose := True ;
+     CloseFormASAP := True ;
      end;
 
 procedure TSynapseSim.FormCreate(Sender: TObject);

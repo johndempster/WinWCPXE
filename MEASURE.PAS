@@ -82,6 +82,8 @@ unit Measure;
   8.11.15 .. TMeasureFrmCursors.Base removed since use was redundant.
   12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
   28.02.17 .. 0-100% quantile measurement added
+  03.03.17 .. .Close form event now terminates bDoAnalysis.Click event before
+              closing form to prevent access violation
   ==========================================================================}
 interface
 
@@ -91,7 +93,6 @@ uses
   Zero, SetAxes, SetVar, Printers, ClipBrd, maths,
   ScopeDisplay, XYPlotDisplay, ComCtrls, ValEdit, RangeEdit, Spin,
   ValidatedEdit, math, seslabio, strutils  ;
-
 
 type
 
@@ -299,6 +300,7 @@ TMeasureFrmCursors = Record
     procedure edPeakAvgKeyPress(Sender: TObject; var Key: Char);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 
   private
 
@@ -330,6 +332,7 @@ TMeasureFrmCursors = Record
      TableVars : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of Integer ;
      TableChans : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of Integer ;
      NumTableColumns : Integer ;
+     CloseFormASAP : Boolean ;
 
     { Private declarations }
     procedure DisplayRecord ;
@@ -473,6 +476,7 @@ begin
 
      RecordsGrp.Visible := False ;
      KeepCursors := False ;
+     CloseFormASAP := False ;
 
      NewFile ;
 
@@ -909,6 +913,7 @@ begin
 
      bDoAnalysis.enabled := False ;
      bAbort.enabled := True ;
+     CloseFormASAP := False ;
 
      { Determine range of records to be analysed }
 
@@ -1246,7 +1251,7 @@ begin
          Rec := Rec + 1;
 
          Application.ProcessMessages ;
-         if (Rec > EndAtRec) or bDoAnalysis.Enabled then Done := True ;
+         if (Rec > EndAtRec) or bDoAnalysis.Enabled or CloseFormASAP then Done := True ;
 
          end ;
 
@@ -1275,6 +1280,9 @@ begin
      Dispose(InBuf) ;
 
      SaveHeader(FH) ;
+
+     // Close form if this is set
+     if CloseFormASAP then Close ;
 
      end;
 
@@ -2044,6 +2052,16 @@ procedure TMeasureFrm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
      Action := CaFree ;
      end;
+
+
+procedure TMeasureFrm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+// ---------------------------
+// Check if form can be closed
+// ---------------------------
+begin
+    if not bDoAnalysis.Enabled then CanClose := False ;
+    CloseFormASAP := True ;
+    end;
 
 
 procedure TMeasureFrm.FormCreate(Sender: TObject);

@@ -95,8 +95,8 @@ object SimMEPSCFrm: TSimMEPSCFrm
       OnClick = bStartClick
     end
     object bAbort: TButton
-      Left = 8
-      Top = 32
+      Left = 3
+      Top = 35
       Width = 57
       Height = 17
       Hint = 'Abort simulation run'

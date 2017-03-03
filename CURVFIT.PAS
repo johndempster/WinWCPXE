@@ -44,6 +44,8 @@ unit Curvfit;
               when  very large deviations occur
   13.07.16 .. Access violation when T=0 cursor > half of display width fixed.
   12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
+  03.03.17 .. .Close form event now terminates bDoAnalysis.Click event before
+              closing form to prevent access violation
   ==========================================================================}
 interface
 
@@ -213,6 +215,7 @@ TCurveFitCursors = Record
     procedure ckFixedZeroLevelsClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 
   private
     { Private declarations }
@@ -245,6 +248,7 @@ TCurveFitCursors = Record
 
     TableVars : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of Integer ;
     NumTableColumns : Integer ;
+    CloseFormASAP : Boolean ;
 
     procedure DisplayRecord ;
     procedure CalculateSummary ;
@@ -344,6 +348,7 @@ begin
 
      // Initialisations when a new data file is loaded
      KeepCursors := False ;
+     CloseFormASAP := False ;
 
      NewFile ;
 
@@ -791,6 +796,7 @@ begin
   sbRecordNum.Enabled := False ;
   Screen.cursor := crHourGlass ;
   NumFitted := 0 ;
+  CloseFormASAP := False ;
 
   { -- Set range of records to be fitted -- }
 
@@ -948,7 +954,7 @@ begin
            { Exit the loop when the last record has been done
            or the user has pressed the abort button (DoFit.Enabled=True) }
            Inc(Rec) ;
-           if (Rec > EndAtRec) or bDoFit.Enabled then Done := True ;
+           if (Rec > EndAtRec) or bDoFit.Enabled or CloseFormASAP then Done := True ;
 
            Application.ProcessMessages ;
            end ;
@@ -966,8 +972,10 @@ begin
         Main.StatusBar.SimpleText := Format( 'Curve Fit : %d-%d (%d fitted)',
                                              [StartAtRec,EndAtRec,NumFitted] ) ;
 
-
         end ;
+
+     // Close form if this is set
+     if CloseFormASAP then Close ;
 
      end;
 
@@ -1871,6 +1879,16 @@ begin
      Action := caFree ;
      end;
 
+
+
+procedure TFitFrm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+// ---------------------------
+// Check if form can be closed
+// ---------------------------
+begin
+    if not bDoFit.Enabled then CanClose := False ;
+    CloseFormASAP := True ;
+    end;
 
 
 procedure TFitFrm.FormCreate(Sender: TObject);

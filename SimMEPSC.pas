@@ -16,6 +16,8 @@ unit SimMEPSC;
   21.06.10 .. Parameters now stored in Settings.MEPSCSim and winwcp.INI file
   16.11.11 .. No. Samples box added to control panel
   09.08.13 .. ADC now allocated by AllocMem()
+  03.03.17 .. .Close form event now terminates bStart.Click event before
+              closing form to prevent access violation
   }
 
 
@@ -77,8 +79,10 @@ type
   private
     { Private declarations }
     ADC : PSmallIntArray ; { Digitised signal buffer }
+    CloseFormASAP : Boolean ;
     procedure EditFieldsToSettings ;
     function CheckNewDataFileNeeded : Boolean ;
+
   public
     { Public declarations }
      procedure ChangeDisplayGrid ;
@@ -106,6 +110,7 @@ begin
 
      bStart.Enabled := True ;
      bAbort.Enabled := False ;
+     CloseFormASAP := False ;
 
      edNumSamples.Value := Settings.NumSamples ;
      edNumRecords.Value := Settings.MEPSCSim.NumRecords ;
@@ -209,6 +214,7 @@ begin
      { Set buttons to be active during simulation run }
      bStart.Enabled := False ;
      bAbort.Enabled := True ;
+     CloseFormASAP := False ;
 
      // Get settings
      EditFieldsToSettings ;
@@ -353,11 +359,13 @@ begin
 
         Application.ProcessMessages ;
 
+        if CloseFormASAP then Done := True ;
+
         end ;
 
      { Close form if Settings.MEPSCSim.lation has not been aborted }
 
-     // Final report 
+     // Final report
      Main.StatusBar.SimpleText := format(
      ' Miniature EPSC Settings.MEPSCSim.lation : %d records created ',
      [Settings.MEPSCSim.NumRecordsDone] ) ;
@@ -375,6 +383,9 @@ begin
      WriteToLogFile(format('Agonist unbinding rate %.0f',[edUnbindRate.Value])) ;
      WriteToLogFile(format('Channel blocking rate %.0f',[edBlockRate.Value])) ;
      WriteToLogFile(format('Channel unblocking rate %.0f',[edUnblockRate.Value])) ;
+
+     // Close form if requested
+     if CloseFormASAP then Close ;
 
      end;
 
@@ -458,6 +469,7 @@ begin
      { Prevent form being closed if a Settings.MEPSCSim.lation is running (Start button disabled) }
      if bStart.Enabled then CanClose := True
                        else CanClose := False ;
+     CloseFormASAP := True ;
      end;
 
 procedure TSimMEPSCFrm.FormCreate(Sender: TObject);
