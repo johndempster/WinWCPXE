@@ -404,9 +404,7 @@ begin
            LeakfH.NumRecords := 0 ;
            SaveHeader( LeakfH ) ;
            end
-     else MessageDlg( 'FileCreate Error ='+ IntToStr(LeakfH.FileHandle),
-             mtWarning, [mbOK], 0 ) ;
-
+     else ShowMessage( 'FileCreate Error ='+ IntToStr(LeakfH.FileHandle));
 
      { Current and voltage channel offsets into ADC buffer }
      IOffset := Channel[cbCurrent.ItemIndex].ChannelOffset;

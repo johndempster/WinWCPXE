@@ -691,6 +691,8 @@ unit MDIForm;
           01.03.17   User-defined digital waveform now working
    V5.2.5 03.03.17   Recompiled with Delphi XE6 to correct missing .Zoom property
                      from TRichEdit component which has been added since XE3
+   V5.2.6 17.03.17   Record to Disk: Unwanted stimulus produced in first Free Run recording sweep
+                     after a stimulus protocol now prevented (rec.pas).
             =======================================================================}
 
 interface
@@ -936,7 +938,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.2.5';
+      ProgVersion := 'V5.2.6';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

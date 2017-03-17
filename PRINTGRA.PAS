@@ -151,7 +151,6 @@ function TPrintGraphFrm.GetCurrentPrinterName : string ;
 const
     MaxSize = 256 ;
 var
-   n,ch,Row : Integer ;
    DeviceName,DeviceDriver,Port : PChar ;
    DeviceMode : THandle ;
 begin

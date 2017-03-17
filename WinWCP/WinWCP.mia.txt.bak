@@ -217,77 +217,77 @@ else
   Comment: Install/Re-Install product
   Create Shortcut $SHORTCUTFOLDER$\Uninstall #TITLE# to $UNINSTALLLINK$
   [OFFLINE CONTENT]
-  Create Shortcut $SHORTCUTFOLDER$\WinWCP V5.2.1 to $TARGETDIR$\winwcp.exe
-  Create Shortcut $DESKTOPDIR$\WinWCP V5.2.1 to $TARGETDIR$\winwcp.exe
+  Create Shortcut $SHORTCUTFOLDER$\WinWCP V5.2.4 to $TARGETDIR$\winwcp.exe
+  Create Shortcut $DESKTOPDIR$\WinWCP V5.2.4 to $TARGETDIR$\winwcp.exe
   Create Shortcut $SHORTCUTFOLDER$\WinWCP User Guide to $TARGETDIR$\WinWCP User Guide.pdf
   Create Shortcut $SHORTCUTFOLDER$\Install Digidata1200 Win 95-98 Support to $TARGETDIR$\Digidata 1200 Support\Win 95-98\DD1200 Win 95 Support.exe
   Create Shortcut $SHORTCUTFOLDER$\Install Digidata 1200 Driver (Windows NT,2000,XP) to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP\Install Digidata 1200 Driver (Windows NT,2000,XP).bat
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\apollo.bit to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\AxDD132x.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\AxDD1400.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\axoutils32.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\BLVP500.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\dd1440.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\itclib.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\itcmm.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\jet.bit to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\okFrontPanel.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\pico.bit to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\proteus.bit to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\richmond.bit to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\shasta.bit to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\TecellaAmp.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\triton.bit to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\tritonplus.bit to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\Vp500.bin to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\winusb.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\WinWCP User Guide.pdf to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\WinWCP VBSCRIPT Example.vbs to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\WinWCP.chm to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\libusb0.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\cpd64.exe to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\Install Digidata 1200 Driver (Windows 95,98,ME).bat to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\Install Digidata 1200 Driver (Windows NT,2000,XP).bat to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\SETUP_9X.INF to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\setup_64.inf to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\SETUP_NT.INF to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW32.dll to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW32.iss to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW32.sys to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVICHW32.VXD to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW64.iss to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW64.sys to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_INST32I.EX_ to $TARGETDIR$\Digidata 1200 Support\Win 95-98
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_ISDEL.EXE to $TARGETDIR$\Digidata 1200 Support\Win 95-98
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_SETUP.1 to $TARGETDIR$\Digidata 1200 Support\Win 95-98
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_SETUP.DLL to $TARGETDIR$\Digidata 1200 Support\Win 95-98
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_SETUP.LIB to $TARGETDIR$\Digidata 1200 Support\Win 95-98
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\DD1200 Win 95 Support.exe to $TARGETDIR$\Digidata 1200 Support\Win 95-98
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\DISK1.ID to $TARGETDIR$\Digidata 1200 Support\Win 95-98
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\SETUP.INI to $TARGETDIR$\Digidata 1200 Support\Win 95-98
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\SETUP.INS to $TARGETDIR$\Digidata 1200 Support\Win 95-98
-  Install Files E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\SETUP.PKG to $TARGETDIR$\Digidata 1200 Support\Win 95-98
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\winwcp.exe to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\vprot\digpulse.XML to $ALLDOCUMENTS$\WinWCP\VProt
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\vprot\ISteps 10-100pA 100ms.XML to $ALLDOCUMENTS$\WinWCP\VProt
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\vprot\sinewave.xml to $ALLDOCUMENTS$\WinWCP\VProt
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\vprot\sinewave.DAT to $ALLDOCUMENTS$\WinWCP\VProt
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\vprot\tail current.XML to $ALLDOCUMENTS$\WinWCP\VProt
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\vprot\VSteps 10-100mV 100ms.xml to $ALLDOCUMENTS$\WinWCP\VProt
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\vprot\Pulse Train 100x100Hz.XML to $ALLDOCUMENTS$\WinWCP\VProt
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\vprot\Ramp -100..100mV 1s.xml to $ALLDOCUMENTS$\WinWCP\VProt
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\USE1432.DLL to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\EpcDLL.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\ABFFIO.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\AxDD1550.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\AxDD1550A.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\DD1550Afpga.bin to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\DD1550fpga.bin to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\DD1550.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\DD1550A.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\AxDD1550B.dll to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\DD1550Bfpga.bin to $TARGETDIR$
-  Install Files E:\Delphi XE3 Projects\WinWCPXE\wdapi1210.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\apollo.bit to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\AxDD132x.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\AxDD1400.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\axoutils32.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\BLVP500.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\dd1440.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\itclib.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\itcmm.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\jet.bit to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\okFrontPanel.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\pico.bit to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\proteus.bit to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\richmond.bit to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\shasta.bit to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\TecellaAmp.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\triton.bit to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\tritonplus.bit to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\Vp500.bin to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\winusb.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\WinWCP User Guide.pdf to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\WinWCP VBSCRIPT Example.vbs to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\WinWCP.chm to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\libusb0.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\cpd64.exe to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\Install Digidata 1200 Driver (Windows 95,98,ME).bat to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\Install Digidata 1200 Driver (Windows NT,2000,XP).bat to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\SETUP_9X.INF to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\setup_64.inf to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\SETUP_NT.INF to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW32.dll to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW32.iss to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW32.sys to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVICHW32.VXD to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW64.iss to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW64.sys to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_INST32I.EX_ to $TARGETDIR$\Digidata 1200 Support\Win 95-98
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_ISDEL.EXE to $TARGETDIR$\Digidata 1200 Support\Win 95-98
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_SETUP.1 to $TARGETDIR$\Digidata 1200 Support\Win 95-98
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_SETUP.DLL to $TARGETDIR$\Digidata 1200 Support\Win 95-98
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_SETUP.LIB to $TARGETDIR$\Digidata 1200 Support\Win 95-98
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\DD1200 Win 95 Support.exe to $TARGETDIR$\Digidata 1200 Support\Win 95-98
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\DISK1.ID to $TARGETDIR$\Digidata 1200 Support\Win 95-98
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\SETUP.INI to $TARGETDIR$\Digidata 1200 Support\Win 95-98
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\SETUP.INS to $TARGETDIR$\Digidata 1200 Support\Win 95-98
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\SETUP.PKG to $TARGETDIR$\Digidata 1200 Support\Win 95-98
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\winwcp.exe to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\digpulse.XML to $ALLDOCUMENTS$\WinWCP\VProt
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\ISteps 10-100pA 100ms.XML to $ALLDOCUMENTS$\WinWCP\VProt
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\sinewave.xml to $ALLDOCUMENTS$\WinWCP\VProt
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\sinewave.DAT to $ALLDOCUMENTS$\WinWCP\VProt
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\tail current.XML to $ALLDOCUMENTS$\WinWCP\VProt
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\VSteps 10-100mV 100ms.xml to $ALLDOCUMENTS$\WinWCP\VProt
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\Pulse Train 100x100Hz.XML to $ALLDOCUMENTS$\WinWCP\VProt
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\Ramp -100..100mV 1s.xml to $ALLDOCUMENTS$\WinWCP\VProt
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\USE1432.DLL to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\EpcDLL.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\ABFFIO.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\AxDD1550.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\AxDD1550A.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\DD1550Afpga.bin to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\DD1550fpga.bin to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\DD1550.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\DD1550A.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\AxDD1550B.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\DD1550Bfpga.bin to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\wdapi1210.dll to $TARGETDIR$
   [DEFINE WEB MEDIA WinWCP]
   Get Component WinWCP Selection State into Variable SELECTED
   if Variable SELECTED Equals TRUE

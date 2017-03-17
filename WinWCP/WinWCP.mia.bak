@@ -1241,7 +1241,7 @@ ISNT
 CHECKSYSTEM
 0
 {5B541E0F-58AE-411E-BD3F-314A121D2E55}
-E:\Delphi XE3 Projects\WinWCPXE\apollo.bit
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\apollo.bit
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1254,7 +1254,7 @@ FALSE
 FALSE
 FALSE
 {CCF2FD63-4045-42FB-90FC-A2DCD9BCA20C}
-E:\Delphi XE3 Projects\WinWCPXE\AxDD132x.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\AxDD132x.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1267,7 +1267,7 @@ FALSE
 FALSE
 FALSE
 {FC2AB8AB-2EF3-45FE-9541-3604475B89BD}
-E:\Delphi XE3 Projects\WinWCPXE\AxDD1400.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\AxDD1400.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1280,7 +1280,7 @@ FALSE
 FALSE
 FALSE
 {5A1173B2-BBE0-4869-9BA3-140675F39078}
-E:\Delphi XE3 Projects\WinWCPXE\axoutils32.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\axoutils32.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1293,7 +1293,7 @@ FALSE
 FALSE
 FALSE
 {9FB8C6CB-E67C-4DFC-B313-0151E140B0B8}
-E:\Delphi XE3 Projects\WinWCPXE\BLVP500.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\BLVP500.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1306,7 +1306,7 @@ FALSE
 FALSE
 FALSE
 {54673F28-33C2-44FA-A858-EA7B217A8D58}
-E:\Delphi XE3 Projects\WinWCPXE\dd1440.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\dd1440.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1319,7 +1319,7 @@ FALSE
 FALSE
 FALSE
 {B329E2DB-ABF0-4A90-A270-4389288BAAC4}
-E:\Delphi XE3 Projects\WinWCPXE\itclib.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\itclib.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1332,7 +1332,7 @@ FALSE
 FALSE
 FALSE
 {DF6EEEA6-837D-409C-8B1C-45704D2AB7B9}
-E:\Delphi XE3 Projects\WinWCPXE\itcmm.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\itcmm.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1345,7 +1345,7 @@ FALSE
 FALSE
 FALSE
 {578CCE0F-DF2A-4CB3-B037-A8CC3CFE1ABC}
-E:\Delphi XE3 Projects\WinWCPXE\jet.bit
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\jet.bit
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1358,7 +1358,7 @@ FALSE
 FALSE
 FALSE
 {5BC65341-92D0-4AE2-8434-9E9D2390E568}
-E:\Delphi XE3 Projects\WinWCPXE\okFrontPanel.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\okFrontPanel.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1371,7 +1371,7 @@ FALSE
 FALSE
 FALSE
 {7313A36C-6972-4979-8A51-E60BF2840FDC}
-E:\Delphi XE3 Projects\WinWCPXE\pico.bit
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\pico.bit
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1384,7 +1384,7 @@ FALSE
 FALSE
 FALSE
 {0A863403-06AC-453C-AB6F-564B6C197FA3}
-E:\Delphi XE3 Projects\WinWCPXE\proteus.bit
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\proteus.bit
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1397,7 +1397,7 @@ FALSE
 FALSE
 FALSE
 {1880189E-D5DC-4DD6-BD45-A2956A2BEC43}
-E:\Delphi XE3 Projects\WinWCPXE\richmond.bit
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\richmond.bit
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1410,7 +1410,7 @@ FALSE
 FALSE
 FALSE
 {288E0B6E-CE00-4C73-B7B4-F0677E30134D}
-E:\Delphi XE3 Projects\WinWCPXE\shasta.bit
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\shasta.bit
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1423,7 +1423,7 @@ FALSE
 FALSE
 FALSE
 {0290DC91-0BC4-4D30-97AD-3B5FBEC0E355}
-E:\Delphi XE3 Projects\WinWCPXE\TecellaAmp.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\TecellaAmp.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1436,7 +1436,7 @@ FALSE
 FALSE
 FALSE
 {8765D7B1-19AC-4D95-BEB1-41A0C822773E}
-E:\Delphi XE3 Projects\WinWCPXE\triton.bit
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\triton.bit
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1449,7 +1449,7 @@ FALSE
 FALSE
 FALSE
 {6C9E6B59-A976-45E4-B40F-CA2008183964}
-E:\Delphi XE3 Projects\WinWCPXE\tritonplus.bit
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\tritonplus.bit
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1462,7 +1462,7 @@ FALSE
 FALSE
 FALSE
 {506CD59C-F4A7-457F-BDE4-B6BB778E8440}
-E:\Delphi XE3 Projects\WinWCPXE\Vp500.bin
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\Vp500.bin
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1475,7 +1475,7 @@ FALSE
 FALSE
 FALSE
 {9B02857F-011D-460E-9747-DAA564CB76E5}
-E:\Delphi XE3 Projects\WinWCPXE\winusb.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\winusb.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1488,7 +1488,7 @@ FALSE
 FALSE
 FALSE
 {E4A084CC-BDFF-486B-9047-F5197C6DFCE2}
-E:\Delphi XE3 Projects\WinWCPXE\WinWCP User Guide.pdf
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\WinWCP User Guide.pdf
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1501,7 +1501,7 @@ FALSE
 FALSE
 FALSE
 {88FA62E4-C64F-452A-92E8-5AFB02391D4B}
-E:\Delphi XE3 Projects\WinWCPXE\WinWCP VBSCRIPT Example.vbs
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\WinWCP VBSCRIPT Example.vbs
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1514,7 +1514,7 @@ FALSE
 FALSE
 FALSE
 {C9E321DD-D0DC-4C42-AEE8-9FF327B265EC}
-E:\Delphi XE3 Projects\WinWCPXE\WinWCP.chm
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\WinWCP.chm
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1527,7 +1527,7 @@ FALSE
 FALSE
 FALSE
 {207010EF-C4E6-41C9-87DE-B6CB63C2B581}
-E:\Delphi XE3 Projects\WinWCPXE\libusb0.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\libusb0.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1540,7 +1540,7 @@ FALSE
 FALSE
 FALSE
 {F02D7F3E-97DC-4921-B6C4-6E18BADBE8F4}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\cpd64.exe
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\cpd64.exe
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
 FALSE
@@ -1553,7 +1553,7 @@ FALSE
 FALSE
 FALSE
 {B169FE10-E79D-4F48-BC40-FBFE0F98D368}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\Install Digidata 1200 Driver (Windows 95,98,ME).bat
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\Install Digidata 1200 Driver (Windows 95,98,ME).bat
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
 FALSE
@@ -1566,7 +1566,7 @@ FALSE
 FALSE
 FALSE
 {4E41D069-BF95-49EA-A460-DB6C4FBC63AE}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\Install Digidata 1200 Driver (Windows NT,2000,XP).bat
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\Install Digidata 1200 Driver (Windows NT,2000,XP).bat
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
 FALSE
@@ -1579,7 +1579,7 @@ FALSE
 FALSE
 FALSE
 {029C2B37-49B2-44BC-A68A-029766A596BD}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\SETUP_9X.INF
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\SETUP_9X.INF
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
 FALSE
@@ -1592,7 +1592,7 @@ FALSE
 FALSE
 FALSE
 {35DBB117-B1BE-4EA5-933A-6922F9DFE431}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\setup_64.inf
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\setup_64.inf
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
 FALSE
@@ -1605,7 +1605,7 @@ FALSE
 FALSE
 FALSE
 {D450DB2D-1B8D-46DB-9AD2-F908DE590517}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\SETUP_NT.INF
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\SETUP_NT.INF
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
 FALSE
@@ -1618,7 +1618,7 @@ FALSE
 FALSE
 FALSE
 {C9EC2E29-C73A-462C-A4A4-5D30C6A91159}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW32.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW32.dll
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
 FALSE
@@ -1631,7 +1631,7 @@ FALSE
 FALSE
 FALSE
 {75E90DEB-69CE-4FA4-85A6-F651085F39F7}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW32.iss
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW32.iss
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
 FALSE
@@ -1644,7 +1644,7 @@ FALSE
 FALSE
 FALSE
 {85B1A54E-28A8-4640-9743-FE2F6648D311}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW32.sys
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW32.sys
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
 FALSE
@@ -1657,7 +1657,7 @@ FALSE
 FALSE
 FALSE
 {5F21C20F-D90F-4754-B5ED-BCFA4D9F5DA9}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVICHW32.VXD
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVICHW32.VXD
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
 FALSE
@@ -1670,7 +1670,7 @@ FALSE
 FALSE
 FALSE
 {5AF3BED0-F16A-4BB3-B10C-F61E25C21258}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW64.iss
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW64.iss
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
 FALSE
@@ -1683,7 +1683,7 @@ FALSE
 FALSE
 FALSE
 {D9AC1C63-8B0A-446E-8CA9-E4937BD8F056}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW64.sys
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 2000)\TVicHW64.sys
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 2000-XP
 FALSE
@@ -1696,7 +1696,7 @@ FALSE
 FALSE
 FALSE
 {971869BE-FDD5-463E-9E0B-F3681D7AE0DB}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_INST32I.EX_
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_INST32I.EX_
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 95-98
 FALSE
@@ -1709,7 +1709,7 @@ FALSE
 FALSE
 FALSE
 {00F5C212-1CFE-43DC-A1BF-D9E440EF9EDA}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_ISDEL.EXE
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_ISDEL.EXE
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 95-98
 FALSE
@@ -1722,7 +1722,7 @@ FALSE
 FALSE
 FALSE
 {A73BB457-328F-4D8F-A64E-486CA1B3069A}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_SETUP.1
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_SETUP.1
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 95-98
 FALSE
@@ -1735,7 +1735,7 @@ FALSE
 FALSE
 FALSE
 {412DD674-C29A-499A-A282-144281156BC8}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_SETUP.DLL
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_SETUP.DLL
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 95-98
 FALSE
@@ -1748,7 +1748,7 @@ FALSE
 FALSE
 FALSE
 {B6DDB138-64C9-4F53-9716-B72ADC841FD5}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_SETUP.LIB
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\_SETUP.LIB
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 95-98
 FALSE
@@ -1761,7 +1761,7 @@ FALSE
 FALSE
 FALSE
 {9EBFBAB2-0737-466E-8FFF-36310241F2B4}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\DD1200 Win 95 Support.exe
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\DD1200 Win 95 Support.exe
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 95-98
 FALSE
@@ -1774,7 +1774,7 @@ FALSE
 FALSE
 FALSE
 {E0634D2A-B0A8-43A0-A087-122F0574D933}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\DISK1.ID
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\DISK1.ID
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 95-98
 FALSE
@@ -1787,7 +1787,7 @@ FALSE
 FALSE
 FALSE
 {04F2353D-170C-45B9-B108-0A322B3864C1}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\SETUP.INI
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\SETUP.INI
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 95-98
 FALSE
@@ -1800,7 +1800,7 @@ FALSE
 FALSE
 FALSE
 {6E4365A3-2592-476E-B8B9-2BE56E4742C6}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\SETUP.INS
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\SETUP.INS
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 95-98
 FALSE
@@ -1813,7 +1813,7 @@ FALSE
 FALSE
 FALSE
 {CC2E5A9B-87BE-4CD7-B50D-F6AA424A788D}
-E:\Delphi XE3 Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\SETUP.PKG
+C:\Users\John\Documents\Embarcadero\Studio\Projects\SESComponentsXE\Digidata 1200 Support (Win 9x)\SETUP.PKG
 FALSE|
 $TARGETDIR$\Digidata 1200 Support\Win 95-98
 FALSE
@@ -1826,7 +1826,7 @@ FALSE
 FALSE
 FALSE
 {9601BDBD-8664-457F-8C6B-D8EDCD9E4D72}
-E:\Delphi XE3 Projects\WinWCPXE\winwcp.exe
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\winwcp.exe
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1839,7 +1839,7 @@ FALSE
 FALSE
 FALSE
 {CE76974D-AD2A-4236-979B-36DC322D62A9}
-E:\Delphi XE3 Projects\WinWCPXE\vprot\digpulse.XML
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\digpulse.XML
 FALSE|
 $ALLDOCUMENTS$\WinWCP\VProt
 FALSE
@@ -1852,7 +1852,7 @@ FALSE
 FALSE
 FALSE
 {278C023B-20FD-4ED4-BD83-A3560EB0EC99}
-E:\Delphi XE3 Projects\WinWCPXE\vprot\ISteps 10-100pA 100ms.XML
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\ISteps 10-100pA 100ms.XML
 FALSE|
 $ALLDOCUMENTS$\WinWCP\VProt
 FALSE
@@ -1865,7 +1865,7 @@ FALSE
 FALSE
 FALSE
 {C7BC2A7C-A692-4427-A873-4848348041BB}
-E:\Delphi XE3 Projects\WinWCPXE\vprot\sinewave.xml
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\sinewave.xml
 FALSE|
 $ALLDOCUMENTS$\WinWCP\VProt
 FALSE
@@ -1878,7 +1878,7 @@ FALSE
 FALSE
 FALSE
 {D0FF83B4-CD11-4BA1-A55A-B8AD078D6369}
-E:\Delphi XE3 Projects\WinWCPXE\vprot\sinewave.DAT
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\sinewave.DAT
 FALSE|
 $ALLDOCUMENTS$\WinWCP\VProt
 FALSE
@@ -1891,7 +1891,7 @@ FALSE
 FALSE
 FALSE
 {BF403004-A2A5-4D49-83A7-604C0B17663A}
-E:\Delphi XE3 Projects\WinWCPXE\vprot\tail current.XML
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\tail current.XML
 FALSE|
 $ALLDOCUMENTS$\WinWCP\VProt
 FALSE
@@ -1904,7 +1904,7 @@ FALSE
 FALSE
 FALSE
 {9F16058F-59C8-4EF1-BF86-30DB4DC6C8BB}
-E:\Delphi XE3 Projects\WinWCPXE\vprot\VSteps 10-100mV 100ms.xml
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\VSteps 10-100mV 100ms.xml
 FALSE|
 $ALLDOCUMENTS$\WinWCP\VProt
 FALSE
@@ -1917,7 +1917,7 @@ FALSE
 FALSE
 FALSE
 {51117706-E673-41AD-A85A-1AFD3510FED7}
-E:\Delphi XE3 Projects\WinWCPXE\vprot\Pulse Train 100x100Hz.XML
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\Pulse Train 100x100Hz.XML
 FALSE|
 $ALLDOCUMENTS$\WinWCP\VProt
 FALSE
@@ -1930,7 +1930,7 @@ FALSE
 FALSE
 FALSE
 {E8FDBEEF-AE25-48BA-969A-1F018E533F6E}
-E:\Delphi XE3 Projects\WinWCPXE\vprot\Ramp -100..100mV 1s.xml
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\vprot\Ramp -100..100mV 1s.xml
 FALSE|
 $ALLDOCUMENTS$\WinWCP\VProt
 FALSE
@@ -1943,7 +1943,7 @@ FALSE
 FALSE
 FALSE
 {DF230FC7-43A0-4121-9115-86254C77172E}
-E:\Delphi XE3 Projects\WinWCPXE\USE1432.DLL
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\USE1432.DLL
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1956,7 +1956,7 @@ FALSE
 FALSE
 FALSE
 {F2C29D79-B843-4B70-8856-C573E99F079A}
-E:\Delphi XE3 Projects\WinWCPXE\EpcDLL.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\EpcDLL.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1969,7 +1969,7 @@ FALSE
 FALSE
 FALSE
 {7695471E-B436-4F34-949E-ED09983F4DF3}
-E:\Delphi XE3 Projects\WinWCPXE\ABFFIO.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\ABFFIO.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1982,7 +1982,7 @@ FALSE
 FALSE
 FALSE
 {525673EE-05E9-4558-BDED-D491703E8B72}
-E:\Delphi XE3 Projects\WinWCPXE\AxDD1550.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\AxDD1550.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -1995,7 +1995,7 @@ FALSE
 FALSE
 FALSE
 {B5302AB3-8686-4DC4-972C-AA5F8303E4C0}
-E:\Delphi XE3 Projects\WinWCPXE\AxDD1550A.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\AxDD1550A.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -2008,7 +2008,7 @@ FALSE
 FALSE
 FALSE
 {447E4894-0F93-41AB-B3A6-8FC8DEA20FA1}
-E:\Delphi XE3 Projects\WinWCPXE\DD1550Afpga.bin
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\DD1550Afpga.bin
 FALSE|
 $TARGETDIR$
 FALSE
@@ -2021,7 +2021,7 @@ FALSE
 FALSE
 FALSE
 {AAC7E132-AB28-4E07-BA1C-314667B6A45B}
-E:\Delphi XE3 Projects\WinWCPXE\DD1550fpga.bin
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\DD1550fpga.bin
 FALSE|
 $TARGETDIR$
 FALSE
@@ -2034,7 +2034,7 @@ FALSE
 FALSE
 FALSE
 {9EC75C96-568A-42EA-BA6E-6694A3327AC9}
-E:\Delphi XE3 Projects\WinWCPXE\DD1550.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\DD1550.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -2047,7 +2047,7 @@ FALSE
 FALSE
 FALSE
 {90E201FB-2135-4052-ADAF-6C3F6FE29C7E}
-E:\Delphi XE3 Projects\WinWCPXE\DD1550A.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\DD1550A.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -2060,7 +2060,7 @@ FALSE
 FALSE
 FALSE
 {6ED97B04-AAFC-483D-87AE-0BEC3D963E84}
-E:\Delphi XE3 Projects\WinWCPXE\AxDD1550B.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\AxDD1550B.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -2073,7 +2073,7 @@ FALSE
 FALSE
 FALSE
 {6AC32021-D944-4DEE-839B-34B181F2C6A5}
-E:\Delphi XE3 Projects\WinWCPXE\DD1550Bfpga.bin
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\DD1550Bfpga.bin
 FALSE|
 $TARGETDIR$
 FALSE
@@ -2086,7 +2086,7 @@ FALSE
 FALSE
 FALSE
 {23E82F8D-B7C7-4D50-9DA2-4140CB3D62A8}
-E:\Delphi XE3 Projects\WinWCPXE\wdapi1210.dll
+C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\wdapi1210.dll
 FALSE|
 $TARGETDIR$
 FALSE
@@ -2116,7 +2116,7 @@ Removes this InstallAware Software Corporation product
 0
 {74EADCE1-2F26-4E19-A146-570F55B98FEA}
 $TARGETDIR$\winwcp.exe
-WinWCP V5.2.1
+WinWCP V5.2.4
 $DESKTOPDIR$
 
 
@@ -2126,7 +2126,7 @@ $DESKTOPDIR$
 0|
 {F728F386-31E8-45B1-83DF-DF1CA070C974}
 $TARGETDIR$\winwcp.exe
-WinWCP V5.2.1
+WinWCP V5.2.4
 $SHORTCUTFOLDER$
 
 

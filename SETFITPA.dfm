@@ -293,6 +293,7 @@ object SetFitParsFrm: TSetFitParsFrm
       ParentFont = False
       ReadOnly = True
       TabOrder = 16
+      Zoom = 100
     end
     object erPar1: TRichEdit
       Left = 4
@@ -312,6 +313,7 @@ object SetFitParsFrm: TSetFitParsFrm
       ParentFont = False
       ReadOnly = True
       TabOrder = 17
+      Zoom = 100
     end
     object erpar2: TRichEdit
       Left = 4
@@ -331,6 +333,7 @@ object SetFitParsFrm: TSetFitParsFrm
       ParentFont = False
       ReadOnly = True
       TabOrder = 18
+      Zoom = 100
     end
     object erpar3: TRichEdit
       Left = 4
@@ -350,6 +353,7 @@ object SetFitParsFrm: TSetFitParsFrm
       ParentFont = False
       ReadOnly = True
       TabOrder = 19
+      Zoom = 100
     end
     object erpar4: TRichEdit
       Left = 4
@@ -369,6 +373,7 @@ object SetFitParsFrm: TSetFitParsFrm
       ParentFont = False
       ReadOnly = True
       TabOrder = 20
+      Zoom = 100
     end
     object erpar5: TRichEdit
       Left = 160
@@ -388,6 +393,7 @@ object SetFitParsFrm: TSetFitParsFrm
       ParentFont = False
       ReadOnly = True
       TabOrder = 21
+      Zoom = 100
     end
     object erpar6: TRichEdit
       Left = 160
@@ -407,6 +413,7 @@ object SetFitParsFrm: TSetFitParsFrm
       ParentFont = False
       ReadOnly = True
       TabOrder = 22
+      Zoom = 100
     end
     object erpar7: TRichEdit
       Left = 160
@@ -426,6 +433,7 @@ object SetFitParsFrm: TSetFitParsFrm
       ParentFont = False
       ReadOnly = True
       TabOrder = 23
+      Zoom = 100
     end
     object erpar8: TRichEdit
       Left = 160
@@ -445,6 +453,7 @@ object SetFitParsFrm: TSetFitParsFrm
       ParentFont = False
       ReadOnly = True
       TabOrder = 24
+      Zoom = 100
     end
     object edpar8: TValidatedEdit
       Left = 200
@@ -491,6 +500,7 @@ object SetFitParsFrm: TSetFitParsFrm
       ParentFont = False
       ReadOnly = True
       TabOrder = 27
+      Zoom = 100
     end
     object edpar9: TValidatedEdit
       Left = 200

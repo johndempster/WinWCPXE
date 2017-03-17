@@ -245,8 +245,8 @@ type
     CHANOFFEnabled : Array[0..MaxTecellaChannels-1] of Boolean ;
     LEAKEnabled : Array[0..MaxTecellaChannels-1] of Boolean ;
     LEAKFineEnabled : Array[0..MaxTecellaChannels-1] of Boolean ;
-    CHANOFFFineEnabled : Array[0..MaxTecellaChannels-1] of Boolean ;
-    IClampMode : Array[0..MaxTecellaChannels-1] of Boolean ;
+//    CHANOFFFineEnabled : Array[0..MaxTecellaChannels-1] of Boolean ;
+//    IClampMode : Array[0..MaxTecellaChannels-1] of Boolean ;
     ZapAmplitude : Single ;
     ZapDuration : Single ;
     UseAnalogLeakSubtraction : Boolean ;

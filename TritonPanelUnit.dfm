@@ -42,6 +42,10 @@ object TritonPanelFrm: TTritonPanelFrm
         TabOrder = 0
         object AutoPage: TTabSheet
           Caption = 'Auto'
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object GroupBox6: TGroupBox
             Left = 8
             Top = 56
@@ -300,7 +304,7 @@ object TritonPanelFrm: TTritonPanelFrm
               OnKeyPress = edVHoldKeyPress
               ShowHint = True
               Text = ' -90 mV'
-              Value = -0.090000003576278680
+              Value = -0.090000003576278690
               Scale = 1000.000000000000000000
               Units = 'mV'
               NumberFormat = '%.4g'
@@ -434,6 +438,10 @@ object TritonPanelFrm: TTritonPanelFrm
         object CapacityPage: TTabSheet
           Caption = 'Capacity'
           ImageIndex = 1
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object panCFast: TPanel
             Left = 1
             Top = 2
@@ -719,6 +727,10 @@ object TritonPanelFrm: TTritonPanelFrm
         object ResistancePage: TTabSheet
           Caption = 'Resistance'
           ImageIndex = 2
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object panRLeak: TPanel
             Left = 1
             Top = 26
@@ -897,6 +909,10 @@ object TritonPanelFrm: TTritonPanelFrm
         object JunctionPotPage: TTabSheet
           Caption = 'Junction Pot.'
           ImageIndex = 3
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object panJunctionPot: TPanel
             Left = 1
             Top = 2

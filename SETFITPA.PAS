@@ -62,7 +62,6 @@ type
     procedure bInitialiseClick(Sender: TObject);
   private
     { Private declarations }
-    LastPar : Array[0..9] of Single ;
     procedure SetParameterLine( var erPar : TRichEdit ;
                                 var ed : TValidatedEdit ;
                                 var ck : TCheckBox ;

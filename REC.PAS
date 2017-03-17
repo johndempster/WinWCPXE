@@ -117,6 +117,10 @@ unit Rec;
   27.02.17 .. UpdateDisplay now called during .bOpenOLAWindowClick to ensure
               window duration is valid when on-line window opened.
   01.03.17 .. Display time scaling no longer changes between and within sweeps.
+  17.03.17 .. Main.SESLabIO.StimulusStartFlag now cleared in StartSweep() in
+              all recording modes other than rmProtocol to avoid generation of
+              unwanted stimulus from previous protocol in first sweep following
+              a stimulus protocol sweep
   ==============================================================================}
 interface
 
@@ -406,10 +410,8 @@ type
   end;
 
 
-
 var
   RecordFrm: TRecordFrm;
-
 
 implementation
 
@@ -417,7 +419,6 @@ implementation
 
 uses MDiform, AmpModule, StimModule , RecPlotUnit, Sealtest,
   TritonPanelUnit, DirectorySelectUnit, Replay, Zero, DCLAMPUnit;
-
 
 procedure TRecordFrm.FormShow(Sender: TObject);
 { ------------------------------------
@@ -908,6 +909,7 @@ begin
         if (Main.SESLabIO.StimulusStartFlag = True) and
            (not Main.SESLabIO.DACActive) and
            (not bRecord.enabled) then begin
+           outputdebugstring(pchar('stimulus started'));
            Main.SESLabIO.StartStimulus ;
            end ;
 
@@ -1050,6 +1052,7 @@ begin
                           [RawFH.NumRecords,
                            NumRecordsDone,Settings.NumRecordsRequired] ) ;
          Main.StatusBar.Panels[0].Text :=  edStatus.Text ;
+         Main.SESLabIO.StimulusStartFlag := False ;
          end ;
 
      State := SweepInProgress ;
