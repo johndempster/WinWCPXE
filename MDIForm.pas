@@ -693,6 +693,7 @@ unit MDIForm;
                      from TRichEdit component which has been added since XE3
    V5.2.6 17.03.17   Record to Disk: Unwanted stimulus produced in first Free Run recording sweep
                      after a stimulus protocol now prevented (rec.pas).
+   V5.2.7 28.04.17   Errors when selecting NI PCI-6010 board now fixed
             =======================================================================}
 
 interface
@@ -938,7 +939,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.2.6';
+      ProgVersion := 'V5.2.7';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
