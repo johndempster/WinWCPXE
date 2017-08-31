@@ -121,6 +121,10 @@ unit Rec;
               all recording modes other than rmProtocol to avoid generation of
               unwanted stimulus from previous protocol in first sweep following
               a stimulus protocol sweep
+  19.07.17 .. Amplifier.GetChannelSettings() now returns ADCInput, so
+              secondary channel analogue input for be changed in CC mode
+              for Axopatch 200 and AMS-2400
+
   ==============================================================================}
 interface
 
@@ -1550,8 +1554,9 @@ var
     OldValue : Single ;
     OldUnits : String ;
     OldName : String ;
-   Name,Units : string ;
-   VPU,Gain : Single ;
+    Name,Units : string ;
+    VPU,Gain : Single ;
+    ADCInput : Integer ;
 begin
 
      Changed := False ;
@@ -1562,11 +1567,13 @@ begin
          OldName := Main.SESLabIO.ADCChannelName[ch] ;
 
          // Update channel scaling factors
-         Amplifier.GetChannelSettings( ch,Name,Units,VPU,Gain ) ;
+         ADCInput := Main.SESLabIO.ADCChannelInputNumber[ch] ;
+         Amplifier.GetChannelSettings( ch,Name,Units,VPU,Gain,ADCInput ) ;
          Main.SESLabIO.ADCChannelName[ch] := Name ;
          Main.SESLabIO.ADCChannelUnits[ch] := Units ;
          Main.SESLabIO.ADCChannelVoltsPerUnit[ch] := VPU ;
          Main.SESLabIO.ADCChannelGain[ch] := Gain ;
+         Main.SESLabIO.ADCChannelInputNumber[ch] := ADCInput ;
 
          RH.ADCVoltageRange[ch] := Main.SESLabIO.ADCVoltageRange /
                                    Main.SESLabIO.ADCChannelGain[ch] ;

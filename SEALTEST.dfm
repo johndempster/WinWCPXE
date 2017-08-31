@@ -61,6 +61,7 @@ object SealTestFrm: TSealTestFrm
     MaxADCValue = 2047
     MinADCValue = -2048
     NumBytesPerSample = 2
+    FloatingPointSamples = False
     FixZeroLevels = False
     DisplaySelected = False
     FontSize = 8
@@ -412,6 +413,10 @@ object SealTestFrm: TSealTestFrm
       end
       object CellTab: TTabSheet
         Caption = 'Cell (G)'
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Label15: TLabel
           Left = 12
           Top = 4
@@ -515,6 +520,10 @@ object SealTestFrm: TSealTestFrm
       object CellRTab: TTabSheet
         Caption = 'Cell (R)'
         ImageIndex = 2
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Label18: TLabel
           Left = 12
           Top = 4

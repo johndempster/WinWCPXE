@@ -694,6 +694,10 @@ unit MDIForm;
    V5.2.6 17.03.17   Record to Disk: Unwanted stimulus produced in first Free Run recording sweep
                      after a stimulus protocol now prevented (rec.pas).
    V5.2.7 28.04.17   Errors when selecting NI PCI-6010 board now fixed
+   V5.2.8 19.07.17   Amplifiers: Analog input for secondary channel can now be remapped between
+                     voltage- and current- clamp modes for amplifiers which require a different signal output
+                     from the amplifier connected to the secondary channel in each clamp mode (applies to Axopatch 200 and AMS-2400)
+                     ImportFromDataFile(): Multiple files can now be selected for import to WCP file format.
             =======================================================================}
 
 interface
@@ -939,7 +943,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.2.7';
+      ProgVersion := 'V5.2.8';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
@@ -2259,7 +2263,6 @@ begin
               end ;
            end ;
 
-
         { Insert/append record from clip file }
 
         if OK then begin
@@ -2571,9 +2574,6 @@ begin
      with Main do
           for i := 0 to MDIChildCount-1 do MDICHildren[i].Close ;
 
-     { Close any existing data file }
-//     CloseAllDataFiles ;
-
      if ImportFromDataFile then begin
         LoadDataFiles(RawFH.FileName) ;
         // Update list of recently used files
@@ -2709,9 +2709,8 @@ begin
      OpenDialog.DefaultExt := 'DAT' ;
      OpenDialog.Filter := ' WCP Files (*.WCP)|*.WCP';
      OpenDialog.Title := 'Append File ' ;
-     if Settings.DataDirectory <> '' then
-        SetCurrentDir(Settings.DataDirectory) ;
-        OpenDialog.InitialDir := Settings.DataDirectory ;
+     if Settings.DataDirectory <> '' then SetCurrentDir(Settings.DataDirectory) ;
+     OpenDialog.InitialDir := Settings.DataDirectory ;
 
      if OpenDialog.execute then begin
 
@@ -3037,9 +3036,8 @@ begin
      OpenDialog.DefaultExt := 'WCP' ;
      OpenDialog.Filter := ' WCP Files (*.WCP)|*.WCP';
      OpenDialog.Title := 'Interleave File ' ;
-     if Settings.DataDirectory <> '' then
-        SetCurrentDir(Settings.DataDirectory);
-        OpenDialog.InitialDir := Settings.DataDirectory ;
+     if Settings.DataDirectory <> '' then SetCurrentDir(Settings.DataDirectory);
+     OpenDialog.InitialDir := Settings.DataDirectory ;
 
      if OpenDialog.execute then begin
 
@@ -3100,7 +3098,7 @@ var
    Filters : Array[1..8] of TFilter ;
    FileName : String ;
    FileType : TADCDataFileType ;
-   i,j,j0 : Integer ;
+   i,j,j0,iFile : Integer ;
    Buf : ^TSmallIntArray ;
    NumRead : Integer ;
    iRec,ch : Integer ;
@@ -3130,7 +3128,7 @@ begin
      OpenDialog.Filter := '' ;
      for i := 1 to High(Filters) do
          OpenDialog.Filter := OpenDialog.Filter + Filters[i].Ext ;
-     OpenDialog.options := [ofPathMustExist] ;
+     OpenDialog.options := [ofPathMustExist,ofAllowMultiSelect] ;
      OpenDialog.DefaultExt := 'DAT' ;
      OpenDialog.FileName := '' ;
 
@@ -3142,152 +3140,154 @@ begin
 
      if not OpenDialog.execute then Exit ;
 
-     Settings.DataDirectory := ExtractFilePath( OpenDialog.FileName ) ;
-     FileType := Filters[OpenDialog.FilterIndex].FType ;
-     FileName := OpenDialog.FileName ;
+     for iFile := 0 to OpenDialog.Files.Count-1 do
+         begin
 
-     { Create name of WCP file to hold imported file }
-     WCPFileName := ChangeFileExt( FileName, DataFileExtension ) ;
-     { Make sure an existing data file is not overwritten, unintentionally }
-     if not FileOverwriteCheck(WCPFileName ) then Exit ;
+         Settings.DataDirectory := ExtractFilePath( OpenDialog.FileName ) ;
+         FileType := Filters[OpenDialog.FilterIndex].FType ;
+         FileName := OpenDialog.Files[iFile] ;
 
-     // Report progress
-     Main.StatusBar.SimpleText := format(
-     ' IMPORT: Importing data from %s ',[FileName] ) ;
-
-     if FileType = ftASC then begin
-        // ASCII format data files
-        ImportASCIIFrm.ImportFile := ImportFile ;
-        ImportASCIIFrm.FileName := FileName ;
-        if ImportASCIIFrm.ShowModal <> mrOK Then Exit ;
-        if not Main.ImportFile.OpenDataFile( FileName, FileType ) then Exit ;
-        end
-     else if FileType = ftRaw then begin
-        // Raw binary data files
-        ImportRawFrm.ImportFile := ImportFile ;
-        if ImportRawFrm.ShowModal <> mrOK Then Exit ;
-        if not Main.ImportFile.OpenDataFile( FileName, FileType ) then Exit ;
-        end
-     else if FileType = ftHEK then begin
-        // HEKA data files
-        if not Main.ImportFile.OpenDataFile( FileName, FileType ) then Exit ;
-        end
-     else begin
-        // All other data files
-        FileType := ImportFile.FindFileType( FileName ) ;
-        if not Main.ImportFile.OpenDataFile( FileName, FileType ) then Exit ;
-        end ;
-
-     if (Main.ImportFile.NumScansPerRecord*Main.ImportFile.NumChannelsPerScan) > MaxADCSamples then begin
-        ShowMessage( format(
-        ' IMPORT: Unable to import files with more than %d samples/record!',
-        [MaxADCSamples div Main.ImportFile.NumChannelsPerScan])) ;
-        Main.ImportFile.CloseDataFile ;
-        Exit ;
-        end ;
-
-     { Create WCP data file to hold import}
-     if not CreateNewDataFile( WCPFileName ) then Exit ;
-
-     GetMem( Buf, SizeOf(TSmallIntArray)) ;
-     try
-
-     RawFH.NumChannels := Main.ImportFile.NumChannelsPerScan ;
-
-     // Ensure that no. of samples/channel is multiple of 256
-     RawFH.NumSamples := (Main.ImportFile.NumScansPerRecord div 256)*256 ;
-     if RawFH.NumSamples < Main.ImportFile.NumScansPerRecord then
-        RawFH.NumSamples := RawFH.NumSamples + 256 ;
-
-     RawFH.NumAnalysisBytesPerRecord := NumAnalysisBytesPerRecord(RawFH.NumChannels) ;
-
-     RawFH.MaxADCValue := Main.ImportFile.MaxADCValue ;
-     RawFH.MinADCValue := Main.ImportFile.MinADCValue ;
-
-     RawFH.IdentLine := Main.ImportFile.IdentLine ;
-
-     { Copy records }
-     RawFH.NumRecords := 0 ;
-     for iRec := 1 to Main.ImportFile.NumRecords do begin
-
-         Main.ImportFile.RecordNum := iRec ;
-         RawFH.ADCVoltageRange := Main.ImportFile.ChannelADCVoltageRange[0] ;
-         for ch := 0 to Main.ImportFile.NumChannelsPerScan-1 do begin
-             Channel[ch].ChannelOffset := Main.ImportFile.ChannelOffset[ch] ;
-             Channel[ch].ADCName := Main.ImportFile.ChannelName[ch] ;
-             Channel[ch].ADCUnits := Main.ImportFile.ChannelUnits[ch] ;
-             Channel[ch].ADCSCale := Main.ImportFile.ChannelScale[ch] ;
-             Channel[ch].ADCCalibrationFactor := Main.ImportFile.ChannelCalibrationFactor[ch] ;
-             Channel[ch].ADCAmplifierGain := Main.ImportFile.ChannelGain[ch] ;
-             Channel[ch].YMax := RawFH.MaxADCValue ;
-             Channel[ch].YMin := RawFH.MinADCValue ;
-             end ;
-
-         { Copy sampling interval and A/D range }
-         RawFH.dt := Main.ImportFile.ScanInterval ;
-         RawFH.ADCVoltageRange := Main.ImportFile.ChannelADCVoltageRange[0] ;
-
-         // Read A/D sample from source file
-         NumRead := Main.ImportFile.LoadADCBuffer(0,Main.ImportFile.NumScansPerRecord,Buf^ ) ;
-         if NumRead <= 0 then Break ;
-
-         // Pad end of buffer
-         j0 := (NumRead-1)*RawFH.NumChannels ;
-         for i := NumRead-1 to RawFH.NumSamples-1 do begin
-             j := i*RawFH.NumChannels ;
-             for ch := 0 to RawFH.NumChannels-1 do Buf^[j+ch] := Buf^[j0+ch] ;
-             end ;
-
-         { Save record to file }
-         Inc(RawFH.NumRecords) ;
-         RH.Status := 'ACCEPTED' ;
-         RH.RecType := 'TEST' ;
-         RH.Number := RawFH.NumRecords ;
-         RH.Time := RH.Number ;
-         RH.dt := RawfH.dt ;
-         RH.Ident := ' ' ;
-         for ch := 0 to RawFH.NumChannels do RH.ADCVoltageRange[ch] :=
-                                             Main.ImportFile.ChannelADCVoltageRange[ch] ;
-         RH.Value[vFitEquation] := 0.0 ;
-         RH.AnalysisAvailable := False ;
-         PutRecord( RawfH, RH, RawfH.NumRecords, Buf^ ) ;
+         { Create name of WCP file to hold imported file }
+         WCPFileName := ChangeFileExt( FileName, DataFileExtension ) ;
+         { Make sure an existing data file is not overwritten, unintentionally }
+         if not FileOverwriteCheck(WCPFileName ) then Exit ;
 
          // Report progress
          Main.StatusBar.SimpleText := format(
-         ' IMPORT: Importing (%d channel) record %d/%d from %s ',
-             [Main.ImportFile.NumChannelsPerScan,
-              iRec,
-              Main.ImportFile.NumRecords,
-              FileName]) ;
+         ' IMPORT: Importing data from %s ',[FileName] ) ;
 
-         end ;
+         if FileType = ftASC then
+            begin
+            // ASCII format data files
+            ImportASCIIFrm.ImportFile := ImportFile ;
+            ImportASCIIFrm.FileName := FileName ;
+            if ImportASCIIFrm.ShowModal <> mrOK Then Exit ;
+            if not Main.ImportFile.OpenDataFile( FileName, FileType ) then Exit ;
+            end
+         else if FileType = ftRaw then
+            begin
+            // Raw binary data files
+            ImportRawFrm.ImportFile := ImportFile ;
+            if ImportRawFrm.ShowModal <> mrOK Then Exit ;
+            if not Main.ImportFile.OpenDataFile( FileName, FileType ) then Exit ;
+            end
+         else if FileType = ftHEK then
+            begin
+            // HEKA data files
+            if not Main.ImportFile.OpenDataFile( FileName, FileType ) then Exit ;
+            end
+         else begin
+           // All other data files
+           FileType := ImportFile.FindFileType( FileName ) ;
+           if not Main.ImportFile.OpenDataFile( FileName, FileType ) then Exit ;
+           end ;
 
-     // Final progress
-     Main.StatusBar.SimpleText := format(
-     'IMPORT: %d records (%dx%d channel scans) imported from %s to %s',
-     [Main.ImportFile.NumRecords,
-      Main.ImportFile.NumScansPerRecord,
-      Main.ImportFile.NumChannelsPerScan,
-      FileName,
-      RawFH.FileName]) ;
-     WriteToLogFile( Main.StatusBar.SimpleText ) ;
+         if (Main.ImportFile.NumScansPerRecord*Main.ImportFile.NumChannelsPerScan)
+             > MaxADCSamples then begin
+             ShowMessage( format(
+             ' IMPORT: Unable to import files with more than %d samples/record!',
+             [MaxADCSamples div Main.ImportFile.NumChannelsPerScan])) ;
+             Main.ImportFile.CloseDataFile ;
+             Exit ;
+             end ;
 
-     { Save file header }
-     SaveHeader( RawFH ) ;
+         { Create WCP data file to hold import}
+         if not CreateNewDataFile( WCPFileName ) then Exit ;
 
-     { Close source file }
-     Main.ImportFile.CloseDataFile ;
+         GetMem( Buf, SizeOf(TSmallIntArray)) ;
+         RawFH.NumChannels := Main.ImportFile.NumChannelsPerScan ;
 
-     { Close dest. file }
-     if RawFH.FileHandle >= 0 then begin
-        FileClose( RawFH.FileHandle ) ;
-        RawFH.FileHandle := -1 ;
+         // Ensure that no. of samples/channel is multiple of 256
+         RawFH.NumSamples := (Main.ImportFile.NumScansPerRecord div 256)*256 ;
+         if RawFH.NumSamples < Main.ImportFile.NumScansPerRecord then
+         RawFH.NumSamples := RawFH.NumSamples + 256 ;
+
+         RawFH.NumAnalysisBytesPerRecord := NumAnalysisBytesPerRecord(RawFH.NumChannels) ;
+         RawFH.MaxADCValue := Main.ImportFile.MaxADCValue ;
+         RawFH.MinADCValue := Main.ImportFile.MinADCValue ;
+         RawFH.IdentLine := Main.ImportFile.IdentLine ;
+
+         { Copy records }
+         RawFH.NumRecords := 0 ;
+         for iRec := 1 to Main.ImportFile.NumRecords do
+             begin
+             Main.ImportFile.RecordNum := iRec ;
+             RawFH.ADCVoltageRange := Main.ImportFile.ChannelADCVoltageRange[0] ;
+             for ch := 0 to Main.ImportFile.NumChannelsPerScan-1 do
+                 begin
+                 Channel[ch].ChannelOffset := Main.ImportFile.ChannelOffset[ch] ;
+                 Channel[ch].ADCName := Main.ImportFile.ChannelName[ch] ;
+                 Channel[ch].ADCUnits := Main.ImportFile.ChannelUnits[ch] ;
+                 Channel[ch].ADCSCale := Main.ImportFile.ChannelScale[ch] ;
+                 Channel[ch].ADCCalibrationFactor := Main.ImportFile.ChannelCalibrationFactor[ch] ;
+                 Channel[ch].ADCAmplifierGain := Main.ImportFile.ChannelGain[ch] ;
+                 Channel[ch].YMax := RawFH.MaxADCValue ;
+                 Channel[ch].YMin := RawFH.MinADCValue ;
+                 end ;
+
+             { Copy sampling interval and A/D range }
+             RawFH.dt := Main.ImportFile.ScanInterval ;
+             RawFH.ADCVoltageRange := Main.ImportFile.ChannelADCVoltageRange[0] ;
+
+             // Read A/D sample from source file
+             NumRead := Main.ImportFile.LoadADCBuffer(0,Main.ImportFile.NumScansPerRecord,Buf^ ) ;
+             if NumRead <= 0 then Break ;
+
+             // Pad end of buffer
+             j0 := (NumRead-1)*RawFH.NumChannels ;
+             for i := NumRead-1 to RawFH.NumSamples-1 do
+                 begin
+                 j := i*RawFH.NumChannels ;
+                 for ch := 0 to RawFH.NumChannels-1 do Buf^[j+ch] := Buf^[j0+ch] ;
+                 end ;
+
+             { Save record to file }
+             Inc(RawFH.NumRecords) ;
+             RH.Status := 'ACCEPTED' ;
+             RH.RecType := 'TEST' ;
+             RH.Number := RawFH.NumRecords ;
+             RH.Time := RH.Number ;
+             RH.dt := RawfH.dt ;
+             RH.Ident := ' ' ;
+             for ch := 0 to RawFH.NumChannels do RH.ADCVoltageRange[ch] :=
+                                                 Main.ImportFile.ChannelADCVoltageRange[ch] ;
+             RH.Value[vFitEquation] := 0.0 ;
+             RH.AnalysisAvailable := False ;
+             PutRecord( RawfH, RH, RawfH.NumRecords, Buf^ ) ;
+
+             // Report progress
+             Main.StatusBar.SimpleText := format(
+             ' IMPORT: Importing (%d channel) record %d/%d from %s ',
+             [Main.ImportFile.NumChannelsPerScan,iRec,Main.ImportFile.NumRecords,FileName]) ;
+
+             end ;
+
+        //Final progress
+        Main.StatusBar.SimpleText := format(
+        'IMPORT: %d records (%dx%d channel scans) imported from %s to %s',
+        [ Main.ImportFile.NumRecords,
+          Main.ImportFile.NumScansPerRecord,
+          Main.ImportFile.NumChannelsPerScan,
+          FileName,
+          RawFH.FileName]) ;
+        WriteToLogFile( Main.StatusBar.SimpleText ) ;
+
+        { Save file header }
+        SaveHeader( RawFH ) ;
+
+        { Close source file }
+        Main.ImportFile.CloseDataFile ;
+
+        { Close dest. file }
+        if RawFH.FileHandle >= 0 then
+           begin
+           FileClose( RawFH.FileHandle ) ;
+           RawFH.FileHandle := -1 ;
+           end ;
+
+        FreeMem ( Buf ) ;
+        Result := True ;
         end ;
-     Result := True ;
-
-     Finally
-         FreeMem ( Buf ) ;
-         end ;
 
      end ;
 

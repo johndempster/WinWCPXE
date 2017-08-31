@@ -3,8 +3,8 @@ object InputChannelSetupFrm: TInputChannelSetupFrm
   Top = 118
   BorderStyle = bsDialog
   Caption = 'Input Channels & Amplifiers Setup'
-  ClientHeight = 521
-  ClientWidth = 357
+  ClientHeight = 529
+  ClientWidth = 359
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
   Font.Color = clBlack
@@ -20,10 +20,10 @@ object InputChannelSetupFrm: TInputChannelSetupFrm
   PixelsPerInch = 96
   TextHeight = 15
   object PageControl: TPageControl
-    Left = 4
+    Left = 8
     Top = 0
     Width = 345
-    Height = 488
+    Height = 497
     ActivePage = AmplifiersPage
     TabOrder = 0
     OnChange = PageControlChange
@@ -31,6 +31,10 @@ object InputChannelSetupFrm: TInputChannelSetupFrm
     object ChannelsPage: TTabSheet
       Caption = 'Input Channels '
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object ChannelTable: TStringGrid
         Left = 0
         Top = 2
@@ -244,10 +248,10 @@ object InputChannelSetupFrm: TInputChannelSetupFrm
         OnChanging = AmplifiersTabChanging
       end
       object AmpPanel: TPanel
-        Left = 0
+        Left = 5
         Top = 24
         Width = 329
-        Height = 440
+        Height = 433
         TabOrder = 1
         object cbAmplifier: TComboBox
           Left = 8
@@ -265,7 +269,7 @@ object InputChannelSetupFrm: TInputChannelSetupFrm
           Left = 8
           Top = 36
           Width = 313
-          Height = 206
+          Height = 205
           Caption = ' Input Channels '
           TabOrder = 1
           object rbIClamp: TRadioButton
@@ -329,20 +333,6 @@ object InputChannelSetupFrm: TInputChannelSetupFrm
               Font.Style = []
               ParentFont = False
             end
-            object lbPrimaryChannel: TLabel
-              Left = 121
-              Top = 48
-              Width = 87
-              Height = 15
-              Alignment = taCenter
-              Caption = 'On analog input'
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clBlack
-              Font.Height = -12
-              Font.Name = 'Arial'
-              Font.Style = []
-              ParentFont = False
-            end
             object edPrimaryChannelScaleFactor: TValidatedEdit
               Left = 80
               Top = 18
@@ -370,23 +360,45 @@ object InputChannelSetupFrm: TInputChannelSetupFrm
               Text = 'edPrimaryChannelUnits'
               OnChange = edPrimaryChannelUnitsChange
             end
-            object cbPrimaryChannel: TComboBox
-              Left = 214
-              Top = 48
-              Width = 77
-              Height = 23
-              Hint = 'Lab. interface analog input for primary channel'
-              Style = csDropDownList
-              ParentShowHint = False
-              ShowHint = True
+            object Panel1: TPanel
+              Left = 120
+              Top = 44
+              Width = 170
+              Height = 25
+              BevelOuter = bvNone
               TabOrder = 2
+              object Label1: TLabel
+                Left = 0
+                Top = 0
+                Width = 87
+                Height = 15
+                Alignment = taCenter
+                Caption = 'On analog input'
+                Font.Charset = ANSI_CHARSET
+                Font.Color = clBlack
+                Font.Height = -12
+                Font.Name = 'Arial'
+                Font.Style = []
+                ParentFont = False
+              end
+              object cbPrimaryAnalogInput: TComboBox
+                Left = 93
+                Top = 0
+                Width = 77
+                Height = 23
+                Hint = 'Lab. interface analog input for secondary channel'
+                Style = csDropDownList
+                ParentShowHint = False
+                ShowHint = True
+                TabOrder = 0
+              end
             end
           end
           object SecondaryChannelGrp: TGroupBox
             Left = 8
-            Top = 118
+            Top = 120
             Width = 297
-            Height = 80
+            Height = 75
             Caption = ' Secondary Channel '
             TabOrder = 3
             object Label5: TLabel
@@ -410,20 +422,6 @@ object InputChannelSetupFrm: TInputChannelSetupFrm
               Height = 15
               Alignment = taRightJustify
               Caption = 'Units'
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clBlack
-              Font.Height = -12
-              Font.Name = 'Arial'
-              Font.Style = []
-              ParentFont = False
-            end
-            object lbSecondaryChannel: TLabel
-              Left = 121
-              Top = 48
-              Width = 87
-              Height = 15
-              Alignment = taCenter
-              Caption = 'On analog input'
               Font.Charset = ANSI_CHARSET
               Font.Color = clBlack
               Font.Height = -12
@@ -458,22 +456,78 @@ object InputChannelSetupFrm: TInputChannelSetupFrm
               Text = 'edCurrentOutputUnits'
               OnChange = edSecondaryChannelUnitsChange
             end
-            object cbSecondaryChannel: TComboBox
-              Left = 214
-              Top = 48
-              Width = 77
-              Height = 23
-              Hint = 'Lab. interface analog input for secondary channel'
-              Style = csDropDownList
-              ParentShowHint = False
-              ShowHint = True
+            object pnSecondaryInputCC: TPanel
+              Left = 121
+              Top = 44
+              Width = 170
+              Height = 25
+              BevelOuter = bvNone
               TabOrder = 2
+              object Label6: TLabel
+                Left = 0
+                Top = 0
+                Width = 87
+                Height = 15
+                Alignment = taCenter
+                Caption = 'On analog input'
+                Font.Charset = ANSI_CHARSET
+                Font.Color = clBlack
+                Font.Height = -12
+                Font.Name = 'Arial'
+                Font.Style = []
+                ParentFont = False
+              end
+              object cbSecondaryAnalogInputCC: TComboBox
+                Left = 93
+                Top = 0
+                Width = 77
+                Height = 23
+                Hint = 'Lab. interface analog input for secondary channel'
+                Style = csDropDownList
+                ParentShowHint = False
+                ShowHint = True
+                TabOrder = 0
+                OnChange = cbSecondaryAnalogInputCCChange
+              end
+            end
+            object pnSecondaryInputVC: TPanel
+              Left = 121
+              Top = 44
+              Width = 170
+              Height = 25
+              BevelOuter = bvNone
+              TabOrder = 3
+              object Label7: TLabel
+                Left = 0
+                Top = 0
+                Width = 87
+                Height = 15
+                Alignment = taCenter
+                Caption = 'On analog input'
+                Font.Charset = ANSI_CHARSET
+                Font.Color = clBlack
+                Font.Height = -12
+                Font.Name = 'Arial'
+                Font.Style = []
+                ParentFont = False
+              end
+              object cbSecondaryAnalogInputVC: TComboBox
+                Left = 93
+                Top = 0
+                Width = 77
+                Height = 23
+                Hint = 'Lab. interface analog input for secondary channel'
+                Style = csDropDownList
+                ParentShowHint = False
+                ShowHint = True
+                TabOrder = 0
+              end
             end
           end
         end
         object VoltageCommandGrp: TGroupBox
           Left = 8
-          Top = 246
+          Top = 242
           Width = 313
           Height = 49
           Caption = ' Voltage-clamp command channel'
@@ -534,7 +588,7 @@ object InputChannelSetupFrm: TInputChannelSetupFrm
         end
         object CurrentCommandGrp: TGroupBox
           Left = 8
-          Top = 300
+          Top = 292
           Width = 313
           Height = 49
           Caption = ' Current-clamp command channel '
@@ -595,7 +649,7 @@ object InputChannelSetupFrm: TInputChannelSetupFrm
         end
         object TelegraphChannelsGrp: TGroupBox
           Left = 8
-          Top = 352
+          Top = 346
           Width = 313
           Height = 77
           Caption = ' Telegraph channels '
@@ -677,8 +731,8 @@ object InputChannelSetupFrm: TInputChannelSetupFrm
     end
   end
   object bLoadDefaultSettings: TButton
-    Left = 240
-    Top = 494
+    Left = 244
+    Top = 502
     Width = 110
     Height = 17
     Caption = 'Default Settings'
@@ -686,8 +740,8 @@ object InputChannelSetupFrm: TInputChannelSetupFrm
     OnClick = bLoadDefaultSettingsClick
   end
   object bSaveSettings: TButton
-    Left = 122
-    Top = 494
+    Left = 126
+    Top = 502
     Width = 110
     Height = 17
     Caption = 'Save Settings'
@@ -695,8 +749,8 @@ object InputChannelSetupFrm: TInputChannelSetupFrm
     OnClick = bSaveSettingsClick
   end
   object bLoadSettings: TButton
-    Left = 4
-    Top = 494
+    Left = 10
+    Top = 502
     Width = 110
     Height = 17
     Caption = 'Load Settings'

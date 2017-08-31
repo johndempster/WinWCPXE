@@ -83,6 +83,11 @@ unit Sealtest;
   05.11.15 .. HekaEPC9USB interface added
   05.08.16 .. Holding potential setting in use now updated with default holding potential of selected amplifier
               (Change to SetCLampMode)
+  20.07.17 .. Sweep now goes into idle mode if A/D conversion fails to become active
+              Amplifier.GetChannelSettings() now returns ADCInput, so
+              secondary channel analogue input for be changed in CC mode
+              for Axopatch 200 and AMS-2400
+
   ==================================================}
 
 interface
@@ -521,6 +526,7 @@ var
    Changed : Boolean ;
    Name,Units : string ;
    VPU,Gain : Single ;
+   ADCInput : Integer ;
 begin
 
      if not TimerBusy then begin
@@ -556,11 +562,13 @@ begin
                        Units := Main.SESLabIO.ADCChannelUnits[ch] ;
                        VPU := Main.SESLabIO.ADCChannelVoltsPerUnit[ch] ;
                        Gain := Main.SESLabIO.ADCChannelGain[ch] ;
-                       Amplifier.GetChannelSettings( ch,Name,Units,VPU,Gain ) ;
+                       ADCInput := Main.SESLabIO.ADCChannelInputNumber[ch] ;
+                       Amplifier.GetChannelSettings( ch,Name,Units,VPU,Gain,ADCInput ) ;
                        Main.SESLabIO.ADCChannelName[ch] := Name ;
                        Main.SESLabIO.ADCChannelUnits[ch] := Units ;
                        Main.SESLabIO.ADCChannelVoltsPerUnit[ch] := VPU ;
                        Main.SESLabIO.ADCChannelGain[ch] := Gain ;
+                       Main.SESLabIO.ADCChannelInputNumber[ch] := ADCInput ;
                        end ;
 
                    // If units have changed, update current/voltage channels
@@ -612,8 +620,9 @@ begin
 
                    Main.SESLabIO.ADCStart ;
                    Main.SESLabIO.DACStart ;
+                   if Main.SESLabIO.ADCActive then State := SweepInProgress
+                                              else State := Idle ;
 
-                   State := SweepInProgress ;
                    End ;
 
                SweepInProgress : Begin
