@@ -698,6 +698,8 @@ unit MDIForm;
                      voltage- and current- clamp modes for amplifiers which require a different signal output
                      from the amplifier connected to the secondary channel in each clamp mode (applies to Axopatch 200 and AMS-2400)
                      ImportFromDataFile(): Multiple files can now be selected for import to WCP file format.
+   V5.2.9 21.09.17   HekaUnit.pas code changed to try to get it working with EPC-9 USB
+                     NPI ELC-03XS gain telegraph support updated fixed voltage scaling bug. Now supports alternative secondary channel analogue inputs
             =======================================================================}
 
 interface
@@ -943,7 +945,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.2.8';
+      ProgVersion := 'V5.2.9';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
