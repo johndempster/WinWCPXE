@@ -28,6 +28,7 @@ unit EditProtocolUnit;
 //          to try to fix failure to open in default protocol folder
 //          when WinWCP installed first time.
 // 09.02.17 DigWave added. Scale/Offset added to Wave
+// 02.10.17 Hint assoociated with ckKeepADCSamplesPerChannelFixed corrected
 
 interface
 

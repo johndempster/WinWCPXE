@@ -26,7 +26,7 @@ object EditProtocolFrm: TEditProtocolFrm
     Top = 200
     Width = 773
     Height = 441
-    ActivePage = StimulusTab
+    ActivePage = RecordTab
     TabOrder = 0
     OnChange = PageChange
     object RecordTab: TTabSheet
@@ -73,7 +73,7 @@ object EditProtocolFrm: TEditProtocolFrm
         TabOrder = 1
         object RecTable: TStringGrid
           Left = 4
-          Top = 10
+          Top = 3
           Width = 301
           Height = 159
           ColCount = 2
@@ -102,11 +102,11 @@ object EditProtocolFrm: TEditProtocolFrm
             18)
         end
         object ckFixedSamplesPerChannel: TCheckBox
-          Left = 311
-          Top = 126
+          Left = 309
+          Top = 122
           Width = 52
           Height = 17
-          Hint = 'Keep A/D sampling interval fixed'
+          Hint = 'Keep number of A/D samples per channel fixed'
           Caption = 'Fixed'
           Font.Charset = ANSI_CHARSET
           Font.Color = clWindowText

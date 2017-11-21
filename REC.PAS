@@ -813,6 +813,11 @@ begin
                { End of sweep processing }
                if EndOfSweep then begin
     //              t0 := timegettime ;
+
+                   if Main.SESLabIO.DACActive then begin
+                     Main.SESLabIO.DACStop ;
+                     end ;
+
                   { Stop A/D conversion ... unless in detect event mode }
                   if cbRecordingMode.ItemIndex <> rmDetect then begin
                      Main.SESLabIO.ADCStop ;
@@ -829,9 +834,6 @@ begin
                   { If in repeated sweep modes request another sweep
                     (unless recording aborted by user) }
 
-                  if Main.SESLabIO.DACActive then begin
-                     Main.SESLabIO.DACStop ;
-                     end ;
 
                   if AbortRecording then begin
                      StopSweep ;
@@ -913,7 +915,7 @@ begin
         if (Main.SESLabIO.StimulusStartFlag = True) and
            (not Main.SESLabIO.DACActive) and
            (not bRecord.enabled) then begin
-           outputdebugstring(pchar('stimulus started'));
+//           outputdebugstring(pchar('stimulus started'));
            Main.SESLabIO.StartStimulus ;
            end ;
 

@@ -700,6 +700,7 @@ unit MDIForm;
                      ImportFromDataFile(): Multiple files can now be selected for import to WCP file format.
    V5.2.9 21.09.17   HekaUnit.pas code changed to try to get it working with EPC-9 USB
                      NPI ELC-03XS gain telegraph support updated fixed voltage scaling bug. Now supports alternative secondary channel analogue inputs
+   V5.3.0 21.11.17   D/A update rate of NI USB-600X devices now forced to be no more than 500 Hz to avoid intermittent 5 sec delays when calling .ADCStop.
             =======================================================================}
 
 interface
@@ -945,7 +946,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.2.9';
+      ProgVersion := 'V5.3.0';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

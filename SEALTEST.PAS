@@ -285,6 +285,8 @@ type
 
   public
     { Public declarations }
+    t0 : integer ;
+    t0max : integer ;
     State : Integer ;
     LoadEPC9Panel : Boolean ;
     procedure StopADCandDAC ;
@@ -332,7 +334,8 @@ procedure TSealTestFrm.FormShow(Sender: TObject);
 var
    i,ch : Integer ;
 begin
-
+     t0 := 0 ;
+     t0Max := 0 ;
      // Exit if no interface selected
      if (Main.SESLabIO.LabInterfaceType = NoInterface12) or
         (Main.SESLabIO.LabInterfaceType = NoInterface16) then begin
@@ -532,8 +535,6 @@ begin
      if not TimerBusy then begin
           TimerBusy := True ;
 
-          outputdebugstring(pchar(format('%d State=%d',[TimeGetTime(),State])));
-
           if LoadEPC9Panel then begin
                Main.mnEPC9Panel.Enabled := True ;
                 Main.mnEPC9Panel.Click ;
@@ -542,6 +543,10 @@ begin
           case State of
 
                StartSweep : Begin
+//                   if t0 = 0 then t0 := timegettime;
+//                   t0max := Max(timegettime-t0,t0max) ;
+//                   outputdebugstring(pchar(format('%d %d',[timegettime-t0, t0max])));
+//                   t0 := timegettime ;
 
                    { Start recording sweep(s) }
 
@@ -619,7 +624,9 @@ begin
                    EndOfSweepCount := 0 ;
 
                    Main.SESLabIO.ADCStart ;
+  //                 outputdebugstring(pchar('startsweep: ADCStart done'));
                    Main.SESLabIO.DACStart ;
+  //                 outputdebugstring(pchar('startsweep: ADCStart done'));
                    if Main.SESLabIO.ADCActive then State := SweepInProgress
                                               else State := Idle ;
 
@@ -631,7 +638,7 @@ begin
                    { Update A/D buffer with samples from interface }
 
                    Main.SESLabIO.ADCBufferRefresh ;
-
+    //                  outputdebugstring(pchar('sweepinprogress: ADCBufferRefresh done'));
 
                    // if all samples have been acquired, display on screen
                    if ADC[EndOfBuf] <> -EmptyFlag then Inc(EndOfSweepCount) ;
@@ -645,17 +652,22 @@ begin
 
                       // Stop recording
                       if Main.SESLabIO.ADCActive then Main.SESLabIO.ADCStop ;
+//                      outputdebugstring(pchar('sweepinprogress: ADCStop done'));
                       if Main.SESLabIO.DACActive then Main.SESLabIO.DACStop ;
+//                      outputdebugstring(pchar('sweepinprogress: DACStop done'));
 
                       State := EndOfSweep ;
                       end ;
 
                    { Procedure to be done when recording sweep completes }
                    if State = EndOfSweep then begin
-
-                       { Analyse and display test pulse results }
-                       Main.SESLabIO.ADCStop ;
                        Main.SESLabIO.DACStop ;
+                       { Analyse and display test pulse results }
+     //                  outputdebugstring(pchar('endofsweep: ADCStop called'));
+                       Main.SESLabIO.ADCStop ;
+    //                   outputdebugstring(pchar('endofsweep: ADCStop done'));
+
+     //                  outputdebugstring(pchar('endofsweep: DACStop done'));
                        AnalyseTestPulse ;
 
                        FirstSweep := False ;
