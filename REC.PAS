@@ -124,6 +124,8 @@ unit Rec;
   19.07.17 .. Amplifier.GetChannelSettings() now returns ADCInput, so
               secondary channel analogue input for be changed in CC mode
               for Axopatch 200 and AMS-2400
+  13.12.17 .. Real-time plot cursors now updated from settinfs.recplot within UpdateDisplay() to ensure cursors
+              remain on screen if number of samples/record change
 
   ==============================================================================}
 interface
@@ -707,6 +709,14 @@ begin
          cbDetectChannel.items.Add(format('Ch.%d %s',[ch,Main.SESLabIO.ADCChannelName[ch]])) ;
      cbDetectChannel.ItemIndex := IntLimitTo(Settings.EventDetector.Channel,
                                   0,Main.SESLabIO.ADCNumChannels-1) ;
+
+     if not bOpenOLAWindow.Enabled then begin
+        scDisplay.VerticalCursors[C0Cursor] := Round(Settings.RecPlot.Cursor0*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C1Cursor] := Round(Settings.RecPlot.Cursor1*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C2Cursor] := Round(Settings.RecPlot.Cursor2*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C3Cursor] := Round(Settings.RecPlot.Cursor3*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C4Cursor] := Round(Settings.RecPlot.Cursor4*scDisplay.MaxPoints) ;
+        end ;
 
      end ;
 
@@ -2415,7 +2425,7 @@ procedure TRecordFrm.bCloseOLAWindowClick(Sender: TObject);
 begin
      scDisplay.ClearVerticalCursors ;
      scDisplay.Invalidate ;
-     
+
      if Main.FormExists( 'RecPlotFrm' ) then begin
         RecPlotFrm.Close  ;
         end ;
