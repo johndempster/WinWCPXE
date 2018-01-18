@@ -624,21 +624,16 @@ begin
                    EndOfSweepCount := 0 ;
 
                    Main.SESLabIO.ADCStart ;
-  //                 outputdebugstring(pchar('startsweep: ADCStart done'));
                    Main.SESLabIO.DACStart ;
-  //                 outputdebugstring(pchar('startsweep: ADCStart done'));
                    if Main.SESLabIO.ADCActive then State := SweepInProgress
                                               else State := Idle ;
-
                    End ;
 
                SweepInProgress : Begin
                    { Erase display & Draw horizontal zero level cursor(s) }
 
                    { Update A/D buffer with samples from interface }
-
                    Main.SESLabIO.ADCBufferRefresh ;
-    //                  outputdebugstring(pchar('sweepinprogress: ADCBufferRefresh done'));
 
                    // if all samples have been acquired, display on screen
                    if ADC[EndOfBuf] <> -EmptyFlag then Inc(EndOfSweepCount) ;
@@ -646,28 +641,19 @@ begin
                    if EndOfSweepCount >= 2 then begin
                       // Clear display
                       InitialiseDisplay ;
-
                       // Update with new points
                       scDisplay.DisplayNewPoints( NumTestSamples ) ;
-
                       // Stop recording
                       if Main.SESLabIO.ADCActive then Main.SESLabIO.ADCStop ;
-//                      outputdebugstring(pchar('sweepinprogress: ADCStop done'));
                       if Main.SESLabIO.DACActive then Main.SESLabIO.DACStop ;
-//                      outputdebugstring(pchar('sweepinprogress: DACStop done'));
-
                       State := EndOfSweep ;
                       end ;
 
                    { Procedure to be done when recording sweep completes }
                    if State = EndOfSweep then begin
-                       Main.SESLabIO.DACStop ;
                        { Analyse and display test pulse results }
-     //                  outputdebugstring(pchar('endofsweep: ADCStop called'));
+                       Main.SESLabIO.DACStop ;
                        Main.SESLabIO.ADCStop ;
-    //                   outputdebugstring(pchar('endofsweep: ADCStop done'));
-
-     //                  outputdebugstring(pchar('endofsweep: DACStop done'));
                        AnalyseTestPulse ;
 
                        FirstSweep := False ;

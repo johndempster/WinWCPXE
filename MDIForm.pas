@@ -703,6 +703,7 @@ unit MDIForm;
    V5.3.0 21.11.17   D/A update rate of NI USB-600X devices now forced to be no more than 500 Hz to avoid intermittent 5 sec delays when calling .ADCStop.
    V5.3.1 25.11.17   Unsupported function error prevented for non-600X boards fixing problem introduced V3.7.9
    V5.3.2 13.12.17   Position of real-time plot analysis area cursors on recording window now maintained when number of samples/record changes.
+   V5.3.3 18.01.17   Amplifiers: AMS-2400 voltage gain in current clamp mode now detected correctly.
 
             =======================================================================}
 
@@ -949,7 +950,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.3.2';
+      ProgVersion := 'V5.3.3';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
