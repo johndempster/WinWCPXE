@@ -84,6 +84,9 @@ unit Measure;
   28.02.17 .. 0-100% quantile measurement added
   03.03.17 .. .Close form event now terminates bDoAnalysis.Click event before
               closing form to prevent access violation
+  12.02.18 .. %Quantile now calculated using sample of max. 5000 points from analysis area
+              and quicksort() algorithm to speed up sorting because original
+              bubblesort algorithm is too slow when 10000 point records analysed
   ==========================================================================}
 interface
 
@@ -92,7 +95,7 @@ uses
   Forms, Dialogs, StdCtrls, Grids, ExtCtrls, TabNotBk, Global, Shared, FileIo,
   Zero, SetAxes, SetVar, Printers, ClipBrd, maths,
   ScopeDisplay, XYPlotDisplay, ComCtrls, ValEdit, RangeEdit, Spin,
-  ValidatedEdit, math, seslabio, strutils  ;
+  ValidatedEdit, math, seslabio, strutils, MMSYSTEM  ;
 
 type
 
@@ -382,6 +385,8 @@ TMeasureFrmCursors = Record
               var SortBuf : Array of Single ;
               nPoints : Integer
               ) ;
+
+    procedure QuickSort(var A: array of Single ; iLo, iHi: Integer) ;
 
   public
     { Public declarations }
@@ -886,7 +891,7 @@ var
    Diff,MaxDiff : single ;
    A : array[-15..15] of single ;
    ASum : single ;
-   iStart,iEnd,jLow,jHigh,iTimeZero : Integer ;
+   iStart,iEnd,jLow,jHigh,iTimeZero,iStep : Integer ;
    row,col : Integer ;
    iY,i0,i1,j0,j1 : Integer ;
    EndPoint : Integer ;
@@ -1214,15 +1219,17 @@ begin
 
                 // Calculate X% quantile
                 GetMem(SortBuf,Max(iEnd-iStart + 1,1)*SizeOf(Single));
-                j := iStart*fH.NumChannels + Channel[ch].ChannelOffset ;
                 nSort := 0 ;
-                for i := iStart to iEnd do
+                i := iStart ;
+                iStep := Max((iEnd - iStart) div 5000,1) ;
+                while i <= iEnd do
                     begin
-                    SortBuf^[nSort] := ADC^[j] ;
-                    j := j + fH.NumChannels ;
+                    SortBuf^[nSort] := ADC^[i*fH.NumChannels + Channel[ch].ChannelOffset] ;
                     Inc(nSort) ;
+                    i := i + iStep ;
                     end ;
-                SortBuffer(SortBuf^,nSort) ;
+//                SortBuffer(SortBuf^,nSort) ;
+                QuickSort( SortBuf^, 0, nSort-1) ;
                 iQuantile := Max(Round(edQuantilePercentage.Value*nSort*0.01)-1,0);
                 rH.Value[vStart + vQuantile] := SortBuf^[iQuantile]*Channel[ch].ADCScale ;
                 FreeMem(SortBuf) ;
@@ -3449,6 +3456,36 @@ begin
          end ;
      end ;
 
+
+procedure TMeasureFrm.QuickSort(var A: array of Single ; iLo, iHi: Integer) ;
+// --------------------
+// Quick sort algorithm
+// --------------------
+// Modified from http://delphisourcecodes.blogspot.co.uk/2011/12/delphi-quicksort-algorithm.html 12.02.18
+
+ var
+   Lo, Hi : Integer;
+   T,Pivot : single ;
+ begin
+   Lo := iLo;
+   Hi := iHi;
+//   Pivot := A[(Lo + Hi) div 2];
+   Pivot := A[Random(iHi-iLo+1)+iLo] ;
+   repeat
+     while A[Lo] < Pivot do Inc(Lo) ;
+     while A[Hi] > Pivot do Dec(Hi) ;
+     if Lo <= Hi then
+     begin
+       T := A[Lo];
+       A[Lo] := A[Hi];
+       A[Hi] := T;
+       Inc(Lo) ;
+       Dec(Hi) ;
+     end;
+   until Lo > Hi;
+   if Hi > iLo then QuickSort(A, iLo, Hi) ;
+   if Lo < iHi then QuickSort(A, Lo, iHi) ;
+ end;
 
 
 end.
