@@ -705,6 +705,8 @@ unit MDIForm;
    V5.3.2 13.12.17   Position of real-time plot analysis area cursors on recording window now maintained when number of samples/record changes.
    V5.3.3 18.01.18   Amplifiers: AMS-2400 voltage gain in current clamp mode now detected correctly.
    V5.3.4 12.02.18   Measure.pas %Quantile calculation speeded up using QuickSort and by restricting no. points sorted to a sample of 5000 max. from analysis region
+   V5.3.5 08.05.18   Tecella Triton support updated. Junction potential offset determined in voltage-clamp mode now subtracted from membrane potential in
+                     current-clamp mode. Current stimulus bias current offset can now be added to set stimulus current to zero current-clamp mode.
 
             =======================================================================}
 
@@ -951,7 +953,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.3.4';
+      ProgVersion := 'V5.3.5';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

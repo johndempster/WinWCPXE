@@ -87,7 +87,8 @@ unit Sealtest;
               Amplifier.GetChannelSettings() now returns ADCInput, so
               secondary channel analogue input for be changed in CC mode
               for Axopatch 200 and AMS-2400
-
+  27.04.18 .. Holding levels now calculated from 5% of sweep preceding test pulse (rather than 1st 5%)
+              to avoid errors created when transition exists at beginning
   ==================================================}
 
 interface
@@ -921,7 +922,7 @@ const
     LoLimit = 1E-15 ;
 var
    i,j,ch,iStart,iEnd,n : Integer ;
-   iAvgStart,iAvgEnd,nAvg,EndofVHold,NumSamplesIn : Integer ;
+   iAvgStart,iAvgEnd,nAvg,NumSamplesIn : Integer ;
    NewDisplayScale,NewDisplayRange,HalfRange,Mid : Integer ;
    ChIm,ChVm,ChOffset,ChStim,yADC : Integer ;
    HoldLevel,VThreshold,iOffLevel,iOnLevel,PeakAt : Integer ;
@@ -1003,25 +1004,27 @@ begin
      // Calculate current/voltage test pulse amplitudes
      // -----------------------------------------------
 
+     // Holding average region (5% preceding test pulse)
+     iEnd := Max( Round(TestPulse.TStart/Main.SESLabIO.ADCSamplingInterval)-1,0 ) ;
+     iStart := Max(iEnd div 2,0) ;
+
      // Holding voltage
      Sum := 0. ;
-     EndofVHold := Max( Round(TestPulse.TStart/
-                           (2.0*Main.SESLabIO.ADCSamplingInterval)),1 ) ;
-     for i := 0 to EndofVHold do begin
+     for i := iStart to iEnd do begin
          j := i*NumTestChannels + VOffset ;
          Sum := Sum + ADC^[j] ;
          end ;
-     Avg := Sum/(EndofVHold+1) ;
+     Avg := Sum/(iEnd - iStart +1) ;
      HoldLevel := Round(Avg) ;
      VHold := (Avg - VZero)*VScale ;
 
      // Holding current
      Sum := 0. ;
-     for i := 0 to EndofVHold do begin
+     for i := iStart to iEnd do begin
          j := i*NumTestChannels + IOffset ;
          Sum := Sum + ADC^[j] ;
          end ;
-     Avg := Sum/(EndofVHold+1) ;
+     Avg := Sum/(iEnd - iStart +1) ;
      IHold := (Avg - IZero)*IScale ;
 
      // Find start / end of test pulse
