@@ -707,6 +707,8 @@ unit MDIForm;
    V5.3.4 12.02.18   Measure.pas %Quantile calculation speeded up using QuickSort and by restricting no. points sorted to a sample of 5000 max. from analysis region
    V5.3.5 08.05.18   Tecella Triton support updated. Junction potential offset determined in voltage-clamp mode now subtracted from membrane potential in
                      current-clamp mode. Current stimulus bias current offset can now be added to set stimulus current to zero current-clamp mode.
+   V5.3.6 16.05.18   Amplifiers: PrimaryScaleFactorX1, SecondayScaleFactorX1 now set in correct units by Multiclamp and therefore appears correctly in Amplifiers Setup.
+   V5.3.7 31.05.18   Sine wave protocol element added to stimulus protocols
 
             =======================================================================}
 
@@ -953,7 +955,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.3.5';
+      ProgVersion := 'V5.3.7';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

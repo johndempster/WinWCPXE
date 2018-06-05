@@ -26,7 +26,7 @@ object EditProtocolFrm: TEditProtocolFrm
     Top = 200
     Width = 773
     Height = 441
-    ActivePage = RecordTab
+    ActivePage = StimulusTab
     TabOrder = 0
     OnChange = PageChange
     object RecordTab: TTabSheet
@@ -9837,7 +9837,7 @@ object EditProtocolFrm: TEditProtocolFrm
         Left = 0
         Top = 0
         Width = 97
-        Height = 313
+        Height = 345
         Caption = ' Toolbox '
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
@@ -10321,8 +10321,8 @@ object EditProtocolFrm: TEditProtocolFrm
           OnMouseDown = Step0MouseDown
         end
         object None: TImage
-          Left = 48
-          Top = 146
+          Left = 8
+          Top = 184
           Width = 32
           Height = 32
           Hint = 'No Waveform'
@@ -10402,7 +10402,7 @@ object EditProtocolFrm: TEditProtocolFrm
         end
         object DigStep0: TImage
           Left = 8
-          Top = 216
+          Top = 248
           Width = 32
           Height = 24
           Hint = 'Digital pulse (fixed duration)'
@@ -10473,7 +10473,7 @@ object EditProtocolFrm: TEditProtocolFrm
         end
         object DigStep1: TImage
           Left = 48
-          Top = 216
+          Top = 248
           Width = 32
           Height = 24
           Hint = 'Family of digital pulses (varying duration)'
@@ -10544,7 +10544,7 @@ object EditProtocolFrm: TEditProtocolFrm
         end
         object DigTrain: TImage
           Left = 8
-          Top = 244
+          Top = 276
           Width = 32
           Height = 24
           Hint = 'Series of digital pulses'
@@ -10616,7 +10616,7 @@ object EditProtocolFrm: TEditProtocolFrm
         object DigNone: TImage
           Tag = 10
           Left = 9
-          Top = 274
+          Top = 306
           Width = 32
           Height = 24
           Hint = 'No digital waveform'
@@ -10700,8 +10700,8 @@ object EditProtocolFrm: TEditProtocolFrm
           ParentFont = False
         end
         object Label9: TLabel
-          Left = 8
-          Top = 198
+          Left = 11
+          Top = 227
           Width = 60
           Height = 15
           Caption = 'DO Pulses'
@@ -10795,7 +10795,7 @@ object EditProtocolFrm: TEditProtocolFrm
         end
         object DigTrainHz: TImage
           Left = 46
-          Top = 244
+          Top = 276
           Width = 32
           Height = 24
           Hint = 'Series of digital pulses (rate incremented by frequency)'
@@ -10867,7 +10867,7 @@ object EditProtocolFrm: TEditProtocolFrm
         object DigWave: TImage
           Tag = 10
           Left = 47
-          Top = 274
+          Top = 306
           Width = 32
           Height = 24
           Hint = 'User defined digital pattern'
@@ -10935,6 +10935,39 @@ object EditProtocolFrm: TEditProtocolFrm
             FFFF}
           ShowHint = True
           Stretch = True
+          OnMouseDown = Step0MouseDown
+        end
+        object Sine: TImage
+          Left = 46
+          Top = 146
+          Width = 32
+          Height = 32
+          Hint = 'Sine wave'
+          AutoSize = True
+          ParentShowHint = False
+          Picture.Data = {
+            07544269746D617076020000424D760200000000000076000000280000002000
+            0000200000000100040000000000000200000000000000000000100000000000
+            0000000000000000800000800000008080008000000080008000808000008080
+            8000C0C0C0000000FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFF
+            FF00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            FFFFFFFFFFFFFFFFF9FFFFFFFF9FFFFFFFFFFFFFFFFFFFFF9F9FFFFFF9F9FFFF
+            FFFFFFFFFFFFFFFF9F9FFFFFF9F9FFFFFFFFFFFFFFFFFFF9FFF9FFFF9FFF9FFF
+            FFFFFFFFFFFFFFF9FFF9FFFF9FFF9FFFFFFFFFFFFFFFFFF9FFF9FFFF9FFF9FFF
+            FFFFFFFFFFFFFFF9FFF9FFFF9FFF9FFFFFFFFFFF9999FFF9FFFF9FFF9FFFF999
+            FFFFFFFFFFF9FFF9FFFF9FFF9FFFFFFFFFFFFFFFFFF9FFF9FFFF9FFF9FFFFFFF
+            FFFFFFFFFFF9FFF9FFFF9FFF9FFFFFFFFFFFFFFFFFFF9F9FFFFFF9F9FFFFFFFF
+            FFFFFFFFFFFF9F9FFFFFF9F9FFFFFFFFFFFFFFFFFFFFF9FFFFFFFF9FFFFFFFFF
+            FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            FFFF}
+          ShowHint = True
           OnMouseDown = Step0MouseDown
         end
       end
@@ -11034,6 +11067,10 @@ object EditProtocolFrm: TEditProtocolFrm
     object GlobalTab: TTabSheet
       Caption = 'Global Variables'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object GroupBox4: TGroupBox
         Left = 0
         Top = 0

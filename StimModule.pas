@@ -58,6 +58,7 @@ unit StimModule;
   09.02.17 DigWave added. Scale/Offset parameters added to Wave
            SetADCDACUpdateIntervals() now sets D/A update to digWave user-def. waveforms.
   01.03.17 FillDigWave() function added. TScale & TUnits now set in FormShow()
+  31.05.18 Sine wave protocol added.
   =============================================}
 
 interface
@@ -92,6 +93,7 @@ const
     wvpTrainHz = 11 ;
     wvDigTrainHz = 12 ;
     wvDigWave = 13 ;     // User defined digital pattern
+    wvSine = 14 ;        // Sine wave protocol
 
     spNone = -1 ;
     spDelay = 0 ;
@@ -556,7 +558,9 @@ var
     DigWord,Bit : Integer ;
     DACCounter,DigCounter : Integer ;
     StartAt,EndAt,NumPoints : Integer ;
-    Scale,Offset : single ;
+    Scale,Offset,T,ScaleToPhaseAngle : single ;
+    np : Integer ;
+    VBuf : PSingleArray ;
 begin
 
      // Calculate DAC update interval
@@ -706,30 +710,60 @@ begin
                             DACCounter) ;
                 end ;
 
-             for iPulse := 0 to NumPulses-1 do begin
+             if (Prot.Stimulus[iElem].WaveShape = Ord(wvSine)) then begin
+                // Create sine wave
+                // ----------------
+                VBuf := AllocMem( (Round(Duration/DACUpdateInterval) + 1)*SizeOf(Single) ) ;
+                T := 0.0 ;
+                np := 0 ;
+                ScaleToPhaseAngle := (2.0*pi()) / PulsePeriod ;
+                while t <= Duration do begin
+                    VBuf^[np] := Prot.AOHoldingLevel[AONum] + StartAmplitude*sin(ScaleToPhaseAngle*T);
+                    T := T + DACUpdateInterval ;
+                    Inc(np) ;
+                    end ;
 
-                 if iPulse > 0 then begin
-                    // Inter-pulse period
+                FillDACBufWave( AONum,
+                                NumDACChannels,
+                                VBuf^,
+                                0,
+                                np,
+                                1.0,
+                                0,
+                                Buf,
+                                DACCounter) ;
+
+                FreeMem(VBuf) ;
+
+                end
+             else begin
+                // Create step waveforms
+                // ---------------------
+                for iPulse := 0 to NumPulses-1 do begin
+
+                    if iPulse > 0 then begin
+                       // Inter-pulse period
+                       FillDACBuf( AONum,
+                                   NumDACChannels,
+                                   Prot.AOHoldingLevel[AONum],
+                                   Prot.AOHoldingLevel[AONum],
+                                   PulsePeriod - Duration,
+                                   Buf,
+                                   DACCounter) ;
+                       end ;
+
+                    // Start of pulse
                     FillDACBuf( AONum,
                                 NumDACChannels,
-                                Prot.AOHoldingLevel[AONum],
-                                Prot.AOHoldingLevel[AONum],
-                                PulsePeriod - Duration,
+                                Prot.AOHoldingLevel[AONum] + StartAmplitude,
+                                Prot.AOHoldingLevel[AONum] + EndAmplitude,
+                                Duration,
                                 Buf,
                                 DACCounter) ;
                     end ;
+                end ;
 
-                 // Start of pulse
-                 FillDACBuf( AONum,
-                             NumDACChannels,
-                             Prot.AOHoldingLevel[AONum] + StartAmplitude,
-                             Prot.AOHoldingLevel[AONum] + EndAmplitude,
-                             Duration,
-                             Buf,
-                             DACCounter) ;
-                 end ;
-
-             // Plot user-defined waveform
+             // Create user-defined waveform
              if (Prot.Stimulus[iElem].WaveShape = Ord(wvWave)) and
                 (Prot.Stimulus[iElem].Buf <> Nil) then
                 begin
@@ -1638,14 +1672,14 @@ begin
                          iElem := DOElementsStart + (i-10)*MaxStimElementsPerChannels ;
                          Prot^.NumDOChannels := Max(Prot^.NumDOChannels,i-9) ;
                          end ;
-
+                    else iElem := 0 ;
                     end ;
 
                   Prot^.Stimulus[iElem].Waveshape := Ord(VPRProg.Shape[i]) ;
 
                   // Delay
                   case Prot^.Stimulus[iElem].Waveshape of
-                     wvStep0, wvStep1, wvStep2, wvRamp, wvpTrain, wvWave,
+                     wvStep0, wvStep1, wvStep2, wvRamp, wvpTrain, wvWave, wvSine,
                      wvDigStep0,wvDigStep1, wvDigTrain : begin
                         SetElement(Prot^, iElem,spDelay,VPRProg.Delay[i]) ;
                         end ;
@@ -1653,7 +1687,7 @@ begin
 
                   // Duration
                   case Prot^.Stimulus[iElem].Waveshape of
-                     wvStep0, wvStep1, wvStep2, wvRamp, wvpTrain,
+                     wvStep0, wvStep1, wvStep2, wvRamp, wvpTrain,wvSine,
                      wvDigStep0,wvDigStep1, wvDigTrain : begin
                         SetElement(Prot^, iElem,spDuration,VPRProg.Duration[i]) ;
                         end ;
@@ -1661,7 +1695,7 @@ begin
 
                   // Amplitude
                   case Prot^.Stimulus[iElem].Waveshape of
-                     wvStep0, wvStep1, wvStep2, wvpTrain : begin
+                     wvStep0, wvStep1, wvStep2, wvpTrain,wvSine : begin
                         SetElement(Prot^, iElem,spStartAmplitude,VPRProg.Amplitude[i]*1E3) ;
                         end ;
                      end ;
@@ -1699,7 +1733,7 @@ begin
 
                   // Repeat pulse interval
                   case Prot^.Stimulus[iElem].Waveshape of
-                     wvpTrain,wvDigTrain : begin
+                     wvpTrain,wvDigTrain,wvSine : begin
                         SetElement(Prot^,iElem,spRepeatPeriod,VPRProg.PulseInterval[i]) ;
                         SetElement(Prot^,iElem,spNumRepeats,VPRProg.NumPulses[i]) ;
                         end ;
@@ -2098,7 +2132,7 @@ procedure TStimulator.LoadProtocolFromXMLFile1(
 // ----------------------------------
 var
    iNode,ProtNode : IXMLNode;
-   i,ChanNum,iElement : Integer ;
+   ChanNum,iElement : Integer ;
 
    NodeIndex : Integer ;
    ChanType : String ;
@@ -2313,6 +2347,8 @@ begin
         end ;
 
      NumPoints := 0 ;
+     TOld := 0.0 ;
+     dt := 1.0 ;
      repeat
             // Read line
             ReadLn( F, s ) ;

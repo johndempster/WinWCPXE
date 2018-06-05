@@ -29,6 +29,7 @@ unit EditProtocolUnit;
 //          when WinWCP installed first time.
 // 09.02.17 DigWave added. Scale/Offset added to Wave
 // 02.10.17 Hint assoociated with ckKeepADCSamplesPerChannelFixed corrected
+// 31.05.18 Sine wave protocol added.
 
 interface
 
@@ -348,6 +349,7 @@ type
     DigTrainHz: TImage;
     lbError: TLabel;
     DigWave: TImage;
+    Sine: TImage;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -540,6 +542,9 @@ begin
 
      Wave.Tag := Ord( wvWave ) ;
      WaveShapeImage[Wave.Tag] := Wave ;
+
+     Sine.Tag := Ord( wvSine ) ;
+     WaveShapeImage[Sine.Tag] := Sine ;
 
      None.Tag := Ord(wvNone) ;
      WaveShapeImage[None.Tag] := None ;
@@ -1155,6 +1160,26 @@ begin
            ParamList[5].Units := '' ;
            ParamList[5].Scale := 1. ;
            end ;
+        wvSine : begin
+           ParamList[0].Index := spDelay ;
+           ParamList[0].Units := TUnits ;
+           ParamList[0].Scale := TScale ;
+           ParamList[1].Index := spStartAmplitude ;
+           ParamList[1].Units := StimType ;
+           ParamList[1].Scale := 1. ;
+           ParamList[2].Index := spStartAmplitudeInc ;
+           ParamList[2].Units := StimType ;
+           ParamList[2].Scale := 1.0 ;
+           ParamList[3].Index := spDuration ;
+           ParamList[3].Units :=  TUnits ;
+           ParamList[3].Scale := TScale ;
+           ParamList[4].Index := spFrequency ;
+           ParamList[4].Units :=  'Hz' ;
+           ParamList[4].Scale := 1.0 ;
+           ParamList[5].Index := spFrequencyInc ;
+           ParamList[5].Units :=  'Hz' ;
+           ParamList[5].Scale := 1.0 ;
+           end ;
         wvDigStep0 : begin
            ParamList[0].Index := spDelay ;
            ParamList[0].Units := TUnits ;
@@ -1649,6 +1674,7 @@ procedure TEditProtocolFrm.DisplayStimulusProtocol(
 // -------------------------
 const
     DisplayVoltageRange = 10.0 ;
+    nSinePoints = 100 ;
 var
     Top :Integer ;
     Left :Integer ;
@@ -1694,7 +1720,8 @@ var
     State : Integer ;
     s : string ;
     StartAt,EndAt,NumPoints : Integer ;
-    Scale,Offset : single ;
+    Scale,Offset,TStart,TEnd,ScaleToPhaseAngle : single ;
+
 begin
 
      pbDisplay.canvas.Font.Size := 8 ;
@@ -1874,29 +1901,47 @@ begin
 
                 for iPulse := 0 to NumPulses-1 do begin
 
-                    if iPulse > 0 then begin
-                    // Back to holding level
-                    Y := Prot.AOHoldingLevel[AONum] ;
-                    pbDisplay.canvas.LineTo( XScale( AOPlot[AONum],0.0, StimulusDuration, T ),
-                                               YScale(AOPlot[AONum],YMin,YMax,Y)) ;
-
-                       // Inter-pulse period
-                       T := T + PulsePeriod - Duration ;
+                    if (Prot.Stimulus[iElem].WaveShape = Ord(wvSine)) then begin
+                       // Sine waveform
                        Y := Prot.AOHoldingLevel[AONum] ;
-                       pbDisplay.canvas.LineTo( XScale( AOPlot[AONum],0.0, StimulusDuration, T ),
+                       pbDisplay.canvas.MoveTo( XScale( AOPlot[AONum],0.0, StimulusDuration,T ),
+                                                YScale(AOPlot[AONum],YMin,YMax,Y)) ;
+                       TStart := T ;
+                       TEnd := T + Duration ;
+                      dt := StimulusDuration/2000.0 ;
+                      ScaleToPhaseAngle := (2.0*pi()) / PulsePeriod ;
+                      while T < TEnd do begin
+                          Y := Prot.AOHoldingLevel[AONum] + StartAmplitude*sin(ScaleToPhaseAngle*(T-TStart)) ;
+                          T := T + dT ;
+                          pbDisplay.canvas.LineTo( XScale( AOPlot[AONum],0.0, StimulusDuration, T ),
+                                                   YScale(AOPlot[AONum],YMin,YMax,Y)) ;
+                          end ;
+                       end
+                    else begin
+                       // Step waveforms
+                       if iPulse > 0 then begin
+                          // Back to holding level
+                          Y := Prot.AOHoldingLevel[AONum] ;
+                          pbDisplay.canvas.LineTo( XScale( AOPlot[AONum],0.0, StimulusDuration, T ),
+                                                YScale(AOPlot[AONum],YMin,YMax,Y)) ;
+                          // Inter-pulse period
+                          T := T + PulsePeriod - Duration ;
+                          Y := Prot.AOHoldingLevel[AONum] ;
+                          pbDisplay.canvas.LineTo( XScale( AOPlot[AONum],0.0, StimulusDuration, T ),
                                                   YScale(AOPlot[AONum],YMin,YMax,Y)) ;
-                       end ;
+                          end ;
 
-                    // Start of pulse
-                    Y := Prot.AOHoldingLevel[AONum] + StartAmplitude ;
-                    pbDisplay.canvas.LineTo( XScale( AOPlot[AONum],0.0, StimulusDuration, T ),
-                                           YScale(AOPlot[AONum],YMin,YMax,Y)) ;
-                    // End of pulse
-                    T := T + Duration ;
-                    Y := Prot.AOHoldingLevel[AONum] + EndAmplitude ;
-                    pbDisplay.canvas.LineTo( XScale( AOPlot[AONum],0.0, StimulusDuration, T ),
+                       // Start of pulse
+                       Y := Prot.AOHoldingLevel[AONum] + StartAmplitude ;
+                       pbDisplay.canvas.LineTo( XScale( AOPlot[AONum],0.0, StimulusDuration, T ),
+                                                YScale(AOPlot[AONum],YMin,YMax,Y)) ;
+                       // End of pulse
+                       T := T + Duration ;
+                       Y := Prot.AOHoldingLevel[AONum] + EndAmplitude ;
+                       pbDisplay.canvas.LineTo( XScale( AOPlot[AONum],0.0, StimulusDuration, T ),
                                                YScale(AOPlot[AONum],YMin,YMax,Y)) ;
-                    end ;
+                       end ;
+                   end;
 
                 // Plot user-defined waveform
                 if (Prot.Stimulus[iElem].WaveShape = Ord(wvWave)) and
@@ -2159,6 +2204,7 @@ begin
 
          // Start amplitude
          if Prot.Stimulus[iElem].Parameters[spStartAmplitude].Exists then begin
+
             Y := Prot.Stimulus[iElem].Parameters[spStartAmplitude].Value + Prot.AOHoldingLevel[AONum] ;
             YMax := Max(YMax,Y) ;
             YMin := Min(YMin,Y) ;
@@ -2167,6 +2213,11 @@ begin
                YMax := Max(YMax,Y) ;
                YMin := Min(YMin,Y) ;
                end ;
+            // If sine wave include negative half of sine wave
+            if Prot.Stimulus[iElem].WaveShape = wvSine then begin
+               YMin := Min(-(YMax - Prot.AOHoldingLevel[AONum]) + Prot.AOHoldingLevel[AONum],YMin) ;
+               end;
+
             end ;
 
          // End amplitude
