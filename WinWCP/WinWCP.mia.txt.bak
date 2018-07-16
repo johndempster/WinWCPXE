@@ -217,8 +217,8 @@ else
   Comment: Install/Re-Install product
   Create Shortcut $SHORTCUTFOLDER$\Uninstall #TITLE# to $UNINSTALLLINK$
   [OFFLINE CONTENT]
-  Create Shortcut $SHORTCUTFOLDER$\WinWCP V5.3.5 to $TARGETDIR$\winwcp.exe
-  Create Shortcut $DESKTOPDIR$\WinWCP V5.3.5 to $TARGETDIR$\winwcp.exe
+  Create Shortcut $SHORTCUTFOLDER$\WinWCP V5.3.7 to $TARGETDIR$\winwcp.exe
+  Create Shortcut $DESKTOPDIR$\WinWCP V5.3.7 to $TARGETDIR$\winwcp.exe
   Create Shortcut $SHORTCUTFOLDER$\WinWCP User Guide to $TARGETDIR$\WinWCP User Guide.pdf
   Create Shortcut $SHORTCUTFOLDER$\Install Digidata1200 Win 95-98 Support to $TARGETDIR$\Digidata 1200 Support\Win 95-98\DD1200 Win 95 Support.exe
   Create Shortcut $SHORTCUTFOLDER$\Install Digidata 1200 Driver (Windows NT,2000,XP) to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP\Install Digidata 1200 Driver (Windows NT,2000,XP).bat

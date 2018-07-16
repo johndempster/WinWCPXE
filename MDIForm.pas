@@ -709,6 +709,7 @@ unit MDIForm;
                      current-clamp mode. Current stimulus bias current offset can now be added to set stimulus current to zero current-clamp mode.
    V5.3.6 16.05.18   Amplifiers: PrimaryScaleFactorX1, SecondayScaleFactorX1 now set in correct units by Multiclamp and therefore appears correctly in Amplifiers Setup.
    V5.3.7 31.05.18   Sine wave protocol element added to stimulus protocols
+   V5.3.8 16.07.18   DD1550B.DLL now included in installation file
 
             =======================================================================}
 
@@ -955,7 +956,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.3.7';
+      ProgVersion := 'V5.3.8';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
