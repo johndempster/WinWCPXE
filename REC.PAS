@@ -261,6 +261,7 @@ type
     rbVCLAMP3: TRadioButton;
     rbICLAMP3: TRadioButton;
     ckNewFileOnRecord: TCheckBox;
+    bFindCursors: TButton;
     procedure TimerTimer(Sender: TObject);
     procedure bRecordClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
@@ -306,6 +307,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure ckNewFileOnRecordClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure bFindCursorsClick(Sender: TObject);
   private
     { Private declarations }
 
@@ -385,6 +387,7 @@ type
              Initialise : Boolean              // True = Initialise protocol counter
              ) : Boolean ;
     procedure DisplayClampMode ;
+    procedure AddOLAWCursors ;
 
   public
     { Public declarations }
@@ -2070,6 +2073,21 @@ begin
      end;
 
 
+procedure TRecordFrm.bFindCursorsClick(Sender: TObject);
+// -------------------------------------------------------------
+// Move on-line analysis cursors to default locations on display
+// -------------------------------------------------------------
+begin
+    Settings.RecPlot.Cursor0 := 0.01 ;
+    Settings.RecPlot.Cursor1 := 0.05 ;
+    Settings.RecPlot.Cursor2 := 0.8 ;
+    Settings.RecPlot.Cursor3 := 0.9 ;
+    Settings.RecPlot.Cursor4 := 0.95 ;
+    if Main.FormExists( 'RecPlotFrm' ) then AddOLAWCursors ;
+
+    end;
+
+
 procedure TRecordFrm.edPreTriggerKeyPress(Sender: TObject; var Key: Char);
 { ----------------------------------
   Get event detection pre-trigger %
@@ -2378,6 +2396,31 @@ begin
      // Update display to ensure window duration is valid
      UpdateDisplay(False) ;
 
+     // Add cursors
+     AddOLAWCursors ;
+
+     if not Main.FormExists( 'RecPlotFrm' ) then begin
+        RecPlotFrm := TRecPlotFrm.Create(Self) ;
+        // Make space for on-line window
+        RecordFrm.Width := Min( (Main.ClientWidth*2) div 3, RecordFrm.Width) ;
+        RecPlotFrm.Width :=  Main.ClientWidth - RecordFrm.Left - RecordFrm.Width - 5 ;
+        RecPlotFrm.Left := RecordFrm.Left + RecordFrm.Width + 2 ;
+        RecPlotFrm.Top := 10 ;
+        end ;
+
+     bCloseOLAWindow.Enabled := True ;
+     bFindCursors.Enabled := True ;
+     bOpenOLAWindow.Enabled := False ;
+
+     end;
+
+
+procedure TRecordFrm.AddOLAWCursors ;
+// ----------------------------
+// Add on-line analysis cursors
+// ----------------------------
+begin
+
      scDisplay.ClearVerticalCursors ;
 
      C0Cursor := scDisplay.AddVerticalCursor(-1,clOlive,'0') ;
@@ -2404,19 +2447,8 @@ begin
 
      scDisplay.Invalidate ;
 
-     if not Main.FormExists( 'RecPlotFrm' ) then begin
-        RecPlotFrm := TRecPlotFrm.Create(Self) ;
-        // Make space for on-line window
-        RecordFrm.Width := Min( (Main.ClientWidth*2) div 3, RecordFrm.Width) ;
-        RecPlotFrm.Width :=  Main.ClientWidth - RecordFrm.Left - RecordFrm.Width - 5 ;
-        RecPlotFrm.Left := RecordFrm.Left + RecordFrm.Width + 2 ;
-        RecPlotFrm.Top := 10 ;
-        end ;
-
-     bCloseOLAWindow.Enabled := True ;
-     bOpenOLAWindow.Enabled := False ;
-
      end;
+
 
 procedure TRecordFrm.bCloseOLAWindowClick(Sender: TObject);
 // -----------------------------
@@ -2431,6 +2463,7 @@ begin
         end ;
 
      bCloseOLAWindow.Enabled := False ;
+     bFindCursors.Enabled := False ;
      bOpenOLAWindow.Enabled := True ;
 
      end ;

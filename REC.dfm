@@ -476,8 +476,8 @@ object RecordFrm: TRecordFrm
     OnKeyPress = edIdentKeyPress
   end
   object TimerGrp: TGroupBox
-    Left = 4
-    Top = 514
+    Left = 8
+    Top = 540
     Width = 208
     Height = 79
     Font.Charset = DEFAULT_CHARSET
@@ -567,7 +567,7 @@ object RecordFrm: TRecordFrm
     Left = 4
     Top = 470
     Width = 208
-    Height = 43
+    Height = 70
     Caption = ' On-line Analysis Window '
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
@@ -605,6 +605,24 @@ object RecordFrm: TRecordFrm
       ParentFont = False
       TabOrder = 1
       OnClick = bCloseOLAWindowClick
+    end
+    object bFindCursors: TButton
+      Left = 8
+      Top = 40
+      Width = 113
+      Height = 17
+      Hint = 'Move analysis area cursors to default locations on display'
+      Caption = 'Find Cursors'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -12
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 2
+      OnClick = bFindCursorsClick
     end
   end
   object ckFixedZeroLevels: TCheckBox

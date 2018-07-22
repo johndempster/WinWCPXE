@@ -710,7 +710,7 @@ unit MDIForm;
    V5.3.6 16.05.18   Amplifiers: PrimaryScaleFactorX1, SecondayScaleFactorX1 now set in correct units by Multiclamp and therefore appears correctly in Amplifiers Setup.
    V5.3.7 31.05.18   Sine wave protocol element added to stimulus protocols
    V5.3.8 16.07.18   DD1550B.DLL now included in installation file
-
+   V5.3.9 22.07.18   On-Line Analysis: Find Cursors button added allowing measurement cursors to be placed on default locations on the signal display
             =======================================================================}
 
 interface
@@ -956,7 +956,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.3.8';
+      ProgVersion := 'V5.3.9';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
