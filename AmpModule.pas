@@ -131,6 +131,7 @@ unit AmpModule;
 // 15.09.17 NPI ELC-03XS voltage channel gain telegraph now correct (and renamed ELC-03SX to ELC-03XS).
 // 21.09.17 NPI ELC-03XS now uses Command Input in voltage-clamp mode and Potential Output in current clamp mode
 // 16.05.18 MultiClampConvertUnits() added. PrimaryScaleFactorX1, SecondayScaleFactorX1 now set in correct units by Multiclamp
+// 24.09.18 EPC-800 current command channel now set to AmpNumber+1 since this amplifier has a separate current-clamp command channel
 
 interface
 
@@ -2348,7 +2349,7 @@ begin
             FVoltageCommandScaleFactor[AmpNumber] := 0.1 ;
             FVoltageCommandChannel[AmpNumber] := AmpNumber ;
             FCurrentCommandScaleFactor[AmpNumber] := 1E-10 ;
-            FCurrentCommandChannel[AmpNumber] := AmpNumber ;
+            FCurrentCommandChannel[AmpNumber] := Min(AmpNumber+1,MaxAmplifiers-1) ;
 
             FGainTelegraphAvailable[AmpNumber] := True ;
             FModeTelegraphAvailable[AmpNumber] := True ;

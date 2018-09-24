@@ -89,6 +89,9 @@ unit Sealtest;
               for Axopatch 200 and AMS-2400
   27.04.18 .. Holding levels now calculated from 5% of sweep preceding test pulse (rather than 1st 5%)
               to avoid errors created when transition exists at beginning
+  03.09.18 .. End of holding level calculation range now shifted DacDT earlier
+              to prevent it extending into test pulse interval when
+              DACDT greater than A/D sampling interval
   ==================================================}
 
 interface
@@ -1005,7 +1008,8 @@ begin
      // -----------------------------------------------
 
      // Holding average region (5% preceding test pulse)
-     iEnd := Max( Round(TestPulse.TStart/Main.SESLabIO.ADCSamplingInterval)-1,0 ) ;
+     // Note. subtraction of DacDT interval to ensure range is before pulse start
+     iEnd := Max( Round((TestPulse.TStart-DacDt)/Main.SESLabIO.ADCSamplingInterval)-1,0 ) ;
      iStart := Max(iEnd div 2,0) ;
 
      // Holding voltage

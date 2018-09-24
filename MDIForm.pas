@@ -711,6 +711,10 @@ unit MDIForm;
    V5.3.7 31.05.18   Sine wave protocol element added to stimulus protocols
    V5.3.8 16.07.18   DD1550B.DLL now included in installation file
    V5.3.9 22.07.18   On-Line Analysis: Find Cursors button added allowing measurement cursors to be placed on default locations on the signal display
+   V5.4.0 24.09.18   Seal Test: End of holding level averaging region shifted slightly early to avoid it overlapping with test pulse when D/A update
+                     interval is longer than sampling interval. Amplifiers: Heka EPC-800 current command output now allocated to a different analog out channel
+                     since this amplifier has separate voltage- and current-clamp command inputs.
+
             =======================================================================}
 
 interface
@@ -956,7 +960,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.3.9';
+      ProgVersion := 'V5.4.0';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
