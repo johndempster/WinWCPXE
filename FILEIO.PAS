@@ -84,6 +84,7 @@ unit Fileio;
   02/10/15 ..  'STZAPA=', Settings.SealTest.ZapAmplitude'STZAPD=', Settings.SealTest.ZapDuration added to INI file
   28/02/17 ... On line analysis settings for RecPlotFrm now stored in Settings.RecPlot and saved in INI file
                'QUPERC=', fHDR.QuantilePercentage added to WCP header
+  05.11.18 ... 'RECPIGLEAK=', Settings.RecPlot.IgnoreLeakRecords added to INI
   }
 
 
@@ -823,6 +824,7 @@ begin
          ReadFloat( Header, 'RECPCURS2=',Settings.RecPlot.Cursor2) ;
          ReadFloat( Header, 'RECPCURS3=',Settings.RecPlot.Cursor3) ;
          ReadFloat( Header, 'RECPCURS4=',Settings.RecPlot.Cursor4) ;
+         ReadLogical( Header, 'RECPIGLEAK=', Settings.RecPlot.IgnoreLeakRecords ) ;
 
           // Read stimulator global variables
           for i := 0 to MaxStimGlobalVars-1 do begin
@@ -1101,6 +1103,7 @@ begin
      AppendFloat( Header, 'RECPCURS2=',Settings.RecPlot.Cursor2) ;
      AppendFloat( Header, 'RECPCURS3=',Settings.RecPlot.Cursor3) ;
      AppendFloat( Header, 'RECPCURS4=',Settings.RecPlot.Cursor4) ;
+     AppendLogical( Header, 'RECPIGLEAK=', Settings.RecPlot.IgnoreLeakRecords ) ;
 
      // Save stimulator global variables
      for i := 0 to MaxStimGlobalVars-1 do begin

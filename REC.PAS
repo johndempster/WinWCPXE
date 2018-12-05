@@ -126,6 +126,7 @@ unit Rec;
               for Axopatch 200 and AMS-2400
   13.12.17 .. Real-time plot cursors now updated from settinfs.recplot within UpdateDisplay() to ensure cursors
               remain on screen if number of samples/record change
+  05.11.18 .. LEAK records can now be excluded from on-line plot.
 
   ==============================================================================}
 interface
@@ -1543,7 +1544,8 @@ begin
                                   Round(scDisplay.VerticalCursors[C3Cursor]),
                                   Round(scDisplay.VerticalCursors[C4Cursor]),
                                   cbPulseProgram.Text,
-                                  RawfH.NumRecords ) ;
+                                  RawfH.NumRecords,
+                                  RH.RecType ) ;
            end ;
 
         // Update file header

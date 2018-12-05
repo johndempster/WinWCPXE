@@ -714,6 +714,7 @@ unit MDIForm;
    V5.4.0 24.09.18   Seal Test: End of holding level averaging region shifted slightly early to avoid it overlapping with test pulse when D/A update
                      interval is longer than sampling interval. Amplifiers: Heka EPC-800 current command output now allocated to a different analog out channel
                      since this amplifier has separate voltage- and current-clamp command inputs.
+   V5.4.1 05.11.18   LEAK records can now be excluded from on-line plots.
 
             =======================================================================}
 
@@ -960,7 +961,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.4.0';
+      ProgVersion := 'V5.4.1';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

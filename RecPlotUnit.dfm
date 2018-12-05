@@ -2,7 +2,7 @@ object RecPlotFrm: TRecPlotFrm
   Left = 613
   Top = 229
   Caption = 'On-Line Analysis'
-  ClientHeight = 547
+  ClientHeight = 595
   ClientWidth = 478
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -65,11 +65,11 @@ object RecPlotFrm: TRecPlotFrm
     Left = 8
     Top = 0
     Width = 145
-    Height = 545
+    Height = 587
     TabOrder = 0
     object mePlotList: TMemo
       Left = 8
-      Top = 368
+      Top = 400
       Width = 129
       Height = 105
       Lines.Strings = (
@@ -79,7 +79,7 @@ object RecPlotFrm: TRecPlotFrm
     end
     object GroupBox2: TGroupBox
       Left = 8
-      Top = 480
+      Top = 510
       Width = 129
       Height = 57
       Caption = ' Zero Level '
@@ -105,7 +105,7 @@ object RecPlotFrm: TRecPlotFrm
       end
       object rbZeroLevelZ: TRadioButton
         Left = 8
-        Top = 32
+        Top = 31
         Width = 105
         Height = 23
         Hint = 'Use horizontal z cursor to define signal zero level'
@@ -125,7 +125,7 @@ object RecPlotFrm: TRecPlotFrm
       Left = 8
       Top = 8
       Width = 129
-      Height = 353
+      Height = 386
       Caption = ' Measurements '
       TabOrder = 2
       object Label2: TLabel
@@ -311,7 +311,7 @@ object RecPlotFrm: TRecPlotFrm
       end
       object Button1: TButton
         Left = 8
-        Top = 282
+        Top = 314
         Width = 113
         Height = 17
         Hint = 'Erase plot and clear measurements list'
@@ -329,7 +329,7 @@ object RecPlotFrm: TRecPlotFrm
       end
       object bClearPoints: TButton
         Left = 8
-        Top = 304
+        Top = 336
         Width = 113
         Height = 17
         Hint = 'Erase plot'
@@ -347,7 +347,7 @@ object RecPlotFrm: TRecPlotFrm
       end
       object bCopyToClipboard: TButton
         Left = 8
-        Top = 328
+        Top = 359
         Width = 113
         Height = 17
         Hint = 'Copy plot data to clipboard'
@@ -435,6 +435,25 @@ object RecPlotFrm: TRecPlotFrm
           Units = '%'
           NumberFormat = '%.f - %.f'
         end
+      end
+      object ckIgnoreLeakRecords: TCheckBox
+        Left = 8
+        Top = 283
+        Width = 100
+        Height = 25
+        Hint = 'Exclude LEAK records from on-line plot.'
+        Caption = 'Ignore LEAK Records'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 12
+        WordWrap = True
+        OnClick = ckIgnoreLeakRecordsClick
       end
     end
   end

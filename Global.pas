@@ -393,6 +393,7 @@ TRecPlotSettings = Record
     Cursor2 : Single ;
     Cursor3 : Single ;
     Cursor4 : Single ;
+    IgnoreLeakRecords : Boolean ;
     End;
 
 TSettings = record

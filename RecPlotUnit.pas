@@ -18,13 +18,14 @@ unit RecPlotUnit;
 // 10.02.15 plPlot.CreateLine() Label name added to arguments
 // 27.02.17 Average within cursors added
 //          On line analysis settings now stored in Settings.RecPlot and saved in INI file
+// 05.12.19 Ignore LEAK records option added which excludes LEAK tyoe records from on-line plot
 
 interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, XMultiYPlot, ValidatedEdit, global, math, mmsystem,
-  ExtCtrls, fileio, RangeEdit ;
+  ExtCtrls, fileio, RangeEdit, strutils ;
 
 const
     NumCursorSets = 2 ;
@@ -64,6 +65,7 @@ type
     PanRiseTime: TPanel;
     Label7: TLabel;
     edRiseTimeRange: TRangeEdit;
+    ckIgnoreLeakRecords: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure bAddPlotClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -72,6 +74,7 @@ type
     procedure bClearPointsClick(Sender: TObject);
     procedure cbPlotVarChange(Sender: TObject);
     procedure bCopyToClipboardClick(Sender: TObject);
+    procedure ckIgnoreLeakRecordsClick(Sender: TObject);
   private
     { Private declarations }
 
@@ -125,7 +128,8 @@ type
           Cursor3 : Integer ;
           Cursor4 : Integer ;
           StimProtocolInUse : String ;
-          RecordNum : Integer
+          RecordNum : Integer ;
+          RecordType : string
            ) ;
 
     procedure CopyImageToClipboard ;
@@ -173,7 +177,8 @@ procedure TRecPlotFrm.UpdatePlot(
           Cursor3 : Integer ;
           Cursor4 : Integer ;
           StimProtocolInUse : String ;
-          RecordNum : Integer
+          RecordNum : Integer ;
+          RecordType : string
            ) ;
 // ------------------------------------------
 // Update plot with new waveform measurements
@@ -215,6 +220,10 @@ var
     YScale : Single ;
     YChanOffset,YZeroLevel : Integer ;
 begin
+
+    // Exclude LEAK records if Ignore
+    Settings.RecPlot.IgnoreLeakRecords := ckIgnoreLEAKRecords.Checked ;
+    if Settings.RecPlot.IgnoreLeakRecords and ContainsText(RecordType,'Leak') then Exit ;
 
     nAvg := Round( edNumAveraged.Value ) ;
 
@@ -806,6 +815,8 @@ begin
 
      mePlotList.Clear ;
 
+     ckIgnoreLEAKRecords.Checked := Settings.RecPlot.IgnoreLeakRecords ;
+
      plPlot.AddVerticalCursor( clGreen, '?r' ) ;
 
      { Fill combo box with list of available command voltage programs }
@@ -1075,6 +1086,14 @@ procedure TRecPlotFrm.cbPlotVarChange(Sender: TObject);
 begin
      ShowControls ;
      end;
+
+procedure TRecPlotFrm.ckIgnoreLeakRecordsClick(Sender: TObject);
+// ----------------------------------
+// Ignore LEAK records option changed
+// ----------------------------------
+begin
+    Settings.RecPlot.IgnoreLeakRecords := ckIgnoreLEAKRecords.Checked ;
+    end;
 
 procedure TRecPlotFrm.bCopyToClipboardClick(Sender: TObject);
 // ------------------------------------
