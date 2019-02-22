@@ -1040,16 +1040,22 @@ begin
         ChStim := ChVm ;
         HoldLevel := Round(VHold/VScale) + VZero ;
         end ;
-     VThreshold := Abs( YMax[ChStim] - YMin[ChStim] ) div 2 ;
-     iStart := 0 ;
-     iEnd := 0 ;
-     j := Main.SESLabIO.ADCChannelOffset[ChStim] ;
-     for i := 0 to NumTestSamples-1 do begin
-         yADC := Abs(ADC^[j] - HoldLevel) ;
-         if (yADC >= VThreshold) and (iStart = 0) then iStart := i ;
-         if (iStart <> 0) and (iEnd=0) and (yADC < VThreshold) then iEnd := i ;
-         j := j + NumTestChannels ;
-         end ;
+
+//     VThreshold := Abs( YMax[ChStim] - YMin[ChStim] ) div 2 ;
+//     iStart := 0 ;
+//     iEnd := 0 ;
+//     j := Main.SESLabIO.ADCChannelOffset[ChStim] ;
+//    for i := 0 to NumTestSamples-1 do begin
+//         yADC := Abs(ADC^[j] - HoldLevel) ;
+//         if (yADC >= VThreshold) and (iStart = 0) then iStart := i ;
+//         if (iStart <> 0) and (iEnd=0) and (yADC < VThreshold) then iEnd := i ;
+//         j := j + NumTestChannels ;
+//         end ;
+
+     // 22.02.19 End of analysis area determined from time of pulse end
+     // rather than from 50% transition threshold for better
+     // accuracy when trailing edge of pulse is rounded
+     iEnd := Max( Round((TestPulse.TEnd-DacDt)/Main.SESLabIO.ADCSamplingInterval)-1,0 ) ;
 
      { Calculate amplitude of voltage pulse (from last half of pulse) }
      nAvg := Max( (iEnd - iStart + 1) div 2, 1 ) ;
