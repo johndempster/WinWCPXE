@@ -16,6 +16,7 @@ object Main: TMain
   Position = poScreenCenter
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
+  OnDestroy = FormDestroy
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13

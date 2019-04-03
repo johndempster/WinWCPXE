@@ -5,6 +5,7 @@ unit AutoUnit;
 // 08.12.05
 // 06.12.13 Set_HoldingVoltage/Get_HoldingVoltage, Set_SealTestPulseAmplitude/Get_SealTestPulseAmplitude
 //          now scaled by amplifier command voltage scale factor
+// 03.04.19 PICO... commands added for controlling Tecella Pico 2 patch clamp
 
 {$WARN SYMBOL_PLATFORM OFF}
 
@@ -57,12 +58,43 @@ type
     procedure Set_NumSamplesPerChannel(Value: Integer); safecall;
     function Get_Status: OleVariant; safecall;
     procedure Set_Status(Value: OleVariant); safecall;
+    function Get_PicoConfig: Integer; safecall;
+    function Get_PicoENableCFast: Integer; safecall;
+    function Get_PicoEnableCSlow: Integer; safecall;
+    function Get_PicoEnableJP: Integer; safecall;
+    function Get_PicoFilter: Integer; safecall;
+    function Get_PicoGain: Integer; safecall;
+    function Get_PicoInput: Integer; safecall;
+    procedure Set_PicoConfig(Value: Integer); safecall;
+    procedure Set_PicoENableCFast(Value: Integer); safecall;
+    procedure Set_PicoEnableCSlow(Value: Integer); safecall;
+    procedure Set_PicoEnableJP(Value: Integer); safecall;
+    procedure Set_PicoFilter(Value: Integer); safecall;
+    procedure Set_PicoGain(Value: Integer); safecall;
+    procedure Set_PicoInput(Value: Integer); safecall;
+    procedure AutoCompCFast; safecall;
+    procedure AutoCompCSlow; safecall;
+    procedure AutoCompJP; safecall;
+    procedure Set_CfastComp(Value: OleVariant); safecall;
+    procedure Set_CSlowComp(Value: OleVariant); safecall;
+    procedure Set_JPComp(Value: OleVariant); safecall;
+    function Get_PicoCfastComp: OleVariant; safecall;
+    function Get_PicoCSlowComp: OleVariant; safecall;
+    function Get_PicoJPComp: OleVariant; safecall;
+    procedure PicoAutoCompCFast; safecall;
+    procedure PicoAutoCompCSlow; safecall;
+    procedure PicoAutoCompJP; safecall;
+    procedure Set_PicoCfastComp(Value: OleVariant); safecall;
+    procedure Set_PicoCSlowComp(Value: OleVariant); safecall;
+    procedure Set_PicoJPComp(Value: OleVariant); safecall;
+    procedure PicoClearCompC; safecall;
+    procedure PicoClearCompJP; safecall;
 
   end;
 
 implementation
 
-uses ComServ, mdiform, global, fileio, rec, SealTest ;
+uses ComServ, mdiform, global, fileio, rec, SealTest, TritonPanelUnit ;
 
 procedure TAUTO.NewFile(FileName: OleVariant);
 // ----------------------
@@ -502,6 +534,269 @@ begin
      end;
 
 
+
+function TAUTO.Get_PicoConfig: Integer;
+// ---------------------------------
+// Read Triton amplifier user config
+// ---------------------------------
+begin
+     if Main.ShowTritonPanel then Result := TritonPanelFrm.UserConfig
+                             else  Result := 0 ;
+     end;
+
+function TAUTO.Get_PicoENableCFast: Integer;
+// --------------------------------------------------------------------
+// Read Triton amplifier Cfast comp enabled(1), disabled(0)
+// --------------------------------------------------------------------
+begin
+      Result := 0 ;
+     if Main.ShowTritonPanel then if TritonPanelFrm.EnableCFast then Result := 1 ;
+end;
+
+function TAUTO.Get_PicoEnableCSlow: Integer;
+// --------------------------------------------------------------------
+// Read Triton amplifier Cslow comp enabled(1), disabled(0)
+// --------------------------------------------------------------------
+begin
+      Result := 0 ;
+     if Main.ShowTritonPanel then if TritonPanelFrm.EnableCSlow then Result := 1 ;
+end;
+
+function TAUTO.Get_PicoEnableJP: Integer;
+// --------------------------------------------------------------------
+// Read Triton amplifier junction potential comp enabled(1), disabled(0)
+// --------------------------------------------------------------------
+begin
+      Result := 0 ;
+     if Main.ShowTritonPanel then if TritonPanelFrm.EnableJP then Result := 1 ;
+end;
+
+
+function TAUTO.Get_PicoFilter: Integer;
+// --------------------------------
+// Read Triton amplifier filter index
+// --------------------------------
+begin
+     if Main.ShowTritonPanel then Result := TritonPanelFrm.Filter
+                             else  Result := 0 ;
+     end;
+
+function TAUTO.Get_PicoGain: Integer;
+// --------------------------------
+// Read Triton amplifier gain index
+// --------------------------------
+begin
+     if Main.ShowTritonPanel then Result := TritonPanelFrm.Gain
+                             else  Result := 0 ;
+     end;
+
+function TAUTO.Get_PicoInput: Integer;
+// --------------------------------
+// Read Triton amplifier input index
+// --------------------------------
+begin
+     if Main.ShowTritonPanel then Result := TritonPanelFrm.Source
+                             else  Result := 0 ;
+     end;
+
+
+procedure TAUTO.Set_PicoConfig(Value: Integer);
+// ----------------------------------
+// Read Triton amplifier config index
+// ----------------------------------
+begin
+     if Main.ShowTritonPanel then TritonPanelFrm.UserConfig := Value ;
+     end;
+
+
+procedure TAUTO.Set_PicoENableCFast(Value: Integer);
+// ----------------------------------------
+// Set Triton amplifier Cfast comp enabled
+// ----------------------------------------
+begin
+     if Main.ShowTritonPanel then
+        begin
+        if Value <> 0 then TritonPanelFrm.EnableCFast := True
+                      else TritonPanelFrm.EnableCFast := False ;
+        end;
+end;
+
+procedure TAUTO.Set_PicoEnableCSlow(Value: Integer);
+// ----------------------------------------
+// Set Triton amplifier Cslow comp enabled
+// ----------------------------------------
+begin
+     if Main.ShowTritonPanel then
+        begin
+        if Value <> 0 then TritonPanelFrm.EnableCSlow := True
+                      else TritonPanelFrm.EnableCSlow := False ;
+        end;
+end;
+
+procedure TAUTO.Set_PicoEnableJP(Value: Integer);
+// ----------------------------------------------------
+// Set Triton amplifier junction potential comp enabled
+// ----------------------------------------------------
+begin
+     if Main.ShowTritonPanel then
+        begin
+        if Value <> 0 then TritonPanelFrm.EnableJP := True
+                      else TritonPanelFrm.EnableJP := False ;
+        end;
+end;
+
+procedure TAUTO.Set_PicoFilter(Value: Integer);
+// -----------------------------------
+// Set Triton amplifier filter setting
+// -----------------------------------
+begin
+     if Main.ShowTritonPanel then TritonPanelFrm.Filter := Value ;
+end;
+
+procedure TAUTO.Set_PicoGain(Value: Integer);
+// -----------------------------------
+// Set Triton amplifier filter setting
+// -----------------------------------
+begin
+     if Main.ShowTritonPanel then TritonPanelFrm.Gain := Value ;
+end;
+
+procedure TAUTO.Set_PicoInput(Value: Integer);
+// -----------------------------------
+// Set Triton amplifier source setting
+// -----------------------------------
+begin
+     if Main.ShowTritonPanel then TritonPanelFrm.Source := Value ;
+end;
+
+
+procedure TAUTO.AutoCompCFast;
+// ----------------
+// Compensate CFast
+// ----------------
+begin
+    if Main.ShowTritonPanel then TritonPanelFrm.AutoCompCFast ;
+end;
+
+procedure TAUTO.AutoCompCSlow;
+// ----------------
+// Compensate CSlow
+// ----------------
+begin
+    if Main.ShowTritonPanel then TritonPanelFrm.AutoCompCSlow ;
+end;
+
+procedure TAUTO.AutoCompJP;
+// -----------------------------
+// Compensate junction potential
+// -----------------------------
+begin
+    if Main.ShowTritonPanel then TritonPanelFrm.AutoCompJunctionPot ;
+end;
+
+procedure TAUTO.Set_CfastComp(Value: OleVariant);
+begin
+
+end;
+
+procedure TAUTO.Set_CSlowComp(Value: OleVariant);
+begin
+
+end;
+
+procedure TAUTO.Set_JPComp(Value: OleVariant);
+begin
+
+end;
+
+function TAUTO.Get_PicoCfastComp: OleVariant;
+// -------------------------------
+// Return CFast compensation value
+// -------------------------------
+begin
+    if Main.ShowTritonPanel then Result := TritonPanelFrm.CFast ;
+end;
+
+function TAUTO.Get_PicoCSlowComp: OleVariant;
+// -------------------------------
+// Return CSlow compensation value
+// -------------------------------
+begin
+    if Main.ShowTritonPanel then Result := TritonPanelFrm.CSlow ;
+end;
+
+function TAUTO.Get_PicoJPComp: OleVariant;
+// --------------------------------------------
+// Return junction potential compensation value
+// --------------------------------------------
+begin
+    if Main.ShowTritonPanel then Result := TritonPanelFrm.JP ;
+end;
+
+procedure TAUTO.PicoAutoCompCFast;
+// ----------------------
+// Auto compensate CFast
+// ----------------------
+begin
+    if Main.ShowTritonPanel then TritonPanelFrm.AutoCompCFast ;
+end;
+
+procedure TAUTO.PicoAutoCompCSlow;
+// ----------------------
+// Auto compensate CSlow
+// ----------------------
+begin
+    if Main.ShowTritonPanel then TritonPanelFrm.AutoCompCSlow ;
+end;
+
+procedure TAUTO.PicoAutoCompJP;
+// ----------------------------------
+// Auto compensate junction potential
+// ----------------------------------
+begin
+    if Main.ShowTritonPanel then TritonPanelFrm.AutoCompJunctionPot ;
+end;
+
+procedure TAUTO.Set_PicoCfastComp(Value: OleVariant);
+begin
+
+end;
+
+procedure TAUTO.Set_PicoCSlowComp(Value: OleVariant);
+begin
+
+end;
+
+procedure TAUTO.Set_PicoJPComp(Value: OleVariant);
+begin
+
+end;
+
+{procedure TAUTO.Method1;
+begin
+
+end;
+
+procedure TAUTO.Method2;
+begin
+
+end;}
+
+procedure TAUTO.PicoClearCompC;
+// --------------------
+// Clear C compensation
+// --------------------
+begin
+    if Main.ShowTritonPanel then TritonPanelFrm.ClearCompC ;
+end;
+
+procedure TAUTO.PicoClearCompJP;
+// --------------------------------
+// Clear junction pot. compensation
+// --------------------------------
+begin
+    if Main.ShowTritonPanel then TritonPanelFrm.ClearCompJP ;
+end;
 
 initialization
   TAutoObjectFactory.Create(ComServer, TAUTO, Class_AUTO,

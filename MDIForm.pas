@@ -718,6 +718,8 @@ unit MDIForm;
    V5.4.2 22.02.19   Seal Test: End of test pulse steady-state analysis region now defined from time of test pulse end
    //                rather than from 50% transition between test and holding levels Done to avoid possibility of inclusion
    //                of part of capacity current when edges of voltage step transitions are slow.
+   V5.4.3 03.04.19   Tecella Triton control panel updated to simplify and improve capacity and JP compensation. Some bugs fixed.
+                     Additional ACTIVE X commands added for control of Pico 2 functions from other applications.
 
             =======================================================================}
 
@@ -874,6 +876,7 @@ type
     procedure mnEPC9PanelClick(Sender: TObject);
     procedure mnResetMulticlampClick(Sender: TObject);
     procedure mnDClampClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
 
     procedure UpdateFileHeaderBlocks ;
@@ -919,6 +922,9 @@ type
     function UpdateCaption( var FH : TFileHeader ; Title : string ) : string ;
     procedure UpdateChannelScalingFactors(var RH : TRecHeader ) ;
     function FormExists( FormName : String ) : Boolean ;
+
+    function ShowTritonPanel : Boolean ;
+
     procedure UpdateRecentFilesList ;
 
     function GetSpecialFolder(const ASpecialFolderID: Integer): string;
@@ -964,7 +970,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.4.2';
+      ProgVersion := 'V5.4.3';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
@@ -1531,6 +1537,7 @@ procedure TMain.Recording1Click(Sender: TObject);
   Record parameters set-up dialog (setup.pas)
   -------------------------------------------}
 begin
+
      if FormExists( 'SetUpDlg' ) then begin
         // Make form visible, active and on top
         if InputChannelSetupFrm.WindowState = wsMinimized then InputChannelSetupFrm.WindowState := wsNormal ;
@@ -1551,6 +1558,7 @@ procedure TMain.WaveformMeasurementsClick(Sender: TObject);
   Create waveform measurements module (measure.pas)
   ------------------------------------------------}
 begin
+
      if FormExists( 'MeasureFrm' ) then begin
         // Make form visible, active and on top
         if MeasureFrm.WindowState = wsMinimized then MeasureFrm.WindowState := wsNormal ;
@@ -2615,18 +2623,39 @@ begin
      end;
 
 
+procedure TMain.FormDestroy(Sender: TObject);
+{ ---------------------------------
+  Tidy up when form is destroyed
+  ---------------------------------}
+var
+    i : Integer ;
+begin
+       { Close recording and seal test windows to ensure that
+         laboratory interface systems are shutdown (to avoid system crash }
+       for i := 0 to MDIChildCount-1 do begin
+         if MDIChildren[i].Name = 'SealTestFrm' then SealTestFrm.Close ;
+         if MDIChildren[i].Name = 'TritonPanelFrm' then TritonPanelFrm.Close ;
+         if MDIChildren[i].Name = 'EPC9PanelFrm' then EPC9PanelFrm.Close ;
+         if MDIChildren[i].Name = 'RecordFrm' then RecordFrm.Close ;
+         end ;
+
+end;
+
+
 procedure TMain.FormClose(Sender: TObject; var Action: TCloseAction);
 { ---------------------------------
   Tidy up when program is shut down
   ---------------------------------}
 var
-    i : Integer ;  
+    i : Integer ;
 begin
 
        { Close recording and seal test windows to ensure that
          laboratory interface systems are shutdown (to avoid system crash }
        for i := 0 to MDIChildCount-1 do begin
          if MDIChildren[i].Name = 'SealTestFrm' then SealTestFrm.Close ;
+         if MDIChildren[i].Name = 'TritonPanelFrm' then TritonPanelFrm.Close ;
+         if MDIChildren[i].Name = 'EPC9PanelFrm' then EPC9PanelFrm.Close ;
          if MDIChildren[i].Name = 'RecordFrm' then RecordFrm.Close ;
          end ;
 
@@ -3557,6 +3586,28 @@ begin
      end ;
 
 
+procedure TMain.mnTritonClick(Sender: TObject);
+// -------------------------------
+//  Display Triton control window
+// ------------------------------- }
+begin
+
+     if FormExists( 'TritonPanelFrm' ) then begin
+        // Make form visible, active and on top
+        if TritonPanelFrm.WindowState = wsMinimized then TritonPanelFrm.WindowState := wsNormal ;
+        TritonPanelFrm.BringToFront ;
+        TritonPanelFrm.SetFocus ;
+        end
+     else begin
+        TritonPanelFrm := TTritonPanelFrm.Create(Self) ;
+        TritonPanelFrm.Top := 15 ;
+        TritonPanelFrm.Left := 710 ;
+        end ;
+
+     end;
+
+
+
 procedure TMain.EditClick(Sender: TObject);
 // ---------
 // Edit menu
@@ -3642,25 +3693,34 @@ begin
      end;
 
 
-procedure TMain.mnTritonClick(Sender: TObject);
+function TMain.ShowTritonPanel : Boolean ;
 // -------------------------------
 //  Display Triton control window
 // ------------------------------- }
 begin
+     // Display Triton control panel if it is not open
+     Result := False ;
+     case Main.SESLabIO.LabInterfaceType of
+          Triton : begin
+             if not Main.FormExists( 'TritonPanelFrm' ) then
+                begin
+                // Create form
+                TritonPanelFrm := TTritonPanelFrm.Create(Self) ;
+                TritonPanelFrm.Top := 15 ;
+                TritonPanelFrm.Left := 710 ;
+                end
+             else
+                begin
+                // Make form visible, active and on top
+                if TritonPanelFrm.WindowState = wsMinimized then TritonPanelFrm.WindowState := wsNormal ;
+                TritonPanelFrm.BringToFront ;
+                TritonPanelFrm.SetFocus ;
+                end ;
+             Result := True ;
+             end ;
+          end;
+end;
 
-     if FormExists( 'TritonPanelFrm' ) then begin
-        // Make form visible, active and on top
-        if TritonPanelFrm.WindowState = wsMinimized then TritonPanelFrm.WindowState := wsNormal ;
-        TritonPanelFrm.BringToFront ;
-        TritonPanelFrm.SetFocus ;
-        end
-     else begin
-        TritonPanelFrm := TTritonPanelFrm.Create(Self) ;
-        TritonPanelFrm.Top := 10 ;
-        TritonPanelFrm.Left := 650 ;
-        end ;
-
-     end;
 
 procedure TMain.SetupClick(Sender: TObject);
 // -------------------

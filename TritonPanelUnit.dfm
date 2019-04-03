@@ -2,8 +2,8 @@ object TritonPanelFrm: TTritonPanelFrm
   Left = 598
   Top = 11
   Caption = 'Tecella Patch Clamp '
-  ClientHeight = 910
-  ClientWidth = 545
+  ClientHeight = 667
+  ClientWidth = 1107
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -20,399 +20,31 @@ object TritonPanelFrm: TTritonPanelFrm
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object ControlsGrp: TGroupBox
+  object gControls: TGroupBox
     Left = 8
     Top = 0
-    Width = 321
-    Height = 697
+    Width = 356
+    Height = 657
     TabOrder = 0
-    object GroupBox2: TGroupBox
+    object gCompensation: TGroupBox
       Left = 8
-      Top = 301
-      Width = 305
+      Top = 278
+      Width = 340
       Height = 311
       Caption = ' Compensation '
       TabOrder = 0
       object AutoCompPage: TPageControl
         Left = 8
-        Top = 17
-        Width = 289
+        Top = 20
+        Width = 320
         Height = 288
         ActivePage = AutoPage
         TabOrder = 0
         object AutoPage: TTabSheet
           Caption = 'Auto'
-          object GroupBox6: TGroupBox
-            Left = 8
-            Top = 56
-            Width = 265
-            Height = 201
-            TabOrder = 0
-            object Label17: TLabel
-              Left = 56
-              Top = 168
-              Width = 142
-              Height = 14
-              Caption = 'Compensation coefficient'
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-            end
-            object Label18: TLabel
-              Left = 10
-              Top = 114
-              Width = 35
-              Height = 14
-              Caption = 'V hold'
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-            end
-            object Label19: TLabel
-              Left = 122
-              Top = 114
-              Width = 34
-              Height = 14
-              Caption = 'T hold'
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-            end
-            object Label20: TLabel
-              Left = 10
-              Top = 138
-              Width = 33
-              Height = 14
-              Caption = 'V test'
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-            end
-            object Label21: TLabel
-              Left = 122
-              Top = 138
-              Width = 32
-              Height = 14
-              Caption = 'T test'
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-            end
-            object ckUseAnalogLeakCompensation: TCheckBox
-              Left = 8
-              Top = 12
-              Width = 200
-              Height = 17
-              Hint = 
-                'Use analog leak current compensation circuits during autocompens' +
-                'ation'
-              Caption = 'Use analog leak subtraction '
-              Checked = True
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-              ParentShowHint = False
-              ShowHint = True
-              State = cbChecked
-              TabOrder = 0
-              OnClick = ckUseAnalogLeakCompensationClick
-            end
-            object ckUseDigitalLeakCompensation: TCheckBox
-              Left = 8
-              Top = 28
-              Width = 225
-              Height = 17
-              Hint = 'Use digital leak current subtraction during auto compensation'
-              Caption = 'Use digital leak compensation'
-              Checked = True
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-              ParentShowHint = False
-              ShowHint = True
-              State = cbChecked
-              TabOrder = 1
-              OnClick = ckUseDigitalLeakCompensationClick
-            end
-            object ckUseDigitalArtefactSubtraction: TCheckBox
-              Left = 8
-              Top = 44
-              Width = 200
-              Height = 17
-              Hint = 'Use digital artefact removal during auto compensation'
-              Caption = 'Use digital artefact removal'
-              Checked = True
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-              ParentShowHint = False
-              ShowHint = True
-              State = cbChecked
-              TabOrder = 2
-              OnClick = ckUseDigitalArtefactSubtractionClick
-            end
-            object edCompensationCoeff: TValidatedEdit
-              Left = 8
-              Top = 168
-              Width = 41
-              Height = 21
-              Hint = 
-                '0=full compensation, >0 = under-compensation, <0 = over-compensa' +
-                'tion'
-              OnKeyPress = edCompensationCoeffKeyPress
-              ShowHint = True
-              Text = ' 0 '
-              Scale = 1.000000000000000000
-              NumberFormat = '%.4g'
-              LoLimit = -1000.000000000000000000
-              HiLimit = 1000.000000000000000000
-            end
-            object ckUseCSlowA: TCheckBox
-              Left = 8
-              Top = 76
-              Width = 100
-              Height = 17
-              Hint = 'Use C slowA component during auto compensation '
-              Caption = 'Use C slowA'
-              Checked = True
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-              ParentShowHint = False
-              ShowHint = True
-              State = cbChecked
-              TabOrder = 4
-              OnClick = ckUseCSlowAClick
-            end
-            object ckUseCSlowB: TCheckBox
-              Left = 8
-              Top = 92
-              Width = 100
-              Height = 17
-              Hint = 'Use C slowB component during auto compensation '
-              Caption = 'Use C slowB'
-              Checked = True
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-              ParentShowHint = False
-              ShowHint = True
-              State = cbChecked
-              TabOrder = 5
-              OnClick = ckUseCSlowBClick
-            end
-            object ckUseCSlowC: TCheckBox
-              Left = 112
-              Top = 76
-              Width = 100
-              Height = 17
-              Hint = 'Use C slowC component during auto compensation '
-              Caption = 'Use C slowC'
-              Checked = True
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-              ParentShowHint = False
-              ShowHint = True
-              State = cbChecked
-              TabOrder = 6
-              OnClick = ckUseCSlowCClick
-            end
-            object ckUseCSlowD: TCheckBox
-              Left = 112
-              Top = 92
-              Width = 100
-              Height = 17
-              Hint = 'Use C slowD component during auto compensation '
-              Caption = 'Use C slowD'
-              Checked = True
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-              ParentShowHint = False
-              ShowHint = True
-              State = cbChecked
-              TabOrder = 7
-              OnClick = ckUseCSlowDClick
-            end
-            object ckUseCFast: TCheckBox
-              Left = 8
-              Top = 60
-              Width = 177
-              Height = 17
-              Hint = 'Use C slowA component during auto compensation '
-              Caption = 'Use C fast'
-              Checked = True
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-              ParentShowHint = False
-              ShowHint = True
-              State = cbChecked
-              TabOrder = 8
-              OnClick = ckUseCFastClick
-            end
-            object edVHold: TValidatedEdit
-              Left = 50
-              Top = 116
-              Width = 63
-              Height = 21
-              Hint = 'Holding voltage during auto compensation'
-              OnKeyPress = edVHoldKeyPress
-              ShowHint = True
-              Text = ' -90 mV'
-              Value = -0.090000003576278690
-              Scale = 1000.000000000000000000
-              Units = 'mV'
-              NumberFormat = '%.4g'
-              LoLimit = -0.200000002980232200
-              HiLimit = 0.200000002980232200
-            end
-            object edTHold: TValidatedEdit
-              Left = 162
-              Top = 116
-              Width = 63
-              Height = 21
-              Hint = 'Time at holding voltage during auto compensation'
-              OnKeyPress = edTHoldKeyPress
-              ShowHint = True
-              Text = ' 20 ms'
-              Value = 0.019999999552965160
-              Scale = 1000.000000000000000000
-              Units = 'ms'
-              NumberFormat = '%.4g'
-              LoLimit = 0.001000000047497451
-              HiLimit = 1.000000000000000000
-            end
-            object edVStep: TValidatedEdit
-              Left = 50
-              Top = 140
-              Width = 63
-              Height = 21
-              Hint = 'Auto compensation test pulse amplitude'
-              OnKeyPress = edVStepKeyPress
-              ShowHint = True
-              Text = ' 10 mV'
-              Value = 0.009999999776482582
-              Scale = 1000.000000000000000000
-              Units = 'mV'
-              NumberFormat = '%.4g'
-              LoLimit = -0.200000002980232200
-              HiLimit = 0.200000002980232200
-            end
-            object edTStep: TValidatedEdit
-              Left = 162
-              Top = 140
-              Width = 63
-              Height = 21
-              Hint = 'Auto compensation test pulse duration'
-              OnKeyPress = edTStepKeyPress
-              ShowHint = True
-              Text = ' 20 ms'
-              Value = 0.019999999552965160
-              Scale = 1000.000000000000000000
-              Units = 'ms'
-              NumberFormat = '%.4g'
-              LoLimit = 0.001000000047497451
-              HiLimit = 1.000000000000000000
-            end
-          end
-          object bAutoCompensate: TButton
-            Left = 8
-            Top = 8
-            Width = 129
-            Height = 17
-            Hint = 'Automatically compensate for cell capacity and leak conductance'
-            Caption = 'Auto Compensate'
-            Font.Charset = ANSI_CHARSET
-            Font.Color = clWindowText
-            Font.Height = -12
-            Font.Name = 'Arial'
-            Font.Style = [fsBold]
-            ParentFont = False
-            ParentShowHint = False
-            ShowHint = True
-            TabOrder = 1
-            OnClick = bAutoCompensateClick
-          end
-          object bClearCompensation: TButton
-            Left = 8
-            Top = 32
-            Width = 129
-            Height = 17
-            Hint = 'Clear all capacity and leak conductance compensation'
-            Caption = 'Clear Compensation'
-            Font.Charset = ANSI_CHARSET
-            Font.Color = clWindowText
-            Font.Height = -12
-            Font.Name = 'Arial'
-            Font.Style = [fsBold]
-            ParentFont = False
-            ParentShowHint = False
-            ShowHint = True
-            TabOrder = 2
-            OnClick = bClearCompensationClick
-          end
-          object bAutoJunctionNull: TButton
-            Left = 144
-            Top = 8
-            Width = 129
-            Height = 17
-            Hint = 'Automatically compensate for junction potential offsets'
-            Caption = 'Junct. Pot. Auto Zero'
-            Font.Charset = ANSI_CHARSET
-            Font.Color = clWindowText
-            Font.Height = -12
-            Font.Name = 'Arial'
-            Font.Style = [fsBold]
-            ParentFont = False
-            ParentShowHint = False
-            ShowHint = True
-            TabOrder = 3
-            OnClick = bAutoJunctionNullClick
-          end
           object ckCompensateAllChannels: TCheckBox
-            Left = 144
-            Top = 30
+            Left = 167
+            Top = 240
             Width = 100
             Height = 17
             Hint = 'Apply compensation to all channels'
@@ -427,8 +59,178 @@ object TritonPanelFrm: TTritonPanelFrm
             ParentShowHint = False
             ShowHint = True
             State = cbChecked
-            TabOrder = 4
+            TabOrder = 0
             OnClick = ckCompensateAllChannelsClick
+          end
+          object gAutoCapacityComp: TGroupBox
+            Left = 3
+            Top = 3
+            Width = 148
+            Height = 110
+            Caption = ' Cell Capacity '
+            TabOrder = 1
+            object bCFastAutoComp: TButton
+              Left = 8
+              Top = 15
+              Width = 130
+              Height = 17
+              Hint = 'Automatically compensate for fast component of cell capacity'
+              Caption = 'Compensate Cfast'
+              Font.Charset = ANSI_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -12
+              Font.Name = 'Arial'
+              Font.Style = [fsBold]
+              ParentFont = False
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 0
+              OnClick = bCFastAutoCompClick
+            end
+            object bCSlowAutoComp: TButton
+              Left = 8
+              Top = 38
+              Width = 130
+              Height = 17
+              Hint = 'Automatically compensate for slow component of cell capacity'
+              Caption = 'Compensate Cslow'
+              Font.Charset = ANSI_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -12
+              Font.Name = 'Arial'
+              Font.Style = [fsBold]
+              ParentFont = False
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 1
+              OnClick = bCSlowAutoCompClick
+            end
+            object bClearCompensation: TButton
+              Left = 8
+              Top = 81
+              Width = 130
+              Height = 17
+              Hint = 'Clear fast and slow capacity compensation'
+              Caption = 'Clear Compensation'
+              Font.Charset = ANSI_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -12
+              Font.Name = 'Arial'
+              Font.Style = [fsBold]
+              ParentFont = False
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 2
+              OnClick = bClearCompensationClick
+            end
+            object bAutoCompArterfact: TButton
+              Left = 8
+              Top = 59
+              Width = 130
+              Height = 17
+              Hint = 
+                'Remove any arterfact current remaining after capacity compensati' +
+                'on'
+              Caption = 'Compensate Artefact'
+              Font.Charset = ANSI_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -12
+              Font.Name = 'Arial'
+              Font.Style = [fsBold]
+              ParentFont = False
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 3
+              OnClick = bAutoCompArterfactClick
+            end
+          end
+          object gAutoJPComp: TGroupBox
+            Left = 156
+            Top = 3
+            Width = 148
+            Height = 65
+            Caption = ' Junction Potential '
+            TabOrder = 2
+            object bAutoCompJunctionPot: TButton
+              Left = 8
+              Top = 18
+              Width = 130
+              Height = 17
+              Hint = 'Automatically compensate for junction potential offsets'
+              Caption = 'Compensate J. Pot.'
+              Font.Charset = ANSI_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -12
+              Font.Name = 'Arial'
+              Font.Style = [fsBold]
+              ParentFont = False
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 0
+              OnClick = bAutoCompJunctionPotClick
+            end
+            object bClearJPComp: TButton
+              Left = 8
+              Top = 41
+              Width = 130
+              Height = 17
+              Hint = 'Clear junction potential compensation'
+              Caption = 'Clear Compensation'
+              Font.Charset = ANSI_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -12
+              Font.Name = 'Arial'
+              Font.Style = [fsBold]
+              ParentFont = False
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 1
+              OnClick = bClearJPCompClick
+            end
+          end
+          object gAutoLeakComp: TGroupBox
+            Left = 156
+            Top = 74
+            Width = 148
+            Height = 65
+            Caption = ' Leak Conductance '
+            TabOrder = 3
+            object bAutoLeakComp: TButton
+              Left = 8
+              Top = 17
+              Width = 130
+              Height = 17
+              Hint = 'Automatically subtract leak conductance'
+              Caption = ' Compensate Leak'
+              Font.Charset = ANSI_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -12
+              Font.Name = 'Arial'
+              Font.Style = [fsBold]
+              ParentFont = False
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 0
+              OnClick = bAutoLeakCompClick
+            end
+            object bCleakLeakComp: TButton
+              Left = 8
+              Top = 40
+              Width = 130
+              Height = 17
+              Hint = 'Clear leak conductance compensation'
+              Caption = 'Clear Compensation'
+              Font.Charset = ANSI_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -12
+              Font.Name = 'Arial'
+              Font.Style = [fsBold]
+              ParentFont = False
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 1
+              OnClick = bCleakLeakCompClick
+            end
           end
         end
         object CapacityPage: TTabSheet
@@ -460,7 +262,7 @@ object TritonPanelFrm: TTritonPanelFrm
               Top = 0
               Width = 88
               Height = 20
-              Max = 100
+              Max = 1000
               Frequency = 10
               TabOrder = 0
               ThumbLength = 12
@@ -484,81 +286,42 @@ object TritonPanelFrm: TTritonPanelFrm
               LoLimit = -1000.000000000000000000
               HiLimit = 1000.000000000000000000
             end
+            object ckCFast: TCheckBox
+              Left = 263
+              Top = 7
+              Width = 17
+              Height = 17
+              Hint = 'Check to enable compensation'
+              Caption = 'ckCfast'
+              Checked = True
+              ParentShowHint = False
+              ShowHint = True
+              State = cbChecked
+              TabOrder = 2
+              OnClick = ckCFastClick
+            end
           end
-          object panCSlowA: TPanel
-            Left = 1
-            Top = 30
+          object panCTotal: TPanel
+            Left = 3
+            Top = 159
             Width = 280
             Height = 24
             BevelOuter = bvNone
             TabOrder = 1
-            object Label3: TLabel
-              Left = 0
-              Top = 0
-              Width = 83
-              Height = 14
-              Caption = 'C slowA (10us)'
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-            end
-            object ckCslowA: TCheckBox
-              Left = 262
-              Top = 0
-              Width = 17
-              Height = 17
-              Caption = 'ckCfast'
-              Checked = True
-              State = cbChecked
-              TabOrder = 0
-              OnClick = ckCslowAClick
-            end
-            object tbCSlowA: TTrackBar
-              Left = 85
-              Top = 0
-              Width = 88
-              Height = 20
-              Max = 100
-              Frequency = 10
-              TabOrder = 1
-              ThumbLength = 12
-              OnChange = tbCSlowAChange
-            end
-            object edCSlowA: TValidatedEdit
-              Left = 175
-              Top = 0
-              Width = 81
-              Height = 23
-              OnKeyPress = edCSlowAKeyPress
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -12
-              Font.Name = 'Arial'
-              Font.Style = []
-              Text = ' 0.0 mV'
-              Scale = 1.000000000000000000
-              Units = 'mV'
-              NumberFormat = '%.1f'
-              LoLimit = -1000.000000000000000000
-              HiLimit = 1000.000000000000000000
-            end
           end
-          object panCSlowB: TPanel
+          object panCSlowTotal: TPanel
             Left = 1
-            Top = 60
+            Top = 26
             Width = 280
             Height = 24
             BevelOuter = bvNone
             TabOrder = 2
-            object Label4: TLabel
+            object Label24: TLabel
               Left = 0
               Top = 0
-              Width = 82
+              Width = 38
               Height = 14
-              Caption = 'C slowB (33us)'
+              Caption = 'C slow'
               Font.Charset = ANSI_CHARSET
               Font.Color = clWindowText
               Font.Height = -11
@@ -566,151 +329,7 @@ object TritonPanelFrm: TTritonPanelFrm
               Font.Style = [fsBold]
               ParentFont = False
             end
-            object ckCslowB: TCheckBox
-              Left = 262
-              Top = 0
-              Width = 17
-              Height = 17
-              Caption = 'ckCfast'
-              Checked = True
-              State = cbChecked
-              TabOrder = 0
-              OnClick = ckCslowBClick
-            end
-            object tbCSlowB: TTrackBar
-              Left = 85
-              Top = 0
-              Width = 88
-              Height = 20
-              Max = 100
-              Frequency = 10
-              TabOrder = 1
-              ThumbLength = 12
-              OnChange = tbCSlowBChange
-            end
-            object edCSlowB: TValidatedEdit
-              Left = 175
-              Top = 0
-              Width = 81
-              Height = 23
-              OnKeyPress = edCSlowBKeyPress
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -12
-              Font.Name = 'Arial'
-              Font.Style = []
-              Text = ' 0.0 mV'
-              Scale = 1.000000000000000000
-              Units = 'mV'
-              NumberFormat = '%.1f'
-              LoLimit = -1000.000000000000000000
-              HiLimit = 1000.000000000000000000
-            end
-          end
-          object panCSlowC: TPanel
-            Left = 1
-            Top = 90
-            Width = 280
-            Height = 24
-            BevelOuter = bvNone
-            TabOrder = 3
-            object Label5: TLabel
-              Left = 0
-              Top = 0
-              Width = 89
-              Height = 14
-              Caption = 'C slowC (100us)'
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-            end
-            object ckCslowC: TCheckBox
-              Left = 262
-              Top = 0
-              Width = 17
-              Height = 17
-              Caption = 'ckCfast'
-              Checked = True
-              State = cbChecked
-              TabOrder = 0
-              OnClick = ckCslowCClick
-            end
-            object tbCSlowC: TTrackBar
-              Left = 85
-              Top = -1
-              Width = 88
-              Height = 20
-              Max = 100
-              Frequency = 10
-              TabOrder = 1
-              ThumbLength = 12
-              OnChange = tbCSlowCChange
-            end
-            object edCSlowC: TValidatedEdit
-              Left = 175
-              Top = 0
-              Width = 81
-              Height = 23
-              OnKeyPress = edCSlowCKeyPress
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -12
-              Font.Name = 'Arial'
-              Font.Style = []
-              Text = ' 0.0 mV'
-              Scale = 1.000000000000000000
-              Units = 'mV'
-              NumberFormat = '%.1f'
-              LoLimit = -1000.000000000000000000
-              HiLimit = 1000.000000000000000000
-            end
-          end
-          object panCSlowD: TPanel
-            Left = 1
-            Top = 119
-            Width = 280
-            Height = 24
-            BevelOuter = bvNone
-            TabOrder = 4
-            object Label6: TLabel
-              Left = 0
-              Top = 0
-              Width = 88
-              Height = 14
-              Caption = 'C slowD (330us)'
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-            end
-            object ckCslowD: TCheckBox
-              Left = 262
-              Top = 0
-              Width = 17
-              Height = 17
-              Caption = 'ckCfast'
-              Checked = True
-              State = cbChecked
-              TabOrder = 0
-              OnClick = ckCslowDClick
-            end
-            object tbCSlowD: TTrackBar
-              Left = 85
-              Top = 0
-              Width = 88
-              Height = 20
-              Max = 100
-              Frequency = 10
-              TabOrder = 1
-              ThumbLength = 12
-              OnChange = tbCSlowDChange
-            end
-            object edCSlowD: TValidatedEdit
+            object edCSlowTotal: TValidatedEdit
               Left = 175
               Top = 0
               Width = 81
@@ -721,13 +340,314 @@ object TritonPanelFrm: TTritonPanelFrm
               Font.Height = -12
               Font.Name = 'Arial'
               Font.Style = []
-              Text = ' 0.0 mV'
+              Text = ' 0.0 pF'
               Scale = 1.000000000000000000
-              Units = 'mV'
+              Units = 'pF'
               NumberFormat = '%.1f'
               LoLimit = -1000.000000000000000000
               HiLimit = 1000.000000000000000000
             end
+            object ckCSlow: TCheckBox
+              Left = 262
+              Top = 8
+              Width = 17
+              Height = 17
+              Hint = 'Check to enable compensation'
+              Caption = 'ckCfast'
+              Checked = True
+              ParentShowHint = False
+              ShowHint = True
+              State = cbChecked
+              TabOrder = 1
+              OnClick = ckCSlowClick
+            end
+            object CheckBox2: TCheckBox
+              Left = 8
+              Top = 24
+              Width = 25
+              Height = 1
+              Caption = 'CheckBox2'
+              TabOrder = 2
+            end
+          end
+          object pCSlowComponents: TPanel
+            Left = 1
+            Top = 80
+            Width = 281
+            Height = 105
+            BevelOuter = bvNone
+            TabOrder = 3
+            object panCSlowD: TPanel
+              Left = 0
+              Top = 78
+              Width = 280
+              Height = 24
+              BevelOuter = bvNone
+              TabOrder = 0
+              object Label6: TLabel
+                Left = 0
+                Top = 0
+                Width = 88
+                Height = 14
+                Caption = 'C slowD (330us)'
+                Font.Charset = ANSI_CHARSET
+                Font.Color = clWindowText
+                Font.Height = -11
+                Font.Name = 'Arial'
+                Font.Style = [fsBold]
+                ParentFont = False
+              end
+              object ckCslowD: TCheckBox
+                Left = 262
+                Top = 0
+                Width = 17
+                Height = 17
+                Hint = 'Check to enable compensation'
+                Caption = 'ckCfast'
+                Checked = True
+                ParentShowHint = False
+                ShowHint = True
+                State = cbChecked
+                TabOrder = 0
+                OnClick = ckCslowDClick
+              end
+              object tbCSlowD: TTrackBar
+                Left = 85
+                Top = 0
+                Width = 88
+                Height = 20
+                Max = 1000
+                Frequency = 10
+                TabOrder = 1
+                ThumbLength = 12
+                OnChange = tbCSlowDChange
+              end
+              object edCSlowD: TValidatedEdit
+                Left = 175
+                Top = 0
+                Width = 81
+                Height = 23
+                OnKeyPress = edCSlowDKeyPress
+                Font.Charset = ANSI_CHARSET
+                Font.Color = clWindowText
+                Font.Height = -12
+                Font.Name = 'Arial'
+                Font.Style = []
+                Text = ' 0.0 mV'
+                Scale = 1.000000000000000000
+                Units = 'mV'
+                NumberFormat = '%.1f'
+                LoLimit = -1000.000000000000000000
+                HiLimit = 1000.000000000000000000
+              end
+            end
+            object panCSlowC: TPanel
+              Left = 0
+              Top = 52
+              Width = 280
+              Height = 24
+              BevelOuter = bvNone
+              TabOrder = 1
+              object Label5: TLabel
+                Left = 0
+                Top = 0
+                Width = 89
+                Height = 14
+                Caption = 'C slowC (100us)'
+                Font.Charset = ANSI_CHARSET
+                Font.Color = clWindowText
+                Font.Height = -11
+                Font.Name = 'Arial'
+                Font.Style = [fsBold]
+                ParentFont = False
+              end
+              object ckCslowC: TCheckBox
+                Left = 262
+                Top = 0
+                Width = 17
+                Height = 17
+                Hint = 'Check to enable compensation'
+                Caption = 'ckCfast'
+                Checked = True
+                ParentShowHint = False
+                ShowHint = True
+                State = cbChecked
+                TabOrder = 0
+                OnClick = ckCslowCClick
+              end
+              object tbCSlowC: TTrackBar
+                Left = 85
+                Top = -1
+                Width = 88
+                Height = 20
+                Max = 1000
+                Frequency = 10
+                TabOrder = 1
+                ThumbLength = 12
+                OnChange = tbCSlowCChange
+              end
+              object edCSlowC: TValidatedEdit
+                Left = 175
+                Top = 0
+                Width = 81
+                Height = 23
+                OnKeyPress = edCSlowCKeyPress
+                Font.Charset = ANSI_CHARSET
+                Font.Color = clWindowText
+                Font.Height = -12
+                Font.Name = 'Arial'
+                Font.Style = []
+                Text = ' 0.0 mV'
+                Scale = 1.000000000000000000
+                Units = 'mV'
+                NumberFormat = '%.1f'
+                LoLimit = -1000.000000000000000000
+                HiLimit = 1000.000000000000000000
+              end
+            end
+            object panCSlowB: TPanel
+              Left = 0
+              Top = 26
+              Width = 280
+              Height = 24
+              BevelOuter = bvNone
+              TabOrder = 2
+              object Label4: TLabel
+                Left = 0
+                Top = 0
+                Width = 82
+                Height = 14
+                Caption = 'C slowB (33us)'
+                Font.Charset = ANSI_CHARSET
+                Font.Color = clWindowText
+                Font.Height = -11
+                Font.Name = 'Arial'
+                Font.Style = [fsBold]
+                ParentFont = False
+              end
+              object ckCslowB: TCheckBox
+                Left = 262
+                Top = 0
+                Width = 17
+                Height = 17
+                Hint = 'Check to enable compensation'
+                Caption = 'ckCfast'
+                Checked = True
+                ParentShowHint = False
+                ShowHint = True
+                State = cbChecked
+                TabOrder = 0
+                OnClick = ckCslowBClick
+              end
+              object tbCSlowB: TTrackBar
+                Left = 85
+                Top = 0
+                Width = 88
+                Height = 20
+                Max = 1000
+                Frequency = 10
+                TabOrder = 1
+                ThumbLength = 12
+                OnChange = tbCSlowBChange
+              end
+              object edCSlowB: TValidatedEdit
+                Left = 175
+                Top = 0
+                Width = 81
+                Height = 23
+                OnKeyPress = edCSlowBKeyPress
+                Font.Charset = ANSI_CHARSET
+                Font.Color = clWindowText
+                Font.Height = -12
+                Font.Name = 'Arial'
+                Font.Style = []
+                Text = ' 0.0 mV'
+                Scale = 1.000000000000000000
+                Units = 'mV'
+                NumberFormat = '%.1f'
+                LoLimit = -1000.000000000000000000
+                HiLimit = 1000.000000000000000000
+              end
+            end
+            object panCSlowA: TPanel
+              Left = 0
+              Top = 0
+              Width = 280
+              Height = 24
+              BevelOuter = bvNone
+              TabOrder = 3
+              object Label3: TLabel
+                Left = 0
+                Top = 0
+                Width = 83
+                Height = 14
+                Caption = 'C slowA (10us)'
+                Font.Charset = ANSI_CHARSET
+                Font.Color = clWindowText
+                Font.Height = -11
+                Font.Name = 'Arial'
+                Font.Style = [fsBold]
+                ParentFont = False
+              end
+              object ckCslowA: TCheckBox
+                Left = 262
+                Top = 0
+                Width = 17
+                Height = 17
+                Hint = 'Check to enable compensation'
+                Caption = 'ckCfast'
+                Checked = True
+                ParentShowHint = False
+                ShowHint = True
+                State = cbChecked
+                TabOrder = 0
+                OnClick = ckCslowAClick
+              end
+              object tbCSlowA: TTrackBar
+                Left = 85
+                Top = 0
+                Width = 88
+                Height = 20
+                Max = 1000
+                Frequency = 10
+                TabOrder = 1
+                ThumbLength = 12
+                OnChange = tbCSlowAChange
+              end
+              object edCSlowA: TValidatedEdit
+                Left = 175
+                Top = 0
+                Width = 81
+                Height = 23
+                OnKeyPress = edCSlowAKeyPress
+                Font.Charset = ANSI_CHARSET
+                Font.Color = clWindowText
+                Font.Height = -12
+                Font.Name = 'Arial'
+                Font.Style = []
+                Text = ' 0.0 mV'
+                Scale = 1.000000000000000000
+                Units = 'mV'
+                NumberFormat = '%.1f'
+                LoLimit = -1000.000000000000000000
+                HiLimit = 1000.000000000000000000
+              end
+            end
+          end
+          object ckShowCSlowComponents: TCheckBox
+            Left = 0
+            Top = 55
+            Width = 184
+            Height = 17
+            Caption = 'Show C slow components'
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -12
+            Font.Name = 'Arial'
+            Font.Style = [fsBold]
+            ParentFont = False
+            TabOrder = 4
+            OnClick = ckShowCSlowComponentsClick
           end
         end
         object ResistancePage: TTabSheet
@@ -743,9 +663,9 @@ object TritonPanelFrm: TTritonPanelFrm
             object Label9: TLabel
               Left = 0
               Top = 0
-              Width = 33
+              Width = 34
               Height = 14
-              Caption = 'R leak'
+              Caption = 'G leak'
               Font.Charset = ANSI_CHARSET
               Font.Color = clWindowText
               Font.Height = -11
@@ -769,7 +689,7 @@ object TritonPanelFrm: TTritonPanelFrm
               Top = 0
               Width = 88
               Height = 20
-              Max = 100
+              Max = 1000
               Frequency = 10
               TabOrder = 1
               ThumbLength = 12
@@ -780,16 +700,18 @@ object TritonPanelFrm: TTritonPanelFrm
               Top = 0
               Width = 81
               Height = 23
+              Hint = 'Leak conductance compensation setting (coarse)'
               OnKeyPress = edRLeakKeyPress
               Font.Charset = ANSI_CHARSET
               Font.Color = clWindowText
               Font.Height = -12
               Font.Name = 'Arial'
               Font.Style = []
-              Text = ' 0.0 mV'
+              ShowHint = True
+              Text = ' 0 mV'
               Scale = 1.000000000000000000
               Units = 'mV'
-              NumberFormat = '%.1f'
+              NumberFormat = '%.4g'
               LoLimit = -1000.000000000000000000
               HiLimit = 1000.000000000000000000
             end
@@ -804,9 +726,9 @@ object TritonPanelFrm: TTritonPanelFrm
             object Label14: TLabel
               Left = 0
               Top = 0
-              Width = 65
+              Width = 66
               Height = 14
-              Caption = 'R leak (fine)'
+              Caption = 'G leak (fine)'
               Font.Charset = ANSI_CHARSET
               Font.Color = clWindowText
               Font.Height = -11
@@ -830,7 +752,7 @@ object TritonPanelFrm: TTritonPanelFrm
               Top = 0
               Width = 88
               Height = 20
-              Max = 100
+              Max = 1000
               Frequency = 10
               TabOrder = 1
               ThumbLength = 12
@@ -841,16 +763,18 @@ object TritonPanelFrm: TTritonPanelFrm
               Top = 0
               Width = 81
               Height = 23
+              Hint = 'Leak conductance compensation setting (fine)'
               OnKeyPress = edRLeakFineKeyPress
               Font.Charset = ANSI_CHARSET
               Font.Color = clWindowText
               Font.Height = -12
               Font.Name = 'Arial'
               Font.Style = []
-              Text = ' 0.0 mV'
+              ShowHint = True
+              Text = ' 0 mV'
               Scale = 1.000000000000000000
               Units = 'mV'
-              NumberFormat = '%.1f'
+              NumberFormat = '%.4g'
               LoLimit = -1000.000000000000000000
               HiLimit = 1000.000000000000000000
             end
@@ -877,7 +801,7 @@ object TritonPanelFrm: TTritonPanelFrm
             end
             object ckRseries: TCheckBox
               Left = 262
-              Top = 0
+              Top = 5
               Width = 17
               Height = 17
               Caption = 'ckCfast'
@@ -888,10 +812,10 @@ object TritonPanelFrm: TTritonPanelFrm
             end
             object tbRSeries: TTrackBar
               Left = 85
-              Top = 0
+              Top = 2
               Width = 88
               Height = 20
-              Max = 100
+              Max = 1000
               Frequency = 10
               TabOrder = 1
               ThumbLength = 12
@@ -902,18 +826,20 @@ object TritonPanelFrm: TTritonPanelFrm
               Top = 0
               Width = 81
               Height = 23
+              Hint = 'Series resistance compensation setting'
               OnKeyPress = edRSeriesKeyPress
               Font.Charset = ANSI_CHARSET
               Font.Color = clWindowText
               Font.Height = -12
               Font.Name = 'Arial'
               Font.Style = []
-              Text = ' 0.0 mV'
+              ShowHint = True
+              Text = ' 0 mV'
               Scale = 1.000000000000000000
               Units = 'mV'
-              NumberFormat = '%.1f'
-              LoLimit = -1000.000000000000000000
-              HiLimit = 1000.000000000000000000
+              NumberFormat = '%.4g'
+              LoLimit = -1000000.000000000000000000
+              HiLimit = 1000000.000000000000000000
             end
           end
         end
@@ -1043,12 +969,132 @@ object TritonPanelFrm: TTritonPanelFrm
             end
           end
         end
+        object AdvancedTab: TTabSheet
+          Caption = 'Adv.'
+          ImageIndex = 4
+          object GroupBox6: TGroupBox
+            Left = 3
+            Top = 29
+            Width = 300
+            Height = 201
+            TabOrder = 0
+            object Label17: TLabel
+              Left = 59
+              Top = 70
+              Width = 142
+              Height = 14
+              Caption = 'Compensation coefficient'
+              Font.Charset = ANSI_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -11
+              Font.Name = 'Arial'
+              Font.Style = [fsBold]
+              ParentFont = False
+            end
+            object ckUseAnalogLeakCompensation: TCheckBox
+              Left = 8
+              Top = 12
+              Width = 200
+              Height = 17
+              Hint = 
+                'Use analog leak current compensation circuits during autocompens' +
+                'ation'
+              Caption = 'Use analog leak subtraction '
+              Checked = True
+              Font.Charset = ANSI_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -11
+              Font.Name = 'Arial'
+              Font.Style = [fsBold]
+              ParentFont = False
+              ParentShowHint = False
+              ShowHint = True
+              State = cbChecked
+              TabOrder = 0
+              OnClick = ckUseAnalogLeakCompensationClick
+            end
+            object ckUseDigitalLeakCompensation: TCheckBox
+              Left = 8
+              Top = 28
+              Width = 225
+              Height = 17
+              Hint = 'Use digital leak current subtraction during auto compensation'
+              Caption = 'Use digital leak compensation'
+              Checked = True
+              Font.Charset = ANSI_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -11
+              Font.Name = 'Arial'
+              Font.Style = [fsBold]
+              ParentFont = False
+              ParentShowHint = False
+              ShowHint = True
+              State = cbChecked
+              TabOrder = 1
+              OnClick = ckUseDigitalLeakCompensationClick
+            end
+            object edCompensationCoeff: TValidatedEdit
+              Left = 8
+              Top = 70
+              Width = 41
+              Height = 21
+              Hint = 
+                '0=full compensation, >0 = under-compensation, <0 = over-compensa' +
+                'tion'
+              OnKeyPress = edCompensationCoeffKeyPress
+              ShowHint = True
+              Text = ' 0 '
+              Scale = 1.000000000000000000
+              NumberFormat = '%.4g'
+              LoLimit = -1000.000000000000000000
+              HiLimit = 1000.000000000000000000
+            end
+            object ckEnableDACStreaming: TCheckBox
+              Left = 8
+              Top = 44
+              Width = 193
+              Height = 17
+              Hint = 'Select streaming stimulus mode (stimuli defined point by point)'
+              Caption = 'Stimulus streaming enabled'
+              Font.Charset = ANSI_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -11
+              Font.Name = 'Arial'
+              Font.Style = [fsBold]
+              ParentFont = False
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 3
+              OnClick = ckEnableDACStreamingClick
+            end
+          end
+          object bCalibrate: TButton
+            Left = 3
+            Top = 6
+            Width = 300
+            Height = 18
+            Hint = 
+              'Start amplifier gain calibration procedure (may take 30-60 secon' +
+              'ds)'
+            Caption = 'Calibrate Amplifier'
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -12
+            Font.Name = 'Arial'
+            Font.Style = [fsBold]
+            ParentFont = False
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 1
+            OnClick = bCalibrateClick
+          end
+        end
       end
     end
-    object GroupBox3: TGroupBox
+    object gChannel: TGroupBox
       Left = 8
       Top = 40
-      Width = 297
+      Width = 340
       Height = 45
       Caption = ' Select Channel'
       TabOrder = 1
@@ -1091,11 +1137,11 @@ object TritonPanelFrm: TTritonPanelFrm
         OnClick = bUpdateAllChannelsClick
       end
     end
-    object GroupBox4: TGroupBox
+    object gAmplifier: TGroupBox
       Left = 8
       Top = 88
-      Width = 297
-      Height = 161
+      Width = 340
+      Height = 137
       Caption = ' Amplifier '
       TabOrder = 2
       object Label10: TLabel
@@ -1176,33 +1222,13 @@ object TritonPanelFrm: TTritonPanelFrm
         TabOrder = 2
         OnChange = cbUserConfigChange
       end
-      object bCalibrate: TButton
-        Left = 48
-        Top = 132
-        Width = 241
-        Height = 18
-        Hint = 
-          'Start amplifier gain calibration procedure (may take 30-60 secon' +
-          'ds)'
-        Caption = 'Calibrate Amplifier'
-        Font.Charset = ANSI_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -12
-        Font.Name = 'Arial'
-        Font.Style = [fsBold]
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 3
-        OnClick = bCalibrateClick
-      end
       object gpCurrentStimulus: TGroupBox
         Left = 48
         Top = 62
         Width = 241
         Height = 65
         Caption = ' Current Stimulus '
-        TabOrder = 4
+        TabOrder = 3
         object Label22: TLabel
           Left = 135
           Top = 16
@@ -1251,10 +1277,10 @@ object TritonPanelFrm: TTritonPanelFrm
         end
       end
     end
-    object GroupBox5: TGroupBox
+    object gFilter: TGroupBox
       Left = 8
-      Top = 255
-      Width = 297
+      Top = 228
+      Width = 340
       Height = 43
       Caption = ' Filters '
       TabOrder = 3
@@ -1308,16 +1334,16 @@ object TritonPanelFrm: TTritonPanelFrm
     object edModel: TEdit
       Left = 8
       Top = 16
-      Width = 297
+      Width = 340
       Height = 21
       ReadOnly = True
       TabOrder = 4
       Text = 'edModel'
     end
-    object GroupBox1: TGroupBox
+    object gZap: TGroupBox
       Left = 8
-      Top = 613
-      Width = 305
+      Top = 594
+      Width = 340
       Height = 53
       TabOrder = 5
       object Label15: TLabel
@@ -1404,24 +1430,6 @@ object TritonPanelFrm: TTritonPanelFrm
         ParentFont = False
         TabOrder = 3
       end
-    end
-    object ckEnableDACStreaming: TCheckBox
-      Left = 8
-      Top = 669
-      Width = 193
-      Height = 17
-      Hint = 'Select streaming stimulus mode (stimuli defined point by point)'
-      Caption = 'Stimulus streaming enabled'
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Arial'
-      Font.Style = [fsBold]
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = True
-      TabOrder = 6
-      OnClick = ckEnableDACStreamingClick
     end
   end
   object Timer: TTimer
