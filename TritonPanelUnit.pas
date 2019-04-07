@@ -1061,17 +1061,18 @@ begin
      case Settings.SealTest.Use of
           3 : begin
               VHold :=  Settings.SealTest.HoldingVoltage3 ;
-              VStep :=  Settings.SealTest.PulseHeight3 ;
               end ;
           2 : begin
               VHold :=  Settings.SealTest.HoldingVoltage2 ;
-              VStep :=  Settings.SealTest.PulseHeight2 ;
               end ;
           else begin
               VHold :=  Settings.SealTest.HoldingVoltage1 ;
-              VStep :=  Settings.SealTest.PulseHeight1 ;
               end ;
           end;
+
+     VStep := 0.01 ; // Step size (10 mV)
+     TStep := 0.02 ;  // Test step time (20 ms)
+     THold := 0.02 ; // Hold time (20 ms)
 
      CompensationCoeff := edCompensationCoeff.Value ;
 
@@ -1306,17 +1307,18 @@ begin
      case Settings.SealTest.Use of
           3 : begin
               VHold :=  Settings.SealTest.HoldingVoltage3 ;
-              VStep :=  Settings.SealTest.PulseHeight3 ;
               end ;
           2 : begin
               VHold :=  Settings.SealTest.HoldingVoltage2 ;
-              VStep :=  Settings.SealTest.PulseHeight2 ;
               end ;
           else begin
               VHold :=  Settings.SealTest.HoldingVoltage1 ;
-              VStep :=  Settings.SealTest.PulseHeight1 ;
               end ;
           end;
+
+     VStep := 0.01 ; // Step size (10 mV)
+     TStep := 0.02 ;  // Test step time (20 ms)
+     THold := 0.02 ; // Hold time (20 ms)
 
      Main.SESLabIO.TritonAutoCompensation( false,
                                            ckCSlowA.Checked,
@@ -1400,17 +1402,18 @@ begin
      case Settings.SealTest.Use of
           3 : begin
               VHold :=  Settings.SealTest.HoldingVoltage3 ;
-              VStep :=  Settings.SealTest.PulseHeight3 ;
               end ;
           2 : begin
               VHold :=  Settings.SealTest.HoldingVoltage2 ;
-              VStep :=  Settings.SealTest.PulseHeight2 ;
               end ;
           else begin
               VHold :=  Settings.SealTest.HoldingVoltage1 ;
-              VStep :=  Settings.SealTest.PulseHeight1 ;
               end ;
           end;
+
+     VStep := 0.01 ; // Step size (10 mV)
+     TStep := 0.02 ;  // Test step time (20 ms)
+     THold := 0.02 ; // Hold time (20 ms)
 
      Main.SESLabIO.TritonAutoCompensation( false,
                                            false,
@@ -1533,20 +1536,21 @@ begin
      case Settings.SealTest.Use of
           3 : begin
               VHold :=  Settings.SealTest.HoldingVoltage3 ;
-              VStep :=  Settings.SealTest.PulseHeight3 ;
               end ;
           2 : begin
               VHold :=  Settings.SealTest.HoldingVoltage2 ;
-              VStep :=  Settings.SealTest.PulseHeight2 ;
               end ;
           else begin
               VHold :=  Settings.SealTest.HoldingVoltage1 ;
-              VStep :=  Settings.SealTest.PulseHeight1 ;
               end ;
           end;
 
      // Apply compensation                                                                                         edVHold.Value := CompensationVHold ;
      CompensationCoeff := edCompensationCoeff.Value ;
+
+     VStep := 0.01 ; // Step size (10 mV)
+     TStep := 0.02 ;  // Test step time (20 ms)
+     THold := 0.02 ; // Hold time (20 ms)
 
      Main.SESLabIO.TritonAutoCompensation( false,
                                            false,

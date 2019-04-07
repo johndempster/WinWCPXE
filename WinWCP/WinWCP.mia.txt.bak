@@ -217,8 +217,8 @@ else
   Comment: Install/Re-Install product
   Create Shortcut $SHORTCUTFOLDER$\Uninstall #TITLE# to $UNINSTALLLINK$
   [OFFLINE CONTENT]
-  Create Shortcut $SHORTCUTFOLDER$\WinWCP V5.4.2 to $TARGETDIR$\winwcp.exe
-  Create Shortcut $DESKTOPDIR$\WinWCP V5.4.2 to $TARGETDIR$\winwcp.exe
+  Create Shortcut $SHORTCUTFOLDER$\WinWCP V5.4.3 to $TARGETDIR$\winwcp.exe
+  Create Shortcut $DESKTOPDIR$\WinWCP V5.4.3 to $TARGETDIR$\winwcp.exe
   Create Shortcut $SHORTCUTFOLDER$\WinWCP User Guide to $TARGETDIR$\WinWCP User Guide.pdf
   Create Shortcut $SHORTCUTFOLDER$\Install Digidata1200 Win 95-98 Support to $TARGETDIR$\Digidata 1200 Support\Win 95-98\DD1200 Win 95 Support.exe
   Create Shortcut $SHORTCUTFOLDER$\Install Digidata 1200 Driver (Windows NT,2000,XP) to $TARGETDIR$\Digidata 1200 Support\Win 2000-XP\Install Digidata 1200 Driver (Windows NT,2000,XP).bat
@@ -290,6 +290,7 @@ else
   Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\wdapi1210.dll to $TARGETDIR$
   Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\LIH88Driver.dll to $TARGETDIR$
   Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\DD1550B.dll to $TARGETDIR$
+  Install Files C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\Tecella Pico control commands example .vbs to $TARGETDIR$
   [DEFINE WEB MEDIA WinWCP]
   Get Component WinWCP Selection State into Variable SELECTED
   if Variable SELECTED Equals TRUE
@@ -333,6 +334,7 @@ if Variable SILENT Equals FALSE
     if Variable REMOVE Equals FALSE
       if Variable SUCCESS Equals COMPLETE
         Run Program $TARGETDIR$\winwcp.exe 
+        Run Program $TARGETDIR$\winwcp.exe /regserver (WAIT)
         Comment: TO-DO: Insert command that starts your application here
       end
     end

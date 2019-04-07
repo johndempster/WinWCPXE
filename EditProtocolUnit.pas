@@ -30,6 +30,8 @@ unit EditProtocolUnit;
 // 09.02.17 DigWave added. Scale/Offset added to Wave
 // 02.10.17 Hint assoociated with ckKeepADCSamplesPerChannelFixed corrected
 // 31.05.18 Sine wave protocol added.
+// 05.04.19 Digital stimulus protocol display now only shows one pattern when No. records = 1
+//          (rather than 1 + next increment.)
 
 interface
 
@@ -2019,7 +2021,7 @@ begin
          // Draw stimulus waveforms
          StimulusDuration := Prot.RecordDuration ;
 
-         for Incr := 0 to Max(NumIncrements-1,1) do begin
+         for Incr := 0 to Max(NumIncrements-1,0) do begin
 
              // Move line to start
              T := 0.0 ;

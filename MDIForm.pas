@@ -720,6 +720,8 @@ unit MDIForm;
    //                of part of capacity current when edges of voltage step transitions are slow.
    V5.4.3 03.04.19   Tecella Triton control panel updated to simplify and improve capacity and JP compensation. Some bugs fixed.
                      Additional ACTIVE X commands added for control of Pico 2 functions from other applications.
+   V5.4.4 05.04.19   THold now correctly set in SESLABIO.TritonAutoCompensate. THold=20ms, VStep=10mV, TStep=20ms now used as defaults for
+                     autocomp test pulses.
 
             =======================================================================}
 
@@ -970,7 +972,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.4.3';
+      ProgVersion := 'V5.4.4';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
