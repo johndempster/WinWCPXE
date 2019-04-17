@@ -34,6 +34,10 @@ unit TritonPanelUnit;
 //          Auto Cfast, Cslow and artefact compensation now carried out as separate operations
 //          CFast and total Cslow capacity now display and can be enabled and disabled within WinWCP code rather
 //          than using Pico functions. Additional properties added implementing control of patch clamp functions from AUTOUNIT.pas
+// 09.04.19 Rleak and RLeakfine enable/disable now works
+// 11.04.19 Now uses TritonRemoveArtifact() procedure to remove artifact remaining after C compensation
+// 16.04.19 Analogue and digital leak conductance now handled as components of the overall leak conductance
+//          rather than as advanced proerties.
 //
 
 interface
@@ -87,14 +91,6 @@ type
     Label12: TLabel;
     ckJunctionPotFine: TCheckBox;
     tbJunctionPotFine: TTrackBar;
-    panRLeak: TPanel;
-    Label9: TLabel;
-    ckRleak: TCheckBox;
-    tbRLeak: TTrackBar;
-    panRLeakFine: TPanel;
-    Label14: TLabel;
-    ckRLeakFine: TCheckBox;
-    tbRLeakFine: TTrackBar;
     panCFast: TPanel;
     Label2: TLabel;
     tbCFast: TTrackBar;
@@ -106,8 +102,6 @@ type
     edJunctionPot: TValidatedEdit;
     edJunctionPotFine: TValidatedEdit;
     edRSeries: TValidatedEdit;
-    edRLeak: TValidatedEdit;
-    edRLeakFine: TValidatedEdit;
     edCFast: TValidatedEdit;
     gpCurrentStimulus: TGroupBox;
     Label22: TLabel;
@@ -116,8 +110,6 @@ type
     AdvancedTab: TTabSheet;
     GroupBox6: TGroupBox;
     Label17: TLabel;
-    ckUseAnalogLeakCompensation: TCheckBox;
-    ckUseDigitalLeakCompensation: TCheckBox;
     edCompensationCoeff: TValidatedEdit;
     gAutoCapacityComp: TGroupBox;
     bCFastAutoComp: TButton;
@@ -161,6 +153,28 @@ type
     CheckBox2: TCheckBox;
     ckShowCSlowComponents: TCheckBox;
     bAutoCompArterfact: TButton;
+    pRLeakComponents: TPanel;
+    panRLeakAnalog: TPanel;
+    Label9: TLabel;
+    ckRleakAnalog: TCheckBox;
+    tbRLeakAnalog: TTrackBar;
+    edRLeakAnalog: TValidatedEdit;
+    panRLeakFineAnalog: TPanel;
+    Label14: TLabel;
+    ckRLeakFineAnalog: TCheckBox;
+    tbRLeakFineAnalog: TTrackBar;
+    edRLeakFineAnalog: TValidatedEdit;
+    panRleakDigital: TPanel;
+    Label18: TLabel;
+    edRLeakDigital: TValidatedEdit;
+    ckRLeakDigital: TCheckBox;
+    CheckBox3: TCheckBox;
+    Panel1: TPanel;
+    Label19: TLabel;
+    edRLeakTotal: TValidatedEdit;
+    ckRLeak: TCheckBox;
+    CheckBox4: TCheckBox;
+    ckShowRLeakComponents: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure sbCfastChange(Sender: TObject);
     procedure sbCSlowAChange(Sender: TObject);
@@ -181,7 +195,7 @@ type
     procedure ckCslowDClick(Sender: TObject);
     procedure ckRseriesClick(Sender: TObject);
     procedure ckJunctionPotClick(Sender: TObject);
-    procedure ckRleakClick(Sender: TObject);
+    procedure ckRleakAnalogClick(Sender: TObject);
     procedure bCFastAutoCompClick(Sender: TObject);
     procedure bUpdateAllChannelsClick(Sender: TObject);
     procedure bClearCompensationClick(Sender: TObject);
@@ -190,7 +204,7 @@ type
     procedure sbJunctionPotFineChange(Sender: TObject);
     procedure cbUserConfigChange(Sender: TObject);
     procedure sbRLeakFineChange(Sender: TObject);
-    procedure ckRLeakFineClick(Sender: TObject);
+    procedure ckRLeakFineAnalogClick(Sender: TObject);
     procedure bZapClick(Sender: TObject);
     procedure tbFilterChange(Sender: TObject);
     procedure tbCFastChange(Sender: TObject);
@@ -199,16 +213,14 @@ type
     procedure tbCSlowCChange(Sender: TObject);
     procedure tbCSlowDChange(Sender: TObject);
     procedure tbRSeriesChange(Sender: TObject);
-    procedure tbRLeakChange(Sender: TObject);
-    procedure tbRLeakFineChange(Sender: TObject);
+    procedure tbRLeakAnalogChange(Sender: TObject);
+    procedure tbRLeakFineAnalogChange(Sender: TObject);
     procedure tbJunctionPotChange(Sender: TObject);
     procedure tbJunctionPotFineChange(Sender: TObject);
     procedure bCalibrateClick(Sender: TObject);
     procedure ckUseDigitalArtefactSubtractionClick(Sender: TObject);
-    procedure ckUseDigitalLeakCompensationClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure ckUseAnalogLeakCompensationClick(Sender: TObject);
     procedure ckCompensateAllChannelsClick(Sender: TObject);
     procedure edCompensationCoeffKeyPress(Sender: TObject; var Key: Char);
     procedure ckEnableDACStreamingClick(Sender: TObject);
@@ -216,8 +228,8 @@ type
     procedure edJunctionPotKeyPress(Sender: TObject; var Key: Char);
     procedure edJunctionPotFineKeyPress(Sender: TObject; var Key: Char);
     procedure edRSeriesKeyPress(Sender: TObject; var Key: Char);
-    procedure edRLeakKeyPress(Sender: TObject; var Key: Char);
-    procedure edRLeakFineKeyPress(Sender: TObject; var Key: Char);
+    procedure edRLeakAnalogKeyPress(Sender: TObject; var Key: Char);
+    procedure edRLeakFineAnalogKeyPress(Sender: TObject; var Key: Char);
     procedure edCFastKeyPress(Sender: TObject; var Key: Char);
     procedure edCSlowAKeyPress(Sender: TObject; var Key: Char);
     procedure edCSlowBKeyPress(Sender: TObject; var Key: Char);
@@ -233,6 +245,9 @@ type
     procedure ckShowCSlowComponentsClick(Sender: TObject);
     procedure ckCSlowClick(Sender: TObject);
     procedure bAutoCompArterfactClick(Sender: TObject);
+    procedure ckShowRLeakComponentsClick(Sender: TObject);
+    procedure ckRLeakClick(Sender: TObject);
+    procedure ckRLeakDigitalClick(Sender: TObject);
   private
     { Private declarations }
     DisableTritonUpdates : Boolean ; // Do not update Triton if TRUE
@@ -249,6 +264,7 @@ type
     JunctionPotFineUpdateRequired : Boolean ;
     RleakUpdateRequired : Boolean ;
     RleakFineUpdateRequired : Boolean ;
+    RLeakDigitalUpdateRequired : Boolean ;
     CurrentStimulusBiasUpdateRequired : Boolean ;
     SealTestStartRequired : Boolean ;
     SettingsFileName : String ;
@@ -268,6 +284,7 @@ type
     CHANOFFFine : Array[0..MaxTecellaChannels-1] of Single ;
     LEAK : Array[0..MaxTecellaChannels-1] of Single ;
     LEAKFine : Array[0..MaxTecellaChannels-1] of Single ;
+    LEAKDigital : Array[0..MaxTecellaChannels-1] of Single ;
     BESSEL : Array[0..MaxTecellaChannels-1] of Single ;
     CFastEnabled : Array[0..MaxTecellaChannels-1] of Boolean ;
     CSLOW_AEnabled : Array[0..MaxTecellaChannels-1] of Boolean ;
@@ -278,6 +295,8 @@ type
     CHANOFFEnabled : Array[0..MaxTecellaChannels-1] of Boolean ;
     LEAKEnabled : Array[0..MaxTecellaChannels-1] of Boolean ;
     LEAKFineEnabled : Array[0..MaxTecellaChannels-1] of Boolean ;
+    LEAKDigitalEnabled : Array[0..MaxTecellaChannels-1] of Boolean ;
+
     CHANOFFFineEnabled : Array[0..MaxTecellaChannels-1] of Boolean ;
 //    IClampMode : Array[0..MaxTecellaChannels-1] of Boolean ;
     ZapAmplitude : Single ;
@@ -498,11 +517,12 @@ begin
      SetSlider( tbCSLowD, panCSlowD, TECELLA_REG_CSLOW_D ) ;
      SetSlider( tbJunctionPot, panJunctionPot, TECELLA_REG_JP ) ;
      SetSlider( tbJunctionPotFine, panJunctionPotFine, TECELLA_REG_JP_FINE ) ;
-     SetSlider( tbRLeak, panRLeak, TECELLA_REG_LEAK ) ;
-     SetSlider( tbRLeakFine, panRLeakFine, TECELLA_REG_LEAK_FINE ) ;
+     SetSlider( tbRLeakAnalog, panRLeakAnalog, TECELLA_REG_LEAK ) ;
+     SetSlider( tbRLeakFineAnalog, panRLeakFineAnalog, TECELLA_REG_LEAK_FINE ) ;
      SetSlider( tbRSeries, panRSeries, TECELLA_REG_RSERIES ) ;
 
      pCSlowComponents.Visible := ckShowCSlowComponents.Checked ;
+     pRLeakComponents.Visible := ckShowRLeakComponents.Checked ;
 
      // Input Gain
      Main.SESLabIO.TritonGetGainList(cbGain.Items) ;
@@ -532,9 +552,8 @@ begin
      edZapAmplitude.Value := ZapAmplitude ;
      edZapDuration.Value := ZapDuration ;
 
-    ckUseAnalogLeakCompensation.checked := UseAnalogLeakSubtraction ;
-    ckUseDigitalLeakCompensation.Checked := UseDigitalLeakSubtraction ;
-//    ckUseDigitalArtefactSubtraction.Checked := UseDigitalArtefactRemoval ;
+    ckRLeakAnalog.checked := UseAnalogLeakSubtraction ;
+    ckRLeakDigital.Checked := UseDigitalLeakSubtraction ;
     ckCompensateAllChannels.Checked := CompensateAllChannels ;
     edCompensationCoeff.Value := CompensationCoeff ;
     ckEnableDACStreaming.Checked := EnableDACStreaming ;
@@ -615,6 +634,8 @@ begin
          Main.SESLABIO.TritonSetRegPercent(TECELLA_REG_LEAK,ch,LEAK[ch]) ;
          Main.SESLABIO.TritonSetRegEnabled(TECELLA_REG_LEAK,ch,LEAKEnabled[ch]) ;
 
+         Main.SESLABIO.TritonDigitalLeakConductance[ ch ] := LEAKDigital[ch] ;
+
          end ;
 
      Main.SESLABIO.TritonCurrentStimulusBias := CurrentStimulusBias ;
@@ -691,10 +712,12 @@ begin
      TritonGetValueAndEnabled(TECELLA_REG_CSLOW_C,cbChannel.ItemIndex,edCSlowC,tbCSlowC,ckCSlowC) ;
      TritonGetValueAndEnabled(TECELLA_REG_CSLOW_D,cbChannel.ItemIndex,edCSlowD,tbCSlowD,ckCSlowD) ;
      TritonGetValueAndEnabled(TECELLA_REG_RSERIES,cbChannel.ItemIndex,edRSERIES,tbRSERIES,ckRSERIES) ;
-     TritonGetValueAndEnabled(TECELLA_REG_LEAK,cbChannel.ItemIndex,edRLEAK,tbRLEAK,ckRLEAK) ;
-     TritonGetValueAndEnabled(TECELLA_REG_LEAK_FINE,cbChannel.ItemIndex,edRLEAKFine,tbRLEAKFine,ckRLEAKFine) ;
+     TritonGetValueAndEnabled(TECELLA_REG_LEAK,cbChannel.ItemIndex,edRLEAKAnalog,tbRLEAKAnalog,ckRLEAKAnalog) ;
+     TritonGetValueAndEnabled(TECELLA_REG_LEAK_FINE,cbChannel.ItemIndex,edRLEAKFineAnalog,tbRLEAKFineAnalog,ckRLEAKFineAnalog) ;
      TritonGetValueAndEnabled(TECELLA_REG_JP,cbChannel.ItemIndex,edJunctionPot,tbJunctionPot,ckJunctionPot) ;
      TritonGetValueAndEnabled(TECELLA_REG_JP_FINE,cbChannel.ItemIndex,edJunctionPotFine,tbJunctionPotFine,ckJunctionPotFine) ;
+
+     edRLeakDigital.Value := Main.SESLabIO.TritonDigitalLeakConductance[cbChannel.ItemIndex] ;
 
      tbFilter.Position := Round(BESSEL[cbChannel.ItemIndex]) ;
      Main.SESLabIO.SetTritonBesselFilter( cbChannel.ItemIndex, tbFilter.Position, Value ) ;
@@ -715,7 +738,7 @@ procedure TTritonPanelFrm.TritonGetValueAndEnabled(
 // Get current value of selected register from Triton
 // --------------------------------------------------
 var
-    Value,PercentValue : Single ;
+    Value,PercentValue,Scale : Single ;
     Enabled : Boolean ;
     Units : String ;
 begin
@@ -724,10 +747,17 @@ begin
                                  PercentValue, Units,Enabled ) ;
      SliderControl.Position :=  Round(PercentValue*0.01*SliderControl.Max) ;
 
-     EditControl.Value := Value ;
-     if Units = 'MOhm-1' then Units := 'nS'  ;
+     if Units = 'MOhm-1' then
+        begin
+        Units := 'nS'  ;
+        Scale := 1000.0 ;
+        end
+     else Scale := 1.0 ;
+
      EditControl.Units := Units ;
+     EditControl.Scale := Scale ;
      EnableBox.Checked := Enabled ;
+     EditControl.Value := Value ;
 
      end ;
 
@@ -741,16 +771,24 @@ procedure TTritonPanelFrm.TritonGetValue(
 // Get current value of selected register from Triton
 // --------------------------------------------------
 var
-    Value,PercentValue : Single ;
+    Value,PercentValue,Scale : Single ;
     Enabled : Boolean ;
     Units : string ;
 begin
 
      Main.SESLABIO.TritonGetReg( TritonRegister, cbChannel.ItemIndex, Value, PercentValue, Units,Enabled ) ;
+
+     if Units = 'MOhm-1' then
+        begin
+        Units := 'nS'  ;
+        Scale := 1000.0 ;
+        end
+     else Scale := 1.0 ;
+
+     EditControl.Units := Units ;
+     EditControl.Scale := Scale ;
      EditControl.Value := Value ;
 
-     if Units = 'MOhm-1' then Units := 'nS'  ;
-     EditControl.Units := Units ;
      SliderControl.Position :=  Round(PercentValue*0.01*SliderControl.Max) ;
 
      end ;
@@ -788,7 +826,7 @@ procedure TTritonPanelFrm.TritonSetPercent(
 // Set current value of selected register from Triton
 // --------------------------------------------------
 var
-    Value,PercentValue : Single ;
+    Value,PercentValue,Scale : Single ;
     RegEnabled : Boolean ;
     Units : String ;
 begin
@@ -805,10 +843,16 @@ begin
      // Get actual value set back
      Main.SESLABIO.TritonGetReg( TritonRegister, cbChannel.ItemIndex, Value, PercentValue, Units,RegEnabled ) ;
 
-     if Enabled then EditControl.Value := Value ;
+     if Units = 'MOhm-1' then
+        begin
+        Units := 'nS'  ;
+        Scale := 1000.0 ;
+        end
+     else Scale := 1.0 ;
 
-     if Units = 'MOhm-1' then Units := 'nS'  ;
      EditControl.Units := Units ;
+     EditControl.Scale := Scale ;
+     if Enabled then EditControl.Value := Value ;
 
      SealTestStartRequired := True ;
 
@@ -1008,6 +1052,15 @@ begin
      pCSlowComponents.Visible := ckShowCSlowComponents.Checked ;
 end;
 
+procedure TTritonPanelFrm.ckShowRLeakComponentsClick(Sender: TObject);
+// ----------------------------------
+// Show/Hide Rleak component controls
+// ----------------------------------
+begin
+     pRLeakComponents.Visible := ckShowRLeakComponents.Checked ;
+end;
+
+
 procedure TTritonPanelFrm.ckJunctionPotClick(Sender: TObject);
 begin
 //    TritonSetEnable( TECELLA_REG_JP, ckJunctionPot ) ;
@@ -1023,9 +1076,11 @@ begin
     JunctionPotFineUpdateRequired := True ;
     end;
 
-procedure TTritonPanelFrm.ckRleakClick(Sender: TObject);
+procedure TTritonPanelFrm.ckRleakAnalogClick(Sender: TObject);
+// ----------------------------------------
+// Enable/disable coarse Rleak compensation
+// ----------------------------------------
 begin
-    TritonSetEnable( TECELLA_REG_LEAK, ckRleak ) ;
     LEAKEnabled[cbChannel.ItemIndex] := ckRleak.Checked ;
     RLeakUpdateRequired := True ;
     end;
@@ -1042,8 +1097,6 @@ var
     Units : String ;
     VHold,VStep,THold,TStep : single ;
 begin
-
-     //bClearCompensation.Click ;
 
      // Stop seal test
      if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StopADCAndDAC ;
@@ -1082,8 +1135,8 @@ begin
                                            false,
                                            false,
                                            false,
-                                           ckUseAnalogLeakCompensation.Checked,
-                                           ckUseDigitalLeakCompensation.Checked,
+                                           false,
+                                           false,
                                            false,
                                            edCompensationCoeff.Value,
                                            VHold,
@@ -1093,7 +1146,7 @@ begin
                                             ) ;
 
      // Update settings
-     for ch := 0 to High(FSource) do begin
+     for ch := 0 to Main.SESLabIO.TritonNumChannels-1 do begin
         Main.SESLABIO.TritonGetReg(TECELLA_REG_CFAST,ch,Value,FCFAST[ch],Units,Enabled) ;
 
         Main.SESLABIO.TritonGetreg(TECELLA_REG_CSLOW_A,ch,Value,CSLOW_A[ch],Units,
@@ -1106,12 +1159,6 @@ begin
                                        CSLOW_DEnabled[ch]) ;
         Main.SESLABIO.TritonGetreg(TECELLA_REG_RSERIES,ch,Value,RSERIES[ch],Units,
                                         RSERIESEnabled[ch]  ) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_JP,ch,Value,CHANOFF[ch],Units,
-                                       CHANOFFEnabled[ch]   ) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_JP_FINE,ch,Value,CHANOFFFine[ch],Units,
-                                       CHANOFFFineEnabled[ch]   ) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_LEAK,ch,Value,LEAK[ch],Units,
-                                       LEAKEnabled[ch]) ;
         end ;
 
      UpdatePanelControls ;
@@ -1139,7 +1186,7 @@ var
 begin
 
      // Update settings in Triton
-     for ch := 0 to High(FSource) do begin
+     for ch := 0 to Main.SESLabIO.TritonNumChannels-1 do begin
 
          // Source
          FSource[ch] :=  Min(Max(FSource[cbChannel.ItemIndex],0),cbSource.Items.Count-1) ;
@@ -1216,9 +1263,9 @@ begin
 
      // Clear digital compensations
      Main.SESLabIO.TritonDigitalLeakSubtractionEnable(cbChannel.ItemIndex,False) ;
-     Main.SESLabIO.TritonAutoArtefactRemovalEnable(False) ;
+     Main.SESLabIO.TritonDigitalLeakConductance[cbChannel.ItemIndex] := 0.0 ;
 
-     for ch := 0 to High(FSource) do
+     for ch := 0 to Main.SESLabIO.TritonNumChannels-1 do
         if ckCompensateAllChannels.Checked or (ch = cbChannel.ItemIndex) then begin
 
         LEAK[ch] := Main.SESLABIO.TritonRegValueToPercent(TECELLA_REG_LEAK,ch,0.0) ;
@@ -1226,6 +1273,8 @@ begin
 
         LEAKFine[ch] := Main.SESLABIO.TritonRegValueToPercent(TECELLA_REG_LEAK_FINE,ch,0.0) ;
         Main.SESLABIO.TritonSetRegPercent(TECELLA_REG_LEAK_FINE,ch,LEAKFine[ch]) ;
+
+        LEAKDigital[ch] := Main.SESLabIO.TritonDigitalLeakConductance[ch] ;
 
         end ;
 
@@ -1243,10 +1292,9 @@ var
 begin
 
      // Clear digital compensations
-     Main.SESLabIO.TritonDigitalLeakSubtractionEnable(cbChannel.ItemIndex,False) ;
      Main.SESLabIO.TritonAutoArtefactRemovalEnable(False) ;
 
-     for ch := 0 to High(FSource) do
+     for ch := 0 to Main.SESLabIO.TritonNumChannels-1 do
         if ckCompensateAllChannels.Checked or (ch = cbChannel.ItemIndex) then begin
 
         FCFAST[ch] := Main.SESLABIO.TritonRegValueToPercent(TECELLA_REG_CFAST,ch,0.0) ;
@@ -1325,8 +1373,8 @@ begin
                                            ckCSlowB.Checked,
                                            ckCSlowC.Checked,
                                            ckCSlowD.Checked,
-                                           ckUseAnalogLeakCompensation.Checked,
-                                           ckUseDigitalLeakCompensation.Checked,
+                                           False,
+                                           False,
                                            false,
                                            edCompensationCoeff.Value,
                                            VHold,
@@ -1336,9 +1384,7 @@ begin
                                             ) ;
 
      // Update settings
-     for ch := 0 to High(FSource) do begin
-        Main.SESLABIO.TritonGetReg(TECELLA_REG_CFAST,ch,Value,FCFAST[ch],Units,Enabled) ;
-
+     for ch := 0 to Main.SESLabIO.TritonNumChannels-1 do begin
         Main.SESLABIO.TritonGetreg(TECELLA_REG_CSLOW_A,ch,Value,CSLOW_A[ch],Units,
                                        CSLOW_AEnabled[ch]) ;
         Main.SESLABIO.TritonGetreg(TECELLA_REG_CSLOW_B,ch,Value,CSLOW_B[ch],Units,
@@ -1349,12 +1395,6 @@ begin
                                        CSLOW_DEnabled[ch]) ;
         Main.SESLABIO.TritonGetreg(TECELLA_REG_RSERIES,ch,Value,RSERIES[ch],Units,
                                         RSERIESEnabled[ch]  ) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_JP,ch,Value,CHANOFF[ch],Units,
-                                       CHANOFFEnabled[ch]   ) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_JP_FINE,ch,Value,CHANOFFFine[ch],Units,
-                                       CHANOFFFineEnabled[ch]   ) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_LEAK,ch,Value,LEAK[ch],Units,
-                                       LEAKEnabled[ch]) ;
         end ;
 
      UpdatePanelControls ;
@@ -1381,8 +1421,6 @@ var
     VHold,VStep,THold,TStep : single ;
 begin
 
-     //bClearCompensation.Click ;
-
      // Stop seal test
      if Main.FormExists( 'SealTestFrm' ) then SealTestFrm.StopADCAndDAC ;
      Screen.Cursor := crHourglass ;
@@ -1392,13 +1430,8 @@ begin
 
      Screen.Cursor := crHourGlass ;
 
-     // Apply compensation
-     CompensationCoeff := edCompensationCoeff.Value ;
-
      // Get auto compensation holding and test pulse amplitudes and duration from current seal test settings
 
-     TStep := Min(Max(Settings.SealTest.PulseWidth, 0.01 ), 0.1 ) ;
-     THold := TStep ;
      case Settings.SealTest.Use of
           3 : begin
               VHold :=  Settings.SealTest.HoldingVoltage3 ;
@@ -1412,48 +1445,10 @@ begin
           end;
 
      VStep := 0.01 ; // Step size (10 mV)
-     TStep := 0.02 ;  // Test step time (20 ms)
-     THold := 0.02 ; // Hold time (20 ms)
+     TStep := 0.019 ;  // Test step time (20 ms)
+     THold := 0.019 ; // Hold time (20 ms)
 
-     Main.SESLabIO.TritonAutoCompensation( false,
-                                           false,
-                                           false,
-                                           false,
-                                           false,
-                                           false,
-                                           false,
-                                           true,
-                                           edCompensationCoeff.Value,
-                                           VHold,
-                                           THold,
-                                           VStep,
-                                           TStep
-                                            ) ;
-
-     // Update settings
-     for ch := 0 to High(FSource) do begin
-        Main.SESLABIO.TritonGetReg(TECELLA_REG_CFAST,ch,Value,FCFAST[ch],Units,Enabled) ;
-
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_CSLOW_A,ch,Value,CSLOW_A[ch],Units,
-                                       CSLOW_AEnabled[ch]) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_CSLOW_B,ch,Value,CSLOW_B[ch],Units,
-                                       CSLOW_BEnabled[ch]) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_CSLOW_C,ch,Value,CSLOW_C[ch],Units,
-                                       CSLOW_CEnabled[ch]) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_CSLOW_D,ch,Value,CSLOW_D[ch],Units,
-                                       CSLOW_DEnabled[ch]) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_RSERIES,ch,Value,RSERIES[ch],Units,
-                                        RSERIESEnabled[ch]  ) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_JP,ch,Value,CHANOFF[ch],Units,
-                                       CHANOFFEnabled[ch]   ) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_JP_FINE,ch,Value,CHANOFFFine[ch],Units,
-                                       CHANOFFFineEnabled[ch]   ) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_LEAK,ch,Value,LEAK[ch],Units,
-                                       LEAKEnabled[ch]) ;
-        end ;
-
-     // Enable artefact removal
-     Main.SESLabIO.TritonAutoArtefactRemovalEnable(True) ;
+     Main.SESLabIO.TritonRemoveArtifact( Vhold,THold,VStep,TStep);
 
      UpdatePanelControls ;
 
@@ -1488,7 +1483,7 @@ begin
      Main.SESLabIO.TritonJPAutoZero ;
 
      // Update settings
-     for ch := 0 to High(FSource) do begin
+     for ch := 0 to Main.SESLabIO.TritonNumChannels-1 do begin
         Main.SESLABIO.TritonGetreg(TECELLA_REG_JP,ch,Value,CHANOFF[ch],Units,
                                        CHANOFFEnabled[ch]   ) ;
         Main.SESLABIO.TritonGetreg(TECELLA_REG_JP_FINE,ch,Value,CHANOFFFIne[ch],Units,
@@ -1525,7 +1520,7 @@ begin
      Screen.Cursor := crHourglass ;
      Main.StatusBar.SimpleText := 'WAIT: Leak conductance compensation in progress.' ;
 
-     bCFastAutoComp.Enabled := False ;
+     bAutoLeakComp.Enabled := False ;
 
      Screen.Cursor := crHourGlass ;
 
@@ -1545,7 +1540,7 @@ begin
               end ;
           end;
 
-     // Apply compensation                                                                                         edVHold.Value := CompensationVHold ;
+     // Apply compensation
      CompensationCoeff := edCompensationCoeff.Value ;
 
      VStep := 0.01 ; // Step size (10 mV)
@@ -1557,8 +1552,8 @@ begin
                                            false,
                                            false,
                                            false,
-                                           ckUseAnalogLeakCompensation.Checked,
-                                           ckUseDigitalLeakCompensation.Checked,
+                                           ckRLeakAnalog.Checked,
+                                           ckRLeakDigital.Checked,
                                            false,
                                            edCompensationCoeff.Value,
                                            VHold,
@@ -1568,28 +1563,18 @@ begin
                                             ) ;
 
      // Update settings
-     for ch := 0 to High(FSource) do begin
-        Main.SESLABIO.TritonGetReg(TECELLA_REG_CFAST,ch,Value,FCFAST[ch],Units,Enabled) ;
-
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_CSLOW_A,ch,Value,CSLOW_A[ch],Units,
-                                       CSLOW_AEnabled[ch]) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_CSLOW_B,ch,Value,CSLOW_B[ch],Units,
-                                       CSLOW_BEnabled[ch]) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_CSLOW_C,ch,Value,CSLOW_C[ch],Units,
-                                       CSLOW_CEnabled[ch]) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_CSLOW_D,ch,Value,CSLOW_D[ch],Units,
-                                       CSLOW_DEnabled[ch]) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_RSERIES,ch,Value,RSERIES[ch],Units,
-                                        RSERIESEnabled[ch]  ) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_JP,ch,Value,CHANOFF[ch],Units,
-                                       CHANOFFEnabled[ch]   ) ;
-        Main.SESLABIO.TritonGetreg(TECELLA_REG_JP_FINE,ch,Value,CHANOFFFine[ch],Units,
-                                       CHANOFFFineEnabled[ch]   ) ;
+     for ch := 0 to Main.SESLabIO.TritonNumChannels-1 do begin
         Main.SESLABIO.TritonGetreg(TECELLA_REG_LEAK,ch,Value,LEAK[ch],Units,
+                                       LEAKEnabled[ch]) ;
+        Main.SESLABIO.TritonGetreg(TECELLA_REG_LEAK,ch,Value,LEAKFine[ch],Units,
                                        LEAKEnabled[ch]) ;
         end ;
 
-     Main.SESLabIO.TritonDigitalLeakSubtractionEnable(cbChannel.ItemIndex,True) ;
+     if ckRLeakDigital.Checked then
+        begin
+        LEAKDigital[cbChannel.ItemIndex] := Main.SESLABIO.TritonDigitalLeakConductance[cbChannel.ItemIndex] ;
+        Main.SESLabIO.TritonDigitalLeakSubtractionEnable(cbChannel.ItemIndex,True) ;
+        end;
 
      UpdatePanelControls ;
 
@@ -1598,10 +1583,9 @@ begin
      Screen.Cursor := crDefault ;
      Main.StatusBar.SimpleText := '' ;
 
-    bCFastAutoComp.Enabled := True ;
+    bAutoLeakComp.Enabled := True ;
 
      end;
-
 
 
 procedure TTritonPanelFrm.TimerTimer(Sender: TObject);
@@ -1685,20 +1669,28 @@ begin
      end ;
 
     if RleakUpdateRequired then begin
-       TritonSetPercent( TECELLA_REG_LEAK, edRleak, tbRleak, ckRLeak.Checked ) ;
-       LEAK[cbChannel.ItemIndex] := (tbRLeak.Position*100.0)/tbRLeak.Max ;
+       TritonSetPercent( TECELLA_REG_LEAK, edRleakAnalog, tbRleakAnalog, ckRLeakAnalog.Checked and ckRLeak.Checked ) ;
+       LEAK[cbChannel.ItemIndex] := (tbRLeakAnalog.Position*100.0)/tbRLeakAnalog.Max ;
        RleakUpdateRequired := False ;
        end ;
 
     if RleakFineUpdateRequired then begin
-       TritonSetPercent( TECELLA_REG_LEAK_FINE, edRleakFine, tbRleakFine, ckRLeakFine.Checked ) ;
-       LEAKFine[cbChannel.ItemIndex] := (tbRLeakFine.Position*100.0)/tbRLeakFine.Max ;
+       TritonSetPercent( TECELLA_REG_LEAK_FINE, edRleakFineAnalog, tbRleakFineAnalog, ckRLeakFineAnalog.Checked and ckRLeak.Checked ) ;
+       LEAKFine[cbChannel.ItemIndex] := (tbRLeakFineAnalog.Position*100.0)/tbRLeakFineAnalog.Max ;
        RleakFineUpdateRequired := False ;
+       end ;
+
+    if RLeakDigitalUpdateRequired then begin
+       LEAKDigital[cbChannel.ItemIndex] := edRLeakDigital.Value ;
+       Main.SESLABIO.TritonDigitalLeakSubtractionEnable(cbChannel.ItemIndex, ckRLeakDigital.Checked and ckRLeak.Checked);
+       RLeakDigitalUpdateRequired := False ;
+       SealTestStartRequired := True ;
        end ;
 
     if CurrentStimulusBiasUpdateRequired then begin
        CurrentStimulusBias :=  edCurrentStimulusBias.Value ;
        Main.SESLabIO.TritonCurrentStimulusBias := CurrentStimulusBias ;
+       SealTestStartRequired := True ;
        end;
 
     if SealTestStartRequired then
@@ -1712,6 +1704,11 @@ begin
     if panCSlowD.Visible then panCTotal.Top := panCSlowD.Top + panCSlowD.Height + 2
     else if panCSlowC.Visible then panCTotal.Top := panCSlowC.Top + panCSlowC.Height + 2
     else if panCSlowB.Visible then panCTotal.Top := panCSlowB.Top + panCSlowB.Height + 2 ;
+
+    // Update total Rleak (analog + digital
+
+    edRLeakTotal.Value := edRLeakAnalog.Value + edRLeakFineAnalog.Value + edRLeakDigital.Value ;
+
 //    else panCTotal.Top := panCFast.Top + panCFast.Height + 2 ;
 //    panCSlowTotal.Top := panCTotal.Top + panCTotal.Height + 2 ;
 
@@ -1755,7 +1752,7 @@ begin
      Main.SESLabIO.TritonDigitalLeakSubtractionEnable(cbChannel.ItemIndex,False) ;
      Main.SESLabIO.TritonAutoArtefactRemovalEnable(False) ;
 
-     for ch := 0 to High(FSource) do
+     for ch := 0 to Main.SESLabIO.TritonNumChannels-1 do
         if ckCompensateAllChannels.Checked or (ch = cbChannel.ItemIndex) then begin
 
         CHANOFF[ch] := Main.SESLABIO.TritonRegValueToPercent(TECELLA_REG_JP,ch,0.0) ;
@@ -1779,11 +1776,34 @@ begin
     RleakFineUpdateRequired := True ;
     end;
 
-procedure TTritonPanelFrm.ckRLeakFineClick(Sender: TObject);
+procedure TTritonPanelFrm.ckRLeakClick(Sender: TObject);
+// --------------------------------------------------
+// Enable/disable RLeak compensation (all components)
+// --------------------------------------------------
 begin
-    TritonSetEnable( TECELLA_REG_LEAK_FINE, ckRleakFine ) ;
-    LEAKFineEnabled[cbChannel.ItemIndex] := ckRleakFine.Checked ;
+    RLeakUpdateRequired := True ;
+    RLeakFineUpdateRequired := True ;
+    RLeakDigitalUpdateRequired := True ;
     end;
+
+
+procedure TTritonPanelFrm.ckRLeakDigitalClick(Sender: TObject);
+// ------------------------------------------
+// Enable/disable digital R leak compensation
+// ------------------------------------------
+begin
+    LEAKDigitalEnabled[cbChannel.ItemIndex] := ckRleakDigital.Checked ;
+    RLeakDigitalUpdateRequired := True ;
+    end;
+
+
+procedure TTritonPanelFrm.ckRLeakFineAnalogClick(Sender: TObject);
+begin
+//    TritonSetEnable( TECELLA_REG_LEAK_FINE, ckRleakFine ) ;
+    LEAKFineEnabled[cbChannel.ItemIndex] := ckRleakFineAnalog.Checked ;
+    RleakFineUpdateRequired := True ;
+    end;
+
 
 procedure TTritonPanelFrm.bZapClick(Sender: TObject);
 // -----------
@@ -1863,14 +1883,14 @@ begin
     end;
 
 
-procedure TTritonPanelFrm.tbRLeakChange(Sender: TObject);
+procedure TTritonPanelFrm.tbRLeakAnalogChange(Sender: TObject);
 begin
     RLeakUpdateRequired := True ;
     SealTestStartRequired := True ;
     end;
 
 
-procedure TTritonPanelFrm.tbRLeakFineChange(Sender: TObject);
+procedure TTritonPanelFrm.tbRLeakFineAnalogChange(Sender: TObject);
 begin
     RLeakFineUpdateRequired := True ;
     SealTestStartRequired := True ;
@@ -1922,13 +1942,6 @@ begin
      SealTestStartRequired := True ;
      end;
 
-procedure TTritonPanelFrm.ckUseDigitalLeakCompensationClick(
-  Sender: TObject);
-begin
-     Main.SESLabIO.TritonDigitalLeakSubtractionEnable(cbChannel.ItemIndex,ckUseDigitalLeakCompensation.Checked) ;
-     UseDigitalLeakSubtraction := ckUseDigitalLeakCompensation.Checked ;
-     SealTestStartRequired := True ;
-     end;
 
 
 procedure TTritonPanelFrm.SaveToXMLFile(
@@ -1957,10 +1970,10 @@ var
    XMLDoc : IXMLDocument ;
 begin
 
-    ckUseAnalogLeakCompensation.checked := UseAnalogLeakSubtraction ;
-    ckUseDigitalLeakCompensation.Checked := UseDigitalLeakSubtraction ;
+//    ckUseAnalogLeakCompensation.checked := UseAnalogLeakSubtraction ;
+//    ckUseDigitalLeakCompensation.Checked := UseDigitalLeakSubtraction ;
 //    ckUseDigitalArtefactSubtraction.Checked := UseDigitalArtefactRemoval ;
-    ckCfast.Checked := UseCfastCompensation ;
+{    ckCfast.Checked := UseCfastCompensation ;
     ckCSlowA.Checked := UseCSlowACompensation ;
     ckCSlowB.Checked := UseCSlowBCompensation ;
     ckCSlowC.Checked := UseCSlowCCompensation ;
@@ -1968,7 +1981,7 @@ begin
     ckCompensateAllChannels.Checked := CompensateAllChannels ;
     edCompensationCoeff.Value := CompensationCoeff ;
     ckEnableDACStreaming.Checked := EnableDACStreaming ;
-    edCurrentStimulusBias.Value := CurrentStimulusBias ;
+    edCurrentStimulusBias.Value := CurrentStimulusBias ;}
 
     XMLDoc := TXMLDocument.Create(Self);
     XMLDoc.Active := True ;
@@ -2023,7 +2036,11 @@ begin
          AddElementBool( iNode, 'CHANOFFFINEENABLED', CHANOFFFineEnabled[i]);
          AddElementFloat( iNode, 'CHANOFFFINE', CHANOFFFine[i]);
          AddElementBool( iNode, 'LEAKENABLED', LEAKEnabled[i]);
+         AddElementBool( iNode, 'LEAKFINEENABLED', LEAKFineEnabled[i]);
+         AddElementBool( iNode, 'LEAKDIGITALENABLED', LEAKDigitalEnabled[i]);
          AddElementFloat( iNode, 'LEAK', LEAK[i]);
+         AddElementFloat( iNode, 'LEAKFINE', LEAKFine[i]);
+         AddElementFloat( iNode, 'LEAKDIGITAL', LEAKDigital[i]);
          AddElementFloat( iNode, 'BESSEL', BESSEL[i]);
          end ;
 
@@ -2125,7 +2142,11 @@ begin
            GetElementBool( iNode, 'CHANOFFFINEENABLED', CHANOFFFineEnabled[i]);
            GetElementFloat( iNode, 'CHANOFFFINE', CHANOFFFine[i]);
            GetElementBool( iNode, 'LEAKENABLED', LEAKEnabled[i]);
+           GetElementBool( iNode, 'LEAKFINEENABLED', LEAKFineEnabled[i]);
+           GetElementBool( iNode, 'LEAKDIGITALENABLED', LEAKDigitalEnabled[i]);
            GetElementFloat( iNode, 'LEAK', LEAK[i]);
+           GetElementFloat( iNode, 'LEAKFINE', LEAKFine[i]);
+           GetElementFloat( iNode, 'LEAKDIGITAL', LEAKDigital[i]);
            GetElementFloat( iNode, 'BESSEL', BESSEL[i]);
            end ;
         Inc(NodeIndex) ;
@@ -2360,7 +2381,7 @@ begin
 
      // Default Tecella amplifier settings
 
-     for i := 0 to High(FSource) do begin
+     for i := 0 to Main.SESLabIO.TritonNumChannels-1 do begin
          FSource[i] := 0 ;
          LastSourceName[i] := '' ;
          FGain[i] := 0 ;
@@ -2417,11 +2438,6 @@ begin
 
     end;
 
-procedure TTritonPanelFrm.ckUseAnalogLeakCompensationClick(
-  Sender: TObject);
-begin
-     UseAnalogLeakSubtraction := ckUseAnalogLeakCompensation.Checked ;
-     end;
 
 procedure TTritonPanelFrm.ckCFastClick(Sender: TObject);
 begin
@@ -2548,27 +2564,27 @@ begin
     end;
 
 
-procedure TTritonPanelFrm.edRLeakFineKeyPress(Sender: TObject; var Key: Char);
+procedure TTritonPanelFrm.edRLeakFineAnalogKeyPress(Sender: TObject; var Key: Char);
 // -----------------------------------
 // Leak reistance (fine) value changed
 // -----------------------------------
 begin
     if Key = #13 then
        begin
-       tbRLeakFine.Position := ConvertToTrackBarPosition( TECELLA_REG_LEAK_FINE, edRLeakFine.Value, tbRLeakFine );
+       tbRLeakFineAnalog.Position := ConvertToTrackBarPosition( TECELLA_REG_LEAK_FINE, edRLeakFineAnalog.Value, tbRLeakFineAnalog );
        RLeakFineUpdateRequired := True ;
        end;
     end;
 
 
-procedure TTritonPanelFrm.edRLeakKeyPress(Sender: TObject; var Key: Char);
+procedure TTritonPanelFrm.edRLeakAnalogKeyPress(Sender: TObject; var Key: Char);
 // -------------------------------------
 // Leak reistance (coarse) value changed
 // -------------------------------------
 begin
     if Key = #13 then
        begin
-       tbRLeak.Position := ConvertToTrackBarPosition( TECELLA_REG_LEAK, edRLeak.Value, tbRLeak );
+       tbRLeakAnalog.Position := ConvertToTrackBarPosition( TECELLA_REG_LEAK, edRLeakAnalog.Value, tbRLeakAnalog );
        RLeakUpdateRequired := True ;
        end;
     end;

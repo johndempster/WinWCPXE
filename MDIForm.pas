@@ -722,6 +722,10 @@ unit MDIForm;
                      Additional ACTIVE X commands added for control of Pico 2 functions from other applications.
    V5.4.4 05.04.19   THold now correctly set in SESLABIO.TritonAutoCompensate. THold=20ms, VStep=10mV, TStep=20ms now used as defaults for
                      autocomp test pulses.
+   V5.4.5 17.04.19   Triton: G Leak now implemented as 3 components (Rleak, Rleak fine and Rleak digital). Seal test readout average now
+                     reset when parameters change on Triton control panel
+                     Sealtest: Reset Avg. button added allowing user to manually reset cell R/C averages.
+
 
             =======================================================================}
 
@@ -972,7 +976,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.4.4';
+      ProgVersion := 'V5.4.5';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

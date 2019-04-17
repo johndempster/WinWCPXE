@@ -107,7 +107,7 @@ object TritonPanelFrm: TTritonPanelFrm
             end
             object bClearCompensation: TButton
               Left = 8
-              Top = 81
+              Top = 82
               Width = 130
               Height = 17
               Hint = 'Clear fast and slow capacity compensation'
@@ -236,10 +236,6 @@ object TritonPanelFrm: TTritonPanelFrm
         object CapacityPage: TTabSheet
           Caption = 'Capacity'
           ImageIndex = 1
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object panCFast: TPanel
             Left = 1
             Top = 0
@@ -657,143 +653,13 @@ object TritonPanelFrm: TTritonPanelFrm
         object ResistancePage: TTabSheet
           Caption = 'Resistance'
           ImageIndex = 2
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
-          object panRLeak: TPanel
-            Left = 1
-            Top = 30
-            Width = 280
-            Height = 26
-            BevelOuter = bvNone
-            TabOrder = 0
-            object Label9: TLabel
-              Left = 0
-              Top = 0
-              Width = 34
-              Height = 14
-              Caption = 'G leak'
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-            end
-            object ckRleak: TCheckBox
-              Left = 262
-              Top = 0
-              Width = 17
-              Height = 17
-              Caption = 'ckCfast'
-              Checked = True
-              State = cbChecked
-              TabOrder = 0
-              OnClick = ckRleakClick
-            end
-            object tbRLeak: TTrackBar
-              Left = 85
-              Top = 0
-              Width = 88
-              Height = 20
-              Max = 1000
-              Frequency = 10
-              TabOrder = 1
-              ThumbLength = 12
-              OnChange = tbRLeakChange
-            end
-            object edRLeak: TValidatedEdit
-              Left = 175
-              Top = 0
-              Width = 81
-              Height = 23
-              Hint = 'Leak conductance compensation setting (coarse)'
-              OnKeyPress = edRLeakKeyPress
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -12
-              Font.Name = 'Arial'
-              Font.Style = []
-              ShowHint = True
-              Text = ' 0 mV'
-              Scale = 1.000000000000000000
-              Units = 'mV'
-              NumberFormat = '%.4g'
-              LoLimit = -1000.000000000000000000
-              HiLimit = 1000.000000000000000000
-            end
-          end
-          object panRLeakFine: TPanel
-            Left = 1
-            Top = 60
-            Width = 280
-            Height = 26
-            BevelOuter = bvNone
-            TabOrder = 1
-            object Label14: TLabel
-              Left = 0
-              Top = 0
-              Width = 66
-              Height = 14
-              Caption = 'G leak (fine)'
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-            end
-            object ckRLeakFine: TCheckBox
-              Left = 262
-              Top = -1
-              Width = 17
-              Height = 17
-              Caption = 'ckCfast'
-              Checked = True
-              State = cbChecked
-              TabOrder = 0
-              OnClick = ckRLeakFineClick
-            end
-            object tbRLeakFine: TTrackBar
-              Left = 85
-              Top = 0
-              Width = 88
-              Height = 20
-              Max = 1000
-              Frequency = 10
-              TabOrder = 1
-              ThumbLength = 12
-              OnChange = tbRLeakFineChange
-            end
-            object edRLeakFine: TValidatedEdit
-              Left = 175
-              Top = 0
-              Width = 81
-              Height = 23
-              Hint = 'Leak conductance compensation setting (fine)'
-              OnKeyPress = edRLeakFineKeyPress
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -12
-              Font.Name = 'Arial'
-              Font.Style = []
-              ShowHint = True
-              Text = ' 0 mV'
-              Scale = 1.000000000000000000
-              Units = 'mV'
-              NumberFormat = '%.4g'
-              LoLimit = -1000.000000000000000000
-              HiLimit = 1000.000000000000000000
-            end
-          end
           object panRSeries: TPanel
             Left = 1
             Top = 2
             Width = 280
             Height = 26
             BevelOuter = bvNone
-            TabOrder = 2
+            TabOrder = 0
             object Label7: TLabel
               Left = 0
               Top = 0
@@ -850,14 +716,283 @@ object TritonPanelFrm: TTritonPanelFrm
               HiLimit = 1000000.000000000000000000
             end
           end
+          object pRLeakComponents: TPanel
+            Left = 1
+            Top = 86
+            Width = 297
+            Height = 83
+            BevelOuter = bvNone
+            TabOrder = 1
+            object panRLeakAnalog: TPanel
+              Left = 0
+              Top = 0
+              Width = 280
+              Height = 26
+              BevelOuter = bvNone
+              TabOrder = 0
+              object Label9: TLabel
+                Left = 0
+                Top = 0
+                Width = 81
+                Height = 14
+                Caption = 'G leak (analog)'
+                Font.Charset = ANSI_CHARSET
+                Font.Color = clWindowText
+                Font.Height = -11
+                Font.Name = 'Arial'
+                Font.Style = [fsBold]
+                ParentFont = False
+              end
+              object ckRleakAnalog: TCheckBox
+                Left = 262
+                Top = 2
+                Width = 17
+                Height = 17
+                Caption = 'ckCfast'
+                Checked = True
+                State = cbChecked
+                TabOrder = 0
+                OnClick = ckRleakAnalogClick
+              end
+              object tbRLeakAnalog: TTrackBar
+                Left = 85
+                Top = 0
+                Width = 88
+                Height = 20
+                Max = 1000
+                Frequency = 10
+                TabOrder = 1
+                ThumbLength = 12
+                OnChange = tbRLeakAnalogChange
+              end
+              object edRLeakAnalog: TValidatedEdit
+                Left = 175
+                Top = 0
+                Width = 81
+                Height = 23
+                Hint = 'Leak conductance compensation setting (coarse)'
+                OnKeyPress = edRLeakAnalogKeyPress
+                Font.Charset = ANSI_CHARSET
+                Font.Color = clWindowText
+                Font.Height = -12
+                Font.Name = 'Arial'
+                Font.Style = []
+                ShowHint = True
+                Text = ' 0 mV'
+                Scale = 1.000000000000000000
+                Units = 'mV'
+                NumberFormat = '%.4g'
+                LoLimit = -1000.000000000000000000
+                HiLimit = 1000.000000000000000000
+              end
+            end
+            object panRLeakFineAnalog: TPanel
+              Left = 1
+              Top = 26
+              Width = 280
+              Height = 26
+              BevelOuter = bvNone
+              TabOrder = 1
+              object Label14: TLabel
+                Left = 0
+                Top = 0
+                Width = 82
+                Height = 14
+                Caption = 'G leak fine (an)'
+                Font.Charset = ANSI_CHARSET
+                Font.Color = clWindowText
+                Font.Height = -11
+                Font.Name = 'Arial'
+                Font.Style = [fsBold]
+                ParentFont = False
+              end
+              object ckRLeakFineAnalog: TCheckBox
+                Left = 262
+                Top = 2
+                Width = 17
+                Height = 17
+                Caption = 'ckCfast'
+                Checked = True
+                State = cbChecked
+                TabOrder = 0
+                OnClick = ckRLeakFineAnalogClick
+              end
+              object tbRLeakFineAnalog: TTrackBar
+                Left = 85
+                Top = 0
+                Width = 88
+                Height = 20
+                Max = 1000
+                Frequency = 10
+                TabOrder = 1
+                ThumbLength = 12
+                OnChange = tbRLeakFineAnalogChange
+              end
+              object edRLeakFineAnalog: TValidatedEdit
+                Left = 175
+                Top = 0
+                Width = 81
+                Height = 23
+                Hint = 'Leak conductance compensation setting (fine)'
+                OnKeyPress = edRLeakFineAnalogKeyPress
+                Font.Charset = ANSI_CHARSET
+                Font.Color = clWindowText
+                Font.Height = -12
+                Font.Name = 'Arial'
+                Font.Style = []
+                ShowHint = True
+                Text = ' 0 mV'
+                Scale = 1.000000000000000000
+                Units = 'mV'
+                NumberFormat = '%.4g'
+                LoLimit = -1000.000000000000000000
+                HiLimit = 1000.000000000000000000
+              end
+            end
+            object panRleakDigital: TPanel
+              Left = 0
+              Top = 52
+              Width = 280
+              Height = 24
+              BevelOuter = bvNone
+              TabOrder = 2
+              object Label18: TLabel
+                Left = 0
+                Top = 0
+                Width = 78
+                Height = 14
+                Caption = 'G leak (digital)'
+                Font.Charset = ANSI_CHARSET
+                Font.Color = clWindowText
+                Font.Height = -11
+                Font.Name = 'Arial'
+                Font.Style = [fsBold]
+                ParentFont = False
+              end
+              object edRLeakDigital: TValidatedEdit
+                Left = 175
+                Top = 0
+                Width = 81
+                Height = 23
+                Hint = 'Leak conductance compensation setting (digital)'
+                OnKeyPress = edCSlowDKeyPress
+                Font.Charset = ANSI_CHARSET
+                Font.Color = clWindowText
+                Font.Height = -12
+                Font.Name = 'Arial'
+                Font.Style = []
+                ShowHint = True
+                Text = ' 0 nS'
+                Scale = 1000.000000000000000000
+                Units = 'nS'
+                NumberFormat = '%.4g'
+                LoLimit = -1000.000000000000000000
+                HiLimit = 1000.000000000000000000
+              end
+              object ckRLeakDigital: TCheckBox
+                Left = 262
+                Top = 3
+                Width = 17
+                Height = 17
+                Hint = 'Check to enable compensation'
+                Caption = 'ckCfast'
+                Checked = True
+                ParentShowHint = False
+                ShowHint = True
+                State = cbChecked
+                TabOrder = 1
+                OnClick = ckRLeakDigitalClick
+              end
+              object CheckBox3: TCheckBox
+                Left = 8
+                Top = 24
+                Width = 25
+                Height = 1
+                Caption = 'CheckBox2'
+                TabOrder = 2
+              end
+            end
+          end
+          object Panel1: TPanel
+            Left = 1
+            Top = 28
+            Width = 280
+            Height = 24
+            BevelOuter = bvNone
+            TabOrder = 2
+            object Label19: TLabel
+              Left = 0
+              Top = 0
+              Width = 34
+              Height = 14
+              Caption = 'G leak'
+              Font.Charset = ANSI_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -11
+              Font.Name = 'Arial'
+              Font.Style = [fsBold]
+              ParentFont = False
+            end
+            object edRLeakTotal: TValidatedEdit
+              Left = 175
+              Top = 0
+              Width = 81
+              Height = 23
+              OnKeyPress = edCSlowDKeyPress
+              Font.Charset = ANSI_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -12
+              Font.Name = 'Arial'
+              Font.Style = []
+              Text = ' 0 nS'
+              Scale = 1000.000000000000000000
+              Units = 'nS'
+              NumberFormat = '%.4g'
+              LoLimit = -1000.000000000000000000
+              HiLimit = 1000.000000000000000000
+            end
+            object ckRLeak: TCheckBox
+              Left = 262
+              Top = 8
+              Width = 17
+              Height = 17
+              Hint = 'Check to enable compensation'
+              Caption = 'ckCfast'
+              Checked = True
+              ParentShowHint = False
+              ShowHint = True
+              State = cbChecked
+              TabOrder = 1
+              OnClick = ckRLeakClick
+            end
+            object CheckBox4: TCheckBox
+              Left = 8
+              Top = 24
+              Width = 25
+              Height = 1
+              Caption = 'CheckBox2'
+              TabOrder = 2
+            end
+          end
+          object ckShowRLeakComponents: TCheckBox
+            Left = 8
+            Top = 63
+            Width = 184
+            Height = 17
+            Caption = 'Show G leak components'
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -12
+            Font.Name = 'Arial'
+            Font.Style = [fsBold]
+            ParentFont = False
+            TabOrder = 3
+            OnClick = ckShowRLeakComponentsClick
+          end
         end
         object JunctionPotPage: TTabSheet
           Caption = 'Junction Pot.'
           ImageIndex = 3
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object panJunctionPot: TPanel
             Left = 1
             Top = 2
@@ -984,10 +1119,6 @@ object TritonPanelFrm: TTritonPanelFrm
         object AdvancedTab: TTabSheet
           Caption = 'Adv.'
           ImageIndex = 4
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object GroupBox6: TGroupBox
             Left = 3
             Top = 29
@@ -996,7 +1127,7 @@ object TritonPanelFrm: TTritonPanelFrm
             TabOrder = 0
             object Label17: TLabel
               Left = 59
-              Top = 70
+              Top = 36
               Width = 142
               Height = 14
               Caption = 'Compensation coefficient'
@@ -1007,51 +1138,9 @@ object TritonPanelFrm: TTritonPanelFrm
               Font.Style = [fsBold]
               ParentFont = False
             end
-            object ckUseAnalogLeakCompensation: TCheckBox
-              Left = 8
-              Top = 12
-              Width = 200
-              Height = 17
-              Hint = 
-                'Use analog leak current compensation circuits during autocompens' +
-                'ation'
-              Caption = 'Use analog leak subtraction '
-              Checked = True
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-              ParentShowHint = False
-              ShowHint = True
-              State = cbChecked
-              TabOrder = 0
-              OnClick = ckUseAnalogLeakCompensationClick
-            end
-            object ckUseDigitalLeakCompensation: TCheckBox
-              Left = 8
-              Top = 28
-              Width = 225
-              Height = 17
-              Hint = 'Use digital leak current subtraction during auto compensation'
-              Caption = 'Use digital leak compensation'
-              Checked = True
-              Font.Charset = ANSI_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Arial'
-              Font.Style = [fsBold]
-              ParentFont = False
-              ParentShowHint = False
-              ShowHint = True
-              State = cbChecked
-              TabOrder = 1
-              OnClick = ckUseDigitalLeakCompensationClick
-            end
             object edCompensationCoeff: TValidatedEdit
               Left = 8
-              Top = 70
+              Top = 36
               Width = 41
               Height = 21
               Hint = 
@@ -1067,7 +1156,7 @@ object TritonPanelFrm: TTritonPanelFrm
             end
             object ckEnableDACStreaming: TCheckBox
               Left = 8
-              Top = 44
+              Top = 13
               Width = 193
               Height = 17
               Hint = 'Select streaming stimulus mode (stimuli defined point by point)'
@@ -1080,7 +1169,7 @@ object TritonPanelFrm: TTritonPanelFrm
               ParentFont = False
               ParentShowHint = False
               ShowHint = True
-              TabOrder = 3
+              TabOrder = 1
               OnClick = ckEnableDACStreamingClick
             end
           end

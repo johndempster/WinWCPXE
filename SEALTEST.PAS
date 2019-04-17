@@ -92,6 +92,8 @@ unit Sealtest;
   03.09.18 .. End of holding level calculation range now shifted DacDT earlier
               to prevent it extending into test pulse interval when
               DACDT greater than A/D sampling interval
+  17.04.19    Reset Avg. button added to reset pipette reistance readout
+              StartADCandDAC() now also resets readout average
   ==================================================}
 
 interface
@@ -203,6 +205,7 @@ type
     edZapDuration: TValidatedEdit;
     Label23: TLabel;
     Label24: TLabel;
+    bResetAverage: TButton;
     procedure TimerTimer(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure edHoldingVoltage1KeyPress(Sender: TObject; var Key: Char);
@@ -237,6 +240,7 @@ type
     procedure bzapClick(Sender: TObject);
     procedure edZapAmplitudeKeyPress(Sender: TObject; var Key: Char);
     procedure edZapDurationKeyPress(Sender: TObject; var Key: Char);
+    procedure bResetAverageClick(Sender: TObject);
   private
     { Private declarations }
   Initialised : Boolean ;
@@ -1269,6 +1273,7 @@ begin
      Timer.enabled := True ;
      TimerBusy := False ;
      State := StartSweep ;
+     ResetReadout := True ;
 
      end;
 
@@ -1524,6 +1529,15 @@ begin
      scDisplay.MinADCValue := Main.SESLabIO.ADCMinValue ;
      scDisplay.ZoomOut ;
      end ;
+
+
+procedure TSealTestFrm.bResetAverageClick(Sender: TObject);
+// ------------------------------------------------------
+// Reset averaging for pipette reistance/capacity readout
+// ------------------------------------------------------
+begin
+    ResetReadout := True ;
+end;
 
 
 procedure TSealTestFrm.bResetTimerClick(Sender: TObject);
