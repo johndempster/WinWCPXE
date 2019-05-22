@@ -413,6 +413,10 @@ object SealTestFrm: TSealTestFrm
       end
       object CellTab: TTabSheet
         Caption = 'Cell (G)'
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Label15: TLabel
           Left = 12
           Top = 4
@@ -516,6 +520,10 @@ object SealTestFrm: TSealTestFrm
       object CellRTab: TTabSheet
         Caption = 'Cell (R)'
         ImageIndex = 2
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Label18: TLabel
           Left = 12
           Top = 4
@@ -678,13 +686,13 @@ object SealTestFrm: TSealTestFrm
         OnClick = rbGaFromExpClick
       end
     end
-    object edSmoothingFactor: TValidatedEdit
+    object edNumAverages: TValidatedEdit
       Left = 112
       Top = 190
       Width = 41
       Height = 23
       Hint = 'Readout smoothing factor (1=minimum, 10=maximum)'
-      OnKeyPress = edSmoothingFactorKeyPress
+      OnKeyPress = edNumAveragesKeyPress
       ShowHint = True
       Text = '   5 '
       Value = 5.000000000000000000

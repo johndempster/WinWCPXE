@@ -12,7 +12,7 @@ unit winwcp_TLB;
 // ************************************************************************ //
 
 // $Rev: 52393 $
-// File generated on 03/04/2019 13:24:22 from Type Library described below.
+// File generated on 22/05/2019 13:14:26 from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\winwcp (1)
@@ -107,8 +107,8 @@ type
     procedure Set_Vm(Value: OleVariant); safecall;
     function Get_Im: OleVariant; safecall;
     procedure Set_Im(Value: OleVariant); safecall;
-    function Get_SealTestSmoothingFactor: OleVariant; safecall;
-    procedure Set_SealTestSmoothingFactor(Value: OleVariant); safecall;
+    function Get_SealTestNumAverages: OleVariant; safecall;
+    procedure Set_SealTestNumAverages(Value: OleVariant); safecall;
     procedure GetADCSample(RecordNum: Integer; ChannelNum: Integer; SampleNum: Integer;
                            out Value: OleVariant); safecall;
     function Get_NumRecordsInFile: Integer; safecall;
@@ -144,6 +144,8 @@ type
     procedure PicoAutoCompJP; safecall;
     procedure PicoClearCompC; safecall;
     procedure PicoClearCompJP; safecall;
+    function Get_SealTestGaFromPeak: Integer; safecall;
+    procedure Set_SealTestGaFromPeak(Value: Integer); safecall;
     property Cm: OleVariant read Get_Cm write Set_Cm;
     property Gm: OleVariant read Get_Gm write Set_Gm;
     property Ga: OleVariant read Get_Ga write Set_Ga;
@@ -155,7 +157,7 @@ type
     property StimulusProtocol: OleVariant read Get_StimulusProtocol write Set_StimulusProtocol;
     property Vm: OleVariant read Get_Vm write Set_Vm;
     property Im: OleVariant read Get_Im write Set_Im;
-    property SealTestSmoothingFactor: OleVariant read Get_SealTestSmoothingFactor write Set_SealTestSmoothingFactor;
+    property SealTestNumAverages: OleVariant read Get_SealTestNumAverages write Set_SealTestNumAverages;
     property NumRecordsInFile: Integer read Get_NumRecordsInFile write Set_NumRecordsInFile;
     property NumChannelsPerRecord: Integer read Get_NumChannelsPerRecord write Set_NumChannelsPerRecord;
     property NumSamplesPerChannel: Integer read Get_NumSamplesPerChannel write Set_NumSamplesPerChannel;
@@ -170,6 +172,7 @@ type
     property PicoCSlowComp: OleVariant read Get_PicoCSlowComp write Set_PicoCSlowComp;
     property PicoCfastComp: OleVariant read Get_PicoCfastComp write Set_PicoCfastComp;
     property PicoJPComp: OleVariant read Get_PicoJPComp write Set_PicoJPComp;
+    property SealTestGaFromPeak: Integer read Get_SealTestGaFromPeak write Set_SealTestGaFromPeak;
   end;
 
 // *********************************************************************//
@@ -197,7 +200,7 @@ type
     property StimulusProtocol: OleVariant dispid 216;
     property Vm: OleVariant dispid 217;
     property Im: OleVariant dispid 218;
-    property SealTestSmoothingFactor: OleVariant dispid 219;
+    property SealTestNumAverages: OleVariant dispid 219;
     procedure GetADCSample(RecordNum: Integer; ChannelNum: Integer; SampleNum: Integer;
                            out Value: OleVariant); dispid 220;
     property NumRecordsInFile: Integer dispid 221;
@@ -219,6 +222,7 @@ type
     procedure PicoAutoCompJP; dispid 237;
     procedure PicoClearCompC; dispid 240;
     procedure PicoClearCompJP; dispid 238;
+    property SealTestGaFromPeak: Integer dispid 239;
   end;
 
 // *********************************************************************//

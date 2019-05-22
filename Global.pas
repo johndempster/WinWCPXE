@@ -258,9 +258,10 @@ TSealTest = record
           DisplayScale : LongInt ;
           FreeRun : Boolean ;
           FirstSweep : Boolean ;
-          SmoothingFactor : Single ;
+          NumAverages : Integer ;
           ZapAmplitude : single ;
           ZapDuration : single ;
+          GaFromPeak : Boolean ;
           end ;
 
 TVCommand = record

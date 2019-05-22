@@ -726,6 +726,11 @@ unit MDIForm;
                      reset when parameters change on Triton control panel
                      Sealtest: Reset Avg. button added allowing user to manually reset cell R/C averages.
 
+   V5.4.6 22.05.19   Sealtest: Large incorrect measurements of Ga,Gm,Cm due to noise/interference now excluded
+                     from average and average restricted to most recent <n> measurements. G access computation mode
+                     (from peak or exponential amplitude) option setting now preserved in INI file and can be set
+                     by .SealTestGaFromPeak Active X command. No. of cell parameter measurements averaged can now be set by
+                     .SealTestNumAverages command. Ga,Gm,Cm etc. now displayed as 0 if no data available.
 
             =======================================================================}
 
@@ -976,7 +981,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.4.5';
+      ProgVersion := 'V5.4.6';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
@@ -1139,7 +1144,7 @@ begin
      Settings.SealTest.VoltageChannel := 1 ;
      Settings.SealTest.AutoScale := True ;
      Settings.SealTest.DisplayScale := 1 ;
-     Settings.SealTest.SmoothingFactor := 1.0 ;
+     Settings.SealTest.NumAverages := 1 ;
 
      Settings.SealTest.ZapAmplitude := 0.2 ;
      Settings.SealTest.ZapDuration := 0.1 ;

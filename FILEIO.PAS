@@ -85,6 +85,10 @@ unit Fileio;
   28/02/17 ... On line analysis settings for RecPlotFrm now stored in Settings.RecPlot and saved in INI file
                'QUPERC=', fHDR.QuantilePercentage added to WCP header
   05.11.18 ... 'RECPIGLEAK=', Settings.RecPlot.IgnoreLeakRecords added to INI
+  22.05.19 ... 'STGAP=', Settings.SealTest.GaFromPeak added to INI
+               'STNAV=', Settings.SealTest.NumAverages added to INI
+               'STSMF=', Settings.SealTest.Smoothing factor removed from INI
+
   }
 
 
@@ -620,9 +624,10 @@ begin
            ReadInt( Header, 'STDSC=', Settings.SealTest.DisplayScale ) ;
            ReadLogical( Header, 'STASC=', Settings.SealTest.AutoScale ) ;
            ReadLogical( Header, 'STFRU=', Settings.SealTest.FreeRun ) ;
-           ReadFloat( Header, 'STSMF=', Settings.SealTest.SmoothingFactor ) ;
+           ReadInt( Header, 'STNAV=', Settings.SealTest.NumAverages ) ;
            ReadFloat( Header, 'STZAPA=', Settings.SealTest.ZapAmplitude ) ;
            ReadFloat( Header, 'STZAPD=', Settings.SealTest.ZapDuration ) ;
+           ReadLogical( Header, 'STGAP=', Settings.SealTest.GaFromPeak ) ;
 
            { Note. For compatibility with older Strathclyde
              programs 'ADCVoltageRange' is written to file
@@ -932,9 +937,10 @@ begin
      AppendInt( Header, 'STDSC=', Settings.SealTest.DisplayScale ) ;
      AppendLogical( Header, 'STASC=', Settings.SealTest.AutoScale ) ;
      AppendLogical( Header, 'STFRU=', Settings.SealTest.FreeRun ) ;
-     AppendFloat( Header, 'STSMF=', Settings.SealTest.SmoothingFactor ) ;
+     AppendInt( Header, 'STNAV=', Settings.SealTest.NumAverages ) ;
      AppendFloat( Header, 'STZAPA=', Settings.SealTest.ZapAmplitude ) ;
      AppendFloat( Header, 'STZAPD=', Settings.SealTest.ZapDuration ) ;
+     AppendLogical( Header, 'STGAP=', Settings.SealTest.GaFromPeak ) ;
 
      AppendInt( Header, 'NC=', RawFH.NumChannels ) ;
 

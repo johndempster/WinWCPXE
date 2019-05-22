@@ -6,7 +6,7 @@
 // However, when applying changes via the Editor this file will be regenerated
 // and comments or formatting changes will be lost.
 // ************************************************************************ //
-// File generated on 03/04/2019 11:01:16 (- $Rev: 12980 $, 4185148).
+// File generated on 22/05/2019 14:12:41 (- $Rev: 12980 $, 813217).
 
 [
   uuid(2AE1CB67-2310-4EA0-B43D-916A931F4AE1),
@@ -94,9 +94,9 @@ library winwcp
     [propput, id(0x000000DA)]
     HRESULT _stdcall Im([in] VARIANT Value);
     [propget, id(0x000000DB)]
-    HRESULT _stdcall SealTestSmoothingFactor([out, retval] VARIANT* Value);
+    HRESULT _stdcall SealTestNumAverages([out, retval] VARIANT* Value);
     [propput, id(0x000000DB)]
-    HRESULT _stdcall SealTestSmoothingFactor([in] VARIANT Value);
+    HRESULT _stdcall SealTestNumAverages([in] VARIANT Value);
     [id(0x000000DC)]
     HRESULT _stdcall GetADCSample([in] long RecordNum, [in] long ChannelNum, [in] long SampleNum, [out] VARIANT* Value);
     [propget, id(0x000000DD)]
@@ -165,6 +165,10 @@ library winwcp
     HRESULT _stdcall PicoClearCompC(void);
     [id(0x000000EE)]
     HRESULT _stdcall PicoClearCompJP(void);
+    [propget, id(0x000000EF)]
+    HRESULT _stdcall SealTestGaFromPeak([out, retval] long* Value);
+    [propput, id(0x000000EF)]
+    HRESULT _stdcall SealTestGaFromPeak([in] long Value);
   };
 
   [

@@ -6,6 +6,7 @@ unit AutoUnit;
 // 06.12.13 Set_HoldingVoltage/Get_HoldingVoltage, Set_SealTestPulseAmplitude/Get_SealTestPulseAmplitude
 //          now scaled by amplifier command voltage scale factor
 // 03.04.19 PICO... commands added for controlling Tecella Pico 2 patch clamp
+// 22.05.19 .SealTestGaFromPeak and .SealTestNumAverages properties added
 
 {$WARN SYMBOL_PLATFORM OFF}
 
@@ -46,8 +47,6 @@ type
     function Get_Vm: OleVariant; safecall;
     procedure Set_Im(Value: OleVariant); safecall;
     procedure Set_Vm(Value: OleVariant); safecall;
-    function Get_SealTestSmoothingFactor: OleVariant; safecall;
-    procedure Set_SealTestSmoothingFactor(Value: OleVariant); safecall;
     function Get_NumChannelsPerRecord: Integer; safecall;
     function Get_NumRecordsInFile: Integer; safecall;
     function Get_NumSamplesPerChannel: Integer; safecall;
@@ -89,6 +88,10 @@ type
     procedure Set_PicoJPComp(Value: OleVariant); safecall;
     procedure PicoClearCompC; safecall;
     procedure PicoClearCompJP; safecall;
+    function Get_SealTestNumAverages: OleVariant; safecall;
+    procedure Set_SealTestNumAverages(Value: OleVariant); safecall;
+    function Get_SealTestGaFromPeak: Integer; safecall;
+    procedure Set_SealTestGaFromPeak(Value: Integer); safecall;
 
   end;
 
@@ -411,23 +414,6 @@ begin
 
 end;
 
-
-function TAUTO.Get_SealTestSmoothingFactor: OleVariant;
-// ---------------------------------------------
-// Get seal test cell parameter smoothing factor
-// ---------------------------------------------
-begin
-     Result := Settings.SealTest.SmoothingFactor ;
-     end;
-
-
-procedure TAUTO.Set_SealTestSmoothingFactor(Value: OleVariant);
-// ---------------------------------------------
-// Set seal test cell parameter smoothing factor
-// ---------------------------------------------
-begin
-     Settings.SealTest.SmoothingFactor := Min(Max(Value,0.1),1.0) ;
-     end;
 
 function TAUTO.Get_NumChannelsPerRecord: Integer;
 // ----------------------------------------
@@ -796,6 +782,41 @@ procedure TAUTO.PicoClearCompJP;
 // --------------------------------
 begin
     if Main.ShowTritonPanel then TritonPanelFrm.ClearCompJP ;
+end;
+
+function TAUTO.Get_SealTestNumAverages: OleVariant;
+// ---------------------------------------------
+// Get seal test cell parameters no. of averages
+// ---------------------------------------------
+begin
+     Result := Settings.SealTest.NumAverages ;
+end;
+
+procedure TAUTO.Set_SealTestNumAverages(Value: OleVariant);
+// ---------------------------------------------
+// Set seal test cell parameters no. of averages
+// ---------------------------------------------
+begin
+     Settings.SealTest.NumAverages := Max(Round(Value),1) ;
+     end;
+
+
+function TAUTO.Get_SealTestGaFromPeak: Integer;
+// ---------------------------------------------
+// Get seal test G access calculation mode
+// ---------------------------------------------
+begin
+     if Settings.SealTest.GaFromPeak then Result := 1
+                                     else Result := 0 ;
+end;
+
+procedure TAUTO.Set_SealTestGaFromPeak(Value: Integer);
+// ---------------------------------------------
+// Set seal test G access calculation mode
+// ---------------------------------------------
+begin
+    if Value <> 0 then Settings.SealTest.GaFromPeak := True
+                  else  Settings.SealTest.GaFromPeak := False ;
 end;
 
 initialization
