@@ -13,8 +13,7 @@ object Main: TMain
   FormStyle = fsMDIForm
   Menu = MainMenu
   OldCreateOrder = False
-  Position = poScreenCenter
-  OnClose = FormClose
+  Position = poDefault
   OnCloseQuery = FormCloseQuery
   OnDestroy = FormDestroy
   OnShow = FormShow

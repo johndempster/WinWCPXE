@@ -88,7 +88,7 @@ unit Fileio;
   22.05.19 ... 'STGAP=', Settings.SealTest.GaFromPeak added to INI
                'STNAV=', Settings.SealTest.NumAverages added to INI
                'STSMF=', Settings.SealTest.Smoothing factor removed from INI
-
+  07.07.19 ... FORMTOP= FORMLEFT=, FORMWIDTH=, FORMHEIGHT= added to INI file saving location of main form on screen
   }
 
 
@@ -836,8 +836,23 @@ begin
               ReadFloat( Header, format('GVAR%d=',[i+1]),Stimulator.GlobalVar[i]) ;
               end;
 
+         // Save main form size and position
+         i := Main.Width ;
+         ReadInt( Header, 'FORMWIDTH=', i ) ;
+         Main.Width := i ;
 
-          end ;
+         i := Main.Height ;
+         ReadInt( Header, 'FORMHEIGHT=', i ) ;
+         Main.Height := i ;
+
+         i := Main.Top ;
+         ReadInt( Header, 'FORMTOP=',i ) ;
+         Main.Top := i ;
+
+         i := Main.Left ;
+         ReadInt( Header, 'FORMLEFT=', i ) ;
+         Main.Left := i ;
+
 
         FileCloseSafe( IniFileHandle ) ;
 
@@ -846,7 +861,7 @@ begin
 
      end ;
 
-
+end;
 procedure SaveInitializationFile( const IniFileName : string ) ;
 { --------------------------------------------
   Save program settings to Initialization file
@@ -1115,6 +1130,12 @@ begin
      for i := 0 to MaxStimGlobalVars-1 do begin
          AppendFloat( Header, format('GVAR%d=',[i+1]),Stimulator.GlobalVar[i]) ;
          end;
+
+     // Save main form size and position
+     AppendInt( Header, 'FORMTOP=',Main.Top ) ;
+     AppendInt( Header, 'FORMLEFT=',Main.Left ) ;
+     AppendInt( Header, 'FORMWIDTH=',Main.Width ) ;
+     AppendInt( Header, 'FORMHEIGHT=',Main.Height ) ;
 
      if FileWrite( IniFileHandle, Header, Sizeof(Header) ) <> Sizeof(Header) then
         ShowMessage( IniFileName + ' Write - Failed!' ) ;

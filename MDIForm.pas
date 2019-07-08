@@ -731,7 +731,9 @@ unit MDIForm;
                      (from peak or exponential amplitude) option setting now preserved in INI file and can be set
                      by .SealTestGaFromPeak Active X command. No. of cell parameter measurements averaged can now be set by
                      .SealTestNumAverages command. Ga,Gm,Cm etc. now displayed as 0 if no data available.
-
+   V5.4.7 07.07.19  Position and size of WinWCP program window now saved in INI file and restored program restarted
+                    SaveInitialisationFile() and other items in FormClose() moved to FormDestroy() to ensure they are
+                    called when program shut down at end of COM command.
             =======================================================================}
 
 interface
@@ -869,7 +871,6 @@ type
     procedure mnSimMEPSCClick(Sender: TObject);
     procedure AboutClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ContentsClick(Sender: TObject);
     procedure mnShowHintsClick(Sender: TObject);
     procedure mnRecentFile0Click(Sender: TObject);
@@ -981,7 +982,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.4.6';
+      ProgVersion := 'V5.4.7';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
@@ -2641,34 +2642,6 @@ procedure TMain.FormDestroy(Sender: TObject);
 var
     i : Integer ;
 begin
-       { Close recording and seal test windows to ensure that
-         laboratory interface systems are shutdown (to avoid system crash }
-       for i := 0 to MDIChildCount-1 do begin
-         if MDIChildren[i].Name = 'SealTestFrm' then SealTestFrm.Close ;
-         if MDIChildren[i].Name = 'TritonPanelFrm' then TritonPanelFrm.Close ;
-         if MDIChildren[i].Name = 'EPC9PanelFrm' then EPC9PanelFrm.Close ;
-         if MDIChildren[i].Name = 'RecordFrm' then RecordFrm.Close ;
-         end ;
-
-end;
-
-
-procedure TMain.FormClose(Sender: TObject; var Action: TCloseAction);
-{ ---------------------------------
-  Tidy up when program is shut down
-  ---------------------------------}
-var
-    i : Integer ;
-begin
-
-       { Close recording and seal test windows to ensure that
-         laboratory interface systems are shutdown (to avoid system crash }
-       for i := 0 to MDIChildCount-1 do begin
-         if MDIChildren[i].Name = 'SealTestFrm' then SealTestFrm.Close ;
-         if MDIChildren[i].Name = 'TritonPanelFrm' then TritonPanelFrm.Close ;
-         if MDIChildren[i].Name = 'EPC9PanelFrm' then EPC9PanelFrm.Close ;
-         if MDIChildren[i].Name = 'RecordFrm' then RecordFrm.Close ;
-         end ;
 
         { Close data files }
         CloseAllDataFiles ;
@@ -2676,14 +2649,22 @@ begin
         { Close log file }
         CloseLogFile ;
 
+       { Close recording and seal test windows to ensure that
+         laboratory interface systems are shutdown (to avoid system crash }
+       for i := 0 to MDIChildCount-1 do begin
+         if MDIChildren[i].Name = 'SealTestFrm' then SealTestFrm.Close ;
+         if MDIChildren[i].Name = 'TritonPanelFrm' then TritonPanelFrm.Close ;
+         if MDIChildren[i].Name = 'EPC9PanelFrm' then EPC9PanelFrm.Close ;
+         if MDIChildren[i].Name = 'RecordFrm' then RecordFrm.Close ;
+         end ;
+
         { Save initialization file }
         SaveInitializationFile( SettingsFileName ) ;
 
         RecordTypes.Free ;
         ChannelNames.Free ;
 
-        end;
-
+end;
 
 
 procedure TMain.mnDClampClick(Sender: TObject);

@@ -464,6 +464,7 @@ TSettings = record
           MEPSCSim : TMEPSCSimParameters ;
           RecPlot : TRecPlotSettings ;
           OpenNewFileOnRecord : Boolean ;
+
           end ;
 
 

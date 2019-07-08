@@ -4,8 +4,8 @@
 ' Create WinWCP COM object
 Set W = CreateObject("Winwcp.AUTO")
 
-W.SealTestGaFromPeak = 0
-W.SealTestNumAverages = 9 
+W.SealTestGaFromPeak = 1
+W.SealTestNumAverages = 8
 
 msgbox("wait")
 
