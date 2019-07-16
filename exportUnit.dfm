@@ -4,7 +4,7 @@ object ExportFrm: TExportFrm
   BorderStyle = bsDialog
   Caption = ' Export File'
   ClientHeight = 390
-  ClientWidth = 344
+  ClientWidth = 425
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
   Font.Color = clWindowText
@@ -77,7 +77,7 @@ object ExportFrm: TExportFrm
   object ChannelsGrp: TGroupBox
     Left = 8
     Top = 199
-    Width = 329
+    Width = 409
     Height = 153
     Hint = 'Select channels to be exported'
     Caption = ' Channels '
@@ -344,7 +344,7 @@ object ExportFrm: TExportFrm
   object GroupBox3: TGroupBox
     Left = 8
     Top = 0
-    Width = 329
+    Width = 409
     Height = 106
     Caption = ' Files '
     Font.Charset = ANSI_CHARSET
@@ -383,7 +383,7 @@ object ExportFrm: TExportFrm
   object GroupBox2: TGroupBox
     Left = 172
     Top = 108
-    Width = 165
+    Width = 245
     Height = 85
     Caption = ' Output  Format  '
     TabOrder = 3
@@ -407,6 +407,15 @@ object ExportFrm: TExportFrm
       ShowHint = True
       TabOrder = 1
       OnChange = cbExportFormatChange
+    end
+    object ckASCIIRecordsInColumns: TCheckBox
+      Left = 8
+      Top = 57
+      Width = 161
+      Height = 25
+      Caption = 'Save Records as Columns'
+      TabOrder = 2
+      WordWrap = True
     end
   end
   object bOK: TButton

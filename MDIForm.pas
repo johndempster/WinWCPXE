@@ -734,6 +734,7 @@ unit MDIForm;
    V5.4.7 07.07.19  Position and size of WinWCP program window now saved in INI file and restored program restarted
                     SaveInitialisationFile() and other items in FormClose() moved to FormDestroy() to ensure they are
                     called when program shut down at end of COM command.
+   V5.4.8 16.07.19  Records can now exported as ASCII tables as a series of columns containing channels and records.
             =======================================================================}
 
 interface
@@ -982,7 +983,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.4.7';
+      ProgVersion := 'V5.4.8';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

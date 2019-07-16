@@ -31,6 +31,8 @@ unit exportUnit;
   13.07.15 ... WordWrap set to False to prevent file names being split across lines in
                export file selection list.
   14.08.15 ... Export of average, leak subtracted and driving function now works
+  16.07.19 ... Multiple records can now be saved in columns in ASCII file output
+               instead of as a series of rows.
   }
 interface
 
@@ -87,6 +89,7 @@ type
     meFileList: TMemo;
     cbExportFormat: TComboBox;
     OpenDialog: TOpenDialog;
+    ckASCIIRecordsInColumns: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure bChangeNameClick(Sender: TObject);
     procedure bOKClick(Sender: TObject);
@@ -164,6 +167,8 @@ begin
      meFileList.Clear ;
      meFileList.Lines[0] := FH.FileName ;
      ckCombineRecords.Visible := False ;
+     ckASCIIRecordsInColumns.Visible := False ;
+
      UpdateChannelSelectionList ;
 
      end;
@@ -238,6 +243,7 @@ begin
      ExportFile.ScanInterval := FH.dt ;
      ExportFile.IdentLine := FH.IdentLine ;
      ExportFile.ABFAcquisitionMode := ftEpisodic ;
+     ExportFile.ASCIISaveRecordsinColumns := ckASCIIRecordsinColumns.Checked ;
 
      NumBytesPerBuf := FH.NumSamples*FH.NumChannels*2 ;
      GetMem( InBuf, NumBytesPerBuf ) ;
@@ -771,11 +777,17 @@ begin
 
    ExportType := TADCDataFileType(cbExportFormat.Items.objects[cbExportFormat.ItemIndex]);
    case ExportType of
-     ftMat,ftASC,ftIBW : begin
+     ftMat,ftIBW : begin
        ckCombineRecords.Visible := true ;
+       ckASCIIRecordsInColumns.Visible := False ;
+       end;
+     ftASC : begin
+       ckCombineRecords.Visible := true ;
+       ckASCIIRecordsInColumns.Visible := True ;
        end;
      else begin
        ckCombineRecords.Visible := False ;
+       ckASCIIRecordsInColumns.Visible := False ;
        end;
      end ;
    end;
