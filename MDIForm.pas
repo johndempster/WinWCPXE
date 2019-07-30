@@ -735,6 +735,7 @@ unit MDIForm;
                     SaveInitialisationFile() and other items in FormClose() moved to FormDestroy() to ensure they are
                     called when program shut down at end of COM command.
    V5.4.8 16.07.19  Records can now exported as ASCII tables as a series of columns containing channels and records.
+   V5.4.9 30.07.19  Waveform measurement: Rise time limits now stored in WCP file header
             =======================================================================}
 
 interface
@@ -983,7 +984,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.4.8';
+      ProgVersion := 'V5.4.9';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

@@ -350,6 +350,7 @@ object Main: TMain
     ASCIITimeUnits = 's'
     ASCIITitleLines = 2
     ASCIIFixedRecordSize = False
+    ASCIISaveRecordsinColumns = False
     Left = 160
     Top = 8
   end

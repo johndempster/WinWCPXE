@@ -89,6 +89,7 @@ unit Fileio;
                'STNAV=', Settings.SealTest.NumAverages added to INI
                'STSMF=', Settings.SealTest.Smoothing factor removed from INI
   07.07.19 ... FORMTOP= FORMLEFT=, FORMWIDTH=, FORMHEIGHT= added to INI file saving location of main form on screen
+  30.07.19 ... 'TRISELO=', fHDR.RiseTimeLo, 'TRISEHi=', fHDR.RiseTimeHi added to WCP header
   }
 
 
@@ -243,6 +244,9 @@ begin
      AppendInt( Header, 'PKPAVG=', fHDR.NumPointsAveragedAtPeak ) ;
      // Quantile percentage measurement in use
      AppendFloat( Header, 'QUPERC=', fHDR.QuantilePercentage ) ;
+
+     AppendFloat( Header, 'TRISELO=', fHDR.RiseTimeLo ) ;
+     AppendFloat( Header, 'TRISEHI=', fHDR.RiseTimeHi ) ;
 
      // Non-stationary variance analysis settings
      AppendInt( Header, 'NSVCHAN=', fHDR.NSVChannel ) ;
@@ -448,6 +452,9 @@ begin
 
           // Quantile percentage measurement in use
           ReadFloat( Header, 'QUPERC=', fHDR.QuantilePercentage ) ;
+
+          ReadFloat( Header, 'TRISELO=', fHDR.RiseTimeLo ) ;
+          ReadFloat( Header, 'TRISEHI=', fHDR.RiseTimeHi ) ;
 
           // Non-stationary variance analysis settings
           ReadInt( Header, 'NSVCHAN=', fHDR.NSVChannel ) ;

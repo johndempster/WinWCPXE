@@ -87,6 +87,7 @@ unit Measure;
   12.02.18 .. %Quantile now calculated using sample of max. 5000 points from analysis area
               and quicksort() algorithm to speed up sorting because original
               bubblesort algorithm is too slow when 10000 point records analysed
+   30.07.19   Rise time limits now stored in WCP file header
   ==========================================================================}
 interface
 
@@ -510,8 +511,15 @@ begin
      edPeakAvg.Value := FH.NumPointsAveragedAtPeak ;
      cbPeakMode.ItemIndex := FH.PeakMode ;
      cbRateOfRiseMode.ItemIndex := Min(Max(FH.RateOfRiseMode,0),cbRateOfRiseMode.Items.Count-1);
+
+     if FH.RiseTimeLo = FH.RiseTimeHi then
+        begin
+        FH.RiseTimeLo := 0.1 ;
+        FH.RiseTimeHi := 0.9 ;
+        end;
+
      edRiseTime.LoValue := FH.RiseTimeLo ;
-     edRiseTime.LoValue := FH.RiseTimeHi ;
+     edRiseTime.HiValue := FH.RiseTimeHi ;
 
      Caption := Main.UpdateCaption( FH, 'Waveform Measurements ' ) ;
 
