@@ -88,6 +88,7 @@ unit Measure;
               and quicksort() algorithm to speed up sorting because original
               bubblesort algorithm is too slow when 10000 point records analysed
    30.07.19   Rise time limits now stored in WCP file header
+   12.08.19 .. Absolute area measurement variable added
   ==========================================================================}
 interface
 
@@ -262,6 +263,8 @@ TMeasureFrmCursors = Record
     edQuantilePercentage: TValidatedEdit;
     ckVariable15: TCheckBox;
     ckTabVar15: TCheckBox;
+    ckVariable16: TCheckBox;
+    ckTabVar16: TCheckBox;
     procedure bDoAnalysisClick(Sender: TObject);
     procedure bAbortClick(Sender: TObject);
     procedure bNewXYPlotClick(Sender: TObject);
@@ -382,10 +385,10 @@ TMeasureFrmCursors = Record
 
     function TidyNumber( const RawNumber : string ) : string ;
 
-    procedure SortBuffer(
-              var SortBuf : Array of Single ;
-              nPoints : Integer
-              ) ;
+//    procedure SortBuffer(
+//              var SortBuf : Array of Single ;
+//              nPoints : Integer
+//              ) ;
 
     procedure QuickSort(var A: array of Single ; iLo, iHi: Integer) ;
 
@@ -543,6 +546,10 @@ begin
                                                     + Settings.TUnits ;
      CreateVariable(vArea,'Area',VarUnits,Settings.TScale ) ;
 
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := Channel[ch].ADCUnits + '.'
+                                                    + Settings.TUnits ;
+     CreateVariable(vAbsArea,'Abs(Area)',VarUnits,Settings.TScale ) ;
+
      for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := Channel[ch].ADCUnits ;
 
      { Type of peak analysis required }
@@ -607,6 +614,7 @@ begin
         SetCheckBoxCaption( ckVariable13, 13 ) ;
         SetCheckBoxCaption( ckVariable14, 14 ) ;
         SetCheckBoxCaption( ckVariable15, 15 ) ;
+        SetCheckBoxCaption( ckVariable16, 16 ) ;
 
         { Set up captions of TabVars to be summarised }
         SetCheckBoxCaption( ckTabVar0, 0 ) ;
@@ -625,6 +633,7 @@ begin
         SetCheckBoxCaption( ckTabVar13, 13 ) ;
         SetCheckBoxCaption( ckTabVar14, 14 ) ;
         SetCheckBoxCaption( ckTabVar15, 15 ) ;
+        SetCheckBoxCaption( ckTabVar16, 16 ) ;
 
      { Create variable name list for X/Y plot }
      cbXVariable.items := VarNames  ;
@@ -755,10 +764,10 @@ begin
      sgResults.ColCount := FH.NumChannels + 1 ;
 
      { Variable name column }
-     for v := 0 to LastMeasureVariable do begin
-            sgResults.Cells[0,v+1] := VarName[v] ;
+     for v := 0 to cbXVariable.Items.Count-1 do begin
+            sgResults.Cells[0,v+1] := cbXVariable.Items[v] ;
             sgResults.ColWidths[0] := Max(
-                                      sgResults.Canvas.TextWidth(VarName[v]+'   '),
+                                      sgResults.Canvas.TextWidth(cbXVariable.Items[v] + '   '),
                                       sgResults.ColWidths[0] ) ;
             end ;
 
@@ -832,8 +841,8 @@ begin
      if RH.AnalysisAvailable then begin
         for Ch := 0 to FH.NumChannels-1 do if Channel[Ch].InUse then begin
             ColWidth := 0 ;
-            for v := 0 to LastMeasureVariable do begin
-                jVar := ch*MaxAnalysisVariables + v ;
+            for v := 0 to cbXVariable.Items.Count-1 do begin
+                jVar := ch*MaxAnalysisVariables + Integer(VarNames.objects[v]) ;
                 s := format(' %.4g %s    ',[RH.Value[jVar]*UnitsScale[jVar],Units[jVar]]) ;
                 sgResults.Cells[Ch+1,v+1] := s ;
                 if ColWidth < sgResults.Canvas.TextWidth(s) then
@@ -903,7 +912,7 @@ var
    row,col : Integer ;
    iY,i0,i1,j0,j1 : Integer ;
    EndPoint : Integer ;
-   Sum,Residual,Avg,NumAvg : Single ;
+   Sum,AbsSum,Residual,Avg,NumAvg : Single ;
    TestInterval : Integer ;
    Done,RateDone : Boolean ;
    PeakMode : TPeakMode ;
@@ -1010,10 +1019,12 @@ begin
                 iTimeZero := Round(scDisplay.VerticalCursors[Cursors.t0]) ;
 
                 { Calculate average and area within cursors 0-1 }
-                Sum := 0. ;
+                Sum := 0.0 ;
+                AbsSum := 0.0 ;
                 j := iStart*fH.NumChannels + Channel[ch].ChannelOffset ;
                 for i := iStart to iEnd do begin
                     Sum := Sum + ADC^[j] ;
+                    AbsSum := AbsSum + Abs(ADC^[j]) ;
                     j := j + fH.NumChannels ;
                     end ;
                 NumAvg := (iEnd - iStart) + 1 ;
@@ -1021,6 +1032,7 @@ begin
 
                 rH.Value[vStart + vAverage] := (Avg * Channel[ch].ADCScale) ;
                 rH.Value[vStart + vArea] := (Sum * rH.dt * Channel[ch].ADCScale) ;
+                rH.Value[vStart + vAbsArea] := (AbsSum * rH.dt * Channel[ch].ADCScale) ;
 
                 { Calculate variance within cursors 0-1 }
 
@@ -1432,9 +1444,9 @@ begin
 
      { Get channel and variables to be plotted }
      Xch := cbXChannel.itemIndex ;
-     XVar := cbXVariable.ItemIndex ;
+     XVar := Integer(cbXVariable.Items.Objects[cbXVariable.ItemIndex]) ;
      Ych := cbYChannel.itemIndex ;
-     YVar := cbYVariable.ItemIndex ;
+     YVar := Integer(cbYVariable.Items.Objects[cbYVariable.ItemIndex]) ;
 
      { Create X and Y axes labels }
      plPlot.xAxisLabel := '' ;
@@ -1598,7 +1610,7 @@ begin
 
      { Determine records, channels & variables to be plotted }
      VarCh := cbHistChannel.itemIndex ;
-     VarVar := cbHistVariable.ItemIndex ;
+     VarVar := Integer(cbHistVariable.Items.Objects[cbHistVariable.ItemIndex]) ;
 
      { Clear Histogram }
      x := edHistMin.Value ;
@@ -1704,7 +1716,7 @@ var
     iVar : Integer ;
 begin
 
-   iVar := cbHistChannel.ItemIndex*MaxAnalysisVariables + cbHistVariable.ItemIndex ;
+   iVar := cbHistChannel.ItemIndex*MaxAnalysisVariables + Integer(cbHistVariable.Items.Objects[cbHistVariable.ItemIndex]) ;
 
    if NewSummaryNeeded then FillSummaryTable ;
 
@@ -1863,11 +1875,11 @@ begin
      Row := 0 ;
      for iVar := 0 to LastMeasureVariable do begin
          if UseVariableInSummary(iVar) then begin
-             jVar := SumCh*MaxAnalysisVariables + iVar ;
+             jVar := SumCh*MaxAnalysisVariables + Integer(VarNames.objects[iVar]);
              Row := Row + 1 ;
              Summary.RowCount := Row + 1 ;
              { Enter row of data }
-             Summary.cells[cName,Row]  := VarName[iVar] ;
+             Summary.cells[cName,Row]  := VarNames[iVar] ;
              if Units[jVar] <> ' ' then
                 Summary.cells[cName,Row]  := Summary.cells[cName,Row] + ' (' +
                                              Units[jVar] + ')';
@@ -1912,7 +1924,7 @@ begin
                                 else Summary.Width := WidthLimit ;
 
 
-                                
+
      end ;
 
 
@@ -1924,9 +1936,10 @@ procedure TMeasureFrm.SetCheckBoxCaption(
   Set summary check box caption and tag#
   -------------------------------------- }
 begin
-     CheckBox.caption := VarName[VarNum] ;
+     CheckBox.caption := VarNames[VarNum] ;
      CheckBox.Tag := VarNum ;
      end ;
+
 
 function TMeasureFrm.UseVariableInSummary(
          VarNum : Integer
@@ -1951,6 +1964,7 @@ begin
      else if ckVariable13.Tag = VarNum then Result := ckVariable13.Checked
      else if ckVariable14.Tag = VarNum then Result := ckVariable14.Checked
      else if ckVariable15.Tag = VarNum then Result := ckVariable15.Checked
+     else if ckVariable16.Tag = VarNum then Result := ckVariable16.Checked
      else Result := True ;
      end ;
 
@@ -2221,7 +2235,7 @@ begin
         RecordsGrp.Visible := True ;
         RecordsGrp.Top := TopOfTabPage + XYPlotGrp.Top + 10 ;
         RecordsGrp.Left := LeftOfTabPage + XYPlotGrp.Left + bNewXYPlot.Left ;
-        if cbYVariable.ItemIndex = vConductance then begin
+        if Integer(cbYVariable.Items.Objects[cbYVariable.ItemIndex]) = vConductance then begin
            PanConductance.Visible := True ;
            PanVar.Visible := False ;
            end
@@ -2840,7 +2854,7 @@ begin
 
      { Determine records, channels & variables to be plotted }
      VarCh := cbHistChannel.itemIndex ;
-     VarVar := cbHistVariable.ItemIndex ;
+     VarVar := Integer(cbHistVariable.Items.Objects[cbHistVariable.ItemIndex]) ;
      RecStart := Round( edPlotRange.LoValue ) ;
      RecEnd := Round( edPlotRange.HiValue ) ;
 
@@ -3039,7 +3053,7 @@ procedure TMeasureFrm.bXYFitClick(Sender: TObject);
     25/6/98 Clipboard buffer limit reduced to 31000
     14/1/99 New MathFunc object used }
 var
-   i,iStart,iEnd,nFit : Integer ;
+   i,iStart,iEnd,nFit,Chan,XVar,YVar : Integer ;
    x,dx,XStart,XEnd,Y : single ;
    FitData : PXYData ;
 begin
@@ -3054,14 +3068,16 @@ begin
      erXYResults.Lines.Clear ;
 
      { Select type of equation to be fitted }
+     Chan := cbXChannel.ItemIndex ;
+     XVar := Integer(cbXVariable.Items.Objects[cbXVariable.ItemIndex]) ;
+     YVar := Integer(cbYVariable.Items.Objects[cbYVariable.ItemIndex]) ;
      MathFunc.Setup( TEqnType(cbXYEquation.Items.Objects[cbXYEquation.ItemIndex]),
-                     Units[cbXChannel.ItemIndex*MaxAnalysisVariables+cbXVariable.ItemIndex],
-                     Units[cbYChannel.ItemIndex*MaxAnalysisVariables+cbYVariable.ItemIndex] ) ;
+                     Units[Chan*MaxAnalysisVariables+XVar],
+                     Units[Chan*MaxAnalysisVariables+YVar] ) ;
      if MathFunc.Equation = None then begin
         plPlot.Invalidate ;
         Exit ;
         end ;
-
 
      { Copy data into fitting array }
      nFit := 0 ;
@@ -3139,7 +3155,7 @@ begin
      { Residual standard deviation }
      XYResults.Add( format(' Residual S.D. = %.4g %s',
            [MathFunc.ResidualSD,
-           Units[cbYChannel.ItemIndex*MaxAnalysisVariables+cbYVariable.ItemIndex]] ) ) ;
+           Units[cbYChannel.ItemIndex*MaxAnalysisVariables+YVar]] ) ) ;
 
      { Statistical degrees of freedom }
      XYResults.Add( format(' Degrees of freedom = %d ',
@@ -3266,6 +3282,9 @@ begin
      ckTabVar11.Checked := False ;
      ckTabVar12.Checked := False ;
      ckTabVar13.Checked := False ;
+     ckTabVar14.Checked := False ;
+     ckTabVar15.Checked := False ;
+     ckTabVar16.Checked := False ;
      end;
 
 procedure TMeasureFrm.bSetClick(Sender: TObject);
@@ -3287,6 +3306,9 @@ begin
      ckTabVar11.Checked := True ;
      ckTabVar12.Checked := True ;
      ckTabVar13.Checked := True ;
+     ckTabVar14.Checked := True ;
+     ckTabVar15.Checked := True ;
+     ckTabVar16.Checked := True ;
      end;
 
 
@@ -3397,7 +3419,7 @@ begin
 
 procedure TMeasureFrm.cbYVariableChange(Sender: TObject);
 begin
-    if cbYVariable.ItemIndex = vConductance then begin
+    if Integer(cbYVariable.Items.Objects[cbYVariable.ItemIndex]) = vConductance then begin
         PanConductance.Visible := True ;
         PanVar.Visible := False ;
         end
@@ -3442,7 +3464,8 @@ begin
      scDisplay.StorageMode := StorageMode ;
      end ;
 
-procedure TMeasureFrm.SortBuffer(
+{
+     procedure TMeasureFrm.SortBuffer(
           var SortBuf : Array of Single ; // Buffer to be sorted
           nPoints : Integer           // No. of points in buffer
           ) ;
@@ -3463,7 +3486,7 @@ begin
              end ;
          end ;
      end ;
-
+}
 
 procedure TMeasureFrm.QuickSort(var A: array of Single ; iLo, iHi: Integer) ;
 // --------------------

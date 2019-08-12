@@ -11,6 +11,7 @@ unit Global;
   02/10/15 .. ZapAmplitude & ZapDuration added to TSealTest
   28/02/17 .. On line analysis settings for RecPlotFrm now stored in Settings.RecPlot and saved in INI file
               vQuantile measurement variable added
+  12/08/19 .. vAbsArea measurement variable added
 }
 
 interface
@@ -44,7 +45,8 @@ const
      vBaseline = 13 ;
      vConductance = 14 ;
      vQuantile = 15 ;
-     LastMeasureVariable = 15 ;
+     vAbsArea = 16 ;
+     LastMeasureVariable = 16 ;
 
      // Curve fitting variable
      vFitEquation = LastMeasureVariable+1 ;
