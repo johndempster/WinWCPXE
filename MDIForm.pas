@@ -737,6 +737,8 @@ unit MDIForm;
    V5.4.8 16.07.19  Records can now exported as ASCII tables as a series of columns containing channels and records.
    V5.4.9 30.07.19  Waveform measurement: Rise time limits now stored in WCP file header
    V5.5.0 12.08.19  Waveform measurement: Abs(Area) absolute area measurement added
+   V5.5.1 15.08.19  Waveform measurement: % trigger point for latency measurement can now be set by user between 0.1 - 100% of peaK
+   V5.5.2 28.08.19  Digidata 1440-1550B Axoscope program folder name used to obtain DLLs for 64 bit systems corrected
             =======================================================================}
 
 interface
@@ -985,7 +987,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.5.0';
+      ProgVersion := 'V5.5.2';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
@@ -1065,6 +1067,7 @@ begin
      RawFH.Version := 8.0 ;
      RawFH.ProgVersion := ProgVersion ;
      RawFH.NumPointsAveragedAtPeak := 1 ;
+     RawFH.LatencyPercentage := 10.0 ;
 
      for ch := 0 to WCPMaxChannels-1 do begin
          Channel[ch].TimeZero := 1. ;

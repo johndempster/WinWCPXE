@@ -89,6 +89,8 @@ unit Measure;
               bubblesort algorithm is too slow when 10000 point records analysed
    30.07.19   Rise time limits now stored in WCP file header
    12.08.19 .. Absolute area measurement variable added
+   15.08.19 .. % of peak detection point for latency can now be set by user
+   16.08.19 .. Variable table columns now work properly again VarNames renamed to VarList for clarity
   ==========================================================================}
 interface
 
@@ -195,17 +197,17 @@ TMeasureFrmCursors = Record
     bXYFit: TButton;
     cbXYEquation: TComboBox;
     erXYResults: TRichEdit;
-    GroupBox4: TGroupBox;
+    gpPeak: TGroupBox;
     cbPeakMode: TComboBox;
     edPeakAvg: TValidatedEdit;
     Label4: TLabel;
-    GroupBox5: TGroupBox;
+    gpRateofRise: TGroupBox;
     cbRateofRiseMode: TComboBox;
     GroupBox6: TGroupBox;
     cbTypeToBeAnalysed: TComboBox;
-    GroupBox7: TGroupBox;
+    gpRiseTime: TGroupBox;
     edRiseTime: TRangeEdit;
-    GroupBox9: TGroupBox;
+    gpDecayTime: TGroupBox;
     edDecayTimePercentage: TValidatedEdit;
     Label1: TLabel;
     GroupBox10: TGroupBox;
@@ -235,7 +237,7 @@ TMeasureFrmCursors = Record
     bSaveTableToFile: TButton;
     SaveDialog: TSaveDialog;
     cbSummaryChannel: TComboBox;
-    GroupBox12: TGroupBox;
+    gpCursors: TGroupBox;
     bGetCursors: TButton;
     ckLockChannelCursors: TCheckBox;
     PanConductance: TPanel;
@@ -265,6 +267,9 @@ TMeasureFrmCursors = Record
     ckTabVar15: TCheckBox;
     ckVariable16: TCheckBox;
     ckTabVar16: TCheckBox;
+    gpLatency: TGroupBox;
+    Label14: TLabel;
+    edLatencyPercentage: TValidatedEdit;
     procedure bDoAnalysisClick(Sender: TObject);
     procedure bAbortClick(Sender: TObject);
     procedure bNewXYPlotClick(Sender: TObject);
@@ -314,7 +319,7 @@ TMeasureFrmCursors = Record
    Cursors : TMeasureFrmCursors ;
    ADC : PSmallIntArray ;
    Hist : THistogram ;
-   VarNames : TStringList ;
+   VarList : TStringList ;
    HistResults : TStringList ;
    XYResults : TStringList ;
    RH : TRecHeader ; { Record header }
@@ -384,11 +389,6 @@ TMeasureFrmCursors = Record
          ) : Boolean ;   // Returns TRUE if valid conductance calculated
 
     function TidyNumber( const RawNumber : string ) : string ;
-
-//    procedure SortBuffer(
-//              var SortBuf : Array of Single ;
-//              nPoints : Integer
-//              ) ;
 
     procedure QuickSort(var A: array of Single ; iLo, iHi: Integer) ;
 
@@ -527,7 +527,7 @@ begin
      Caption := Main.UpdateCaption( FH, 'Waveform Measurements ' ) ;
 
      // Clear variable names string list
-     VarNames.Clear ;
+     VarList.Clear ;
 
      { Create waveform analysis record }
      for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := ' ' ;
@@ -636,16 +636,16 @@ begin
         SetCheckBoxCaption( ckTabVar16, 16 ) ;
 
      { Create variable name list for X/Y plot }
-     cbXVariable.items := VarNames  ;
+     cbXVariable.items := VarList  ;
      if cbXVariable.ItemIndex < 0  then cbXVariable.ItemIndex := 0 ;
-     cbYVariable.items := VarNames  ;
+     cbYVariable.items := VarList  ;
      if cbYVariable.ItemIndex < 0  then cbYVariable.ItemIndex := 0 ;
-     cbCondIVar.items := VarNames  ;
+     cbCondIVar.items := VarList  ;
      if cbCondIVar.ItemIndex < 0  then cbCondIVar.ItemIndex := vAverage ;
-     cbCondVVar.items := VarNames  ;
+     cbCondVVar.items := VarList  ;
      if cbCondVVar.ItemIndex < 0  then cbCondVVar.ItemIndex := vAverage ;
 
-     cbHistVariable.items := VarNames  ;
+     cbHistVariable.items := VarList  ;
      if cbHistVariable.ItemIndex < 0  then cbHistVariable.ItemIndex := 0 ;
 
      edRecRange.LoLimit := 1 ;
@@ -842,7 +842,7 @@ begin
         for Ch := 0 to FH.NumChannels-1 do if Channel[Ch].InUse then begin
             ColWidth := 0 ;
             for v := 0 to cbXVariable.Items.Count-1 do begin
-                jVar := ch*MaxAnalysisVariables + Integer(VarNames.objects[v]) ;
+                jVar := ch*MaxAnalysisVariables + Integer(VarList.objects[v]) ;
                 s := format(' %.4g %s    ',[RH.Value[jVar]*UnitsScale[jVar],Units[jVar]]) ;
                 sgResults.Cells[Ch+1,v+1] := s ;
                 if ColWidth < sgResults.Canvas.TextWidth(s) then
@@ -926,7 +926,8 @@ var
    // Quantile variables
    SortBuf : ^TSingleArray ;     // Floating point A/D buffer
    nSort,iQuantile : Integer ;
-
+   iLatency : Integer ;          // Latency sample point
+   YLatency : single ;           // Latency trigger level
 begin
 
      // Create buffers
@@ -1159,8 +1160,15 @@ begin
 
                 rH.Value[vStart + vRiseTime] := ((i1-i0)*rH.dt + dRiseTime) ;
 
-                { Calculate latency as time from zero time cursor to 10% of peak }
-                rH.Value[ch*MaxAnalysisVariables+vLatency] := ((i0 - iTimeZero )*rH.dt) ;
+                { Calculate latency as time from zero time cursor to LatencyPercentage % of peak }
+                iLatency := PeakAt + 1;
+                YLatency := ADC^[PeakAt*fH.NumChannels + ChOffset]*Invert*(edLatencyPercentage.Value*0.01) ;
+                repeat
+                  iLatency := iLatency - 1 ;
+                  Y := ADC^[iLatency*fH.NumChannels + ChOffset]*Invert ;
+                  // Exit when amplitude drops below lower limit
+                  until (Y <= YLatency) or (iLatency <= 0) ;
+                rH.Value[ch*MaxAnalysisVariables+vLatency] := ((iLatency - iTimeZero )*rH.dt) ;
 
                 { Calculate max. rate of rise (over range from iStart ... peak ) }
                 FH.RateOfRiseMode := cbRateofRiseMode.ItemIndex ;
@@ -1248,7 +1256,7 @@ begin
                     Inc(nSort) ;
                     i := i + iStep ;
                     end ;
-//                SortBuffer(SortBuf^,nSort) ;
+
                 QuickSort( SortBuf^, 0, nSort-1) ;
                 iQuantile := Max(Round(edQuantilePercentage.Value*nSort*0.01)-1,0);
                 rH.Value[vStart + vQuantile] := SortBuf^[iQuantile]*Channel[ch].ADCScale ;
@@ -1875,11 +1883,11 @@ begin
      Row := 0 ;
      for iVar := 0 to LastMeasureVariable do begin
          if UseVariableInSummary(iVar) then begin
-             jVar := SumCh*MaxAnalysisVariables + Integer(VarNames.objects[iVar]);
+             jVar := SumCh*MaxAnalysisVariables + Integer(VarList.objects[iVar]);
              Row := Row + 1 ;
              Summary.RowCount := Row + 1 ;
              { Enter row of data }
-             Summary.cells[cName,Row]  := VarNames[iVar] ;
+             Summary.cells[cName,Row]  := VarList[iVar] ;
              if Units[jVar] <> ' ' then
                 Summary.cells[cName,Row]  := Summary.cells[cName,Row] + ' (' +
                                              Units[jVar] + ')';
@@ -1936,7 +1944,7 @@ procedure TMeasureFrm.SetCheckBoxCaption(
   Set summary check box caption and tag#
   -------------------------------------- }
 begin
-     CheckBox.caption := VarNames[VarNum] ;
+     CheckBox.caption := VarList[VarNum] ;
      CheckBox.Tag := VarNum ;
      end ;
 
@@ -1999,8 +2007,8 @@ begin
 
      { Create column title }
      for Col := 0 to Table.ColCount-1 do begin
-            jVar := TableChans[Col]*MaxAnalysisVariables + TableVars[Col] ;
-            Table.cells[Col,0] := VarNames[TableVars[Col]] ;
+            jVar := TableChans[Col]*MaxAnalysisVariables + Integer(VarList.Objects[TableVars[Col]]);
+            Table.cells[Col,0] := VarList[TableVars[Col]] ;
             case TableVars[Col] of
                vRecord,vGroup : Table.cells[Col,1] := '' ;
                vTime : Table.cells[Col,1] := '(' + Units[jVar] + ')'
@@ -2023,7 +2031,7 @@ begin
             { Fill row with selected variables }
             Table.RowCount := Table.RowCount + 1 ;
             for Col := 0 to Table.ColCount-1 do begin
-                   jVar := TableChans[Col]*MaxAnalysisVariables + TableVars[Col] ;
+                   jVar := TableChans[Col]*MaxAnalysisVariables + Integer(VarList.Objects[TableVars[Col]]);
                    Table.cells[Col,Table.RowCount-1] := format('%8.4g',
                                                         [rH.Value[jVar]*UnitsScale[jVar]] ) ;
                    end ;
@@ -2100,7 +2108,7 @@ procedure TMeasureFrm.FormCreate(Sender: TObject);
 begin
      ADC := Nil ;
      Hist := THistogram.Create ;
-     VarNames := TStringList.Create ;
+     VarList := TStringList.Create ;
      XYResults := TStringList.Create ;
      HistResults := TStringList.Create ;
      MathFunc := TMathFunc.Create ;
@@ -2115,7 +2123,7 @@ procedure TMeasureFrm.FormDestroy(Sender: TObject);
 // ----------------------------
 begin
     if ADC <> Nil then FreeMem(ADC) ;
-    VarNames.Free ;
+    VarList.Free ;
     Hist.Free ;
     XYResults.Free ;
     HistResults.Free ;
@@ -2147,7 +2155,7 @@ var
 begin
 
      VarName[iNum] := VName ;
-     VarNames.AddObject( VarName[iNum], TObject(iNum) ) ;
+     VarList.AddObject( VarName[iNum], TObject(iNum) ) ;
 
      for ch := 0 to RawFH.NumChannels-1 do begin
          iVar := ch*MaxAnalysisVariables + iNum ;
@@ -2958,7 +2966,7 @@ var
    y : Single ;
 begin
 
-     FilterFrm.VarNames := VarNames ;
+     FilterFrm.VarNames := VarList ;
      FilterFrm.ShowChannels := True ;
      FilterFrm.ShowModal ;
      if FilterFrm.ModalResult = mrOK then begin
@@ -3022,7 +3030,7 @@ begin
                                Format('Records filtered %s = %.3g <= %s (%s) <= %.3g',
                                [Status,
                                FilterFrm.LowerLimit,
-                               VarNames[YVar],
+                               VarList[YVar],
                                ChannelNames[YCh],
                                FilterFrm.UpperLimit] ))
         else WriteToLogFile (Format('All Records = %s',[Status])) ;
@@ -3241,6 +3249,7 @@ begin
    AddVariableToTable( ckTabVar13 ) ;
    AddVariableToTable( ckTabVar14 ) ;
    AddVariableToTable( ckTabVar15 ) ;
+   AddVariableToTable( ckTabVar16 ) ;
 
    FillTable ;
 
@@ -3286,6 +3295,7 @@ begin
      ckTabVar15.Checked := False ;
      ckTabVar16.Checked := False ;
      end;
+
 
 procedure TMeasureFrm.bSetClick(Sender: TObject);
 // ---------------------------------------------
@@ -3464,29 +3474,6 @@ begin
      scDisplay.StorageMode := StorageMode ;
      end ;
 
-{
-     procedure TMeasureFrm.SortBuffer(
-          var SortBuf : Array of Single ; // Buffer to be sorted
-          nPoints : Integer           // No. of points in buffer
-          ) ;
-// --------------------------------
-// Sort buffer into ascending order
-// --------------------------------
-var
-   Current,Last : Integer ;
-   Temp : single ;
-begin
-     for Last := (nPoints-1) DownTo 1 do begin
-         for Current := 0 to Last-1 do begin
-             if SortBuf[Current] >  SortBuf[Current+1] then begin
-                Temp := SortBuf[Current] ;
-                SortBuf[Current] := SortBuf[Current+1] ;
-                SortBuf[Current+1] := Temp ;
-                end ;
-             end ;
-         end ;
-     end ;
-}
 
 procedure TMeasureFrm.QuickSort(var A: array of Single ; iLo, iHi: Integer) ;
 // --------------------

@@ -2,8 +2,8 @@ object MeasureFrm: TMeasureFrm
   Left = 829
   Top = 41
   Caption = 'Waveform Analysis '
-  ClientHeight = 702
-  ClientWidth = 758
+  ClientHeight = 771
+  ClientWidth = 784
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
   Font.Color = clWindowText
@@ -26,11 +26,11 @@ object MeasureFrm: TMeasureFrm
   PixelsPerInch = 96
   TextHeight = 15
   object Page: TPageControl
-    Left = 2
-    Top = 2
+    Left = 8
+    Top = 8
     Width = 639
-    Height = 692
-    ActivePage = XYPlotTab
+    Height = 735
+    ActivePage = AnalysisTab
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -12
@@ -162,7 +162,7 @@ object MeasureFrm: TMeasureFrm
         Left = 4
         Top = 116
         Width = 135
-        Height = 543
+        Height = 586
         Caption = ' Analyse '
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
@@ -259,7 +259,7 @@ object MeasureFrm: TMeasureFrm
             NumberFormat = '%.f - %.f'
           end
         end
-        object GroupBox4: TGroupBox
+        object gpPeak: TGroupBox
           Left = 8
           Top = 182
           Width = 121
@@ -313,11 +313,11 @@ object MeasureFrm: TMeasureFrm
             HiLimit = 20.000000000000000000
           end
         end
-        object GroupBox5: TGroupBox
+        object gpRateofRise: TGroupBox
           Left = 8
           Top = 298
           Width = 121
-          Height = 44
+          Height = 46
           Caption = ' Rate of rise '
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clBlack
@@ -368,7 +368,7 @@ object MeasureFrm: TMeasureFrm
             TabOrder = 0
           end
         end
-        object GroupBox7: TGroupBox
+        object gpRiseTime: TGroupBox
           Left = 8
           Top = 348
           Width = 121
@@ -398,9 +398,9 @@ object MeasureFrm: TMeasureFrm
             NumberFormat = ' %.f - %.f'
           end
         end
-        object GroupBox9: TGroupBox
+        object gpDecayTime: TGroupBox
           Left = 8
-          Top = 396
+          Top = 457
           Width = 121
           Height = 45
           Caption = ' T.x% decay time '
@@ -443,11 +443,11 @@ object MeasureFrm: TMeasureFrm
             HiLimit = 90.000000000000000000
           end
         end
-        object GroupBox12: TGroupBox
+        object gpCursors: TGroupBox
           Left = 8
-          Top = 444
+          Top = 508
           Width = 121
-          Height = 81
+          Height = 63
           Caption = ' Cursors '
           TabOrder = 8
           object bGetCursors: TButton
@@ -512,7 +512,7 @@ object MeasureFrm: TMeasureFrm
           end
           object edQuantilePercentage: TValidatedEdit
             Left = 55
-            Top = 22
+            Top = 16
             Width = 57
             Height = 20
             Hint = '% Quantile to calculate (0% = Min. 100% = Max.)'
@@ -525,6 +525,46 @@ object MeasureFrm: TMeasureFrm
             Units = '%'
             NumberFormat = '%.1f'
             LoLimit = -1.000000015047466E30
+            HiLimit = 100.000000000000000000
+          end
+        end
+        object gpLatency: TGroupBox
+          Left = 8
+          Top = 396
+          Width = 121
+          Height = 55
+          Caption = ' Latency '
+          TabOrder = 10
+          object Label14: TLabel
+            Left = 22
+            Top = 16
+            Width = 30
+            Height = 30
+            Alignment = taRightJustify
+            Caption = 'To % Peak'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clBlack
+            Font.Height = -12
+            Font.Name = 'Arial'
+            Font.Style = []
+            ParentFont = False
+            WordWrap = True
+          end
+          object edLatencyPercentage: TValidatedEdit
+            Left = 60
+            Top = 16
+            Width = 50
+            Height = 20
+            Hint = ' %  of waveform peak used to measure latency'
+            OnKeyPress = edDecayTimePercentageKeyPress
+            AutoSize = False
+            ShowHint = True
+            Text = ' 50.0 %'
+            Value = 50.000000000000000000
+            Scale = 1.000000000000000000
+            Units = '%'
+            NumberFormat = '%.1f'
+            LoLimit = 0.100000001490116100
             HiLimit = 100.000000000000000000
           end
         end
@@ -1618,6 +1658,7 @@ object MeasureFrm: TMeasureFrm
     end
     object TablesTab: TTabSheet
       Caption = 'Tables'
+      ExplicitLeft = 0
       object Table: TStringGrid
         Left = 145
         Top = 4
@@ -1668,7 +1709,7 @@ object MeasureFrm: TMeasureFrm
           OnClick = bClearTableClick
         end
         object GroupBox11: TGroupBox
-          Left = 6
+          Left = 8
           Top = 89
           Width = 122
           Height = 409
@@ -1886,7 +1927,7 @@ object MeasureFrm: TMeasureFrm
           end
           object bSet: TButton
             Left = 8
-            Top = 376
+            Top = 378
             Width = 106
             Height = 18
             Caption = 'Set All'
@@ -1912,7 +1953,7 @@ object MeasureFrm: TMeasureFrm
             OnClick = ckVariable0Click
           end
           object ckTabVar15: TCheckBox
-            Tag = 14
+            Tag = 15
             Left = 8
             Top = 287
             Width = 89
@@ -1924,7 +1965,7 @@ object MeasureFrm: TMeasureFrm
             OnClick = ckVariable0Click
           end
           object ckTabVar16: TCheckBox
-            Tag = 14
+            Tag = 16
             Left = 8
             Top = 304
             Width = 89
@@ -2005,7 +2046,7 @@ object MeasureFrm: TMeasureFrm
     end
   end
   object SaveDialog: TSaveDialog
-    Left = 152
-    Top = 576
+    Left = 168
+    Top = 560
   end
 end

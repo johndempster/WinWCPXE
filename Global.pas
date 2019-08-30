@@ -12,6 +12,7 @@ unit Global;
   28/02/17 .. On line analysis settings for RecPlotFrm now stored in Settings.RecPlot and saved in INI file
               vQuantile measurement variable added
   12/08/19 .. vAbsArea measurement variable added
+  15/08/19 .. LatencyPercentage variable added WCP File Header. Latency time to % peak value
 }
 
 interface
@@ -133,6 +134,7 @@ TFileHeader = packed record
             RiseTimeLo : Single ;                   // Rise time lower limit (fraction of peak)
             RiseTimeHi : Single ;                   // Rise time upper limit (fraction of peak)
             QuantilePercentage : Single ;           // Quantile % value
+            LatencyPercentage : Single ;            // Latency time to % peak value
             // Non-stationary variance analysis parameters
             NSVChannel : Integer ;          // Current channel to be analysed
             NSVType : Integer ;             // Type of record to analyse

@@ -90,6 +90,7 @@ unit Fileio;
                'STSMF=', Settings.SealTest.Smoothing factor removed from INI
   07.07.19 ... FORMTOP= FORMLEFT=, FORMWIDTH=, FORMHEIGHT= added to INI file saving location of main form on screen
   30.07.19 ... 'TRISELO=', fHDR.RiseTimeLo, 'TRISEHi=', fHDR.RiseTimeHi added to WCP header
+  14.08.19 ... 'LATPERC=', fHDR.LatencyPercentage added to WCP header
   }
 
 
@@ -244,6 +245,8 @@ begin
      AppendInt( Header, 'PKPAVG=', fHDR.NumPointsAveragedAtPeak ) ;
      // Quantile percentage measurement in use
      AppendFloat( Header, 'QUPERC=', fHDR.QuantilePercentage ) ;
+     // Latency percentage measurement in use
+     AppendFloat( Header, 'LATPERC=', fHDR.LatencyPercentage ) ;
 
      AppendFloat( Header, 'TRISELO=', fHDR.RiseTimeLo ) ;
      AppendFloat( Header, 'TRISEHI=', fHDR.RiseTimeHi ) ;
@@ -452,6 +455,8 @@ begin
 
           // Quantile percentage measurement in use
           ReadFloat( Header, 'QUPERC=', fHDR.QuantilePercentage ) ;
+          // Latency percentage measurement in use
+          ReadFloat( Header, 'LATPERC=', fHDR.LatencyPercentage ) ;
 
           ReadFloat( Header, 'TRISELO=', fHDR.RiseTimeLo ) ;
           ReadFloat( Header, 'TRISEHI=', fHDR.RiseTimeHi ) ;
