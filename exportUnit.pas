@@ -33,6 +33,7 @@ unit exportUnit;
   14.08.15 ... Export of average, leak subtracted and driving function now works
   16.07.19 ... Multiple records can now be saved in columns in ASCII file output
                instead of as a series of rows.
+  25.09.19 ... Combine Records option now works correctly for IGOR IBW file export.
   }
 interface
 
@@ -427,7 +428,7 @@ begin
                 ExportFile.CreateDataFile( ExportFileName, ftIBW ) ;
                 NumRecordsExported := 0 ;
                 end
-             else begin
+             else if not ckCombineRecords.checked then begin
                 // Create empty export data file
                 if iRec > StartAt then ExportFile.CloseDataFile ;
                 ExportFile.CreateDataFile( ANSIReplaceText( ExportFileName,'.ibw',

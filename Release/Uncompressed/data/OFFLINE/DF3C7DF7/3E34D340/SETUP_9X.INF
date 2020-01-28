@@ -1,0 +1,31 @@
+; INF file for TVicHW32 - Windows 95/98/ME
+; Copyright 1997-2003, Victor Ishikeev, e-mail: tools@entechtaiwan.com
+; Right-click this file from the Windows Explorer then select "Install"
+
+[DefaultInstall]
+CopyFiles=TVicHW32.Copy.Sys
+Uninstall=TVicHW32Remove
+
+[SoftwareInstall]
+CopyFiles=TVicHW32.Copy.Sys
+Uninstall=TVicHW32Remove
+
+[TVicHW32Remove]
+DelFiles=TVicHW32.Copy.Sys
+
+[version]
+signature="$CHICAGO$"
+
+[DestinationDirs]
+TVicHW32.Copy.Sys=11
+
+[TVicHW32.Copy.Sys]
+TVicHW32.DLL
+TVicHW32.VXD
+
+[SourceDisksNames]
+98="TVicHW32 Disk",,
+
+[SourceDisksFiles]
+TVicHW32.DLL=98
+TVicHW32.VXD=98

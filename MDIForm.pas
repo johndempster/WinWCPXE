@@ -739,6 +739,10 @@ unit MDIForm;
    V5.5.0 12.08.19  Waveform measurement: Abs(Area) absolute area measurement added
    V5.5.1 15.08.19  Waveform measurement: % trigger point for latency measurement can now be set by user between 0.1 - 100% of peaK
    V5.5.2 28.08.19  Digidata 1440-1550B Axoscope program folder name used to obtain DLLs for 64 bit systems corrected
+   V5.5.3 03.01.20  dd1320.pas Access violation when unable to find installed Digidata 132X device now fixed, so WinWCP now reverts to
+                    no device selected when Digidata 1320X device selected and not present.
+          28.01.20  Amplifiers: A-M Systems 2400 gain telegraphs now work correcly with latest versions of amplifiers which had
+                    gain telegraph voltages reduced by 0.2V.
             =======================================================================}
 
 interface
@@ -987,7 +991,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.5.2';
+      ProgVersion := 'V5.5.3';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

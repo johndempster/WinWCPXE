@@ -471,6 +471,7 @@ object ExportFrm: TExportFrm
     ASCIITimeUnits = 's'
     ASCIITitleLines = 2
     ASCIIFixedRecordSize = False
+    ASCIISaveRecordsinColumns = False
     Left = 128
     Top = 356
   end

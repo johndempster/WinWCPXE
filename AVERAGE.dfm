@@ -269,7 +269,7 @@ object AvgFrm: TAvgFrm
         Height = 23
         Hint = 'No. of records to be averaged (n)'
         ShowHint = True
-        Text = ' 0 '
+        Text = ' 1 '
         Value = 1.000000000000000000
         Scale = 1.000000000000000000
         NumberFormat = '%g'

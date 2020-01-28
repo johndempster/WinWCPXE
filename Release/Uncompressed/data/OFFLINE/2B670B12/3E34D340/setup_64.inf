@@ -1,0 +1,60 @@
+; INF file for TVICHW32 installation under Windows XP 64-bit
+; Copyright 1997-2004, Victor Ishikeev, e-mail: tools@entechtaiwan.com
+; Right-click this file from the Windows Explorer then select "Install"
+
+[DefaultInstall]
+CopyFiles=TVICHW32.Copy.Sys, TVICHW32.Copy.Inf, TVICHW32.Copy.Drv
+AddReg=TVICHW32Reg
+Uninstall=TVICHW32Remove
+
+[SoftwareInstall]
+CopyFiles=TVICHW32.Copy.Sys, TVICHW32.Copy.Inf, TVICHW32.Copy.Drv
+AddReg=TVICHW32Reg
+Uninstall=TVICHW32Remove
+
+[TVICHW32Remove]
+DelFiles=TVICHW32.Copy.Sys, TVICHW32.Copy.Inf, TVICHW32.Copy.Drv
+DelReg=TVICHW32Reg.Remove
+
+[version]
+signature="$CHICAGO$"
+
+[DestinationDirs]
+TVICHW32.Copy.Sys=25
+TVICHW32.Copy.Inf=17
+TVICHW32.Copy.Drv=12
+
+[TVICHW32.Copy.Sys]
+TVICHW32.DLL
+
+[TVICHW32.Copy.Drv]
+TVICHW32.SYS
+
+[TVICHW32.Copy.Inf]
+Setup_NT.INF
+
+[SourceDisksNames]
+98="TVICHW32 Disk",,
+
+[SourceDisksFiles]
+TVICHW32.DLL=98
+TVICHW64.SYS=98
+Setup_64.INF=98
+
+
+[TVICHW32Reg]
+HKLM,"System\CurrentControlSet\Services\TVICHW64","ErrorControl",%REG_DWORD%,0x00000001
+HKLM,"System\CurrentControlSet\Services\TVICHW64","Type",%REG_DWORD%,0x00000001
+HKLM,"System\CurrentControlSet\Services\TVICHW64","Start",%REG_DWORD%,0x00000002
+HKLM,"System\CurrentControlSet\Services\TVICHW64","Group",%REG_SZ%,"Extended Base"
+HKLM,"System\CurrentControlSet\Services\TVICHW64","Parameters",%REG_SZ%,""
+
+[TVICHW32Reg.Remove]
+HKLM,"System\CurrentControlSet\Services\TVICHW64"
+
+[Strings]
+REG_SZ         = 0x00000000
+REG_MULTI_SZ   = 0x00010000
+REG_EXPAND_SZ  = 0x00020000
+REG_BINARY     = 0x00000001
+REG_DWORD      = 0x00010001
