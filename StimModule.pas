@@ -59,6 +59,7 @@ unit StimModule;
            SetADCDACUpdateIntervals() now sets D/A update to digWave user-def. waveforms.
   01.03.17 FillDigWave() function added. TScale & TUnits now set in FormShow()
   31.05.18 Sine wave protocol added.
+  06.02.20 PulseStaircase waveform type producing a series of pulses on a rising staircase added.
   =============================================}
 
 interface
@@ -94,6 +95,7 @@ const
     wvDigTrainHz = 12 ;
     wvDigWave = 13 ;     // User defined digital pattern
     wvSine = 14 ;        // Sine wave protocol
+    wvPulseStaircase = 15 ; // Pulse staircase protocol
 
     spNone = -1 ;
     spDelay = 0 ;
@@ -547,7 +549,7 @@ var
     DACScale : Single ;
     DACValue : Integer ;
     // Y Axes range and labels
-    Y,YMax,YMin,dT : Single ;
+    Y,YMax,YMin,dT,YStart,YEnd : Single ;
     TMax : Single ;
     StartAmplitude,EndAmplitude : Single ;
     Delay,Duration,PulsePeriod : Single ;
@@ -612,7 +614,8 @@ begin
      SubstituteGlobalVariables( Prot ) ;
 
      dT := 0.0 ;
-     for AONum := 0 to Prot.NumAOChannels-1 do begin
+     for AONum := 0 to Prot.NumAOChannels-1 do
+         begin
 
          // Draw stimulus waveforms
          StimulusDuration := Prot.RecordDuration ;
@@ -620,16 +623,19 @@ begin
          // Initialise D/A buffer counter
          DACCounter := 0 ;
 
-         for i := 0 to MaxStimElementsPerChannels-1 do begin
+         for i := 0 to MaxStimElementsPerChannels-1 do
+             begin
 
              iElem := i + AONum*MaxStimElementsPerChannels ;
 
              if Prot.Stimulus[iElem].WaveShape = Ord(wvNone) then Continue ;
 
              // Delay (at holding level)
-             if Prot.Stimulus[iElem].Parameters[spDelay].Exists then begin
+             if Prot.Stimulus[iElem].Parameters[spDelay].Exists then
+                begin
                 Delay := Prot.Stimulus[iElem].Parameters[spDelay].Value ;
-                if Prot.Stimulus[iElem].Parameters[spDelayInc].Exists then begin
+                if Prot.Stimulus[iElem].Parameters[spDelayInc].Exists then
+                   begin
                    Delay := Delay + (Increment*
                             Prot.Stimulus[iElem].Parameters[spDelayInc].Value) ;
                    end ;
@@ -639,7 +645,8 @@ begin
              // Pulse Duration
              if Prot.Stimulus[iElem].Parameters[spDuration].Exists then begin
                 Duration := Prot.Stimulus[iElem].Parameters[spDuration].Value ;
-                if Prot.Stimulus[iElem].Parameters[spDurationInc].Exists then begin
+                if Prot.Stimulus[iElem].Parameters[spDurationInc].Exists then
+                   begin
                    Duration := Duration + (Increment*
                                Prot.Stimulus[iElem].Parameters[spDurationInc].Value);
                    end ;
@@ -649,7 +656,8 @@ begin
              // Pulse train
              if Prot.Stimulus[iElem].Parameters[spNumRepeats].Exists then begin
                 NumPulses := Round(Prot.Stimulus[iElem].Parameters[spNumRepeats].Value) + 1 ;
-                if Prot.Stimulus[iElem].Parameters[spNumRepeatsInc].Exists then begin
+                if Prot.Stimulus[iElem].Parameters[spNumRepeatsInc].Exists then
+                      begin
                       NumPulses := NumPulses + (Increment*
                                    Round(Prot.Stimulus[iElem].Parameters[spNumRepeatsInc].Value));
                       end ;
@@ -659,14 +667,16 @@ begin
              // Pulse period
              if Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Exists then begin
                 PulsePeriod := Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Value ;
-                if Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Exists then begin
+                if Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Exists then
+                   begin
                    PulsePeriod := PulsePeriod + (Increment*
                                   Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Value) ;
                    end ;
                 end
              else if Prot.Stimulus[iElem].Parameters[spFrequency].Exists then begin
                 PulsePeriod := 1.0/Max(Prot.Stimulus[iElem].Parameters[spFrequency].Value,1E-6) ;
-                if Prot.Stimulus[iElem].Parameters[spFrequencyInc].Exists then begin
+                if Prot.Stimulus[iElem].Parameters[spFrequencyInc].Exists then
+                   begin
                    PulsePeriod := 1.0 / Max(1E-6,Prot.Stimulus[iElem].Parameters[spFrequency].Value +
                                                  Prot.Stimulus[iElem].Parameters[spFrequencyInc].Value*Increment) ;
                    end ;
@@ -674,9 +684,11 @@ begin
              else PulsePeriod := 0 ;
 
              // Start amplitude
-             if Prot.Stimulus[iElem].Parameters[spStartAmplitude].Exists then begin
+             if Prot.Stimulus[iElem].Parameters[spStartAmplitude].Exists then
+                begin
                 StartAmplitude := Prot.Stimulus[iElem].Parameters[spStartAmplitude].Value ;
-                if Prot.Stimulus[iElem].Parameters[spStartAmplitudeInc].Exists then begin
+                if Prot.Stimulus[iElem].Parameters[spStartAmplitudeInc].Exists then
+                   begin
                    StartAmplitude := StartAmplitude + (Increment*
                                      Prot.Stimulus[iElem].Parameters[spStartAmplitudeInc].Value) ;
                    end ;
@@ -684,9 +696,11 @@ begin
              else StartAmplitude := 0.0 ;
 
              // End amplitude
-             if Prot.Stimulus[iElem].Parameters[spEndAmplitude].Exists then begin
+             if Prot.Stimulus[iElem].Parameters[spEndAmplitude].Exists then
+                begin
                 EndAmplitude := Prot.Stimulus[iElem].Parameters[spEndAmplitude].Value ;
-                if Prot.Stimulus[iElem].Parameters[spEndAmplitudeInc].Exists then begin
+                if Prot.Stimulus[iElem].Parameters[spEndAmplitudeInc].Exists then
+                   begin
                    EndAmplitude := EndAmplitude + (Increment*
                                    Prot.Stimulus[iElem].Parameters[spEndAmplitudeInc].Value) ;
                    end
@@ -695,12 +709,14 @@ begin
 
              // D/A update interval (Note All elements must have the same update interval
              if (Prot.Stimulus[iElem].Parameters[spDACUpdateInterval].Exists) and
-                   (dT = 0.0) then begin
+                   (dT = 0.0) then
+                   begin
                    dT := Prot.Stimulus[iElem].Parameters[spDACUpdateInterval].Value ;
                    end ;
 
              // Delay (at holding level)
-             if Delay <> 0.0 then begin
+             if Delay <> 0.0 then
+                begin
                 FillDACBuf( AONum,
                             NumDACChannels,
                             Prot.AOHoldingLevel[AONum],
@@ -711,6 +727,7 @@ begin
                 end ;
 
              if (Prot.Stimulus[iElem].WaveShape = Ord(wvSine)) then begin
+                // ----------------
                 // Create sine wave
                 // ----------------
                 VBuf := AllocMem( (Round(Duration/DACUpdateInterval) + 1)*SizeOf(Single) ) ;
@@ -737,26 +754,42 @@ begin
 
                 end
              else begin
+                // ---------------------
                 // Create step waveforms
                 // ---------------------
-                for iPulse := 0 to NumPulses-1 do begin
+                for iPulse := 0 to NumPulses-1 do
+                    begin
 
-                    if iPulse > 0 then begin
+                    if iPulse > 0 then
+                       begin
                        // Inter-pulse period
+                       Y := Prot.AOHoldingLevel[AONum] ;
+                       if (Prot.Stimulus[iElem].WaveShape = Ord(wvPulseStaircase)) then Y := Y + EndAmplitude*iPulse ;
                        FillDACBuf( AONum,
                                    NumDACChannels,
-                                   Prot.AOHoldingLevel[AONum],
-                                   Prot.AOHoldingLevel[AONum],
+                                   Y,
+                                   Y,
                                    PulsePeriod - Duration,
                                    Buf,
                                    DACCounter) ;
                        end ;
 
-                    // Start of pulse
+                    // Pulse
+                    if (Prot.Stimulus[iElem].WaveShape = Ord(wvPulseStaircase)) then
+                       begin
+                       // Special treatment for pulse staircase waveform
+                       YStart := Prot.AOHoldingLevel[AONum] + StartAmplitude + EndAmplitude*iPulse ;
+                       YEnd := YStart ;
+                       end
+                     else
+                       begin
+                       YStart := Prot.AOHoldingLevel[AONum] + StartAmplitude ;
+                       YEnd := Prot.AOHoldingLevel[AONum] + EndAmplitude ;
+                       end;
                     FillDACBuf( AONum,
                                 NumDACChannels,
-                                Prot.AOHoldingLevel[AONum] + StartAmplitude,
-                                Prot.AOHoldingLevel[AONum] + EndAmplitude,
+                                YStart,
+                                YEnd,
                                 Duration,
                                 Buf,
                                 DACCounter) ;
@@ -769,14 +802,17 @@ begin
                 begin
 
                 // No. points in waveform to be plotted and starting point in waveform buffer
-                if Prot.Stimulus[iElem].Parameters[spNumPoints].Exists then begin
+                if Prot.Stimulus[iElem].Parameters[spNumPoints].Exists then
+                   begin
                    NumPoints := Round(Prot.Stimulus[iElem].Parameters[spNumPoints].Value) ;
-                   if Prot.Stimulus[iElem].Parameters[spNumPointsInc].Exists then begin
+                   if Prot.Stimulus[iElem].Parameters[spNumPointsInc].Exists then
+                      begin
                       StartAt := Round(Prot.Stimulus[iElem].Parameters[spNumPointsInc].Value*Increment) ;
                       end
                    else StartAt := 0 ;
                    end
-                else begin
+                else
+                   begin
                    StartAt := 0 ;
                    NumPoints := Prot.Stimulus[iElem].NumPointsInBuf ;
                    end ;

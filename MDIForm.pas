@@ -743,6 +743,7 @@ unit MDIForm;
                     no device selected when Digidata 1320X device selected and not present.
           28.01.20  Amplifiers: A-M Systems 2400 gain telegraphs now work correcly with latest versions of amplifiers which had
                     gain telegraph voltages reduced by 0.2V.
+   V5.5.4 06.02.20  Stimulus Protocols: PulseStaircase waveform type producing a series of pulses on a rising staircase added.
             =======================================================================}
 
 interface
@@ -991,7 +992,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.5.3';
+      ProgVersion := 'V5.5.4';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

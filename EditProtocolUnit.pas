@@ -32,6 +32,7 @@ unit EditProtocolUnit;
 // 31.05.18 Sine wave protocol added.
 // 05.04.19 Digital stimulus protocol display now only shows one pattern when No. records = 1
 //          (rather than 1 + next increment.)
+// 06.02.20 PulseStaircase waveform type producing a series of pulses on a rising staircase added.
 
 interface
 
@@ -352,6 +353,7 @@ type
     lbError: TLabel;
     DigWave: TImage;
     Sine: TImage;
+    PulseStaircase: TImage;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -547,6 +549,9 @@ begin
 
      Sine.Tag := Ord( wvSine ) ;
      WaveShapeImage[Sine.Tag] := Sine ;
+
+     PulseStaircase.Tag := Ord( wvPulseStaircase ) ;
+     WaveShapeImage[PulseStaircase.Tag] := PulseStaircase ;
 
      None.Tag := Ord(wvNone) ;
      WaveShapeImage[None.Tag] := None ;
@@ -1069,6 +1074,7 @@ begin
     // Add parameters for this wave shape
 
     Case Prot.Stimulus[iElement].WaveShape of
+
         wvStep0 : begin
            ParamList[0].Index := spDelay ;
            ParamList[0].Units := TUnits ;
@@ -1080,6 +1086,7 @@ begin
            ParamList[2].Units := TUnits ;
            ParamList[2].Scale := TScale ;
            end ;
+
         wvStep1 : begin
            ParamList[0].Index := spDelay ;
            ParamList[0].Units := TUnits ;
@@ -1094,6 +1101,7 @@ begin
            ParamList[3].Units := TUnits ;
            ParamList[3].Scale := TScale ;
            end ;
+
         wvStep2 : begin
            ParamList[0].Index := spDelay ;
            ParamList[0].Units :=  TUnits ;
@@ -1108,6 +1116,7 @@ begin
            ParamList[3].Units := TUnits ;
            ParamList[3].Scale := TScale ;
            end ;
+
         wvRamp : begin
            ParamList[0].Index := spDelay ;
            ParamList[0].Units := TUnits ;
@@ -1122,6 +1131,7 @@ begin
            ParamList[3].Units := TUnits ;
            ParamList[3].Scale := TScale ;
            end ;
+
         wvPTrain : begin
            ParamList[0].Index := spDelay ;
            ParamList[0].Units := TUnits ;
@@ -1142,6 +1152,7 @@ begin
            ParamList[5].Units := '' ;
            ParamList[5].Scale := 1. ;
            end ;
+
         wvPTrainHz : begin
            ParamList[0].Index := spDelay ;
            ParamList[0].Units := TUnits ;
@@ -1162,6 +1173,7 @@ begin
            ParamList[5].Units := '' ;
            ParamList[5].Scale := 1. ;
            end ;
+
         wvSine : begin
            ParamList[0].Index := spDelay ;
            ParamList[0].Units := TUnits ;
@@ -1182,6 +1194,28 @@ begin
            ParamList[5].Units :=  'Hz' ;
            ParamList[5].Scale := 1.0 ;
            end ;
+
+        wvPulseStaircase : begin
+           ParamList[0].Index := spDelay ;
+           ParamList[0].Units := TUnits ;
+           ParamList[0].Scale := TScale ;
+           ParamList[1].Index := spStartAmplitude ;
+           ParamList[1].Units := StimType ;
+           ParamList[1].Scale := 1. ;
+           ParamList[2].Index := spEndAmplitude ;
+           ParamList[2].Units := StimType ;
+           ParamList[2].Scale := 1.0 ;
+           ParamList[3].Index := spDuration ;
+           ParamList[3].Units :=  TUnits ;
+           ParamList[3].Scale := TScale ;
+           ParamList[4].Index := spRepeatPeriod ;
+           ParamList[4].Units :=  TUnits ;
+           ParamList[4].Scale := TScale ;
+           ParamList[5].Index := spNumRepeats ;
+           ParamList[5].Units := '' ;
+           ParamList[5].Scale := 1. ;
+           end ;
+
         wvDigStep0 : begin
            ParamList[0].Index := spDelay ;
            ParamList[0].Units := TUnits ;
@@ -1867,7 +1901,8 @@ begin
                 // Start amplitude
                 if Prot.Stimulus[iElem].Parameters[spStartAmplitude].Exists then begin
                    StartAmplitude := Prot.Stimulus[iElem].Parameters[spStartAmplitude].Value ;
-                   if Prot.Stimulus[iElem].Parameters[spStartAmplitudeInc].Exists then begin
+                   if (Prot.Stimulus[iElem].Parameters[spStartAmplitudeInc].Exists) then
+                      begin
                       StartAmplitude := StartAmplitude +
                                         Prot.Stimulus[iElem].Parameters[spStartAmplitudeInc].Value*Incr ;
                       end ;
@@ -1901,47 +1936,56 @@ begin
                                             YScale(AOPlot[AONum],YMin,YMax,Prot.AOHoldingLevel[AONum])) ;
                    end ;
 
-                for iPulse := 0 to NumPulses-1 do begin
+                for iPulse := 0 to NumPulses-1 do
+                    begin
 
-                    if (Prot.Stimulus[iElem].WaveShape = Ord(wvSine)) then begin
+                    if (Prot.Stimulus[iElem].WaveShape = Ord(wvSine)) then
+                       begin
                        // Sine waveform
                        Y := Prot.AOHoldingLevel[AONum] ;
                        pbDisplay.canvas.MoveTo( XScale( AOPlot[AONum],0.0, StimulusDuration,T ),
                                                 YScale(AOPlot[AONum],YMin,YMax,Y)) ;
                        TStart := T ;
                        TEnd := T + Duration ;
-                      dt := StimulusDuration/2000.0 ;
-                      ScaleToPhaseAngle := (2.0*pi()) / PulsePeriod ;
-                      while T < TEnd do begin
+                       dt := StimulusDuration/2000.0 ;
+                       ScaleToPhaseAngle := (2.0*pi()) / PulsePeriod ;
+                       while T < TEnd do
+                          begin
                           Y := Prot.AOHoldingLevel[AONum] + StartAmplitude*sin(ScaleToPhaseAngle*(T-TStart)) ;
                           T := T + dT ;
                           pbDisplay.canvas.LineTo( XScale( AOPlot[AONum],0.0, StimulusDuration, T ),
                                                    YScale(AOPlot[AONum],YMin,YMax,Y)) ;
                           end ;
-                       end
-                    else begin
+                        end
+                    else
+                       begin
                        // Step waveforms
-                       if iPulse > 0 then begin
+                       if iPulse > 0 then
+                          begin
                           // Back to holding level
                           Y := Prot.AOHoldingLevel[AONum] ;
+                          if (Prot.Stimulus[iElem].WaveShape = Ord(wvPulseStaircase)) then Y := Y + EndAmplitude*iPulse ;
                           pbDisplay.canvas.LineTo( XScale( AOPlot[AONum],0.0, StimulusDuration, T ),
-                                                YScale(AOPlot[AONum],YMin,YMax,Y)) ;
+                                                   YScale(AOPlot[AONum],YMin,YMax,Y)) ;
                           // Inter-pulse period
                           T := T + PulsePeriod - Duration ;
-                          Y := Prot.AOHoldingLevel[AONum] ;
                           pbDisplay.canvas.LineTo( XScale( AOPlot[AONum],0.0, StimulusDuration, T ),
-                                                  YScale(AOPlot[AONum],YMin,YMax,Y)) ;
+                                                   YScale(AOPlot[AONum],YMin,YMax,Y)) ;
                           end ;
 
                        // Start of pulse
                        Y := Prot.AOHoldingLevel[AONum] + StartAmplitude ;
+                       if Prot.Stimulus[iElem].WaveShape = Ord(wvPulseStaircase) then Y := Y + EndAmplitude*iPulse ;
+
                        pbDisplay.canvas.LineTo( XScale( AOPlot[AONum],0.0, StimulusDuration, T ),
                                                 YScale(AOPlot[AONum],YMin,YMax,Y)) ;
                        // End of pulse
                        T := T + Duration ;
-                       Y := Prot.AOHoldingLevel[AONum] + EndAmplitude ;
+                       if Prot.Stimulus[iElem].WaveShape <> Ord(wvPulseStaircase) then Y := Prot.AOHoldingLevel[AONum] + EndAmplitude ;
+
                        pbDisplay.canvas.LineTo( XScale( AOPlot[AONum],0.0, StimulusDuration, T ),
                                                YScale(AOPlot[AONum],YMin,YMax,Y)) ;
+
                        end ;
                    end;
 
@@ -1988,6 +2032,7 @@ begin
                        pbDisplay.canvas.LineTo( XScale( AOPlot[AONum],0.0, StimulusDuration, T ),
                                                 YScale(AOPlot[AONum],YMin,YMax,Y)) ;
                        end ;
+
                    // Return to holding level
                    Y := Prot.AOHoldingLevel[AONum] ;
                    pbDisplay.canvas.LineTo( XScale(AOPlot[AONum],0.0, StimulusDuration, T ),
@@ -2198,19 +2243,22 @@ begin
      YMax := Prot.AOHoldingLevel[AONum] ;
      NumIncrements := Prot.NumRecords div Max(Prot.NumRepeatsPerIncrement,1) ;
 
-     for i := 0 to MaxStimElementsPerChannels-1 do begin
+     for i := 0 to MaxStimElementsPerChannels-1 do
+         begin
 
          iElem := i + AONum*MaxStimElementsPerChannels ;
 
          Stimulator.SubstituteGlobalVariables( Prot ) ;
 
          // Start amplitude
-         if Prot.Stimulus[iElem].Parameters[spStartAmplitude].Exists then begin
+         if Prot.Stimulus[iElem].Parameters[spStartAmplitude].Exists then
+            begin
 
             Y := Prot.Stimulus[iElem].Parameters[spStartAmplitude].Value + Prot.AOHoldingLevel[AONum] ;
             YMax := Max(YMax,Y) ;
             YMin := Min(YMin,Y) ;
-            if Prot.Stimulus[iElem].Parameters[spStartAmplitudeInc].Exists then begin
+            if Prot.Stimulus[iElem].Parameters[spStartAmplitudeInc].Exists then
+               begin
                Y := Y + (Prot.Stimulus[iElem].Parameters[spStartAmplitudeInc].Value*NumIncrements) ;
                YMax := Max(YMax,Y) ;
                YMin := Min(YMin,Y) ;
@@ -2223,7 +2271,8 @@ begin
             end ;
 
          // End amplitude
-         if Prot.Stimulus[iElem].Parameters[spEndAmplitude].Exists then begin
+         if Prot.Stimulus[iElem].Parameters[spEndAmplitude].Exists then
+            begin
             Y := Prot.Stimulus[iElem].Parameters[spEndAmplitude].Value + Prot.AOHoldingLevel[AONum] ;
             YMax := Max(YMax,Y) ;
             YMin := Min(YMin,Y) ;
@@ -2232,6 +2281,16 @@ begin
                YMax := Max(YMax,Y) ;
                YMin := Min(YMin,Y) ;
                end ;
+
+            end ;
+
+         if Prot.Stimulus[iElem].Waveshape = wvPulseStaircase then begin
+            // Special processing for pulse staircase waveform amplitudes
+            Y := Prot.AOHoldingLevel[AONum] +
+                 Prot.Stimulus[iElem].Parameters[spStartAmplitude].Value +
+                (Prot.Stimulus[iElem].Parameters[spEndAmplitude].Value*Prot.Stimulus[iElem].Parameters[spNumRepeats].Value) ;
+            YMax := Max(YMax,Y) ;
+            YMin := Min(YMin,Y) ;
             end ;
 
          // User-defined waveform
