@@ -9,6 +9,7 @@ unit FilePropsUnit;
 // 26.08.13 No. of sign. figure increased in scale factor table
 // 27.08.13 Recording start date now displayed
 // 20.09.15 Displays WinWCP program version which created file.
+// 03.06.20 Total record size, data block and analysis block size now dispkayed
 
 interface
 
@@ -93,10 +94,11 @@ begin
      meProperties.Lines.Add(format('No. of channels: %d',[RawFH.NumChannels])) ;
      meProperties.Lines.Add(format('No. of samples/channels: %d',[RawFH.NumSamples])) ;
      meProperties.Lines.Add(format('File header size (bytes): %d',[RawFH.NumBytesInHeader])) ;
-     meProperties.Lines.Add(format('Record analysis block size (bytes): %d',[RawFH.NumAnalysisBytesPerRecord])) ;
-     meProperties.Lines.Add(format('Record data block size (bytes): %d',
+     meProperties.Lines.Add(format('Record size (bytes): %d',
                                    [RawFH.NumAnalysisBytesPerRecord+2*RawFH.NumChannels*RawFH.NumSamples])) ;
-     meProperties.Lines.Add(format('Sample value range: %d - %d',[-RawFH.MaxADCValue-1,RawFH.MaxADCValue])) ;
+     meProperties.Lines.Add(format('Record analysis block size (bytes): %d',[RawFH.NumAnalysisBytesPerRecord])) ;
+     meProperties.Lines.Add(format('Record data block size (bytes): %d',[2*RawFH.NumChannels*RawFH.NumSamples])) ;
+     meProperties.Lines.Add(format('Sample value range: %d to %d',[-RawFH.MaxADCValue-1,RawFH.MaxADCValue])) ;
 
      // Display file header
 
@@ -117,7 +119,8 @@ var
 begin
 
      { Channel calibration }
-     for ch := 0 to RawFH.NumChannels-1 do begin
+     for ch := 0 to RawFH.NumChannels-1 do
+         begin
          Channel[ch].ADCName := ChannelTable.cells[ChName,ch+1] ;
          Channel[ch].ADCCalibrationFactor := ExtractFloat(
                                              ChannelTable.cells[ChCal,ch+1],

@@ -34,12 +34,25 @@ uses
   procedure AppendFloat(
             var Dest : array of ANSIchar;
             Keyword : String ;
-            Value : Extended
+            Value : Single
             ) ;
+
+  procedure AppendDouble(
+            var Dest : array of ANSIchar;
+            Keyword : String ;
+            Value : Double
+            ) ;
+
   procedure ReadFloat(
             const Source : array of ANSIChar;
             Keyword : String ;
             var Value : Single ) ;
+
+  procedure ReadDouble(
+            const Source : array of ANSIChar;
+            Keyword : String ;
+            var Value : Double ) ;
+
   procedure AppendInt(
             var Dest : array of ANSIChar;
             Keyword : String ;
@@ -281,7 +294,21 @@ begin
 
 procedure AppendFloat( var Dest : Array of ANSIChar;
                        Keyword : String ;
-                       Value : Extended ) ;
+                       Value : Single ) ;
+{ --------------------------------------------------------
+  Append a floating point parameter line
+  'Keyword' = 'Value' on to end of the header text array
+  --------------------------------------------------------}
+begin
+     AppendStringToANSIArray( Dest, Keyword ) ;
+     AppendStringToANSIArray( Dest, format( '%.6g',[Value] ) ) ;
+     AppendStringToANSIArray( Dest, chr(13) + chr(10) ) ;
+     end ;
+
+
+procedure AppendDouble( var Dest : Array of ANSIChar;
+                        Keyword : String ;
+                        Value : Double ) ;
 { --------------------------------------------------------
   Append a floating point parameter line
   'Keyword' = 'Value' on to end of the header text array
@@ -303,6 +330,16 @@ begin
      if Parameter <> '' then Value := ExtractFloat( Parameter, 1. ) ;
      end ;
 
+
+procedure ReadDouble( const Source : Array of ANSIChar;
+                      Keyword : String ;
+                      var Value : Double ) ;
+var
+   Parameter : string ;
+begin
+     FindParameter( Source, Keyword, Parameter ) ;
+     if Parameter <> '' then Value := ExtractDouble( Parameter, 1. ) ;
+     end ;
 
 
 procedure AppendInt( var Dest : Array of ANSIChar; Keyword : String ; Value : LongInt ) ;

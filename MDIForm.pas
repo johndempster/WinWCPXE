@@ -744,6 +744,8 @@ unit MDIForm;
           28.01.20  Amplifiers: A-M Systems 2400 gain telegraphs now work correcly with latest versions of amplifiers which had
                     gain telegraph voltages reduced by 0.2V.
    V5.5.4 06.02.20  Stimulus Protocols: PulseStaircase waveform type producing a series of pulses on a rising staircase added.
+   V5.5.5 02.06.20 Rec.pas Free run record duration and sampling interval can now be set more precisely. No. of samples no longer restricted to
+                   powers of 2.
             =======================================================================}
 
 interface
@@ -992,7 +994,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.5.4';
+      ProgVersion := 'V5.5.5';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

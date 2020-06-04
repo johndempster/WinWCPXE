@@ -311,7 +311,7 @@ begin
         OffsetBinaryData := False ;
         for Rec := 1 to InFH.NumRecords do begin
             GetRecord( InFH, RH, Rec, Buf^ ) ;
-            for i := 0 to (InFH.NumDataBytesPerRecord div 2)-1 do begin
+            for i := 0 to (Round(InFH.NumDataBytesPerRecord) div 2)-1 do begin
                 if Buf^[i] < 0 then BinaryData := True ;
                 if (Buf^[i] >= 2048) and  (Buf^[i] < 4097)then OffsetBinaryData := True ;
                 end ;
@@ -370,7 +370,7 @@ begin
          Inc( OutFH.NumRecords ) ;
          { Subtract 2048 offset that was added to WCP data previous to V8.0 }
          if InFH.Version < 8.0 then begin
-            for i := 0 to (OutFH.NumDataBytesPerRecord div 2)-1 do
+            for i := 0 to (Round(OutFH.NumDataBytesPerRecord) div 2)-1 do
                 Buf^[i] := Buf^[i] - 2048 ;
             RH.dt := RH.dt*0.001 ;
             end ;

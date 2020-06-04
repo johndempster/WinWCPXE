@@ -127,6 +127,8 @@ unit Rec;
   13.12.17 .. Real-time plot cursors now updated from settinfs.recplot within UpdateDisplay() to ensure cursors
               remain on screen if number of samples/record change
   05.11.18 .. LEAK records can now be excluded from on-line plot.
+  02.06.20 .. Record duration and sampling interval no longer change slightly when set repeatedly to same number
+              Values saved to settings. No. of samples no longer limited to powers of 2.
 
   ==============================================================================}
 interface
@@ -375,7 +377,6 @@ type
     procedure SetStimulusProtocol( Value : String ) ;
     function GetRunning : Boolean ;
     function GetRecording : Boolean ;
-    procedure UpdateNumSamples ;
     procedure UpdateSamplingInterval ;
     procedure UpdateAmplifierGains ;
     procedure ShowAmplifierGains ;
@@ -1689,7 +1690,6 @@ begin
      if Main.SESLabIO.TimerActive then Main.SESLabIO.StopTimer ;
 
      { Set number of recording sweeps to be collected }
-     UpdateNumSamples ;       // Ensure no. of samples is valid (multiple of 256)
      UpdateSamplingInterval ; // Ensure sampling interval is in supported range
 
      Settings.NumRecordsRequired := Round(edNumRecords.Value) ;
@@ -2553,72 +2553,56 @@ begin
 
      end ;
 
-procedure TRecordFrm.UpdateNumSamples ;
-{ --------------------------------------------
-  Set number of samples per A/D input channels
-  -------------------------------------------- }
-const
-     nMin = 256 ;
-var
-   n,nMax : Integer ;
-begin
-
-    Main.SESLabIO.ADCNumChannels := Round(edNumChannels.Value) ;
-    edNumChannels.Value :=  Round(Main.SESLabIO.ADCNumChannels) ;
-
-    nMax := Main.SESLabIO.ADCBufferLimit div Main.SESLabIO.ADCNumChannels ;
-    n := Round(edNumSamples.Value) ;
-    n := Min(Max(n,nMin),nMax) ;
-    { Make a multiple of nMim }
-    n := (n div nMin)*nMin ;
-    edNumSamples.Value := n ;
-    Main.SESLabIO.ADCNumSamples := n ;
-    Settings.NumSamples := n ;
-    end ;
-
 
 procedure TRecordFrm.edNumChannelsKeyPress(Sender: TObject; var Key: Char);
 // -----------------------
 // No. of channels changed
 // -----------------------
 begin
-     if Key = #13 then begin
-          Settings.NumChannels := Round(edNumChannels.Value) ;
-          Main.SESLabIO.ADCNumChannels := Round(edNumChannels.Value) ;
-          edNumChannels.Value := Main.SESLabIO.ADCNumChannels ;
-          UpdateSamplingInterval ;
-          UpdateDisplay(true) ;
-          end ;
+     if Key = #13 then
+        begin
+        UpdateSamplingInterval ;
+        UpdateDisplay(true) ;
+        end ;
      end;
+
 
 procedure TRecordFrm.edNumSamplesKeyPress(Sender: TObject; var Key: Char);
 // ------------------------------
 // No. of samples/channel changed
 // ------------------------------
 begin
-     if Key = #13 then begin
-        UpdateNumSamples ;
+     if Key = #13 then
+        begin
         UpdateSamplingInterval ;
         UpdateDisplay(true) ;
         end ;
      end;
 
+
 procedure TRecordFrm.UpdateSamplingInterval ;
 { ----------------------------
-  Update A/D sampling interval
+  Update A/D sampling interval (and ensure a valid value is in used)
   ---------------------------- }
 begin
 
+     // No. channels
      Main.SESLabIO.ADCNumChannels := Round(edNumChannels.Value) ;
      edNumChannels.Value := Main.SESLabIO.ADCNumChannels ;
+     Settings.NumChannels := Main.SESLabIO.ADCNumChannels ;
+     // No. samples / channel
+     Main.SESLabIO.ADCNumSamples := Round(edNumSamples.Value) ;
+     edNumSamples.Value := Main.SESLabIO.ADCNumSamples ;
+     Settings.NumSamples := Main.SESLabIO.ADCNumSamples ;
 
-     // Compute sampling interval
+     // Compute sampling interval from record duration
      Main.SESLabIO.ADCSamplingInterval := edRecordDuration.Value / Settings.NumSamples ;
 
-     // Get validated in interval back from interface
+     // Get validated interval back from interface
      edSamplingInterval.Value := Main.SESLabIO.ADCSamplingInterval ;
 
      edRecordDuration.Value := edSamplingInterval.Value*Settings.NumSamples ;
+     Settings.RecordDuration := edRecordDuration.Value ;
 
      end ;
 
@@ -2628,14 +2612,8 @@ procedure TRecordFrm.edRecordDurationKeyPress(Sender: TObject;
 var
     RecDuration : Single ;
 begin
-     if Key = #13 then begin
-        RecDuration := edRecordDuration.Value ;
-        edNumSAmples.Value := edRecordDuration.Value/edSamplingInterval.Value ;
-        UpdateNumSamples ;
-        if ((edSamplingInterval.Value*edNumSamples.Value)/RecDuration) < 0.99 then
-           edNumSAmples.Value := edNumSAmples.Value + 256 ;
-        UpdateNumSamples ;
-        edRecordDuration.Value := edSamplingInterval.Value*edNumSamples.Value ;
+     if Key = #13 then
+        begin
         UpdateSamplingInterval ;
         UpdateDisplay(true) ;
         end ;
@@ -2652,29 +2630,27 @@ begin
         end ;
      end;
 
+
 procedure TRecordFrm.edSamplingIntervalKeyPress(Sender: TObject;
   var Key: Char);
 // -------------------------
 // Sampling interval changed
 // -------------------------
-var
-    RecDuration : Single ;
 begin
-     if Key = #13 then begin
-        // Ensure valid sampling interval
+     if Key = #13 then
+        begin
         Main.SESLabIO.ADCNumChannels := Round(edNumChannels.Value) ;
         edNumChannels.Value := Main.SESLabIO.ADCNumChannels ;
+        Settings.NumChannels := Main.SESLabIO.ADCNumChannels ;
+        // No. samples / channel
+        Main.SESLabIO.ADCNumSamples := Round(edNumSamples.Value) ;
+        edNumSamples.Value := Main.SESLabIO.ADCNumSamples ;
+        Settings.NumSamples := Main.SESLabIO.ADCNumSamples ;
+        // Ensure valid sampling interval
         Main.SESLabIO.ADCSamplingInterval := edSamplingInterval.Value ;
         edSamplingInterval.Value := Main.SESLabIO.ADCSamplingInterval ;
-        // Determine no. of samples / channel
-        edNumSAmples.Value := edRecordDuration.Value/edSamplingInterval.Value ;
-        RecDuration := edRecordDuration.Value ;
-        UpdateNumSamples ;
-        // Ensure duration is >=99% that requested
-        if ((edSamplingInterval.Value*edNumSamples.Value)/RecDuration) < 0.99 then
-            edNumSAmples.Value :=  edNumSAmples.Value + 256 ;
-        UpdateNumSamples ;
         edRecordDuration.Value := edSamplingInterval.Value*edNumSamples.Value ;
+        Settings.RecordDuration := edRecordDuration.Value ;
         UpdateDisplay(true) ;
         end ;
      end;
