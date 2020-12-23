@@ -257,7 +257,6 @@ procedure TVClampSim.EditFieldsToSettings ;
 begin
 
      Settings.NumSamples := Min(Round(edNumSamples.Value),Main.SESLabIO.ADCBufferLimit) ;
-     Settings.NumSamples := 256*Max(Settings.NumSamples div 256,1) ;
      edNumSamples.Value := Settings.NumSamples ;
 
      Settings.VClampSim.NumSteps := Round(edNumSteps.Value) ;

@@ -2590,8 +2590,10 @@ begin
      Main.SESLabIO.ADCNumChannels := Round(edNumChannels.Value) ;
      edNumChannels.Value := Main.SESLabIO.ADCNumChannels ;
      Settings.NumChannels := Main.SESLabIO.ADCNumChannels ;
-     // No. samples / channel
+
+     // No. samples / channel (must be multipe of 256)
      Main.SESLabIO.ADCNumSamples := Round(edNumSamples.Value) ;
+     Main.SESLabIO.ADCNumSamples := Max(Main.SESLabIO.ADCNumSamples div 256,1)*256 ;
      edNumSamples.Value := Main.SESLabIO.ADCNumSamples ;
      Settings.NumSamples := Main.SESLabIO.ADCNumSamples ;
 

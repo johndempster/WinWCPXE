@@ -91,7 +91,6 @@ unit Fileio;
   07.07.19 ... FORMTOP= FORMLEFT=, FORMWIDTH=, FORMHEIGHT= added to INI file saving location of main form on screen
   30.07.19 ... 'TRISELO=', fHDR.RiseTimeLo, 'TRISEHi=', fHDR.RiseTimeHi added to WCP header
   14.08.19 ... 'LATPERC=', fHDR.LatencyPercentage added to WCP header
-  03.06.19 ... NBA and NBD now stored as double variables in WCP file header to allow for no. points per record to be other than powers of 2.
   }
 
 
@@ -189,7 +188,7 @@ var
    s : string ;
    i : Integer ;
    ch : Integer ;
-   NumSectors : Double ;
+   NumSectors : Integer ;
 begin
 
      // Set file header size if no records stored
@@ -223,10 +222,10 @@ begin
      fHDR.NumDataBytesPerRecord := fHDR.NumSamples*fHDR.NumChannels*2;
      fHDR.NumBytesPerRecord := fHDR.NumAnalysisBytesPerRecord +
                                fHDR.NumDataBytesPerRecord  ;
-     NumSectors := fHDR.NumAnalysisBytesPerRecord / NumBytesPerSector ;
-     AppendDouble( Header, 'NBA=', NumSectors ) ;
-     NumSectors := fHDR.NumDataBytesPerRecord / NumBytesPerSector ;
-     AppendDouble( Header, 'NBD=', NumSectors ) ;
+     NumSectors := fHDR.NumAnalysisBytesPerRecord div NumBytesPerSector ;
+     AppendInt( Header, 'NBA=', NumSectors ) ;
+     NumSectors := fHDR.NumDataBytesPerRecord div NumBytesPerSector ;
+     AppendInt( Header, 'NBD=', NumSectors ) ;
 
      AppendFloat( Header, 'AD=', fHDR.ADCVoltageRange ) ;
 
@@ -299,7 +298,7 @@ var
    s,RecordStatus : string ;
    i,NumBytesInFile,NumRecords,FilePointer,ch,RecordCounter : Integer ;
    Done : Boolean ;
-   NumSectors : Double ;
+   NumSectors : Integer ;
    ResetDisplayMagnification : Boolean ;
    OldValue : Integer ;
 begin
@@ -370,13 +369,13 @@ begin
           if OldValue <> fHDR.MaxADCValue then ResetDisplayMagnification := True ;
 
           // Analysis block size
-          NumSectors := fHDR.NumAnalysisBytesPerRecord / NumBytesPerSector ;
-          ReadDouble( Header, 'NBA=', NumSectors ) ;
-          fHDR.NumAnalysisBytesPerRecord := Round(NumSectors*NumBytesPerSector) ;
+          NumSectors := fHDR.NumAnalysisBytesPerRecord div NumBytesPerSector ;
+          ReadInt( Header, 'NBA=', NumSectors ) ;
+          fHDR.NumAnalysisBytesPerRecord := NumSectors*NumBytesPerSector ;
 
-          NumSectors := fHDR.NumDataBytesPerRecord / NumBytesPerSector ;
-          ReadDouble( Header, 'NBD=', NumSectors ) ;
-          fHDR.NumDataBytesPerRecord := Round(NumSectors*NumBytesPerSector) ;
+          NumSectors := fHDR.NumDataBytesPerRecord div NumBytesPerSector ;
+          ReadInt( Header, 'NBD=', NumSectors ) ;
+          fHDR.NumDataBytesPerRecord := NumSectors*NumBytesPerSector ;
           fHDR.NumBytesPerRecord := fHDR.NumDataBytesPerRecord + fHDR.NumAnalysisBytesPerRecord  ;
 
           fHDR.NumSamplesPerRecord := fHDR.NumDataBytesPerRecord div 2 ;

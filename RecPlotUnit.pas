@@ -19,6 +19,8 @@ unit RecPlotUnit;
 // 27.02.17 Average within cursors added
 //          On line analysis settings now stored in Settings.RecPlot and saved in INI file
 // 05.12.19 Ignore LEAK records option added which excludes LEAK tyoe records from on-line plot
+// 23.12.20 Rising Slope to absolute peak measurement now returned correctly. Previously, when absolute peak detection
+//          selected TRise was returned by mistake
 
 interface
 
@@ -500,10 +502,11 @@ begin
               case Settings.RecPlot.Plot[iP].Polarity of
                  PosPolarity : y := yMaxRisingSlope[iChan,CursorSet] ;
                  NegPolarity : y := yMinRisingSlope[iChan,CursorSet] ;
-                 else begin
+                 else
+                    begin
                     if Abs(yMax[iChan,CursorSet]) > yMin[iChan,CursorSet] then
-                       y := yMaxTRise[iChan,CursorSet]
-                    else y := yMinTRise[iChan,CursorSet] ;
+                         y := yMaxRisingSlope[iChan,CursorSet]
+                    else y := yMinRisingSlope[iChan,CursorSet] ;
                     end ;
                  end ;
               end ;
