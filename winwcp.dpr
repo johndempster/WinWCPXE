@@ -55,7 +55,8 @@ uses
   DirectorySelectUnit in 'DirectorySelectUnit.pas' {DirectorySelectFrm},
   MATFileWriterUnit in 'MATFileWriterUnit.pas',
   EPC9PanelUnit in 'EPC9PanelUnit.pas' {EPC9PanelFrm},
-  DCLAMPUnit in 'DCLAMPUnit.pas' {DCLAMPFrm};
+  DCLAMPUnit in 'DCLAMPUnit.pas' {DCLAMPFrm},
+  MeasureThread in 'MeasureThread.pas';
 
 {$R *.TLB}
 

@@ -748,7 +748,8 @@ unit MDIForm;
                    Export.pas Export of data records as columns of ascii text now in correct columns
    V5.5.6 23.12.20 recplot.pas Rising Slope to absolute peak measurement now returned correctly. Previously, when absolute peak detection
                    selected TRise was returned by mistake
-
+   V5.5.7 04.08.21 Seal test. Default holding voltage now updated when additional stimulus outputs selected. Seal test pulse update rate now faster
+                   AmpModule.pas WPI EVC-4000 added and Axoclamp 900A support updated (but not tested with actual hardware)
             =======================================================================}
 
 interface
@@ -997,7 +998,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.5.6';
+      ProgVersion := 'V5.5.7';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

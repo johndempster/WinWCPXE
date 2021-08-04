@@ -49,6 +49,10 @@ const
      vAbsArea = 16 ;
      LastMeasureVariable = 16 ;
 
+     PositivePeaks = 1 ;
+     NegativePeaks = 2 ;
+     AbsPeaks = 0 ;
+
      // Curve fitting variable
      vFitEquation = LastMeasureVariable+1 ;
      vFitChan = LastMeasureVariable+2 ;

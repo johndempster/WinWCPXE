@@ -91,6 +91,9 @@ unit Measure;
    12.08.19 .. Absolute area measurement variable added
    15.08.19 .. % of peak detection point for latency can now be set by user
    16.08.19 .. Variable table columns now work properly again VarNames renamed to VarList for clarity
+   13.04.21 .. Waveform measurements now performed in MeasureThread
+               Results saved in CSV table with suffix <file name> .wfm.csv
+               Absolute peak values now correctly entered in results table
   ==========================================================================}
 interface
 
@@ -99,7 +102,7 @@ uses
   Forms, Dialogs, StdCtrls, Grids, ExtCtrls, TabNotBk, Global, Shared, FileIo,
   Zero, SetAxes, SetVar, Printers, ClipBrd, maths,
   ScopeDisplay, XYPlotDisplay, ComCtrls, ValEdit, RangeEdit, Spin,
-  ValidatedEdit, math, seslabio, strutils, MMSYSTEM  ;
+  ValidatedEdit, math, seslabio, strutils, MMSYSTEM, MeasureThread  ;
 
 type
 
@@ -319,7 +322,7 @@ TMeasureFrmCursors = Record
    Cursors : TMeasureFrmCursors ;
    ADC : PSmallIntArray ;
    Hist : THistogram ;
-   VarList : TStringList ;
+
    HistResults : TStringList ;
    XYResults : TStringList ;
    RH : TRecHeader ; { Record header }
@@ -330,14 +333,6 @@ TMeasureFrmCursors = Record
    MathFunc : TMathFunc ;
    KeepCursors : Boolean ;
 
-     VarName : array[0..MaxAnalysisVariables-1] of string ;
-     Units : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of string ;
-     UnitsScale : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
-     MaxValue : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
-     MinValue : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
-     Mean : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
-     StDev : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
-     StErr : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
      //InSummary : array[0..MaxAnalysisVariables-1] of Boolean ;
      NumRecordsAnalysed : Integer ;
 
@@ -346,8 +341,10 @@ TMeasureFrmCursors = Record
      NumTableColumns : Integer ;
      CloseFormASAP : Boolean ;
 
+     DoAnalysisThread : TMeasureThread ;   // Time course computation thread
+
     { Private declarations }
-    procedure DisplayRecord ;
+
     procedure CalculateSummary ;
     procedure FillSummaryTable ;
     procedure FillTable ;
@@ -362,7 +359,7 @@ TMeasureFrmCursors = Record
               var NumIterations : Integer ) ;
     function GaussianPDF( x : single ; Mean : single ; SD : single ) : single ;
 
-    function UseRecord ( const RecH : TRecHeader ; RecType : string ) : Boolean ;
+
     procedure CreateVariable( iNum : Integer ;
                          VName : string ;
                          VUnits : Array of String ;
@@ -370,31 +367,28 @@ TMeasureFrmCursors = Record
 
     procedure AddVariableToTable( CheckBox : TCheckBox ) ;
 
-    function MaxRateOfChange(
-             var ADC : Array of Single ;   // Data buffer
-             iStart : Integer ;            // Start at array index
-             iEnd : Integer ;               // End at array index
-             iChan : Integer                // Channel
-             ) : Single ;
-
-    function Slope(
-             var ADC : Array of Single ;   // Data buffer
-             iStart : Integer ;            // Start at array index
-             iEnd : Integer ;               // End at array index
-             iChan : Integer               // Channel
-             ) : Single ;
-
     function CalculateConductance(
          var G : single  // Conductance
          ) : Boolean ;   // Returns TRUE if valid conductance calculated
 
     function TidyNumber( const RawNumber : string ) : string ;
 
-    procedure QuickSort(var A: array of Single ; iLo, iHi: Integer) ;
+    procedure StopDoAnalysisThread ;
 
   public
     { Public declarations }
+    VarList : TStringList ;
+    VarName : array[0..MaxAnalysisVariables-1] of string ;               // Measurement variable names
+    Units : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of string ;  // Measurement variable unitss
+     UnitsScale : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
+     MaxValue : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
+     MinValue : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
+     Mean : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
+     StDev : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
+     StErr : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
+
     procedure NewFile ;
+    procedure DisplayRecord ;
     procedure CopyDataToClipboard ;
     procedure CopyImageToClipboard ;
     procedure Print ;
@@ -403,6 +397,7 @@ TMeasureFrmCursors = Record
     Function DataAvailable : Boolean ;
     Function ImageAvailable : Boolean ;
     procedure SetStoreMode( StorageMode : Boolean ) ;
+    function UseRecord ( const RecH : TRecHeader ; RecType : string ) : Boolean ;
   end;
 
 
@@ -411,8 +406,7 @@ var
 
 implementation
 
-uses          MDIForm,PrintGra, Printrec, Filter, Setfitpa ,
-  PrintTableUnit;
+uses MDIForm,PrintGra, Printrec, Filter, Setfitpa, PrintTableUnit ;
 
 {$R *.DFM}
 const
@@ -426,9 +420,6 @@ const
      NumFitPoints = 500 ;
 
 type
-    TPeakMode = ( PositivePeaks,
-                  NegativePeaks,
-                  AbsPeaks ) ;
 
 TTableVars = record
            Num : Integer ;
@@ -554,12 +545,9 @@ begin
 
      { Type of peak analysis required }
 
-     if cbPeakMode.ItemIndex = 2 then
-          CreateVariable( vPeak,'Peak(-)',VarUnits,1. )
-     else if cbPeakMode.ItemIndex = 1 then
-          CreateVariable( vPeak,'Peak(+)',VarUnits,1. )
-     else
-          CreateVariable( vPeak,'Peak(a)',VarUnits,1. ) ;
+     if cbPeakMode.ItemIndex = NegativePeaks then CreateVariable( vPeak,'Peak(-)',VarUnits,1. )
+     else if cbPeakMode.ItemIndex = PositivePeaks then CreateVariable( vPeak,'Peak(+)',VarUnits,1. )
+     else CreateVariable( vPeak,'Peak(a)',VarUnits,1. ) ;
 
      for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := Channel[ch].ADCUnits + '^2' ;
      CreateVariable(vVariance,'Variance',VarUnits, 1. ) ;
@@ -891,533 +879,78 @@ procedure TMeasureFrm.bDoAnalysisClick(Sender: TObject);
   Analyse parameters of waveforms stored in data file
   ===================================================}
 var
-   StartAtRec,EndAtRec,NumRecAnalysed,Rec : Integer ;
-   i,j,k,ch,ChOffset : Integer ;
-   x,y,dx,Peak,Temp : single ;
-   PeakLo,PeakHi : single ;
-   PeakAt,Invert : Integer ;
-
-   PeakPositive,PeakNegative : single ;
-   PeakPositiveAt, PeakNegativeAt : Integer ;
-   // T.90% and T.X% duration
-   Peak10 : single ;  // 10% of peak amplitude threshold
-   TXAmplitude : single ;  // X% of peak amplitude threshold
-   TXAmplitudeAt : Integer ; // Sample index when y=TXLevel
-
-   Baseline : Integer ;
-   Diff,MaxDiff : single ;
-   A : array[-15..15] of single ;
-   ASum : single ;
-   iStart,iEnd,jLow,jHigh,iTimeZero,iStep : Integer ;
-   row,col : Integer ;
-   iY,i0,i1,j0,j1 : Integer ;
-   EndPoint : Integer ;
-   Sum,AbsSum,Residual,Avg,NumAvg : Single ;
-   TestInterval : Integer ;
-   Done,RateDone : Boolean ;
-   PeakMode : TPeakMode ;
-   PreviousTime : single ;
-   vStart : Integer ;
-
-   YHiPrev, YLoNext, dRiseTime, YHi, YLo, YPrev, dDecay : Single ;
-
-   InBuf : ^TSmallIntArray ; // 16 bit integer A/D buffer
-   ADC : ^TSingleArray ;     // Floating point A/D buffer
-   // Quantile variables
-   SortBuf : ^TSingleArray ;     // Floating point A/D buffer
-   nSort,iQuantile : Integer ;
-   iLatency : Integer ;          // Latency sample point
-   YLatency : single ;           // Latency trigger level
+    ch : Integer ;
+    StartAtRec,EndAtRec : Integer ;
+    iStart : Array[0..WCPMaxChannels-1] of Integer ;
+    iEnd : Array[0..WCPMaxChannels-1] of Integer ;
+    iTimeZero : Array[0..WCPMaxChannels-1] of Integer ;
 begin
-
-     // Create buffers
-     New(InBuf) ;
-     New(ADC) ;
-
      bDoAnalysis.enabled := False ;
      bAbort.enabled := True ;
-     CloseFormASAP := False ;
+
+      // If computation thread is running, stop it
+      StopDoAnalysisThread ;
 
      { Determine range of records to be analysed }
-
-     if rbAllRecords.checked then begin
+     if rbAllRecords.checked then
+        begin
         { Analyse all records in file }
         StartAtRec := 1 ;
         EndAtRec := FH.NumRecords ;
         end
-     else if rbThisRecord.checked then begin
+     else if rbThisRecord.checked then
+        begin
         { Analyse the currently displayed record }
         StartAtRec := FH.RecordNum ;
         EndAtRec := FH.RecordNum ;
         end
-     else begin
+     else
+          begin
           { Analyse the user entered range of records }
           StartAtRec := Round(edRecRange.LoValue) ;
           EndAtRec := Round(edRecRange.HiValue) ;
           end ;
-
-     { Type of peak analysis required }
-     FH.PeakMode := cbPeakMode.ItemIndex ;
-     if cbPeakMode.ItemIndex = 2 then begin
-        PeakMode := NegativePeaks ;
-        end
-     else if cbPeakMode.ItemIndex = 1 then begin
-        PeakMode := PositivePeaks ;
-        end
-     else begin
-        PeakMode := AbsPeaks ;
-        end ;
-
-     { Set previous time variable negative to indicate that it is invalid }
-     PreviousTime := -1. ;
-
-     Rec := StartAtRec ;
-     NumRecAnalysed := 0 ;
-     Done := False ;
-
-
-     while Not Done do begin
-
-         { Read record data from file }
-         GetRecord( fH, rH, Rec, InBuf^ ) ;
-
-         // Copy to float array
-         for i := 0 to fH.NumSamples*fH.NumChannels-1 do ADC^[i] := InBuf^[i] ;
-
-         { Analyse records selected according to UseRecord's criteria }
-
-         rH.AnalysisAvailable := True ;
-
-         if UseRecord( rH, cbTypeToBeAnalysed.text ) then begin
-
-            if PreviousTime < 0. then PreviousTime := rH.Time ;
-
-            { Analyse each signal channel in turn }
-            for ch := 0 to fH.NumChannels-1 do begin
-
-                vStart := ch*MaxAnalysisVariables ;
-
-                rH.Value[vStart + vRecord] := Rec ;
-                rH.Value[vStart + vGroup] := Rec ;
-                rH.Value[vStart + vTime] := rH.Time ;
-                rH.Value[vStart + vInterval] := (rH.Time  - PreviousTime) ;
-
-                ChOffset := Channel[ch].ChannelOffset ;
-
-                { Subtract zero level }
-                j := Channel[ch].ChannelOffset ;
-                for i := 0 to fH.NumSamples-1 do begin
-                    ADC^[j] := ADC^[j] - Channel[ch].ADCZero ;
-                    j := j + fH.NumChannels ;
-                    end ;
-
-                { Get range of samples to be analysed from positions of cursors 0 and 1 }
-                iStart := Min( Round(scDisplay.VerticalCursors[Cursors.C0[ch]]),
-                               Round(scDisplay.VerticalCursors[Cursors.C1[ch]]) ) ;
-                iEnd :=   Max( Round(scDisplay.VerticalCursors[Cursors.C0[ch]]),
-                               Round(scDisplay.VerticalCursors[Cursors.C1[ch]]) ) ;
-                { Zero time cursor }
-                iTimeZero := Round(scDisplay.VerticalCursors[Cursors.t0]) ;
-
-                { Calculate average and area within cursors 0-1 }
-                Sum := 0.0 ;
-                AbsSum := 0.0 ;
-                j := iStart*fH.NumChannels + Channel[ch].ChannelOffset ;
-                for i := iStart to iEnd do begin
-                    Sum := Sum + ADC^[j] ;
-                    AbsSum := AbsSum + Abs(ADC^[j]) ;
-                    j := j + fH.NumChannels ;
-                    end ;
-                NumAvg := (iEnd - iStart) + 1 ;
-                Avg := Sum / NumAvg ;
-
-                rH.Value[vStart + vAverage] := (Avg * Channel[ch].ADCScale) ;
-                rH.Value[vStart + vArea] := (Sum * rH.dt * Channel[ch].ADCScale) ;
-                rH.Value[vStart + vAbsArea] := (AbsSum * rH.dt * Channel[ch].ADCScale) ;
-
-                { Calculate variance within cursors 0-1 }
-
-                Sum := 0. ;
-                j := iStart*fH.NumChannels + Channel[ch].ChannelOffset ;
-                for i := iStart to iEnd do begin
-                    Residual := ADC^[j] - Avg ;
-                    Sum := Sum + Residual*Residual ;
-                    j := j + fH.NumChannels ;
-                    end ;
-                Avg := Sum / NumAvg ;
-                rH.Value[vStart + vVariance] := (Avg * Channel[ch].ADCScale
-                                                   * Channel[ch].ADCScale) ;
-
-                { Find peaks within cursor 0-1 region}
-
-                PeakPositive := RawFH.MinADCValue*2 ;
-                PeakNegative := RawFH.MaxADCValue*2 ;
-                j := iStart*fH.NumChannels + Channel[ch].ChannelOffset ;
-                for i := iStart to iEnd do begin
-                    Y := ADC^[j] ;
-                    if Y > PeakPositive then begin
-                       PeakPositive := Y ;
-                       PeakPositiveAt := i ;
-                       end ;
-                    if Y < PeakNegative then begin
-                       PeakNegative := Y ;
-                       PeakNegativeAt := i ;
-                       end ;
-                    j := j + fH.NumChannels ;
-                    end ;
-
-                case PeakMode of
-                     PositivePeaks : begin
-                         PeakAt := PeakPositiveAt ;
-                         Invert := 1 ;
-                         end ;
-                     NegativePeaks : begin
-                         PeakAt := PeakNegativeAt ;
-                         Invert := -1 ;
-                         end ;
-                     else begin
-                         if Abs(PeakPositive) < Abs(PeakNegative) then begin
-                            PeakAt := PeakNegativeAt ;
-                            Invert := -1 ;
-                            end
-                         else begin
-                            PeakAt := PeakPositiveAt ;
-                            Invert := 1 ;
-                            end ;
-                         end ;
-                     end ;
-
-                // Determine range of points round peak to average
-                FH.NumPointsAveragedAtPeak := Round(edPeakAvg.Value) ;
-                if edPeakAvg.Value >= 1.0 then begin
-                   // Average points after peak
-                   i0 := PeakAt ;
-                   i1 := Min(i0 + FH.NumPointsAveragedAtPeak - 1,FH.NumSamples-1) ;
-                   end
-                else if edPeakAvg.Value <=  -1.0 then begin
-                   // (negative) Average points before peak
-                   i1 := PeakAt ;
-                   i0 := Max(i1 + FH.NumPointsAveragedAtPeak + 1,0);
-                   end
-                else  begin
-                   // Single point at peak
-                   i0 := PeakAt ;
-                   i1 := PeakAt ;
-                   end ;
-
-                // Calculate average of points around peak
-                Peak := 0.0 ;
-                for i := i0 to i1 do begin
-                    j := i*FH.NumChannels + Channel[ch].ChannelOffset ;
-                    Peak := Peak + ADC^[j] ;
-                    end ;
-                Peak := Peak / (i1 - i0 + 1) ;
-                rH.Value[vStart + vPeak] := Peak*Channel[ch].ADCScale ;
-
-                { Special exception for records designated as transmission
-                  failures (FAIL) peak value is always set to zero }
-                if rH.RecType = 'FAIL' then rH.Value[ch*MaxAnalysisVariables+vPeak] := 0.0 ;
-
-                // Get lo-hi limits (ensuring lo < hi)
-                FH.RiseTimeLo := edRiseTime.LoValue ;
-                FH.RiseTimeHi := edRiseTime.HiValue ;
-                PeakLo := Round(Abs(Peak)*FH.RiseTimeLo) ;
-                PeakHi := Round(Abs(Peak)*FH.RiseTimeHi) ;
-                if PeakLo > PeakHi then begin
-                   Temp := PeakLo ;
-                   PeakLo := PeakHi ;
-                   PeakHi := temp ;
-                   end ;
-
-                { Calculate lo% - hi% rise time }
-                i0 := PeakAt + 1;
-                repeat
-
-                  i0 := i0 - 1 ;
-                  j := i0*fH.NumChannels + ChOffset ;
-                  Y := ADC^[j]*Invert ;
-
-                  // Save amplitude and last point above upper limit.
-                  if Y >= PeakHi then begin
-                     i1 := i0 ;
-                     YHi := Y ;
-                     end ;
-
-                  // Save first point below limit
-                  YLo := Y ;
-
-                  // Exit when amplitude drops below lower limit
-                  until (Y <= PeakLo) or (i0 <= iStart) ;
-
-                // V4.0.5 Interpolate to find exact time of lo, hi transitions
-
-                YHiPrev := ADC^[Max(i1-1,0)*fH.NumChannels + ChOffset]*Invert ;
-                YLoNext := ADC^[Min(i0+1,fh.NumSamples-1)*fH.NumChannels + ChOffset]*Invert ;
-                dRiseTime := 0.0 ;
-                if YHi <> YHiPrev then dRiseTime := dRiseTime + ((PeakHi - YHi) /(YHi - YHiPrev)) ;
-                if YLoNext <> YLo then dRiseTime := dRiseTime - ((PeakLo - YLo) /(YLoNext - YLo)) ;
-                dRiseTime := dRiseTime*rH.dt ;
-
-                rH.Value[vStart + vRiseTime] := ((i1-i0)*rH.dt + dRiseTime) ;
-
-                { Calculate latency as time from zero time cursor to LatencyPercentage % of peak }
-                iLatency := PeakAt + 1;
-                YLatency := ADC^[PeakAt*fH.NumChannels + ChOffset]*Invert*(edLatencyPercentage.Value*0.01) ;
-                repeat
-                  iLatency := iLatency - 1 ;
-                  Y := ADC^[iLatency*fH.NumChannels + ChOffset]*Invert ;
-                  // Exit when amplitude drops below lower limit
-                  until (Y <= YLatency) or (iLatency <= 0) ;
-                rH.Value[ch*MaxAnalysisVariables+vLatency] := ((iLatency - iTimeZero )*rH.dt) ;
-
-                { Calculate max. rate of rise (over range from iStart ... peak ) }
-                FH.RateOfRiseMode := cbRateofRiseMode.ItemIndex ;
-                if cbRateofRiseMode.ItemIndex = SlopeDifference then begin
-                   // Calculate rate of change as slope of straight line
-                   // fitted to (lo% - hi%) rising edge of signal
-                   rH.Value[vStart + vRateOfRise] := Slope( ADC^,
-                                                            i0,
-                                                            i1,
-                                                            ch
-                                                            ) ;
-                   end
-                else begin
-                   // Calculate maximum rate of rise of signal using
-                   // 1,3 or 5 point differentiation
-                   rH.Value[vStart + vRateOfRise] := MaxRateofChange( ADC^,
-                                                                      iStart,
-                                                                      iEnd,
-                                                                      ch
-                                                                      ) ;
-                   end ;
-
-                { Calculate time to 90% decay }
-                // V4.0.5 Exact decay point determined by interpolation between
-                // first point below threshold and last point above threshold
-
-                Peak10 := Round(Abs(Peak)*0.1) ;
-
-                i := Max(PeakAt - 1,0);
-                repeat
-                  Inc(i) ;
-                  Y := ADC^[i*fH.NumChannels + ChOffset]*Invert ;
-                  until (Y < Peak10) or (i > iEnd) ;
-
-                YPrev := ADC^[Max(i-1,0)*fH.NumChannels + ChOffset]*Invert ;
-                if (Y <> YPrev) then begin
-                   dDecay := -((Peak10 - Y) /(Y - YPrev)) *rH.dt ;
-                   end
-                else dDecay := 0.0 ;
-
-                rH.Value[vStart + vT90] := (i-PeakAt)*rH.dt + dDecay ;
-
-                // T.x% Duration from Peak - user selected % decay from peak
-                // V4.0.5 Exact decay point determined by interpolation between
-                // first point below threshold and last point above threshold
-                TXAmplitude := Round(Abs(Peak)*(100.0-edDecayTimePercentage.Value)*0.01);
-                i := PeakAt - 1 ;
-                TXAmplitudeAt := iEnd ;
-                repeat
-                  Inc(i) ;
-                  Y := ADC^[i*fH.NumChannels + ChOffset]*Invert ;
-                  if Y >= TXAmplitude then TXAmplitudeAt := i ;
-                  until (Y < 0) or (i > iEnd) ;
-
-                YPrev := ADC^[Max(TXAmplitudeAt-1,0)*fH.NumChannels + ChOffset]*Invert ;
-                if (Y <> YPrev) then begin
-                   dDecay := -((TXAmplitude - Y) /(Y - YPrev)) *rH.dt ;
-                   end
-                else dDecay := 0.0 ;
-
-                rH.Value[vStart + vtDecay] := ((TXAmplitudeAt-PeakAt+1)*rH.dt + dDecay) ;
-
-                { Baseline level determined from average of samples at TZero cursor
-                (Note. TZero cursor always taken from channel 0) }
-                i0 := Min(Max(Channel[ch].ADCZeroAt,0),FH.NumSamples-1) ;
-                i1 := Min(i0 + Max(FH.NumZeroAvg,1) - 1,FH.NumSamples-1) ;
-                Sum := 0. ;
-                j := i0*fH.NumChannels + Channel[ch].ChannelOffset ;
-                for i := i0 to i1 do begin
-                    Sum := Sum + (ADC^[j] + Channel[ch].ADCZero) ;
-                    j := j + fH.NumChannels ;
-                    end ;
-                NumAvg := (i1 - i0) + 1 ;
-                Avg := Sum / NumAvg ;
-                rH.Value[vStart + vBaseline] := (Avg*Channel[ch].ADCScale) ;
-
-                // Calculate X% quantile
-                GetMem(SortBuf,Max(iEnd-iStart + 1,1)*SizeOf(Single));
-                nSort := 0 ;
-                i := iStart ;
-                iStep := Max((iEnd - iStart) div 5000,1) ;
-                while i <= iEnd do
-                    begin
-                    SortBuf^[nSort] := ADC^[i*fH.NumChannels + Channel[ch].ChannelOffset] ;
-                    Inc(nSort) ;
-                    i := i + iStep ;
-                    end ;
-
-                QuickSort( SortBuf^, 0, nSort-1) ;
-                iQuantile := Max(Round(edQuantilePercentage.Value*nSort*0.01)-1,0);
-                rH.Value[vStart + vQuantile] := SortBuf^[iQuantile]*Channel[ch].ADCScale ;
-                FreeMem(SortBuf) ;
-
-                end ;
-
-            { Update time of previous record }
-            PreviousTime := rH.Time ;
-
-            end ;
-
-         // No. of records analysed
-         Inc(NumRecAnalysed) ;
-
-         { Save record header containing analysis results back to file  }
-         PutRecordHeaderOnly( fH, rH, Rec ) ;
-
-         // Report progress
-         Main.StatusBar.SimpleText := format(
-         ' Waveform Measurement : Analysing record %d/%d',
-         [Rec,EndAtRec] ) ;
-
-         { Exit the loop when the last record has been done
-         or the user has pressed the abort button (DoAnalysis.Enabled=True) }
-
-         Rec := Rec + 1;
-
-         Application.ProcessMessages ;
-         if (Rec > EndAtRec) or bDoAnalysis.Enabled or CloseFormASAP then Done := True ;
-
-         end ;
-
-     { Reset buttons etc. }
-     bDoAnalysis.Enabled := True ;
-     bAbort.Enabled := False ;
-
-     // Final report
-     Main.StatusBar.SimpleText := format(
-     ' Waveform Measurement : %d records analysed from range %d-%d',
-     [NumRecAnalysed,StartAtRec,EndAtRec] ) ;
 
      { Update plot/Histogram record/type range boxes }
      edPlotRange.LoValue := StartAtRec ;
      edPlotRange.HiValue := EndAtRec ;
      edPlotRecType.Text := cbTypeToBeAnalysed.text ;
 
+     // Copy user-selected analysis settings to file header
+     FH.PeakMode := cbPeakMode.ItemIndex ;
+     FH.NumPointsAveragedAtPeak := Round(edPeakAvg.Value) ;
+     FH.RiseTimeLo := edRiseTime.LoValue ;
+     FH.RiseTimeHi := edRiseTime.HiValue ;
+     FH.RateOfRiseMode := cbRateofRiseMode.ItemIndex ;
+     FH.LatencyPercentage := edLatencyPercentage.Value ;
+     FH.DecayTimePercentage := edDecayTimePercentage.Value ;
+
+     for ch := 0 to FH.NumChannels-1 do
+         begin
+        iStart[ch] := Min( Round(scDisplay.VerticalCursors[Cursors.C0[ch]]),
+                                             Round(scDisplay.VerticalCursors[Cursors.C1[ch]]) ) ;
+        iEnd[ch] :=   Max( Round(scDisplay.VerticalCursors[Cursors.C0[ch]]),
+                                            Round(scDisplay.VerticalCursors[Cursors.C1[ch]]) ) ;
+                { Zero time cursor }
+        iTimeZero[ch] := Round(scDisplay.VerticalCursors[Cursors.t0]) ;
+        end ;
+
      { Set flags to warn other functions that data has changed }
      NewSummaryNeeded := True ;
      HistogramLimitsNeeded := True ;
 
-     { Update currently displayed record }
-     DisplayRecord ;
-
-     Dispose(ADC) ;
-     Dispose(InBuf) ;
-
-     SaveHeader(FH) ;
-
-     // Close form if this is set
-     if CloseFormASAP then Close ;
+     // Start thread executing
+     DoAnalysisThread := TMeasureThread.Create( StartAtRec,
+                                                EndAtRec,
+                                                cbTypeToBeAnalysed.text,
+                                                FH.NumChannels,
+                                                iStart,
+                                                iEnd,
+                                                iTimeZero ) ;
 
      end;
 
 
-function TMeasureFrm.MaxRateOfChange(
-         var ADC : Array of Single ;   // Data buffer
-         iStart : Integer ;            // Start at array index
-         iEnd : Integer ;               // End at array index
-         iChan : Integer
-         ) : Single ;
-// -----------------------------
-// Calculate max. rate of change
-// -----------------------------
-var
-   i,j,k,jLow,jHigh : Integer ;
-   Diff,MaxDiff : single ;
-   A : array[-15..15] of single ;
-   ASum : single ;
-
-begin
-
-     if cbRateofRiseMode.ItemIndex = ForwardDifference then begin
-        jLow := 0 ;
-        jHigh := 1 ;
-        A[0] := -1.0 ;
-        A[1] := 1.0 ;
-        ASum := 1.0 ;
-        end
-     else if cbRateofRiseMode.ItemIndex = Quadratic5Point then begin
-        jLow := -2 ;
-        jHigh := 2 ;
-        for j := jLow to jHigh do A[j] := j ;
-        ASum := 10.0 ;
-        end
-     else begin
-        jLow := -3 ;
-        jHigh := 3 ;
-        for j := jLow to jHigh do A[j] := j ;
-        ASum := 28.0 ;
-        end ;
-
-     MaxDiff := 0 ;
-     for i := iStart to iEnd do begin
-         Diff := 0.0 ;
-         for j := jLow to jHigh do begin
-             k := Min(Max(i+j,0),fH.NumSamples-1)*FH.NumChannels
-                  + Channel[iChan].ChannelOffset ;
-             Diff := Diff + A[j]*ADC[k] ;
-             end ;
-         Diff := Diff / ASum ;
-         if Diff > MaxDiff then MaxDiff := Diff ;
-         end ;
-
-     Result := (MaxDiff * Channel[iChan].ADCSCale) / rH.dt ;
-
-     end ;
-
-
-function TMeasureFrm.Slope(
-          var ADC : Array of Single ;
-          iStart : Integer ;     // Start at point
-          iEnd : Integer ;       // End at point
-          iChan : Integer
-          ) : Single ;
-// -----------------------
-// Calculate slope of line
-// -----------------------
-var
-     i : Integer ;
-     y,t : Single ;          //
-     SumT : Single ;        // Summation variables for time constant fit
-     SumT2 : Single ;         //
-     SumY : Single ;         //
-     SumYT : Single ;         //
-     Denom : Single ;
-     nPoints : Integer ;
-begin
-
-   t := 0.0 ;
-   SumT := 0.0 ;
-   SumT2 := 0.0 ;
-   SumY := 0.0 ;
-   SumYT := 0.0 ;
-   nPoints := iEnd - iStart + 1 ;
-   for i := iStart to iEnd do begin
-      Y := ADC[i*FH.NumChannels + Channel[iChan].ChannelOffset] ;
-      SumT := SumT + t ;
-      SumT2 := SumT2 + t*t ;
-      SumY := SumY + Y ;
-      SumYT := SumYT + Y*T ;
-      t := t + RH.dt ;
-      end ;
-
-   Denom := (nPoints*SumT2) - (SumT*SumT) ;
-   if Denom <> 0.0 then Result := ((nPoints*SumYT) - (SumT*SumY))/ Denom
-                   else Result := 0.0 ;
-
-   Result := Channel[iChan].ADCSCale*Result ;
-
-   end ;
 
 
 procedure TMeasureFrm.bAbortClick(Sender: TObject);
@@ -1426,6 +959,7 @@ procedure TMeasureFrm.bAbortClick(Sender: TObject);
   -----------------------}
 begin
      bDoAnalysis.enabled := True ;
+     if DoAnalysisThread <> Nil then DoAnalysisThread.Terminate ;
      end;
 
 
@@ -1669,7 +1203,7 @@ begin
      { Create X and Y axes labels }
      plHist.xAxisLabel := '' ;
      if VarVar > vTime then plHist.xAxisLabel := Channel[VarCh].ADCName + ' ';
-     plHist.xAxisLabel := plHist.xAxisLabel + VarName[VarVar]
+     plHist.xAxisLabel := plHist.xAxisLabel + VarList[VarVar]
                           + ' ' + Units[VarCh*MaxAnalysisVariables+VarVar] ;
 
      plHist.yAxisAutoRange := True ;
@@ -2088,6 +1622,10 @@ procedure TMeasureFrm.FormClose(Sender: TObject; var Action: TCloseAction);
   ---------------------------------------------}
 begin
      Action := CaFree ;
+
+     // Close computation thread (if active)
+     StopDoAnalysisThread ;
+
      end;
 
 
@@ -2113,7 +1651,7 @@ begin
      HistResults := TStringList.Create ;
      MathFunc := TMathFunc.Create ;
      MathFunc.Setup( None, ' ', ' ' ) ;
-
+     DoAnalysisThread := Nil ;
      end;
 
 
@@ -3475,35 +3013,17 @@ begin
      end ;
 
 
-procedure TMeasureFrm.QuickSort(var A: array of Single ; iLo, iHi: Integer) ;
-// --------------------
-// Quick sort algorithm
-// --------------------
-// Modified from http://delphisourcecodes.blogspot.co.uk/2011/12/delphi-quicksort-algorithm.html 12.02.18
+procedure TMeasureFrm.StopDoAnalysisThread ;
+// ------------------------
+// Stop and free computation thread
+// ------------------------
+begin
+     if DoAnalysisThread = Nil Then Exit ;
+     DoAnalysisThread.Terminate ;
+     DoAnalysisThread.WaitFor ;
+     FreeAndNil(DoAnalysisThread);
+end;
 
- var
-   Lo, Hi : Integer;
-   T,Pivot : single ;
- begin
-   Lo := iLo;
-   Hi := iHi;
-//   Pivot := A[(Lo + Hi) div 2];
-   Pivot := A[Random(iHi-iLo+1)+iLo] ;
-   repeat
-     while A[Lo] < Pivot do Inc(Lo) ;
-     while A[Hi] > Pivot do Dec(Hi) ;
-     if Lo <= Hi then
-     begin
-       T := A[Lo];
-       A[Lo] := A[Hi];
-       A[Hi] := T;
-       Inc(Lo) ;
-       Dec(Hi) ;
-     end;
-   until Lo > Hi;
-   if Hi > iLo then QuickSort(A, iLo, Hi) ;
-   if Lo < iHi then QuickSort(A, Lo, iHi) ;
- end;
 
 
 end.

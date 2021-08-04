@@ -3,13 +3,13 @@ object SealTestFrm: TSealTestFrm
   Top = 186
   Caption = 'Pipette Seal Test / Signal Monitor'
   ClientHeight = 655
-  ClientWidth = 730
+  ClientWidth = 776
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
   Font.Color = clBlack
   Font.Height = -12
   Font.Name = 'Arial'
-  Font.Style = []
+  Font.Style = [fsBold]
   FormStyle = fsMDIChild
   KeyPreview = True
   OldCreateOrder = True
@@ -25,7 +25,7 @@ object SealTestFrm: TSealTestFrm
   PixelsPerInch = 96
   TextHeight = 15
   object scDisplay: TScopeDisplay
-    Left = 160
+    Left = 200
     Top = 6
     Width = 425
     Height = 289
@@ -69,7 +69,7 @@ object SealTestFrm: TSealTestFrm
   object AmplifierGrp: TGroupBox
     Left = 8
     Top = 40
-    Width = 145
+    Width = 186
     Height = 185
     Caption = ' Amplifier '
     Font.Charset = DEFAULT_CHARSET
@@ -119,9 +119,9 @@ object SealTestFrm: TSealTestFrm
       ParentFont = False
     end
     object cbCurrentChannel: TComboBox
-      Left = 56
-      Top = 44
-      Width = 81
+      Left = 55
+      Top = 45
+      Width = 121
       Height = 23
       Hint = 'Channel containing current signal'
       Style = csDropDownList
@@ -131,9 +131,9 @@ object SealTestFrm: TSealTestFrm
       OnChange = cbCurrentChannelChange
     end
     object cbVoltageChannel: TComboBox
-      Left = 56
-      Top = 70
-      Width = 81
+      Left = 54
+      Top = 73
+      Width = 122
       Height = 23
       Hint = 'Channel containing voltage signal'
       Style = csDropDownList
@@ -145,7 +145,7 @@ object SealTestFrm: TSealTestFrm
     object cbAmplifier: TComboBox
       Left = 8
       Top = 16
-      Width = 129
+      Width = 168
       Height = 23
       TabOrder = 2
       Text = 'cbAmplifier'
@@ -154,7 +154,7 @@ object SealTestFrm: TSealTestFrm
     object edAmplifierGain: TValidatedEdit
       Left = 8
       Top = 158
-      Width = 129
+      Width = 168
       Height = 20
       OnKeyPress = edAmplifierGainKeyPress
       AutoSize = False
@@ -166,20 +166,20 @@ object SealTestFrm: TSealTestFrm
     end
     object GroupBox3: TGroupBox
       Left = 8
-      Top = 96
-      Width = 129
+      Top = 100
+      Width = 168
       Height = 41
       Caption = 'Clamp Mode '
       TabOrder = 4
       object rbIclamp: TRadioButton
-        Left = 66
-        Top = 16
-        Width = 60
+        Left = 84
+        Top = 18
+        Width = 75
         Height = 17
         Caption = 'Iclamp'
-        Font.Charset = DEFAULT_CHARSET
+        Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -12
         Font.Name = 'Arial'
         Font.Style = [fsBold]
         ParentFont = False
@@ -187,15 +187,15 @@ object SealTestFrm: TSealTestFrm
         OnClick = rbIclampClick
       end
       object rbVclamp: TRadioButton
-        Left = 4
-        Top = 16
-        Width = 60
+        Left = 8
+        Top = 18
+        Width = 75
         Height = 17
         Caption = 'Vclamp'
         Checked = True
-        Font.Charset = DEFAULT_CHARSET
+        Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -12
         Font.Name = 'Arial'
         Font.Style = [fsBold]
         ParentFont = False
@@ -206,7 +206,7 @@ object SealTestFrm: TSealTestFrm
     end
   end
   object VoltsGrp: TGroupBox
-    Left = 160
+    Left = 200
     Top = 402
     Width = 118
     Height = 240
@@ -272,7 +272,7 @@ object SealTestFrm: TSealTestFrm
     end
   end
   object CurrentGrp: TGroupBox
-    Left = 285
+    Left = 322
     Top = 402
     Width = 118
     Height = 240
@@ -338,7 +338,7 @@ object SealTestFrm: TSealTestFrm
     end
   end
   object CellGrp: TGroupBox
-    Left = 410
+    Left = 444
     Top = 402
     Width = 159
     Height = 240
@@ -723,7 +723,7 @@ object SealTestFrm: TSealTestFrm
   object PulseGrp: TGroupBox
     Left = 8
     Top = 314
-    Width = 145
+    Width = 186
     Height = 277
     Caption = ' Test Pulse '
     Font.Charset = DEFAULT_CHARSET
@@ -734,7 +734,7 @@ object SealTestFrm: TSealTestFrm
     ParentFont = False
     TabOrder = 4
     object Label3: TLabel
-      Left = 11
+      Left = 40
       Top = 58
       Width = 55
       Height = 15
@@ -748,8 +748,8 @@ object SealTestFrm: TSealTestFrm
       ParentFont = False
     end
     object Label11: TLabel
-      Left = 30
-      Top = 34
+      Left = 59
+      Top = 37
       Width = 36
       Height = 15
       Alignment = taRightJustify
@@ -762,7 +762,7 @@ object SealTestFrm: TSealTestFrm
       ParentFont = False
     end
     object Label12: TLabel
-      Left = 30
+      Left = 59
       Top = 106
       Width = 36
       Height = 15
@@ -776,7 +776,7 @@ object SealTestFrm: TSealTestFrm
       ParentFont = False
     end
     object Label14: TLabel
-      Left = 11
+      Left = 40
       Top = 130
       Width = 55
       Height = 15
@@ -804,7 +804,7 @@ object SealTestFrm: TSealTestFrm
       ParentFont = False
     end
     object Label13: TLabel
-      Left = 30
+      Left = 59
       Top = 180
       Width = 36
       Height = 15
@@ -820,11 +820,11 @@ object SealTestFrm: TSealTestFrm
     object Shape1: TShape
       Left = 8
       Top = 236
-      Width = 130
+      Width = 170
       Height = 1
     end
     object Label20: TLabel
-      Left = 11
+      Left = 40
       Top = 204
       Width = 55
       Height = 15
@@ -894,9 +894,9 @@ object SealTestFrm: TSealTestFrm
       OnClick = rbUseHoldingVoltage3Click
     end
     object edHoldingVoltage1: TValidatedEdit
-      Left = 72
+      Left = 100
       Top = 34
-      Width = 65
+      Width = 80
       Height = 20
       Hint = 'Pulse #1: holding voltage'
       OnKeyPress = edHoldingVoltage1KeyPress
@@ -909,9 +909,9 @@ object SealTestFrm: TSealTestFrm
       HiLimit = 1.000000015047466E29
     end
     object edPulseHeight1: TValidatedEdit
-      Left = 72
+      Left = 100
       Top = 58
-      Width = 65
+      Width = 80
       Height = 20
       Hint = 'Pulse #1: Amplitude'
       OnKeyPress = edPulseHeight1KeyPress
@@ -925,9 +925,9 @@ object SealTestFrm: TSealTestFrm
       HiLimit = 1.000000015047466E29
     end
     object edHoldingVoltage2: TValidatedEdit
-      Left = 72
+      Left = 100
       Top = 106
-      Width = 65
+      Width = 80
       Height = 20
       Hint = 'Pulse #2: holding voltage'
       OnKeyPress = edHoldingVoltage2KeyPress
@@ -940,9 +940,9 @@ object SealTestFrm: TSealTestFrm
       HiLimit = 1.000000015047466E29
     end
     object edPulseHeight2: TValidatedEdit
-      Left = 72
+      Left = 100
       Top = 130
-      Width = 65
+      Width = 80
       Height = 20
       Hint = 'Pulse #2: Amplitude'
       OnKeyPress = edPulseheight2KeyPress
@@ -956,9 +956,9 @@ object SealTestFrm: TSealTestFrm
       HiLimit = 1.000000015047466E29
     end
     object edHoldingVoltage3: TValidatedEdit
-      Left = 72
+      Left = 100
       Top = 178
-      Width = 65
+      Width = 80
       Height = 20
       Hint = 'Pulse #3: holding voltage'
       OnKeyPress = EdHoldingVoltage3KeyPress
@@ -971,9 +971,9 @@ object SealTestFrm: TSealTestFrm
       HiLimit = 1.000000015047466E29
     end
     object edPulseWidth: TValidatedEdit
-      Left = 78
+      Left = 100
       Top = 243
-      Width = 57
+      Width = 80
       Height = 20
       Hint = 'Pulse duration'
       OnKeyPress = edPulseWidthKeyPress
@@ -988,9 +988,9 @@ object SealTestFrm: TSealTestFrm
       HiLimit = 1.000000015047466E29
     end
     object edPulseheight3: TValidatedEdit
-      Left = 72
+      Left = 100
       Top = 204
-      Width = 65
+      Width = 80
       Height = 20
       Hint = 'Pulse #3: Amplitude'
       OnKeyPress = edPulseheight3KeyPress
@@ -1007,7 +1007,7 @@ object SealTestFrm: TSealTestFrm
   object TimerGrp: TGroupBox
     Left = 8
     Top = 594
-    Width = 145
+    Width = 186
     Height = 49
     Caption = ' Timer'
     Font.Charset = DEFAULT_CHARSET
@@ -1020,7 +1020,7 @@ object SealTestFrm: TSealTestFrm
     object edTimer: TEdit
       Left = 64
       Top = 16
-      Width = 73
+      Width = 112
       Height = 25
       AutoSize = False
       Font.Charset = DEFAULT_CHARSET
@@ -1049,7 +1049,7 @@ object SealTestFrm: TSealTestFrm
     end
   end
   object ckAutoScale: TCheckBox
-    Left = 160
+    Left = 200
     Top = 300
     Width = 89
     Height = 12
@@ -1068,7 +1068,7 @@ object SealTestFrm: TSealTestFrm
   object GroupBox4: TGroupBox
     Left = 8
     Top = 224
-    Width = 145
+    Width = 186
     Height = 89
     Caption = ' Send Test Pulse To '
     TabOrder = 7
@@ -1085,6 +1085,7 @@ object SealTestFrm: TSealTestFrm
       Font.Style = [fsBold]
       ParentFont = False
       TabOrder = 0
+      OnClick = ckPulseToAO0Click
     end
     object ckPulseToAO1: TCheckBox
       Left = 8
@@ -1099,6 +1100,7 @@ object SealTestFrm: TSealTestFrm
       Font.Style = [fsBold]
       ParentFont = False
       TabOrder = 1
+      OnClick = ckPulseToAO0Click
     end
     object ckPulseToAO2: TCheckBox
       Left = 8
@@ -1113,6 +1115,7 @@ object SealTestFrm: TSealTestFrm
       Font.Style = [fsBold]
       ParentFont = False
       TabOrder = 2
+      OnClick = ckPulseToAO0Click
     end
     object ckPulseToAO3: TCheckBox
       Left = 8
@@ -1127,19 +1130,21 @@ object SealTestFrm: TSealTestFrm
       Font.Style = [fsBold]
       ParentFont = False
       TabOrder = 3
+      OnClick = ckPulseToAO0Click
     end
   end
   object ChannelsGrp: TGroupBox
     Left = 8
     Top = 0
-    Width = 145
+    Width = 186
     Height = 41
     TabOrder = 8
     object Label10: TLabel
-      Left = 8
-      Top = 12
+      Left = 47
+      Top = 11
       Width = 73
       Height = 15
+      Alignment = taRightJustify
       Caption = 'No. channels'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
@@ -1149,8 +1154,8 @@ object SealTestFrm: TSealTestFrm
       ParentFont = False
     end
     object cbNumChannels: TComboBox
-      Left = 88
-      Top = 12
+      Left = 126
+      Top = 11
       Width = 50
       Height = 23
       Hint = 'No. of input channels displayed'
@@ -1162,7 +1167,7 @@ object SealTestFrm: TSealTestFrm
     end
   end
   object ZapGrp: TGroupBox
-    Left = 575
+    Left = 606
     Top = 402
     Width = 89
     Height = 240
@@ -1249,7 +1254,7 @@ object SealTestFrm: TSealTestFrm
     Enabled = False
     Interval = 55
     OnTimer = TimerTimer
-    Left = 168
-    Top = 16
+    Left = 648
+    Top = 368
   end
 end
