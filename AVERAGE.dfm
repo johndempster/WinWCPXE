@@ -61,6 +61,7 @@ object AvgFrm: TAvgFrm
     MaxADCValue = 2047
     MinADCValue = -2048
     NumBytesPerSample = 2
+    FloatingPointSamples = False
     FixZeroLevels = False
     DisplaySelected = False
     FontSize = 8

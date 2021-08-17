@@ -55,11 +55,11 @@ uses
 type
 
   TReplayCursors = record
-             //Base : Array[0..WCPMaxChannels-1] of Integer ;
+             //Base : Array[0..MaxChannels-1] of Integer ;
              C0 : Integer ;
              C1 : Integer ;
-             Value : Array[0..WCPMaxChannels*2] of Single ;
-             Diff : Array[0..WCPMaxChannels*2] of Single ;
+             Value : Array[0..MaxChannels*2] of Single ;
+             Diff : Array[0..MaxChannels*2] of Single ;
              end ;
 
   TReplayFrm = class(TForm)

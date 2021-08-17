@@ -750,6 +750,8 @@ unit MDIForm;
                    selected TRise was returned by mistake
    V5.5.7 04.08.21 Seal test. Default holding voltage now updated when additional stimulus outputs selected. Seal test pulse update rate now faster
                    AmpModule.pas WPI EVC-4000 added and Axoclamp 900A support updated (but not tested with actual hardware)
+   V5.5.8 17.08.21 Waveform Measurements: Peak-peak peak measurement option added
+                   WCPMaxCHannels renamed MaxCHannels to allow modules to be swapped with WinEDR program
             =======================================================================}
 
 interface
@@ -998,7 +1000,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.5.7';
+      ProgVersion := 'V5.5.8';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

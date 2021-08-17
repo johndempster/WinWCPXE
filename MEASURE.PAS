@@ -94,6 +94,7 @@ unit Measure;
    13.04.21 .. Waveform measurements now performed in MeasureThread
                Results saved in CSV table with suffix <file name> .wfm.csv
                Absolute peak values now correctly entered in results table
+   17.08.21 .. Peak-peak peak measurement option added
   ==========================================================================}
 interface
 
@@ -109,9 +110,9 @@ type
 TMeasureFrmCursors = Record
          T0 :   Integer ;
          R : Integer ;
-         C0 :   array[0..WCPMaxChannels-1] of Integer ;
-         C1 :   array[0..WCPMaxChannels-1] of Integer ;
-         Base : array[0..WCPMaxChannels-1] of Integer ;
+         C0 :   array[0..MaxChannels-1] of Integer ;
+         C1 :   array[0..MaxChannels-1] of Integer ;
+         Base : array[0..MaxChannels-1] of Integer ;
          PlotRead : Integer ;
          PlotFit0 : Integer ;
          PlotFit1 : Integer ;
@@ -336,8 +337,8 @@ TMeasureFrmCursors = Record
      //InSummary : array[0..MaxAnalysisVariables-1] of Boolean ;
      NumRecordsAnalysed : Integer ;
 
-     TableVars : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of Integer ;
-     TableChans : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of Integer ;
+     TableVars : array[0..MaxChannels*MaxAnalysisVariables-1] of Integer ;
+     TableChans : array[0..MaxChannels*MaxAnalysisVariables-1] of Integer ;
      NumTableColumns : Integer ;
      CloseFormASAP : Boolean ;
 
@@ -379,13 +380,13 @@ TMeasureFrmCursors = Record
     { Public declarations }
     VarList : TStringList ;
     VarName : array[0..MaxAnalysisVariables-1] of string ;               // Measurement variable names
-    Units : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of string ;  // Measurement variable unitss
-     UnitsScale : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
-     MaxValue : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
-     MinValue : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
-     Mean : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
-     StDev : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
-     StErr : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
+    Units : array[0..MaxChannels*MaxAnalysisVariables-1] of string ;  // Measurement variable unitss
+     UnitsScale : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
+     MaxValue : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
+     MinValue : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
+     Mean : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
+     StDev : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
+     StErr : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
 
     procedure NewFile ;
     procedure DisplayRecord ;
@@ -492,7 +493,7 @@ procedure TMeasureFrm.NewFile ;
   -----------------------------------------------------}
 var
    ch,v : Integer ;
-   VarUnits : Array[0..WCPMaxChannels-1] of String ;
+   VarUnits : Array[0..MaxChannels-1] of String ;
 begin
 
      if FH.NumRecords <= 0 then begin
@@ -547,6 +548,7 @@ begin
 
      if cbPeakMode.ItemIndex = NegativePeaks then CreateVariable( vPeak,'Peak(-)',VarUnits,1. )
      else if cbPeakMode.ItemIndex = PositivePeaks then CreateVariable( vPeak,'Peak(+)',VarUnits,1. )
+     else if cbPeakMode.ItemIndex = PeakPeaks then CreateVariable( vPeak,'Peak-Peak',VarUnits,1. )
      else CreateVariable( vPeak,'Peak(a)',VarUnits,1. ) ;
 
      for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := Channel[ch].ADCUnits + '^2' ;
@@ -881,9 +883,9 @@ procedure TMeasureFrm.bDoAnalysisClick(Sender: TObject);
 var
     ch : Integer ;
     StartAtRec,EndAtRec : Integer ;
-    iStart : Array[0..WCPMaxChannels-1] of Integer ;
-    iEnd : Array[0..WCPMaxChannels-1] of Integer ;
-    iTimeZero : Array[0..WCPMaxChannels-1] of Integer ;
+    iStart : Array[0..MaxChannels-1] of Integer ;
+    iEnd : Array[0..MaxChannels-1] of Integer ;
+    iTimeZero : Array[0..MaxChannels-1] of Integer ;
 begin
      bDoAnalysis.enabled := False ;
      bAbort.enabled := True ;
@@ -971,7 +973,7 @@ var
    Rec,StartAtRec,EndAtRec,xVar,yVar,xCh,yCh,ch : Integer ;
    x,y : Single ;
    OK : Boolean ;
-   VarUnits : Array[0..WCPMaxChannels-1] of String ;
+   VarUnits : Array[0..MaxChannels-1] of String ;
 begin
 
      bNewXYPlot.Enabled := False ;
@@ -2906,8 +2908,8 @@ procedure TMeasureFrm.ckLockChannelCursorsClick(Sender: TObject);
 // Lock/unlock measurement cursors
 // -------------------------------
 var
-    C0CursorPosition : array[0..WCPMaxChannels-1] of Integer ;
-    C1CursorPosition : array[0..WCPMaxChannels-1] of Integer ;
+    C0CursorPosition : array[0..MaxChannels-1] of Integer ;
+    C1CursorPosition : array[0..MaxChannels-1] of Integer ;
     T0CursorPosition : Integer ;
     ch : Integer ;
 begin

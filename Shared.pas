@@ -624,7 +624,7 @@ procedure PrintStringGrid( const Table : TStringGrid ) ;
 var
    CharWidth,CharHeight,ColHeight,Row,Col,w : Integer ;
    PageLeft,PageTop,PageBottom,Line,ColLeft,PageNum,LastPage : Integer ;
-   ColWidth : Array[0..WCPMaxChannels*MaxAnalysisVariables-1] of Integer ;
+   ColWidth : Array[0..MaxChannels*MaxAnalysisVariables-1] of Integer ;
    NewPage : boolean ;
 begin
 
@@ -720,7 +720,7 @@ procedure CopyStringGrid( Table : TStringGrid ) ;
 var
    Row,Col,TopRow,BottomRow,LeftCol,RightCol : Integer ;
    TabText : String ;
-   UseColumn : Array[0..WCPMaxChannels*MaxAnalysisVariables-1] of boolean ;
+   UseColumn : Array[0..MaxChannels*MaxAnalysisVariables-1] of boolean ;
    First : Boolean ;
 begin
      { Find which columns contain data (based on first row) }

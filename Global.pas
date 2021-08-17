@@ -25,7 +25,7 @@ const
      Enable = True ;
      Disable = False ;
      MinDT = 1.5E-5 ;
-     WCPMaxChannels = 128 ;
+     MaxChannels = 128 ;
 //     MaxAnalysisBytesPerRecord = 10240 ; // Increased from 1024 to 10240 24/3/10
      MaxBytesInFileHeader = 10240 ;      // Increased from 1024 to 10240 24/3/10
 
@@ -52,6 +52,7 @@ const
      PositivePeaks = 1 ;
      NegativePeaks = 2 ;
      AbsPeaks = 0 ;
+     PeakPeaks = 3 ;
 
      // Curve fitting variable
      vFitEquation = LastMeasureVariable+1 ;
@@ -96,9 +97,9 @@ TRecHeader = packed record
            Number : Single ;
            Time : Single ;
            dt : Single ;
-           ADCVoltageRange : array[0..WCPMaxChannels-1] of Single ;
+           ADCVoltageRange : array[0..MaxChannels-1] of Single ;
            Ident : string ;
-           Value : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
+           Value : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
            EqnType : TEqnType ;
            FitCursor0 : Integer ;
            FitCursor1 : Integer ;
@@ -430,7 +431,7 @@ TSettings = record
           Plot : TPageSettings ;
           ZeroLevels : boolean ;
           FixedZeroLevels : boolean ;
-          BarValue : array[0..WCPMaxChannels-1] of single ;
+          BarValue : array[0..MaxChannels-1] of single ;
           TimeBarValue : single ;
           ShowLabels : boolean ;
           ShowZeroLevels : boolean ;
@@ -515,7 +516,7 @@ DrvFH : TFileHeader ;
 HeaderArrayFull : Boolean ;     // File header parameter array full flag
 
 // File channel calibration
-Channel : array[0..WCPMaxChannels-1] of TChannel ;
+Channel : array[0..MaxChannels-1] of TChannel ;
 // Recording channel settings
 //RecChannel : array[0..WCPMaxChannels-1] of TChannel ;
 RecordTypes : TStringList ;

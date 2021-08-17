@@ -236,17 +236,17 @@ TCurveFitCursors = Record
     nDisplaySkip : Integer ;
     KeepCursors : Boolean ;
 
-    VarName : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of string ;
-    Units : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of string ;
-    MaxValue : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
-    MinValue : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
-    Mean : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
-    StDev : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
-    StErr : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of single ;
+    VarName : array[0..MaxChannels*MaxAnalysisVariables-1] of string ;
+    Units : array[0..MaxChannels*MaxAnalysisVariables-1] of string ;
+    MaxValue : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
+    MinValue : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
+    Mean : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
+    StDev : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
+    StErr : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
     NumVariables : Integer ;
     NumRecordsAnalysed : Integer ;
 
-    TableVars : array[0..WCPMaxChannels*MaxAnalysisVariables-1] of Integer ;
+    TableVars : array[0..MaxChannels*MaxAnalysisVariables-1] of Integer ;
     NumTableColumns : Integer ;
     CloseFormASAP : Boolean ;
 
@@ -784,7 +784,7 @@ var
    i,j,ch,ChFit,nFit,iSkip,iStep,NumFitted : Integer ;
    x,dx,Sum : single ;
    FitData : PXYData ;
-   Average : Array[0..WCPMaxChannels-1] of Single ;
+   Average : Array[0..MaxChannels-1] of Single ;
    OK,Done : Boolean ;
 
 begin

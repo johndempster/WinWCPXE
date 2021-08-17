@@ -187,30 +187,30 @@ procedure TRecPlotFrm.UpdatePlot(
 // ------------------------------------------
 var
     i,i0,i1,j,ch,iPlot,i90,i10 : Integer ;
-    yMax : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    yMin : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    yMaxAt : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Integer ;
-    yMinAt : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Integer ;
-    yMaxTRise : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    yMinTRise : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    yMaxRateOfRiseFD : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    yMaxRateOfRiseQ5 : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    yMaxRateOfRiseQ7 : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    yMaxRisingSlope : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
+    yMax : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
+    yMin : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
+    yMaxAt : Array[0..MaxChannels-1,0..NumCursorSets-1] of Integer ;
+    yMinAt : Array[0..MaxChannels-1,0..NumCursorSets-1] of Integer ;
+    yMaxTRise : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
+    yMinTRise : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
+    yMaxRateOfRiseFD : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
+    yMaxRateOfRiseQ5 : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
+    yMaxRateOfRiseQ7 : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
+    yMaxRisingSlope : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
 
-    yMinRateOfRiseFD : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    yMinRateOfRiseQ5 : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    yMinRateOfRiseQ7 : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    yMinRisingSlope : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
+    yMinRateOfRiseFD : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
+    yMinRateOfRiseQ5 : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
+    yMinRateOfRiseQ7 : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
+    yMinRisingSlope : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
 
-    ySlope : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    yC0 : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    yZero : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    yC1 : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    yC2 : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    yC3 : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    yC4 : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
-    yAverage : Array[0..wcpMaxChannels-1,0..NumCursorSets-1] of Single ;
+    ySlope : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
+    yC0 : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
+    yZero : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
+    yC1 : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
+    yC2 : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
+    yC3 : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
+    yC4 : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
+    yAverage : Array[0..MaxChannels-1,0..NumCursorSets-1] of Single ;
 
     y,ySum,y90,y10,yDiffMax,yPos,yNeg,YHiPrev,YLoPrev,Sum : Single ;
     RScale : Single ;

@@ -80,7 +80,7 @@ type
     LastUsedRH : TRecHeader ;
     Cursor0 : Integer ;
     Cursor1 : Integer ;
-    AlignAt : array[0..WCPMaxChannels-1] of Integer ;
+    AlignAt : array[0..MaxChannels-1] of Integer ;
     OldNumChannels : Integer ;
 
     procedure DisplayRecord ;

@@ -41,6 +41,10 @@ object FitFrm: TFitFrm
     OnChange = PageChange
     object CurveFitTab: TTabSheet
       Caption = 'Fit Curves'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object scDisplay: TScopeDisplay
         Left = 176
         Top = 6
@@ -79,6 +83,7 @@ object FitFrm: TFitFrm
         MaxADCValue = 2047
         MinADCValue = -2048
         NumBytesPerSample = 2
+        FloatingPointSamples = False
         FixZeroLevels = False
         DisplaySelected = False
         FontSize = 8
@@ -475,6 +480,10 @@ object FitFrm: TFitFrm
     end
     object XYPlotTab: TTabSheet
       Caption = 'X/Y Plot'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object plPlot: TXYPlotDisplay
         Left = 176
         Top = 8
@@ -646,6 +655,10 @@ object FitFrm: TFitFrm
     end
     object HistogramTab: TTabSheet
       Caption = 'Histogram'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object plHist: TXYPlotDisplay
         Left = 176
         Top = 8
@@ -878,6 +891,10 @@ object FitFrm: TFitFrm
     end
     object SummaryTab: TTabSheet
       Caption = 'Summary'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Summary: TStringGrid
         Left = 171
         Top = 4
@@ -891,6 +908,18 @@ object FitFrm: TFitFrm
         Font.Style = []
         ParentFont = False
         TabOrder = 0
+        ColWidths = (
+          64
+          64
+          64
+          64
+          64)
+        RowHeights = (
+          18
+          18
+          18
+          18
+          18)
       end
       object SummaryGrp: TGroupBox
         Left = 4
@@ -1045,6 +1074,10 @@ object FitFrm: TFitFrm
     end
     object TablesTab: TTabSheet
       Caption = 'Tables'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Table: TStringGrid
         Left = 172
         Top = 4
@@ -1073,6 +1106,27 @@ object FitFrm: TFitFrm
           100
           100
           100)
+        RowHeights = (
+          18
+          18
+          18
+          18
+          18
+          18
+          18
+          18
+          18
+          18
+          18
+          18
+          18
+          18
+          18
+          18
+          18
+          18
+          18
+          18)
       end
       object GroupBox2: TGroupBox
         Left = 4

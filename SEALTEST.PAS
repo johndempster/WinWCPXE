@@ -279,7 +279,7 @@ type
   NewAmplifierGain : Boolean ;
   ClampMode : Array[0..MaxAmplifiers-1] of Integer ;
 
-  DisplayScale : Array[0..WCPMaxChannels-1] of Integer ;
+  DisplayScale : Array[0..MaxChannels-1] of Integer ;
 
   // Cell parameter averaging arrays
   iResistance : Integer ;                            // Averaging buffer pointer
@@ -583,8 +583,8 @@ procedure TSealTestFrm.TimerTimer(Sender: TObject);
 
 var
    ch,T,t1,t2 : Integer ;
-   OldADCUnits : Array[0..WCPMaxChannels-1] of String ;
-   OldADCName : Array[0..WCPMaxChannels-1] of String ;
+   OldADCUnits : Array[0..MaxChannels-1] of String ;
+   OldADCName : Array[0..MaxChannels-1] of String ;
    Changed : Boolean ;
    Name,Units : string ;
    VPU,Gain : Single ;
@@ -1026,7 +1026,7 @@ var
    NewDisplayScale,NewDisplayRange,HalfRange,Mid : Integer ;
    ChIm,ChVm,ChOffset,ChStim,yADC : Integer ;
    HoldLevel,VThreshold,iOffLevel,iOnLevel,PeakAt : Integer ;
-   YMin,YMax : Array[0..WCPMaxChannels-1] of Integer ;
+   YMin,YMax : Array[0..MaxChannels-1] of Integer ;
    VHold,VPulse,IHold,IPulse,Avg,Sum,IPeak,IValue : single ;
    Voltage,SteadyCurrent,PeakCurrent : single ;
    TauC,Slope,YIntercept,SteadyStateLevel,dt : single ;

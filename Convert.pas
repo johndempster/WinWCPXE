@@ -54,8 +54,8 @@ var
    RecHeader : ^TRecHeader ;
    ch : Integer ;
    Rec,StartAt : Integer ;
-   KeepChannel : Array[0..WCPMaxChannels-1] of TChannel ;
-   YScale : Array[0..WCPMaxChannels-1] of Single ;
+   KeepChannel : Array[0..MaxChannels-1] of TChannel ;
+   YScale : Array[0..MaxChannels-1] of Single ;
    ScaleFrom,ScaleTo : Single ;
    AppFH : TFileHeader ;
    s : string ;

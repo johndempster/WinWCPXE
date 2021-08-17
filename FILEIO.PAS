@@ -671,7 +671,7 @@ begin
 
            // Calibration bar settings
            ReadFloat( Header, 'TBVAL=',Settings.TimeBarValue ) ;
-           for ch := 0 to WCPMaxChannels-1 do
+           for ch := 0 to MaxChannels-1 do
                ReadFloat( Header, format('BVAL%d=',[ch]),
                           Settings.BarValue[ch] ) ;
 
@@ -1002,7 +1002,7 @@ begin
 
      // Calibration bar settings
      AppendFloat( Header, 'TBVAL=',Settings.TimeBarValue ) ;
-     for ch := 0 to WCPMaxChannels-1 do
+     for ch := 0 to MaxChannels-1 do
          AppendFloat( Header, format('BVAL%d=',[ch]),
                       Settings.BarValue[ch] ) ;
 

@@ -3,6 +3,7 @@ unit MeasureThread;
 // Compute waveform measurements from signal records in WCP data file
 // ==================================================================
 // 13.04.21
+// 17.08.21 .. Peak-peak peak measurement option added
 
 interface
 
@@ -16,9 +17,9 @@ type
     StartAtRec : Integer ;
     EndAtRec : Integer ;
     TypeToBeAnalysed : string ;
-    iStart : Array[0..WCPMaxChannels-1] of Integer ;
-    iEnd : Array[0..WCPMaxChannels-1] of Integer ;
-    iTimeZero : Array[0..WCPMaxChannels-1] of Integer ;
+    iStart : Array[0..MaxChannels-1] of Integer ;
+    iEnd : Array[0..MaxChannels-1] of Integer ;
+    iTimeZero : Array[0..MaxChannels-1] of Integer ;
     LatencyPercentage : Single ;
 
     RH : TRecHeader ; { Record header }
@@ -310,7 +311,17 @@ begin
                     Peak := Peak + ADC^[j] ;
                     end ;
                 Peak := Peak / (i1 - i0 + 1) ;
-                rH.Value[vStart + vPeak] := Peak*Channel[ch].ADCScale ;
+
+                if FH.PeakMode = PeakPeaks then
+                   begin
+                   // Peak-peak measurement
+                   rH.Value[vStart + vPeak] := (PeakPositive - PeakNegative)*Channel[ch].ADCScale ;
+                   end
+                else
+                  begin
+                  // Pos, neg or absolute measurement
+                  rH.Value[vStart + vPeak] := Peak*Channel[ch].ADCScale ;
+                  end ;
 
                 { Special exception for records designated as transmission
                   failures (FAIL) peak value is always set to zero }
