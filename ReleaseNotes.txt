@@ -1,0 +1,1375 @@
+TecellaAmp API Installation & Release Notes
+
+Installation Notes
+======================================
+
+- Make sure to install the amplifier drivers first and that they show up properly in the Window's Device Manager.
+
+- Include TecellaAmp.h in your project.
+
+- If you're using Visual Studio, include TecellaAmp.lib or TecellaAmp_64.lib in your project.
+
+- Link your application against TecellaAmp.dll or TecellaAmp_64.dll.
+
+- For 32-bit applications, make sure to include the following files in your running directory:
+	- TecellaAmp.dll
+	- okFrontPanel.dll
+	- libusb0.dll
+	- The proper bit file for your amplifier.
+
+- For 64-bit applications, make sure to include the following files in your running directory:
+	- TecellaAmp_64.dll
+	- okFrontPanel_64.dll
+	- libusb0_x64.dll
+	- The proper bit file for your amplifier.
+
+- If you receive the error code 0xc0150002 when running your application, try installing the latest .NET runtime from Microsoft.
+
+- If you receive the error "unable to enumerate amplifiers" or "unable to load okFrontPanel.dll", try installing the latest .NET via Microsoft Update or Windows Update.
+
+Release Notes
+=====================================
+
+v1.64
+=================
+- Add the following Device ID for the 16-channel Triton X
+    - Shasta Triton 16
+
+v1.63
+=================
+- Fix JP Fine offset for Apollo/Shasta Triton
+
+v1.62
+=================
+- Based on v1.61, the following Device IDs are supported with Athena
+    - Apollo Triton 384
+    - Apollo Triton 48
+    - Shasta Triton 64
+    - Shasta Triton 32
+
+v1.61
+=================
+- Add support for Apollo Triton using the Athena daughter board
+    - 10Meg
+    - 100Meg
+    - 1Gig
+    - 2.5Gig
+    - Variable Bessel Filter
+
+v1.60
+=================
+- Remove Boost 1 at the Head from Apollo Bilayer SP
+
+v1.59
+=================
+- Fix Vcmd range for Apollo Bilayer SP to support +/-512mV
+
+v1.58
+=================
+- Initial release for Apollo Bilayer Special
+    - Variable 4-pole Bessel filter
+    - Adjustable Boost circuit
+    - 4 Gain Settings (3-independent settings, 1 derived)
+
+v1.57
+=================
+- Reduce number of slots to 2 for Apollo Bilayer Special
+
+v1.56
+=================
+- Set default values for Apollo Bilayer
+- Create DevID for Apollo Bilayer Special with special settings
+
+v1.55
+=================
+- Remove Cslow compensations from Apollo Bilayer
+
+v1.54
+=================
+- Add support for Apollo Bilayer using the Dana Point board
+
+v1.53
+=================
+- Change PocketPatch Forte 16 resolution from 14-bit to 16-bit
+
+v1.52
+=================
+- Set PocketPatch Forte 16 low gain to 8.33Meg
+
+v1.51
+=================
+- Create Forte 16 Solo based on the PocketPatch
+
+v1.50
+=================
+- Fine-tune gain values for Pico
+
+v1.49
+=================
+- Undo error suppression from v1.48
+- Default Pico2 gain is 10Meg/100Meg/1Gig/2Gig/5Gig
+
+v1.48
+=================
+- Suppress error for segment duration check.
+- Default Triton gain is 10Meg/100Meg/400Meg/2Gig
+
+v1.47
+=================
+- Add Vhalf protocol support for the Apollo/Mach.
+
+v1.46
+=================
+- Revert Pico Cfast to be zero based.  cfast_offset = 0.
+- Update Pico ranges for Cfast and Cslows.
+- Undo v1.41 channel re-mapping on multi-channel amplifiers.
+
+v1.45
+=================
+- Add 3-bits of Trigger Out support for Apollo/Mach.
+
+v1.43
+=================
+- Add "shasta_1.cfg" support for current clamp gain configuration for
+  Shasta models that support current clamp, including Forte DUO models.
+  Values are tab delimited.
+
+  Example:
+	shasta_1.cfg (or any other comment)
+        2
+        4x	4
+        10x	10
+
+v1.41
+=================
+- Add support for channel re-mapping.
+    apollo_map.txt
+    jet_map.txt
+    shasta_map.txt
+    forte16_map.txt
+    triton_map.txt
+    control_map.txt = For re-mapping the control of each channel
+
+- Format is "from-channel" and "to-channel" separated by a space.
+
+- Each channel appearing in the first column, must appear exactly
+  once in the second column.
+
+    example:
+    1 2
+    2 3
+    3 5
+    5 12
+    4 8
+    8 4
+    12 1
+
+- control_map.txt may not be needed.  If it's needed, simply copy
+  the model based mapping file, and rename it as control_map.txt.  
+
+v1.40
+=================
+- Use Pico's V2 as 3.3V source to Break Out Box, in order to allow manual
+  switching of Imode and Iclamp to high logic state.
+
+v1.39
+=================
+- Fix JP hardware address from v1.38.
+
+v1.38
+=================
+- Create Generic Jet device that reads in all config files.
+- Add JP support for Jet ONT.
+
+v1.37
+=================
+- Change Rseries default value for Apollo/Mach to 15 Meg-ohms.
+- Support rseries in apollo_0.comp for Apollo/Mach.  For example,
+  the following apollo_0.comp file placed in the same folder as TecellaLab.exe
+  will change the Rseries max value to 22 Meg-ohms.
+
+        apollo_0.comp - first line is comment line
+        rseries 22000
+
+v1.36
+=================
+- Correct the number of gains for Apollo/Mach to 2.
+
+v1.35
+=================
+- Add 1024 segment support for Triton.
+- Update tritonplus.bit to 0x41 (2017-04-02 release).
+
+v1.34
+=================
+- Add TriggerOut support for Triton.
+- Update tritonplus.bit to 0x37 (2017-03-30 release),
+
+v1.33
+=================
+- Add support for Triton in this main branch.
+
+v1.30 - v1.32
+=================
+- Add DevID subtypes.
+
+v1.28
+=================
+- Uncomment dir.length logic in hardware_opal_kelly.cpp.
+- Skip v1.27, so that LSB of v1.28 matches corresponding v106.08.
+
+v1.26
+=================
+- For Apollo/Mach, set the current clamp (CC) gains as follows:
+
+    10x gain with  0pF CC capacitance compensation
+    10x gain with 55pF CC capacitance compensation
+
+- Add support for gain over-ride files apollo_0.cfg (for VC) and
+  apollo_1.cfg (for CC) for Apollo/Mach.
+
+v1.25
+=================
+- For Apollo/Mach, set default Cfast offset to 0.
+  This undoes the setting of 15pF from v1.23.
+
+v1.24
+=================
+- "cfast_offset" now supported for apollo_0.comp, shasta_0.comp,
+  and pico2_0.comp.  Sample file format is:
+
+    apollo_0.comp (first line is comment line)
+    cfast_offset 25
+
+- Force re-programming of the firmware when selecting "Start" tab in
+  TecellaLab.
+
+v1.23
+=================
+- For Apollo/Mach, set default Cfast offset to 15.  This means that
+  setting Cfast to zero will actually set the Cfast hardware to 15pF.
+
+- For Apollo/Mach, add "cfast_offset" parameter to "apollo_0.comp" file
+  to over-ride the above default setting.
+
+    - Create a file called "apollo_0.comp".
+    - The first line is comment line.  Suggest typing "apollo_0.comp".
+    - As an example, on the second line, enter "cfast_offset 30"
+      to change default Cfast offset from 15 to 30.
+
+- Create Shasta Duo configuration to support both voltage clamp and
+  current clamp.
+
+v1.22
+=================
+- For Apollo/Mach, force Iclamp OFF when switching configurations.
+  This fixes side-effect of v1.20, V1.21 where switching from CC to VC
+  with Iclamp ON caused ringing on VC High Gain.
+
+v1.21
+=================
+- Add delay before and after loading firmware.
+
+v1.20
+=================
+- Do not reset the FPGA when changing user configuration.
+- Maintain source select when changing user configuration.
+- Revert back to block size of 1024 for Apollo.
+
+v1.19
+=================
+- For Mach Duo2, use Low and High gains in Current Clamp mode to
+  select the level of capacitance compensation.  22pF for Low setting,
+  and 62pF for High setting.  Voltage follower gain is 4x for both
+  settings.
+
+v1.18
+=================
+- Do not re-load the FPGA when changing user configuration.
+
+v1.17
+=================
+- Support for Mach for 1024 segments, without the channel 145-192 bug.
+
+v1.16
+=================
+- Auto Artifact removal now works when combining Delta segments with
+  Ramp segments.
+
+v1.14
+=================
+- Auto Artifact removal now works on downward ramps, too.
+
+v1.12
+=================
+- Auto artifact removal now works on each step of ramp segments.
+
+v1.11
+=================
+- For Apollo and Mach, current clamp range is increased to +/-5nA.
+
+- Revert maximum number of stimulus segments to 64.
+
+v1.10
+=================
+- For Apollo and Mach, maximum number of stimulus segments is increased
+  from 64 to 1024.
+
+- For Apollo and Mach, fix the bug where an extra segment was inserted
+  between stimulus patterns when the stimulus pattern was repeated
+  more than once.
+
+v1.06
+=================
+- Max_stimulus_segment is increased to 256 for Apollo, Shasta, Jet, and
+  Triton+, but firmware changes are necessary.
+
+v1.05
+=================
+- Disables Digital Leak Compensation
+
+- Max_stim_seg is 128 for Apollo and Triton, but requires firmware change
+
+v1.04
+=================
+- Reverse polarity of iadj to match that of Vcmd
+
+v1.03
+=================
+- Set iadj register to 0 when switching to Current Clamp mode
+
+v1.02
+=================
+- Use model cell for offset calibration of all current clamp modes
+
+v1.01
+=================
+- Fix issues with Mach Duo when switching modes from voltage clamp
+  to current clamp, and vice versa
+
+v1.00
+=================
+- Support Mach Duo (voltage clamp and current clamp) that uses the
+  Bolt daughter board
+
+- Some support for Jet Sonic
+
+v0.98
+=================
+- Can define number of slots and channels per slot in apollo_0.comp
+
+- Example (there should be no leading whitespace in actual file):
+    apollo_0.comp   (1st line is comment line)
+    slots 2         (Number of slots/banks is 2)
+    chans 16        (Number of channels per slot/bank is 16)
+
+v0.97
+=================
+- Fix Auto Artifact update
+
+- Add current clamp mode register support for Mach/Sonic Bolt
+
+v0.96
+=================
+- Remove error check for Invalid Ramp End Value
+
+v0.95
+=================
+- Add vcmd.range file support for Pico (see v0.90 notes)
+
+- Leak and Rseries interaction is only checked if dummy file 
+  "check_leak_rseries" exists
+
+- Build 64-bit version with br64.sh
+
+- Create new DevID for Mach
+
+v0.93
+=================
+- Add support for 384-channel Mach and Rio
+
+v0.92
+=================
+- Remove 2 extra pulses at end of AutoComp
+
+- Streamline debug logging
+
+v0.91
+=================
+- Disable all Vcmd ownership logic
+
+v0.90
+=================
+- Support Vcmd Range configuration file. Filename is vcmd.range
+    1st line is comment line
+    2nd line is minimum value in volts
+    3rd line is maximum value in volts
+    4th line is LSB value in volts
+      - For 10-bit DAC, (max - min) / 1023 (or 1024)
+      - For 12-bit DAC, (max - min) / 4095 (or 4096)
+ 
+- Example format (no leading spaces in actual file):
+    Comment
+    min -1
+    max 1
+    lsb 4.884e-4
+  Or
+    Comment
+    min -1.0
+    max 1.0
+    lsb 4.884e-4
+
+v0.89
+=================
+- Support generic Triton with config file and comp override file.
+  Rf of 10M/100M/500M/1G.  Uses "Salinas C" as device ID.
+
+v0.88
+=================
+- Fix gain telegraph for Pico
+
+v0.87
+=================
+- Change timing resolution to 10us for selected Triton models
+
+v0.86
+=================
+- Added support for gain over-ride files for most models
+    apollo_0.cfg
+    jet_0.cfg
+    shasta_0.cfg
+
+- Format is the same as for Pico and TritonDuo over-ride files
+  shown below.
+
+- Added support for compensation value over-ride files for
+  most files
+    apollo_0.comp
+    jet_0.comp
+    pico_0.comp
+    shasta_0.comp
+    triton_0.comp
+    triton_duo_0.comp
+
+  Format is:
+
+    triton_0.comp (comment line)
+    cfast 200
+    cslow0 100
+    cslow1 100
+    cslow2 100
+    cslow3 100
+    jp_min -254
+    jp_max 256
+    leak 2
+    rseries 10000
+
+v0.85
+=================
+- Added support for Triton gain over-ride file (triton_0.cfg)
+- Format is the same as for Pico and TritonDuo over-ride files
+  shown below.
+
+v0.84
+=================
+- Boost settings are now linked to Rf Gain settings
+- Boost is enabled by default on Pico2 for 3.3Gig and 10Gig settings
+- Default settings can be over-ridden via the boost configuration file
+- Format for Pico2 boost over-ride file (pico2_0.boost)
+    - First line is comment line
+    - Second line is number of Rf gains (default 5)
+    - Subsequent lines (one per gain) are SPACE delimited with 3 fields
+         Enable (0 or 1), Frequency (0 to 255), Gain (0 to 255)
+         Example:
+            pico2_0.boost (or any other comment)
+            5
+            0 128 128
+            0 128 128
+            0 128 128
+            1 22 52
+            1 70 178
+- Format for Pico2 or Triton Duo gain over-ride file (pico2_0.cfg or triton_duo_0.cfg)
+    - First line is comment line
+    - Second line is number of Rf gains (5 for Pico, 4 for Triton Duo)
+    - Subsequent lines (one per gain) are TAB delimited with 2 fields
+         Display string, Rf value in exponent form
+         Example:
+            pico2_0.cfg (or any other comment)
+            5
+            10Meg	10e6
+            100Meg	100e6
+            1Gig	1e9
+            3.3Gig	3.3e9
+            10Gig	10e9
+
+v0.83
+=================
+- Fix Pico AutoCal problem on Windows XP
+- For Pico, offset the displayed Cfast value, so approximately 0pF is
+  displayed after compensating source=head with nothing attached
+- Speed up AutoCal
+
+v0.82
+=================
+- Fix sources for Pico2
+
+v0.81
+=================
+- Config file support added to Pico2
+- Bug fixes for Pico2
+
+v0.80
+=================
+- TritonDuo: add I=0 and Iclamp offset calibration
+- TritonDuo: full Vclamp/Iclamp support completed
+
+v0.79
+=================
+- TritonDuo: config file support
+- TritonDuo: combine I=0 and Iclamp into single mode.
+  Use IclampOn bit to switch between the two modes.
+
+v0.78
+=================
+- Add Iclamp On/Off support for custom amplifiers
+
+v0.77
+=================
+- Add dual-register source select support to enable disconnecting
+  the head, and allow Imodel to be decoupled from Iclamp circuit.
+
+v0.76
+=================
+- Add support for multiple Iclamp gain values for Tritons that
+  support Iclamp.  Available gain values are 10x, 30x, 120x,
+  and 250x.
+
+v0.75
+=================
+- For Picos and Tritons that support Iclamp (current clamp)
+  mode(s).  Allow connecting/disconnecting of Iclamp circuit
+  in Iclamp modes to achieve true I=0 in any of the Iclamp
+  modes.  In the future, I=0 mode will be phased out, since
+  any Iclamp mode can be used in I=0 mode.
+
+v0.74
+=================
+- Add support for both Vclamp and Iclamp in new Tritons
+- More reliable enabling of 100% Rs comp circuit in Picos
+
+v0.73
+=================
+- Fix gains for I=0 and Iclamp modes
+- Add support for custom TEVC Pico
+
+v0.72
+=================
+- Add support for higher bandwidth Triton+
+
+v0.71
+=================
+- Fix Pico's JP range to +/-255mV
+
+v0.70
+=================
+- Remove delay from writes to OpalKelly
+
+v0.119.50
+=================
+- Adds streaming stimulus and segmented stimulus support for Pico.
+- Unicode characters removed.
+- Rare race condition fixed to prevent hang on Start/Stop.
+
+v0.119.49
+=================
+- Adds support for additional amplifiers.
+- Include Pico firmware by default.
+
+v0.119.46 - 48
+=================
+- Internal Releases.
+
+v0.119.45
+=================
+- Fixes the bessel settings for Amadeus.
+- Adds clipping detection per-channel.
+- Improvements made to auto calibration.
+- Documentation updated and reorganized.
+- Initial support added for custom amplifier config files.
+- Adds support for more amplifier configurations.
+
+v0.119.44
+=================
+- Requires Pico firmware to be upgraded to v007.
+- Utility DACs fixed for Pico.
+- Fixes Pico initialization if the system has not had an Opal Kelly based amplifier installed previously.
+- Several bug fixes for issues that caused Pico to hang.
+- Changed software gain values to match Pico's hardware.
+
+v0.119.43
+=================
+- Internal release.
+
+v0.119.42
+=================
+- Adds Beta 64-bit support.
+- Removes dependencies on mingwm10.dll and libgcc_s_dw2-1.dll.
+- Make acquisition start/stop faster for Pico.
+- Fixes ramp stimulus segments for Pico.
+- Fixes bug where the tecella_initialize() would always fail if an OpalKelly device has never been connected to the computer before.
+
+
+v0.119.41
+=================
+- Fixes some of the settings for Pico.
+- Fixes some corner cases where the stimulus would not program correctly.
+
+
+v0.119.40
+=================
+- Remaps the channel steering output pins for Amadeus.
+
+
+v0.119.39
+=================
+- Add tecella_chan_set_iclamp_enable and tecella_chan_get_iclamp_enable.
+- hwprops_ex_01 structure changed.
+- Structure of hwprops remains the same, but some values have been renamed.
+- Converted icmd values in hwprops to reserved.
+- Vcmd values in hwprops converted to stimulus values.
+- Stimulus values should be interpreted as icmd or vcmd values depending on the current mode.
+
+
+v0.119.38
+=================
+- Fix a spurious DEVICE_CONTENTION error that would occur during continuous acquisition if a stimulus is not used.
+
+
+v0.119.37
+=================
+- Fixed an Amadeus instability introduced in the previous release.
+
+
+v0.119.36
+=================
+- Changes some settings to improve the noise performance of Amadeus.
+
+
+v0.119.35
+=================
+- New Amadeus firmware disables register writes during acquisition.
+- Remove un-needed workarounds for Amadeus.
+
+
+v0.119.34
+=================
+- Enumeration for Pico handled properly now.
+- Support for Pico serial numbers added.
+- Added Iclamp support for TritonPlus and Pico.
+
+
+v0.119.33
+=================
+- Attempts to fix gain switching on Amadeus.
+- Fix some more of the register writes for Amadeus.
+
+
+v0.119.32
+=================
+- Fixes a bug introduced in 0.119.31 that breaks tecella_initialize_from_file for Amadeus.
+
+
+v0.119.31
+=================
+- Fix some of the register writes for Amadeus.
+
+
+v0.119.30
+=================
+- In tecella_auto_comp: Allow undercompensation coefficient to affect digital leak.
+- Remove the restriction that the first segment cannot be a ramp segment.
+- Using a ramp as the first segment reduces the max segments by one.
+
+
+v0.119.29
+=================
+- Add functions tecella_initialize_from_file() and tecella_finalize_to_file().
+- Supports saving calibration and register state to a file.
+- Enables quick initialization.
+- Can now quickly move ownership of the amplifier to different processes.
+
+
+v0.119.28
+=================
+- Make auto calibration depend on the HPF in addition to gain.
+- Add delays back into auto calibration if a HPF is present.
+
+
+v0.119.27
+=================
+- Removes glitches at the end of a stimulus for Amadeus.
+- Fixes stimulus repeat for Amadeus.
+- Fixes hpf and gains for Amadeus Rev A.
+- Gets rid of the "settling" in first acquisition after initialization for Amadeus.
+
+
+v0.119.26
+=================
+- Fix stimulus for Richmond and Jet.
+
+
+v0.119.25
+=================
+- Improves auto offset and auto scale for Amadeus.
+
+v0.119.24
+=================
+- Enabled auto offset and auto scale for Amadeus.
+- Fixes missing last stimulus segment for Amadeus.
+
+
+v0.119.23
+=================
+- Fixes stimulus offset adjust mode when leak isn't enabled.
+- Improves offset adjust mode, by automatically scaling the offset when leak/jp change.
+
+
+v0.119.22
+=================
+- Adds a new offset adjust mode that adjusts the stimulus(jp) and response simultaneously during tecella_auto_comp() when using analog leak.
+
+
+v0.119.21
+=================
+- Fixed stimulus start synchronization issues on Jet and Richmond.
+- Improve performance of acquisition and filtering.
+- Automatically enables digital leak if used in tecella_auto_comp.
+- Fixed crash with asynchronous vcmd when tecella_debug is enabled.
+
+
+v0.119.20
+=================
+- Triton+, Shasta, and Apollo now suppurt extended stimulus functionaliy.
+- Segment duration lsb for Shasta/Apollo changed.
+- Changed the bessel value<->frequency conversion to better match the hardware.
+
+
+v0.119.19
+=================
+- Changed Amadeus to only have a subset of gains so the gains can be set normally using tecella_chan_set_gain.
+
+
+v0.119.18
+=================
+- Changes to TECELLA_HW_PROPS_EX_01 struct.
+- Prevent gain divisors from being 0 on Amadeus
+- Improved formatting of the register labels.
+- Fixes Jet turbo mode.
+- Added tecella_get_slew_label.
+
+
+v0.119.17
+=================
+- Fixes a floating point exception that would occur during initialization.
+- Extended stimulus interface added to control slew rate and synchronized digital io.
+- Initial support for Amadeus added.
+- Added functions to control a high pass filter.
+- Added functions to steer stimuli to different destinations if supported by the amplifier.
+- Added a TECELLA_HW_PROPS_EX_01 structure to maintain backwards compatibility for TECELLA_HW_PROPS.  TECELLA_HW_PROPS_EX_01 is subject to change, so be careful.
+
+
+v0.119.15 - v0.119.16
+=================
+- Improvements made to autoScale.
+
+
+v0.119.14
+=================
+- Update certain amplifier configurations.
+
+
+v0.119.13
+=================
+- Improved auto compensation a bit. 
+- Added voltage monitor support for Apollo and Shasta.
+- Fixed auto leak check that makes sure rleak > rseries.
+- Added support for another TritonPlus configuration.
+
+
+v0.119.12
+=================
+- Improve auto analog leak compensation using an adaptive method.
+- Fix autocomp when both analog and digital leak are used.
+
+
+v0.119.11
+=================
+- Output tlc files for auto compensations in debug mode, to make debug easier.
+
+
+v0.119.10
+=================
+- Fix scale for certain configurations
+
+
+v0.119.9
+=================
+- Fixes TECELLA_INTERNAL_ERROR that would occur if the user acquires with a sample_period_multiplier other than 1 and then runs one of the tecella_auto* functions.
+- Compiled with auto vectorization enabled to improve performance of filtering functionality.
+- Added offset adjust modes to adjust the stimulus offset using JP or the response offset after tecella_auto_comp() with use_leak=true.
+- Added an auto-zero function, which adjusts the response offset at the beginning of every acquisition.
+- Added extended stimulus functionality for hardware that supports it.
+		- Subject to change, but includes slew control and digital vcmds synchronized to the analog vcmd.
+- New Triton+ configurations added.
+-
+
+
+v0.119.8
+=================
+- All auto compensation / calibration functions would silently produce incorrect results if the holding voltage wasn't set to the same initial voltage used by the auto compensation / calibration function.  The voltage difference would cause the auto function to see a spike at the beginning of acquisition, throwing off calculations.  This release properly manages the holding voltage so the spike no longer appears.  The holding voltage is restored before returning.
+
+
+v0.119.7
+=================
+- Fixes autoscale bugs.
+- Add new / fix some old amplifier configurations.
+
+
+v0.119.6
+=================
+- Fix a suprious DEVICE_CONTENTION error that would occur after setting a stimulus without any channels assigned to it.
+- Fix a segfault that might occur during autocomp in a very rare corner case.
+
+
+v0.119.4-5
+=================
+- Fix some spurious TECELLA_INTERNAL_ERRORS.
+
+
+v0.119.3
+=================
+- Fix the remaining spurious device contention errors (especially regarding multiple stimuli.)
+
+
+v0.119.2
+=================
+- For vcmd ranges of +-2V on TritonPlus, use a step size of 1mV instead of .98mV.
+
+
+v0.119.1
+=================
+- Re-enabled utility trigger out support on TritonPlus.
+
+
+v0.119.0
+=================
+- First crack at merging the v0.106.x branch into the main release.
+- Fix some spurious device contention errors, however others remain.
+- Adds support for a new amplifier configuration.
+- Fixes spurious Opal Kelly library not found error.
+
+
+v0.118.0
+=================
+General new features:
+- Single official Opal Kelly driver used now that works on all Windows platforms (XP/Vista/7+32/64 bit).
+	*The user must uninstall the old drivers manually, then install the new drivers.
+	*You no longer need okFrontPanel32.dll and okFrontPanel64.dll - just okFrontPanel.dll.
+- New dll requiriment, which supports throwing exceptions accross dll boundaries: libgcc_s_dw2-1.dll.
+- Added digital leak, which replaces leak calibration.
+- Added system monitor functions.
+- Autocomp can do digital leak and artifact removal now.
+- Added filtering API - useful if you wish to run a low pass filter before using a lower sampling rate.
+
+Changed/new structs:
+- TECELLA_HW_PROPS: nslots field added.
+- TECELLA_SYSTEM_MONITOR_RESULT: new
+- TECELLA_ERRNUM: added TECELLA_ERR_DEVICE_CONTENTION error.
+
+Changed function signatures / functionality:
+- tecella_auto_comp: Performs digital leak and capacitance compensation. Removed leak calibration.
+- tecella_stimulus_zap: zero length duration implies a "holding Zap".
+
+Removed functions:
+- tecella_auto_calibrate_leak_enable: use digital leak subtraction instead.
+
+New functions:
+- tecella_system_monitor_run: use this to retrieve system voltages, power usage, and such.
+- tecella_system_monitor_get: "
+- tecella_chan_set_digital_leak: applies digital leak
+- tecella_chan_get_digital_leak: "
+- tecella_chan_set_digital_leak_enable: "
+- tecella_chan_get_digital_leak_enable: "
+- tecella_auto_artifact_decay_start: allows artifact removal to trail off so there isn't a big jump.
+- tecella_auto_artifact_get_size: allows user to get/set the artifact being removed.
+- tecella_auto_artifact_get: "
+- tecella_auto_artifact_set: "
+- tecella_sw_filter_enable: applies a digital filter to the incomming data.
+- tecella_sw_filter_set: allows a user-specified filter kernel.
+- tecella_sw_filter_set_box: a convenience function for setting a simple box filter.
+- tecella_sw_filter_set_lanczos: a convenience function for setting a lanczos filter.
+- tecella_acquire_read_f: same as tecella_acquire_read_d, but for floats.
+
+Extra notes about this release:
+1) We upgraded to the official Opal Kelly Driver that works for all Windows platforms.
+Why: Previous versions relied on a beta driver for 64-bit versions.
+How this affects you:
+a) You have to remove the old driver and install the new driver.
+b) To uninstall the old driver, you may have to manually go to the device manager and select "delete the driver software for this device" when uninstalling the device.
+c) Your application only needs okFrontPanel.dll instead of okFrontPanel32.dll and okFrontPanel64.dll.
+
+2) Added digital leak compensation, which replaces leak calibration.
+Why: Leak calibration (zeroing the offset after auto analog leak) was a hack and digital leak is the more general solution. Digital leak compensation allows for a more continuous leak compensation when used in conjunction with analog leak compensation. Analog leak compensation is still needed, however, to improve the dynamic range of the amplifier.
+How this affects you:
+a) When running auto leak, you should always use analog leak in conjunction with digital leak.
+b) After running auto leak, use tecella_chan_get_digital_leak to get the amount of leak being compensated digitally.
+
+3) Added system monitor functions.
+Why: These functions allow you to monitor the voltages of the amplifier which will help diagnose a problematic system.
+How this affects you:
+a) When you want to add diagnostic functionality, you can implement the calls to tecella_system_monitor_run/get.
+
+4) Autocomp can do digital leak and artifact removal now.
+Why: For digital leak, see (3). We added artifact removal to tecella_auto_comp because it is basically free to perform simultaneously with any other compensation.
+Pitfalls: Compared to a stand-alone artifact removal via tecella_auto_artifact_update, it may not be as accurate if you simultaneously auto comp cfast/clsow. Results are still pretty good, though.
+How this affects you:
+a) The call signature of tecella_auto_comp has changed.
+b) You should consider setting use_digital_capacitance to true whenever you can (for example during every auto leak), since it's free.
+
+5) Added filtering API
+Why: Allows you to specify a low pass filter, which is useful for reducing noise when using a lower sampling rate.
+How this affects you:
+a) If you use a sample period multiplier of N, you should call tecella_sw_filter_set_box() with width = N before starting acquisition.
+b) Alternatively, you may specify your own filter.
+
+6) TECELLA_ERR_DEVICE_CONTENTION error if an acquisition, autocomp, or vcmd change overlaps.
+Why: Device contention bugs are difficult to debug at the application level, so the API tries to fail early if it detects device contention.
+How this affects you:
+a) The following functions may now return TECELLA_ERR_DEVICE_CONTENTION: tecella_acquire_start, tecella_acquire_start_stimulus, tecella_stimulus_set, tecella_chan_set_stimulus, tecella_auto_comp, tecella_auto_artifact_update, tecella_auto_offset, tecella_auto_calibrate, tecella_auto_scale.
+
+7) New dll requiriment: libgcc_s_dw2-1.dll.
+Why: Dynamically linking this library supports throwing exceptions across DLL boundaries. Static linking of this library does not.
+How this affects you:
+a) You must include libgcc_s_dw2-1.dll with your application.
+b) You may now throw exceptions from your callback functions and they should properly unwind the stack even as they go through the TecellaAmp.dll.
+
+
+
+v0.117.1
+=================
+- Keep track of individual stimuli for TECELLA_ERR_DEVICE_CONTENTION.
+
+v0.117.0
+=================
+- **INTERFACE CHANGE**
+- Associates tecella_auto_scale and tecella_auto_calibrate with a stimulus.
+- More error checking.
+
+v0.116.2
+=================
+- Refactor flow control / device ownership.
+- Improve error reporting and add a new error: TECELLA_ERR_DEVICE_CONTENTION.
+- Removes 1s delay when programing stimulus for some models of Apollo.
+
+v0.116.1
+=================
+- Auto compensation with leak is clamped to within valid values.
+- Fixes a bug where pairing up amplifiers would crash when running ZAP.
+
+v0.116.0
+=================
+- tecella_auto_artifact_update() takes in t_hold and t_step arguments and uses t_step to determine for how long artifact removal should work.
+- Added tecella_auto_artifact_decay_start(), that allows a user to specify when artifact removal should start decaying to prevent a sudden step if the artifact removal length is not long enough.
+- Fixed a few bugs with amplifier pairing.
+
+v0.115.0
+=================
+- Added preliminary support for pairing amplifiers together to make them look like a single amplifier.
+- Added support for amplifiers that can be reconfigured on the fly.  tecella_user_config_get() tecella_user_config_set().
+- Removed support for changing between voltage/current clamp, since no amplifiers support it.
+- Fix bug where data could be lost as it's read from the amplifier.
+- Fix small probability of hang when stopping acquisition.
+- TECELLA_HW_PROPS added two new feilds: user_config_count, user_config_name.
+- Fix a few bugs where enabling/disabling channels wouldn't work right.
+- Fix "r6025 pure virtual function call" bug that shows up intermittently under heavy load with multiple threads.
+
+v0.114.0
+=================
+- tecella_auto_comp takes a new parameter, under_comp_coefficient, to give the user control over how much capacitance should be over/under compensated.
+- Added a new function, tecella_auto_artifact_get_capacitance, that returns the equivalent capacitance of the artifact removal.
+
+v0.113.1
+=================
+- Fix bug in autocomp algorithm.
+
+v0.113.0
+=================
+- Accidentally changed serial_number field of hw_props in v0.112.0 to char from wchar_t.  Changed it back to wchar_t.
+- Fixes Zap for old Tritons.
+
+v0.112.0
+=================
+- Adds an enumeration interface that allows the user to work with multiple amplifiers simultaneously.
+- The second argument to tecella_initialize() is now a device index instead of a model type.  Using the TECELLA_HW_MODEL_AUTO_DETECT value as the index should still have the same effect.
+
+v0.111.11
+=================
+- tecella_auto_comp with leak works with rseries enabled again. (Fixed Rleak>Rseries restrictions used during autocomp.)
+
+v0.111.10
+=================
+- Artifact removal is now only disabled during tecella_auto_comp() if a cfast/cslow is used.
+- Fixes bug where auto leak calibration would be unstable (infinity).
+- The auto calibrate leak no longer keeps the baseline at 0 for all values of leak:
+	1)The baseline will be 0 for the leak value calculated by tecella_auto_comp.
+	2)The baseline will be the orignal value if leak is set back to zero.
+	3)All other values of leak will linearly interpolate the baseline between 1 and 2.
+
+v0.111.9
+=================
+- Added fuctions tecella_auto_calibrate_get/set()
+- tecella_auto_comp now auto calibrates for leak whenever leak changes for a given jp and vcmd.
+- Added function tecella_auto_calibrate_leak_en to enable/disable previous functionality.
+- Fixes bug in previous version that would result in incorrect leak calibration.
+
+v0.111.8
+=================
+- A new restriction is enforced that requires Rleak>Rseries.
+	This restriction is taken into account automatically during tecella_auto_comp.
+	If the user breaks this restriction, an error will be returned.
+- Fpga would not be reset if firware was deteceted during initialization.  Fpga is now reset just in case.
+
+v0.111.7
+=================
+- Add new TritonPlus configuration.
+
+v0.111.6
+=================
+- Programming the firmware would produce spurious stimulus pulses, so the firmware is only programmed on the first initialization after power-up instead of on every initialization.
+- The source now defaults to NONE instead of HEAD after initialization, so that the user may specify a holding voltage instead before HEAD is selected.
+- Removed the serial number dependency for some TritonPlus configs.
+
+v0.111.5
+=================
+- Special case a single TritonPlus amplifier with a different leak range.
+
+v0.111.4
+=================
+- Rseries is no longer disabled automatically during tecella_auto_comp().
+
+v0.111.3
+=================
+- ZAP was broken for several releases.  Fixed now.
+
+v0.111.2
+=================
+- Added new TritonPlus configuration.
+
+v0.111.1
+=================
+- Improvement to auto leak for higher gains.
+
+v0.111.0
+=================
+- Makes pulse length in tecella_auto_comp programmable.
+
+v0.110.1
+=================
+- Adds auto offset after auto comp.
+
+v0.110.0
+=================
+- Support for Shasta added.
+
+v0.109.2
+=================
+- Fix the range checking on ramp segment types.
+
+v0.109.1
+=================
+- Update to a few TritonPlus configurations.
+
+v0.109.0
+=================
+- Add a tecella_auto_calibrate_get to retrieve the per-channel calibrations.
+
+v0.107.1
+=================
+- When tecella_finalize is called, the vcmds are now put into a state that shouldn't oscillate during the next call to tecella_initialize.
+- Add 1s delays after changing JP during tecella_auto_offset to allow the response to settle.
+
+
+v0.107.0
+=================
+- !!Binary interface change!! - Add "iterations" argument to tecella_auto_comp().
+- Re-enable rseries properly after tecella_auto_comp().
+- Disable leak during tecella_auto_offset().
+- Fix rounding error on register bounds checking.
+- Change leak units to be Ohm^-1 to make the scale linear.  Previous units were incorrect.
+
+
+v0.106.3
+=================
+- Added a tecella_acquire_start_stimuli function that can start multiple stimuli simultaneously.
+
+
+v0.106.2
+=================
+- Added 5 second delays to tecella_auto_offset after any change to JP to let the response settle.
+
+
+v0.106.1
+=================
+- Removed vcmd check for 3 or more segments and starting/ending with a SET type segment.
+- Ramps segments are not always reported as out of bounds now.
+
+
+v0.106.0
+=================
+- Sometimes the number of samples read would be less than expected.  Should be fixed now.
+- Fixed bug where graph would appear "rounded" on certain TritonPlus models.
+- !!Binary interface change!!  Will crash if tecella_hw_props is not updated with 5 new fields marked with a "+" below.
+
+ typedef struct tecella_hw_props {
+ 	TECELLA_HW_MODEL hw_model;
+ 	wchar_t     device_name[32];
+ 	wchar_t     serial_number[16];
+ 	int         hwvers;
+ 	int         nchans;
+ 	int         nsources;
+ 	int         ngains;
+ 	int         ncslows;
+ 	int         n_utility_dacs;	
+ 	int         nstimuli;
+ 	int         max_stimulus_segments;
+ 	bool        supports_async_stimulus;
+ 	bool        supports_oscope;
+ 	bool        supports_vcmd;
+ 	double      stimulus_value_min;
+ 	double      stimulus_value_max;
+ 	double      stimulus_value_lsb;
++	double      stimulus_ramp_step_size;
+ 	bool        supports_icmd;
+ 	double      icmd_value_min;
+ 	double      icmd_value_max;
+ 	double      icmd_value_lsb;
++	double      icmd_ramp_step_size;
+ 	double      stimulus_segment_duration_max;
+ 	double      stimulus_segment_duration_lsb;
++	int         stimulus_delta_count_max;
++	int         stimulus_repeat_count_max;
++	int         stimulus_ramp_steps_max;
+ 	bool        supports_zap;
+ 	double      zap_value_min;
+ 	double      zap_value_max;
+ 	double      zap_value_lsb;
+ 	bool        supports_bessel;
+ 	int         bessel_value_min;
+ 	int         bessel_value_max;
+ 	double      utility_dac_min;
+ 	double      utility_dac_max;
+ 	double      utility_dac_lsb;
+ 	double      sample_period_min;
+ 	double      sample_period_max;
+ 	double      sample_period_lsb;
+ 	int         bits_per_sample;
+ } TECELLA_HW_PROPS;
+
+
+v0.105.1
+=================
+- Added tecella_debug() that logs API function calls + arguments to a file.
+- More robust bounds checking / error detecting / vcmd validation.
+- Change bit file search back to the old way:
+	- Looks in executable directory instead of working directory.
+- Fix sample notifications that broke in v0.105.0.
+- Make hardware initialization a little faster.
+- When setting registers values, the values are now rounded to the nearest valid value instead of truncated a lower value.
+
+
+v0.105.0
+=================
+- !!WARNING!!: Your program will crash if you call tecella_auto_offset() using the old argument list.
+- Binary interface change to accomodate the following:
+- tecella_auto_offset() now performs automatic JP calculation.
+	ie: tecella_auto_offset() compensates for EXTERNAL offsets by offseting the stimulus.
+- tecella_auto_calibrate() performs the same function as the old tecella_auto_offset()
+	ie: tecella_auto_calibrate() compensates for INTERNAL offsets by offseting the measured current.
+
+v0.104.11
+=================
+- Stimuli with more than ~2^32 samples would acquire incorrect amount of data or crash.  Limit extended to ~2^64 samples.
+- Add tecella_utility_set_stimulus() to the example program.
+- Fixes inversion of Richmond/Jet holding voltage.
+- Fixes a memory leak/accumulation that occurs if a notification callback is not set.
+- tecella_auto_comp() does not change leak anymore if asked not to.
+- Changed bessel initialization for TritonPlus.
+- Change rseries ranges from 10MOhm to 20Mohm for some hardware configurations.
+- Fixed bug on TritonPlus where graph looks filtered after enabling rseries.
+- Acquisition stops automatically if no data is present on WallE.
+- Beta support for 64-bit Vista added.
+	- okFrontPanel32.dll and okFrontPanel64.dll must be used instead of okFrontPanel.dll.
+- Fixed regression that occured since v0.104.7, where base acquisition sample period was not actually taken into consideration.
+
+v0.104.7 - v0.104.10
+=================
+- Support for WallE hardware added.
+- Fixed unsigned / signed samples for WallE.
+
+v0.104.6
+=================
+- Fix range for cfast on Jet and Richmond systems.
+- More tweeks to auto artifact.
+
+v0.104.5
+=================
+- Contains fixes from both v0.104.3 and v0.104.4.
+- Triton Plus holding voltage bug fixed.
+
+v0.104.4
+=================
+- Direct branch from v0.104.2.  (Does not contain anything from v0.104.3)
+- Fixes stimulus min/max for Richmond.
+
+v0.104.3
+=================
+- Autocomp will now work even if auto offset hasn't been run or if there is a junction potential present.
+
+v0.104.6
+=================
+- Fix range for cfast on Jet and Richmond systems.
+- More tweeks to auto artifact.
+
+v0.104.4
+=================
+-Direct branch from v0.104.2.  (Does not contain anything from v0.104.3)
+-Fixes stimulus min/max for Richmond.
+
+v0.104.3
+=================
+-Autocomp will now work even if auto offset hasn't been run or if there is a junction potential present.
+
+v0.104.2
+=================
+- Fixes bug in last two releases where no samples would be acquired if acquisition were started with start_stimuli=false and continuous_stimuli=true.
+- Fixes crash that occurs after 10-15 minutes.
+- Add ramp+delta support to TritonPlus.
+
+
+v0.104.1
+=================
+Note: This release has only been tested with Richmond Hardware.
+Known bugs: Stimulus notifications at the very beginning of acquisition may be lost.
+-Fixed autocomp bugs and make it more consistent.
+-Fixed tecella_utility_set_stimulus() function.
+-Holding voltage now output whenever a stimulus is not playing.
+	-This allows deltas/repeats to occur without having to visit the holding voltage each iteration.
+	-Note: The user must now set the holding voltage explicitly using tecella_stimulus_set_hold(), instead of relying on the first/last segment of the vcmd.
+	-Note: Minimum segment count is still 3 due to hardware/firmware limitations.
+-Stimulus notifications from internal API acquisitions are no longer reported.
+-First call to tecella_stimulus_start() failed in previous version.  Now fixed.
+-Fixed stimulus notifications for Triton and Triton Plus.
+-Enhancements to Artifact removal.
+
+
+v0.104.0
+=================
+Support for stimulus only channels added via tecella_utlility_set_stimulus(_).
+
+Timestamp functionality implemented and is now a 64 bit unsigned integer (unsigned long long).
+
+tecella_chan_set*() and tecella_stimulus_set() functions queue their commands and return immediately instead of blocking until the request is complete.
+
+Added stimulus notification callback (TECELLA_STIMULUS_CB), which is guaranteed to be called before notification of samples in acquire callback.
+
+Gain labels (from tecella_get_gain_label()) now reflect actual feedback resistor values of the connected hardware.
+
+Auto offset and auto scale are not run during initialization any more and should be called manually after tecella_initialize().
+
+Fixed bug where maximum reported stimulus segment was incorrect.
+
+Fixed bug where tecella_auto* functions would not work if user acquired with a sample period other than 50us.
+
+Fixed bug where sample counts for ramp/delta/repeat segments were incorrect.
+
+Fixed bug where sample count returned by tecella_stimulus_sample_count did not match actual number of samples returned.
+
+
+v0.103.0
+=================
+Ramp and delta segments fully supported.
+Autocomp on a vcmd while acquiring on others works now.
+Fixed various bugs that were notifying the API user of internal data.
+TecellaTLC split off into a separate dll to fix 2GB limit.
+	-Compiled by gcc instead of msvc, so please notify us of any incompatibilities.
+Fix invalid memory access if acquiring when a vcmd has not been set.
+Interface for timestamping data added (but not implemented).
+Interface for signaling last sample added (but not implemented).
+Numerous memory leaks patched.
+
+v0.102.3
+=================
+When programming a vcmd, tecella_stimulus_set takes in two integers (step_count and repeat_count) instead of an int and a bool (iterations and loop).
+	Be careful, as old code will still compile but will likely be invalid!
+Added initial support for delta and ramp stimulus types.
+	Known bugs, to be fixed:
+	A stimulus with a delta segment is limited to 3 segments.
+	A stimulus cannot have both a delta and a ramp segment.
+Added initial support for artifact removal, which digitally compensates for any imperfections in the analog compensation (calculated by tecella_autocomp or otherwise.)
+	Known bugs, to be fixed: Doesn't work all the time with async stimuli.
+	Known limitations: Does not work for delta and ramp segments.
+"Invalid argument" error code added.
+
+v0.102.2
+=================
+Automatic gain calibration done during initialization.
+Function added to specify the stimulus value on the fly.  (See tecella_stimulus_set_hold.)
+Fixed sample period specification - it can now be any multiple of 50e-6 seconds.
+Added utility dac interface.  (See tecella_utility_dac_set.)
+Changed error codes.
+
+
+v0.102.0
+=================
+Better async vcmd support:
+	Individual stimuli can be stopped.
+	More options to only acquire while a vcmd is playing.
+	Frame size reduced from 1 second to ~10us for reduced latency.
+Auto Compensation
+	Works for Richmond and TritonPlus now.
+	More options added to specify test pulse amplitude and which compensations to use.
+	Note: support for autcompensation while acquiring is not supported yet.
+Revamped error reporting:
+	Initialization failures returned.
+	SW buffer overflow.
+Rounding errors fixed for tecella_get_stimulus().
+Simple holding voltage can be specified with tecella_stimulus_set_hold() instead of having to programming a vcmd.
+tecella_stimulus_zap() works now.
+Polarity of vcmd/acquisition fixed for several products.
+Capture bit removed from stimuls segment.
+
+v0.101.5
+=================
+Support added for Jet.
+Autodetect support added for initialization.
+
+v0.101.4
+=================
+Bessel filter channel selection works properly now.
+
+v0.101.3
+=================
+Preliminary multi/async vcmd support for hardware that supports it.
+
+v0.101.2
+=================
+This is our first full release for which we expect the API to remain fairly consistent.
+
+A new acquisition scheme has been implemented that doesn't block the calling thread.
+
+Known issues, that will be fixed in the future:
+	-Changing the channel settings can be a little slow.
+	-Other than tecella_initialize(), error reporting isn't very robust.
+	-Zap is not yet implemented.
+	-Auto-detect of the model of the connected device doesn't work.
+	

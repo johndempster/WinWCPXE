@@ -42,6 +42,10 @@ object TritonPanelFrm: TTritonPanelFrm
         TabOrder = 0
         object AutoPage: TTabSheet
           Caption = 'Auto'
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object ckCompensateAllChannels: TCheckBox
             Left = 167
             Top = 240
@@ -236,6 +240,10 @@ object TritonPanelFrm: TTritonPanelFrm
         object CapacityPage: TTabSheet
           Caption = 'Capacity'
           ImageIndex = 1
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object panCFast: TPanel
             Left = 1
             Top = 0
@@ -653,6 +661,10 @@ object TritonPanelFrm: TTritonPanelFrm
         object ResistancePage: TTabSheet
           Caption = 'Resistance'
           ImageIndex = 2
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object panRSeries: TPanel
             Left = 1
             Top = 2
@@ -993,6 +1005,10 @@ object TritonPanelFrm: TTritonPanelFrm
         object JunctionPotPage: TTabSheet
           Caption = 'Junction Pot.'
           ImageIndex = 3
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object panJunctionPot: TPanel
             Left = 1
             Top = 2
@@ -1119,6 +1135,10 @@ object TritonPanelFrm: TTritonPanelFrm
         object AdvancedTab: TTabSheet
           Caption = 'Adv.'
           ImageIndex = 4
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object GroupBox6: TGroupBox
             Left = 3
             Top = 29

@@ -68,7 +68,7 @@ object SealTestFrm: TSealTestFrm
   end
   object AmplifierGrp: TGroupBox
     Left = 8
-    Top = 40
+    Top = 44
     Width = 186
     Height = 185
     Caption = ' Amplifier '
@@ -132,7 +132,7 @@ object SealTestFrm: TSealTestFrm
     end
     object cbVoltageChannel: TComboBox
       Left = 54
-      Top = 73
+      Top = 71
       Width = 122
       Height = 23
       Hint = 'Channel containing voltage signal'
@@ -384,10 +384,6 @@ object SealTestFrm: TSealTestFrm
         Font.Name = 'Arial'
         Font.Style = [fsBold]
         ParentFont = False
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object Label9: TLabel
           Left = 4
           Top = 16
@@ -726,7 +722,7 @@ object SealTestFrm: TSealTestFrm
   end
   object PulseGrp: TGroupBox
     Left = 8
-    Top = 314
+    Top = 318
     Width = 186
     Height = 277
     Caption = ' Test Pulse '
@@ -1011,7 +1007,7 @@ object SealTestFrm: TSealTestFrm
   object TimerGrp: TGroupBox
     Left = 8
     Top = 594
-    Width = 186
+    Width = 190
     Height = 49
     Caption = ' Timer'
     Font.Charset = DEFAULT_CHARSET
@@ -1052,30 +1048,13 @@ object SealTestFrm: TSealTestFrm
       OnClick = bResetTimerClick
     end
   end
-  object ckAutoScale: TCheckBox
-    Left = 200
-    Top = 300
-    Width = 89
-    Height = 12
-    Hint = 'Automatic display magification adjustment'
-    Caption = ' Auto scale'
-    Font.Charset = ANSI_CHARSET
-    Font.Color = clBlack
-    Font.Height = -12
-    Font.Name = 'Arial'
-    Font.Style = [fsBold]
-    ParentFont = False
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 6
-  end
   object GroupBox4: TGroupBox
     Left = 8
-    Top = 224
+    Top = 230
     Width = 186
     Height = 89
     Caption = ' Send Test Pulse To '
-    TabOrder = 7
+    TabOrder = 6
     object ckPulseToAO0: TCheckBox
       Left = 8
       Top = 16
@@ -1141,11 +1120,11 @@ object SealTestFrm: TSealTestFrm
     Left = 8
     Top = 0
     Width = 186
-    Height = 41
-    TabOrder = 8
+    Height = 44
+    TabOrder = 7
     object Label10: TLabel
-      Left = 47
-      Top = 11
+      Left = 35
+      Top = 14
       Width = 73
       Height = 15
       Alignment = taRightJustify
@@ -1157,17 +1136,35 @@ object SealTestFrm: TSealTestFrm
       Font.Style = []
       ParentFont = False
     end
-    object cbNumChannels: TComboBox
-      Left = 126
-      Top = 11
-      Width = 50
+    object edNumChannels: TValidatedEdit
+      Left = 120
+      Top = 14
+      Width = 40
       Height = 23
-      Hint = 'No. of input channels displayed'
-      ParentShowHint = False
-      ShowHint = True
-      TabOrder = 0
-      Text = 'cbNumChannels'
-      OnChange = cbNumChannelsChange
+      Hint = 'Pulse #1: holding voltage'
+      OnKeyPress = edNumChannelsKeyPress
+      AutoSize = False
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clBlack
+      Font.Height = -13
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      Text = ' 1 '
+      Value = 1.000000000000000000
+      Scale = 1.000000000000000000
+      NumberFormat = '%.0f'
+      LoLimit = 1.000000000000000000
+      HiLimit = 128.000000000000000000
+    end
+    object udNumChannels: TUpDown
+      Left = 160
+      Top = 12
+      Width = 20
+      Height = 25
+      Min = -1000
+      Max = 1000
+      TabOrder = 1
+      OnClick = udNumChannelsClick
     end
   end
   object ZapGrp: TGroupBox
@@ -1176,7 +1173,7 @@ object SealTestFrm: TSealTestFrm
     Width = 89
     Height = 240
     Caption = ' Zap '
-    TabOrder = 9
+    TabOrder = 8
     object Label23: TLabel
       Left = 8
       Top = 41
@@ -1252,6 +1249,48 @@ object SealTestFrm: TSealTestFrm
       NumberFormat = '%.4g'
       LoLimit = -1.000000015047466E30
       HiLimit = 1.000000015047466E29
+    end
+  end
+  object pnDisplayOptions: TPanel
+    Left = 200
+    Top = 301
+    Width = 240
+    Height = 18
+    TabOrder = 9
+    object ckAutoScale: TCheckBox
+      Left = 0
+      Top = 0
+      Width = 89
+      Height = 12
+      Hint = 'Automatic display magification adjustment'
+      Caption = ' Auto scale'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clBlack
+      Font.Height = -12
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+    end
+    object ckDisplayAllChannels: TCheckBox
+      Left = 95
+      Top = 0
+      Width = 146
+      Height = 12
+      Hint = 'Automatic display magification adjustment'
+      Caption = 'Display All Channels'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clBlack
+      Font.Height = -12
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 1
+      OnClick = ckDisplayAllChannelsClick
     end
   end
   object Timer: TTimer

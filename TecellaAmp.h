@@ -32,8 +32,9 @@ typedef enum TECELLA_HW_MODEL {
 	TECELLA_HW_MODEL_JET,
 	TECELLA_HW_MODEL_RICHMOND,
 	TECELLA_HW_MODEL_PROTEUS,
-	TECELLA_HW_MODEL_APOLLO,
-	TECELLA_HW_MODEL_WALL_E,
+        TECELLA_HW_MODEL_APOLLO,
+        TECELLA_HW_MODEL_BILAYER,
+        TECELLA_HW_MODEL_WALL_E,
 	TECELLA_HW_MODEL_SHASTA,
 	TECELLA_HW_MODEL_AMADEUS,
 	TECELLA_HW_MODEL_PICO
@@ -82,6 +83,7 @@ typedef enum TECELLA_REGISTER {
 	TECELLA_REG_ICMD_OFFSET = 0x0A,
 	TECELLA_REG_BOOST_FREQUENCY = 0x0B,
 	TECELLA_REG_BOOST_GAIN = 0x0C,
+        TECELLA_REG_VHALF     = 0x0D,
 } TECELLA_REGISTER;
 
 /*****************************************//**
@@ -108,7 +110,17 @@ typedef enum TECELLA_ERRNUM {
 	//General errors
 	TECELLA_ERR_NOT_IMPLEMENTED = 0x001,
 	TECELLA_ERR_NOT_SUPPORTED = 0x002,
-	TECELLA_ERR_BAD_HANDLE = 0x003,
+    TECELLA_ERR_NOT_SUPPORTED_01 = 0x401,
+    TECELLA_ERR_NOT_SUPPORTED_02 = 0x402,
+    TECELLA_ERR_NOT_SUPPORTED_03 = 0x403,
+    TECELLA_ERR_NOT_SUPPORTED_04 = 0x404,
+    TECELLA_ERR_NOT_SUPPORTED_05 = 0x405,
+    TECELLA_ERR_NOT_SUPPORTED_06 = 0x406,
+    TECELLA_ERR_NOT_SUPPORTED_07 = 0x407,
+    TECELLA_ERR_NOT_SUPPORTED_08 = 0x408,
+    TECELLA_ERR_NOT_SUPPORTED_09 = 0x409,
+    TECELLA_ERR_NOT_SUPPORTED_10 = 0x40A,
+    TECELLA_ERR_BAD_HANDLE = 0x003,
 	TECELLA_ERR_INVALID_CHANNEL = 0x004,
 	TECELLA_ERR_INVALID_STIMULUS = 0x005,
 	TECELLA_ERR_INVALID_CHOICE = 0x006,
@@ -142,6 +154,7 @@ typedef enum TECELLA_ERRNUM {
 	TECELLA_ERR_STIMULUS_INVALID_DELTA_COUNT = 0x207,
 	TECELLA_ERR_STIMULUS_INVALID_REPEAT_COUNT = 0x208,
 	TECELLA_ERR_STIMULUS_INVALID_SEGMENT_SEQUENCE = 0x209,
+	TECELLA_ERR_STIMULUS_INVALID_SIZE = 0x20A,
 
 	//Acquisition errors
 	TECELLA_ERR_INVALID_SAMPLE_PERIOD = 0x300,
@@ -252,7 +265,8 @@ typedef struct tecella_hw_props_ex_01{
 	double trigger_in_delay_lsb;
 	bool supports_iclamp_enable;          /**< Indicates if the iclamp can be enabled and dissabled via tecella_chan_set_iclamp_enable(). */
 	bool supports_vcmd_enable;            /**< Indicates if the vcmd can be enabled and dissabled via tecella_chan_set_vcmd_enable(). */
-	bool supports_telegraphs;
+        bool supports_Rs100_enable;            /**< Indicates if the 100Rs can be enabled and dissabled via tecella_chan_set_Rs100_enable(). */
+        bool supports_telegraphs;
 	int ngains1;
 	wchar_t gain1_name[TECELLA_HW_PROPS_GAIN_NAME_SIZE];
 	int ngains2;
@@ -617,9 +631,13 @@ tecella_auto_calibrate_set(TECELLA_HNDL h, int channel, int offset);
 /**
  * @defgroup AmplifierProperties Amplifier Properties
  *
- * These functions allow you to get various properties of the library and amplifier.  For example: version numbers, channel counts, compensation ranges/step-sizes/units, and display labels.
+ * These functions allow you to get various properties of the library and amplifier.
+ * For example: version numbers, channel counts, compensation ranges/step-sizes/units,
+ * and display labels.
  *
- * The amplifier's properties can change, so these functions should be called after tecella_initialize() and whenever you change the amplifier configuration via tecella_user_config_set().
+ * The amplifier's properties can change, so these functions should be called after
+ * tecella_initialize() and whenever you change the amplifier configuration via
+ * tecella_user_config_set().
  *
  */
 /*@{*/
@@ -953,6 +971,34 @@ DLLEXPORT TECELLA_ERRNUM CALL tecella_chan_set_vcmd_enable(TECELLA_HNDL h, int c
 */
 DLLEXPORT TECELLA_ERRNUM CALL tecella_chan_get_vcmd_enable(TECELLA_HNDL h, int channel, bool *enable);
 
+/** Enables/disables 100% Rs Compensation for a particular channel.
+@param h A handle to an initialized device.
+@param channel The channel to change.  TECELLA_ALLCHAN can be used as a shortcut here.
+@param enable Indicates whether to enable or disable 100% Rs Compensation.
+*/
+DLLEXPORT TECELLA_ERRNUM CALL tecella_chan_set_Rs100_enable(TECELLA_HNDL h, int channel, bool enable);
+
+/** Returns whether 100% Rs Copmensation is enabled/disabled for a particular channel.
+@param h A handle to an initialized device.
+@param channel The channel to change.  TECELLA_ALLCHAN may not be used as a shortcut here.
+@param enable Indicates whether 100% Rs Compensation is enabled or disabled.
+*/
+DLLEXPORT TECELLA_ERRNUM CALL tecella_chan_get_Rs100_enable(TECELLA_HNDL h, int channel, bool *enable);
+
+/** Turns Iclamp ON or OFF for a particular channel.
+@param h A handle to an initialized device.
+@param channel The channel to change.  TECELLA_ALLCHAN can be used as a shortcut here.
+@param enable Indicates whether to turn Iclamp on or off.
+*/
+DLLEXPORT TECELLA_ERRNUM CALL tecella_chan_set_IclampOn(TECELLA_HNDL h, int channel, bool enable);
+
+/** Returns whether Iclamp is turned ON or OFF for a particular channel.
+@param h A handle to an initialized device.
+@param channel The channel to change.  TECELLA_ALLCHAN can be used as a shortcut here.
+@param enable Indicates whether Iclamp is turned on or off.
+*/
+DLLEXPORT TECELLA_ERRNUM CALL tecella_chan_get_IclampOn(TECELLA_HNDL h, int channel, bool *enable);
+
 /** Sets a register (property) of a channel.
 See tecella_reg_props(), to determine if a particular register is supported by the current hardware and to retreive other properties such as valid value ranges and precision.
 @param h A handle to an initialized device.
@@ -1260,6 +1306,60 @@ tecella_stimulus_steer(TECELLA_HNDL h, int stimulus_index, int destination_index
 
 
 /******************************************************************************
+* Stimulus
+******************************************************************************/
+
+/**
+ * @defgroup StreamingStimulus Streaming Stimulus
+ *
+ * Some amplifiers support streaming stimulus where the stimulus is output
+ * at the same sample rate as the response.
+ *
+ */
+
+/*@{*/
+
+/** Initializes the streaming of a new stimulus.
+Should be called before every call to tecella_acquire_start().
+If this function is not called, the last stimulus programmed by tecella_stimulus_set() will be used.
+The first samples in this stimulus will be synchronized to the start of acquisition.
+The format of the data is amplifier specific.  Interface for retreiving format TBD, as only Pico supports streamings stimulus.
+To be safe, initialize with at least 1 second worth of data to cover any latency issues.
+For Pico - First Word contains 8 bits of Digital Out, Second Word contains 12 bits of Stimulus, Third word contains 10 bits of Analog Out 1, Fourth Word contains 10 bits of Analog Out 2
+TecellaAmps buffer size is 16MB.
+@param h A handle to an initialized device.
+@param data Interpolated samples of output data.  (Digital Outs, Stimulus, Analog Out 1...)
+@param size The number of elements in the short being streamed.
+@see tecella_stimulus_stream_write()
+@see tecella_stimulus_stream_end()
+**/
+DLLEXPORT TECELLA_ERRNUM CALL
+tecella_stimulus_stream_initialize( TECELLA_HNDL h, short *data, int size );
+
+/** Appends data to the stimulus stream.
+After writing the last sample, be sure to call tecella_stimulus_stream_end().
+The format of the data is amplifier specific.  Interface for retreiving format TBD, as only Pico supports streamings stimulus.
+For Pico - First Word contains 8 bits of Digital Out, Second Word contains 12 bits of Stimulus, Third word contains 10 bits of Analog Out 1, Fourth Word contains 10 bits of Analog Out 2
+TecellaAmps buffer size is 16MB.
+@param h A handle to an initialized device.
+@param data Interpolated samples of output data.  (Digital Outs, Stimulus, Analog Out 1...)
+@param size The number of elements in the short being streamed.
+**/
+DLLEXPORT TECELLA_ERRNUM CALL
+tecella_stimulus_stream_write( TECELLA_HNDL h, short *data, int size );
+
+/** Indicates that the last sample for the stimulus stream has been written.
+This is required to prevent erroneous buffer underflow errors from being reported.
+@param h A handle to an initialized device.
+**/
+DLLEXPORT TECELLA_ERRNUM CALL
+tecella_stimulus_stream_end( TECELLA_HNDL h );
+
+
+/*@}*/
+
+
+/******************************************************************************
 * Auto Compensation
 ******************************************************************************/
 
@@ -1334,8 +1434,8 @@ tecella_auto_comp( TECELLA_HNDL h,
 		   double v_hold=0, double t_hold=20e-3,
 		   double v_step=10e-3, double t_step=20e-3,
 		   bool use_leak=true,
-		   bool use_digital_leak=true,
-		   bool use_cfast=true,
+           bool use_digital_leak=false,
+           bool use_cfast=true,
 		   bool use_cslow_a=true,
 		   bool use_cslow_b=true,
 		   bool use_cslow_c=true,

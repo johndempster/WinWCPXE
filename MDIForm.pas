@@ -752,6 +752,7 @@ unit MDIForm;
                    AmpModule.pas WPI EVC-4000 added and Axoclamp 900A support updated (but not tested with actual hardware)
    V5.5.8 17.08.21 Waveform Measurements: Peak-peak peak measurement option added
                    WCPMaxCHannels renamed MaxCHannels to allow modules to be swapped with WinEDR program
+   V5.5.9 23.08.21 Tecella Triton X now supported.
             =======================================================================}
 
 interface
@@ -1000,7 +1001,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.5.8';
+      ProgVersion := 'V5.5.9';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

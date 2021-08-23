@@ -107,6 +107,7 @@ unit Sealtest;
               Channels not associated with selected amplifier hidden in display except when stimulus routed to additional AO channels.
   04.08.21 .. Test pulse rate speeded up by only updating test pulse waveform when required and by changes to NIDAQMXunit to make
               ADCToMemory() more efficient.
+  18.08.21 .. Display All Channels tick option added to display. Tecella Triton channels can now be selected individually for display
 
   ==================================================}
 
@@ -187,7 +188,6 @@ type
     GroupBox2: TGroupBox;
     rbGaFromPeak: TRadioButton;
     rbGaFromExp: TRadioButton;
-    ckAutoScale: TCheckBox;
     edPulseheight3: TValidatedEdit;
     Label20: TLabel;
     cbAmplifier: TComboBox;
@@ -202,7 +202,6 @@ type
     ckPulseToAO2: TCheckBox;
     ckPulseToAO3: TCheckBox;
     ChannelsGrp: TGroupBox;
-    cbNumChannels: TComboBox;
     Label10: TLabel;
     CellRTab: TTabSheet;
     Label18: TLabel;
@@ -220,6 +219,11 @@ type
     Label23: TLabel;
     Label24: TLabel;
     bResetAverage: TButton;
+    pnDisplayOptions: TPanel;
+    ckAutoScale: TCheckBox;
+    ckDisplayAllChannels: TCheckBox;
+    edNumChannels: TValidatedEdit;
+    udNumChannels: TUpDown;
     procedure TimerTimer(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure edHoldingVoltage1KeyPress(Sender: TObject; var Key: Char);
@@ -248,7 +252,6 @@ type
     procedure cbAmplifierChange(Sender: TObject);
     procedure rbVclampClick(Sender: TObject);
     procedure rbIclampClick(Sender: TObject);
-    procedure cbNumChannelsChange(Sender: TObject);
     procedure edNumAveragesKeyPress(Sender: TObject; var Key: Char);
     procedure FormCreate(Sender: TObject);
     procedure bzapClick(Sender: TObject);
@@ -256,6 +259,9 @@ type
     procedure edZapDurationKeyPress(Sender: TObject; var Key: Char);
     procedure bResetAverageClick(Sender: TObject);
     procedure ckPulseToAO0Click(Sender: TObject);
+    procedure ckDisplayAllChannelsClick(Sender: TObject);
+    procedure edNumChannelsKeyPress(Sender: TObject; var Key: Char);
+    procedure udNumChannelsClick(Sender: TObject; Button: TUDBtnType);
   private
     { Private declarations }
   Initialised : Boolean ;
@@ -428,14 +434,22 @@ begin
      cbAmplifier.ItemIndex := 0 ;
 
      // No. of display channels
-     NumTestChannels := 2 ;
-     for i := 1 to MaxAmplifiers-1 do if Amplifier.AmplifierType[i] <> amNone then
-        NumTestChannels := NumTestChannels + 2 ;
-     cbNumChannels.Clear ;
+     NumTestChannels := 0 ;
+     for i := 0 to MaxAmplifiers-1 do
+         begin
+         if Amplifier.AmplifierType[i] = amTriton then NumTestChannels := Main.SESLabIO.ADCMaxChannels
+         else if Amplifier.AmplifierType[i] <> amNone then NumTestChannels := NumTestChannels + 2 ;
+         end;
+     NumTestChannels := Max(NumTestChannels,2) ;
+
+{     cbNumChannels.Clear ;
      for i := 1 to Main.SESLabIO.ADCMaxChannels do begin
          cbNumChannels.Items.Add(format(' %d',[i]));
          end ;
-     cbNumChannels.ItemIndex := NumTestChannels-1 ;
+     cbNumChannels.ItemIndex := NumTestChannels-1 ;}
+     edNumChannels.LoLimit := 1.0 ;
+     edNumChannels.HiLimit := Main.SESLabIO.ADCMaxChannels ;
+     edNumChannels.Value := NumTestChannels ;
 
      scDisplay.ClearHorizontalCursors ;
      scDisplay.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
@@ -529,10 +543,11 @@ begin
 
      // Clear display
      InitialiseDisplay ;
-     for ch := 0 to scDisplay.NumChannels-1 do
+
+  {   for ch := 0 to scDisplay.NumChannels-1 do
          begin
          scDisplay.ChanVisible[ch] := Main.SESLabIO.ADCChannelVisible[ch] ;
-         end ;
+         end ;}
 
      // Show channels for this amplifier
      ShowAmplifierChannels ;
@@ -554,7 +569,8 @@ begin
      { Fill current & voltage channel selection combo boxes }
      cbCurrentChannel.Clear ;
      cbVoltageChannel.Clear ;
-     for ch := 0 to NumTestChannels-1 do begin
+     for ch := 0 to NumTestChannels-1 do
+         begin
          cbCurrentChannel.Items.Add(format('Ch.%d %s',
                                     [ch,Main.SESLabIO.ADCChannelName[ch]]));
          cbVoltageChannel.Items.Add(format('Ch.%d %s',
@@ -564,7 +580,8 @@ begin
      cbVoltageChannel.ItemIndex := Max(1,NumTestChannels-1) ;
 
      // Set
-     for ch := NumTestChannels-1 downto 0 do begin
+     for ch := NumTestChannels-1 downto 0 do
+         begin
          // Current channel (units = pA,nA,uA)
          if ANSIContainsText(Main.SESLabIO.ADCChannelUnits[ch],'A') then
             cbCurrentChannel.ItemIndex := ch ;
@@ -573,8 +590,25 @@ begin
             cbVoltageChannel.ItemIndex := ch ;
          end ;
 
+     // Show channels for this amplifier
+     ShowAmplifierChannels ;
+
      end ;
 
+
+procedure TSealTestFrm.udNumChannelsClick(Sender: TObject; Button: TUDBtnType);
+// ---------------------------------------------
+// No. Channels displayed up/donw button clicked
+// ---------------------------------------------
+begin
+    if Button =  btNext then edNumChannels.Value := edNumChannels.Value + 1.0
+                        else edNumChannels.Value := edNumChannels.Value - 1.0 ;
+
+    NumTestChannels := Round(edNumChannels.Value) ;
+    UpdateChannelLists ;
+    ShowAmplifierChannels ;
+
+end;
 
 procedure TSealTestFrm.TimerTimer(Sender: TObject);
 { ---------------------
@@ -819,13 +853,22 @@ procedure TSealTestFrm.ShowAmplifierChannels ;
 var
     iAmp : Integer ;
     IsVisible : Boolean ;
+  ch: Integer;
 begin
-    for iAmp := 0 to cbAmplifier.Items.Count-1 do
+{    for iAmp := 0 to cbAmplifier.Items.Count-1 do
         begin
         if Amplifier.AmplifierType[iAmp] = amNone then IsVisible := True
                                                   else IsVisible := OutChannelSelected(iAmp) ;
         scDisplay.ChanVisible[Amplifier.CurrentChannel[iAmp]] := IsVisible ;
         scDisplay.ChanVisible[Amplifier.VoltageChannel[iAmp]] := IsVisible ;
+        end;}
+
+    for ch := 0 to scDisplay.NumChannels-1 do
+        begin
+        if (cbCurrentChannel.ItemIndex = ch) or
+           (cbVoltageChannel.ItemIndex = ch) or
+           ckDisplayallChannels.Checked then scDisplay.ChanVisible[ch] := True
+                                        else scDisplay.ChanVisible[ch] := False ;
         end;
     end ;
 
@@ -880,6 +923,15 @@ begin
     end ;
 
 
+procedure TSealTestFrm.ckDisplayAllChannelsClick(Sender: TObject);
+// -------------------------------------
+// Display All Channels tick box changed
+// -------------------------------------
+begin
+    ShowAmplifierChannels ;
+end;
+
+
 procedure TSealTestFrm.ckPulseToAO0Click(Sender: TObject);
 // --------------------------------
 // Output channel selection clicked
@@ -904,7 +956,8 @@ begin
      //scDisplay.xMax := NumTestSamples-1 ;
      //scDisplay.xMin := 0 ;
      { Set channel information }
-     for ch := 0 to NumTestChannels-1 do begin
+     for ch := 0 to NumTestChannels-1 do
+         begin
          scDisplay.ChanOffsets[ch] := Main.SESLabIO.ADCChannelOffset[ch] ;
          scDisplay.ChanUnits[ch] := Main.SESLabIO.ADCChannelUnits[ch] ;
          scDisplay.ChanScale[ch] := Main.SESLabIO.ADCChannelUnitsPerBit[ch] ;
@@ -1604,9 +1657,9 @@ begin
      CellGrp.Top := VoltsGrp.Top ;
      ZapGrp.Top := VoltsGrp.Top ;
 
-     ckAutoScale.Top := VoltsGrp.Top - ckAutoScale.Height - 5 ;
+     pnDisplayoptions.Top := VoltsGrp.Top - pnDisplayoptions.Height - 5 ;
      scDisplay.Width := Max(ClientWidth - scDisplay.Left - 5,2) ;
-     scDisplay.Height := Max( ckAutoScale.Top - scDisplay.Top - 2,2) ;
+     scDisplay.Height := Max( pnDisplayoptions.Top - scDisplay.Top - 2,2) ;
 
      //State := StartSweep ;
      StartADCandDAC ;
@@ -1666,6 +1719,7 @@ begin
 procedure TSealTestFrm.cbCurrentChannelChange(Sender: TObject);
 begin
      NewTestPulse := True ;
+     ShowAmplifierChannels ;
      end;
 
 procedure TSealTestFrm.bSaveToLogClick(Sender: TObject);
@@ -1949,15 +2003,6 @@ begin
         end ;
      end ;
 
-procedure TSealTestFrm.cbNumChannelsChange(Sender: TObject);
-// --------------------------------
-// No. of display channels changed
-// --------------------------------
-begin
-     NumTestChannels := Max( cbNumChannels.ItemIndex + 1,1) ;
-     UpdateChannelLists ;
-     end;
-
 
 procedure TSealTestFrm.edNumAveragesKeyPress(Sender: TObject;
   var Key: Char);
@@ -1966,6 +2011,20 @@ begin
        Settings.SealTest.NumAverages := Round(edNumAverages.Value)
        end ;
      end;
+
+
+procedure TSealTestFrm.edNumChannelsKeyPress(Sender: TObject; var Key: Char);
+// ---------------------------------
+// No. of displayed channels changed
+// ---------------------------------
+begin
+    if Key = #13 then
+       begin
+       NumTestChannels := Round(edNumChannels.Value) ;
+       UpdateChannelLists ;
+       ShowAmplifierChannels ;
+       end;
+    end;
 
 procedure TSealTestFrm.edZapAmplitudeKeyPress(Sender: TObject; var Key: Char);
 // ---------------------

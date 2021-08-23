@@ -38,7 +38,7 @@ unit TritonPanelUnit;
 // 11.04.19 Now uses TritonRemoveArtifact() procedure to remove artifact remaining after C compensation
 // 16.04.19 Analogue and digital leak conductance now handled as components of the overall leak conductance
 //          rather than as advanced proerties.
-//
+// 18.08.19 Support for 16/32 channel Triton X added
 
 interface
 
@@ -48,7 +48,7 @@ uses
   ComCtrls, xmldoc, xmlintf, strutils, ActiveX ;
 
 const
-    MaxTecellaChannels = 16 ;
+    MaxTecellaChannels = 32 ;
 
 type
   TTritonPanelFrm = class(TForm)
@@ -1109,8 +1109,8 @@ begin
 
      // Get auto compensation holding and test pulse amplitudes and duration from current seal test settings
 
-     TStep := Min(Max(Settings.SealTest.PulseWidth, 0.01 ), 0.1 ) ;
-     THold := TStep ;
+//     TStep := Min(Max(Settings.SealTest.PulseWidth, 0.01 ), 0.1 ) ;
+//     THold := TStep ;
      case Settings.SealTest.Use of
           3 : begin
               VHold :=  Settings.SealTest.HoldingVoltage3 ;
@@ -1146,7 +1146,8 @@ begin
                                             ) ;
 
      // Update settings
-     for ch := 0 to Main.SESLabIO.TritonNumChannels-1 do begin
+     for ch := 0 to Main.SESLabIO.TritonNumChannels-1 do
+        begin
         Main.SESLABIO.TritonGetReg(TECELLA_REG_CFAST,ch,Value,FCFAST[ch],Units,Enabled) ;
 
         Main.SESLABIO.TritonGetreg(TECELLA_REG_CSLOW_A,ch,Value,CSLOW_A[ch],Units,
@@ -1414,10 +1415,6 @@ procedure TTritonPanelFrm.bAutoCompArterfactClick(Sender: TObject);
 // Compensate any artefact remaining after capacity compensation
 // -------------------------------------------------------------
 var
-    ch : Integer ;
-    Enabled : Boolean ;
-    Value : Single ;
-    Units : String ;
     VHold,VStep,THold,TStep : single ;
 begin
 
@@ -1507,7 +1504,6 @@ procedure TTritonPanelFrm.bAutoLeakCompClick(Sender: TObject);
 // ---------------------------
 var
     ch : Integer ;
-    Enabled : Boolean ;
     Value : Single ;
     Units : String ;
     VHold,VStep,THold,TStep : single ;
