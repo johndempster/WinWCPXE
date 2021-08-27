@@ -753,6 +753,7 @@ unit MDIForm;
    V5.5.8 17.08.21 Waveform Measurements: Peak-peak peak measurement option added
                    WCPMaxCHannels renamed MaxCHannels to allow modules to be swapped with WinEDR program
    V5.5.9 23.08.21 Tecella Triton X now supported.
+   V5.6.0 27.08.21 Triton control panel updated. Now shuts down A/D and D/A in RecordFrm as well as seal test
             =======================================================================}
 
 interface
@@ -1001,7 +1002,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.5.9';
+      ProgVersion := 'V5.6.0';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }

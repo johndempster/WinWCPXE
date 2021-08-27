@@ -129,6 +129,7 @@ unit Rec;
   05.11.18 .. LEAK records can now be excluded from on-line plot.
   02.06.20 .. Record duration and sampling interval no longer change slightly when set repeatedly to same number
               Values saved to settings. No. of samples no longer limited to powers of 2.
+  27.08.21 .. .StopSweep renamed .StopADCandDAC for compatibility with WinEDR
 
   ==============================================================================}
 interface
@@ -404,7 +405,7 @@ type
     procedure ZoomOut( ChanNum : Integer ) ;
 
     procedure StartSweep ;
-    procedure StopSweep ;
+    procedure StopADCandDAC ;
 
     procedure UpdateStimulusProtocolList ;
     procedure UpdateDisplay( Clear : Boolean ) ;
@@ -851,7 +852,7 @@ begin
 
 
                   if AbortRecording then begin
-                     StopSweep ;
+                     StopADCandDAC ;
                      end
                   else if cbRecordingMode.ItemIndex = rmProtocol then begin
                      { Voltage pulse mode }
@@ -873,18 +874,17 @@ begin
                           stop recording if no new protocol available }
                         if LoadStimulusProtocol(False) then begin
                            if CheckNewdataFileNeeded then StartSweep
-                                                     else StopSweep ;
+                                                     else StopADCandDAC ;
                            end
-                        else StopSweep ;
+                        else StopADCandDAC ;
                         end
                      else StartSweep ;
                      end
                   else begin
                      { Other modes }
                      Inc(NumRecordsDone) ;
-                     if (NumRecordsDone >= Settings.NumRecordsRequired) then
-                          StopSweep
-                     else StartSweep ; ;
+                     if (NumRecordsDone >= Settings.NumRecordsRequired) then StopADCandDAC
+                                                                        else StartSweep ; ;
                      end ;
                   end ;
 
@@ -1082,7 +1082,7 @@ begin
      end ;
 
 
-procedure TRecordFrm.StopSweep ;
+procedure TRecordFrm.StopADCandDAC ;
 // --------------------
 // Stop recording sweep
 // --------------------
@@ -1930,7 +1930,7 @@ procedure TRecordFrm.bStopClick(Sender: TObject);
   --------------- }
 begin
      if (State = SweepInProgress) then EndofSweep := True
-                                  else StopSweep ;
+                                  else StopADCandDAC ;
 
      bRecord.enabled := True ;
      bStop.enabled := False ;

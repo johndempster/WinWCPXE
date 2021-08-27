@@ -1432,7 +1432,7 @@ begin
      ChangeDisplayGrid ;
 
      // Stop record form if it is open
-     if Main.FormExists( 'RecordFrm') then RecordFrm.StopSweep ;
+     if Main.FormExists( 'RecordFrm') then RecordFrm.StopADCandDAC ;
 
      { Start seal test pulses when form gains focus }
 
