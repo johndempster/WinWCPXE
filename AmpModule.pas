@@ -137,6 +137,11 @@ unit AmpModule;
 //          now default current-clamp X1 voltage gain = 0.00001 ;
 // 22.07.21 WPI EVC-4000 amplifier added
 // 04.08.21 Axoclamp 900A support updated and checked in demo mode. Not tested with actual hardware
+// 06.08.21 Axoclamp 900A support:
+//          c:\Program Files\Molecular Devices\Axoclamp 900A Commander
+//          c:\Program Files (x86)\Molecular Devices\Axoclamp 900A Commander added to list of folders searched
+// 13.08.21 Now reports Axoclamp 900A serial # and channel settings in task bar for debugging purposes
+// 14.09.21 Setting of command input enables in Axoclamp900AGetMode() temporarily disabled
 
 interface
 
@@ -328,9 +333,9 @@ const
      AXC_MODE_DSEVC
      AXC_MODE_TEVC }
 
-     AxoClamp900ADemoMode = False ;
-     AxoClamp900ADemoHS1Mode = AXC_MODE_DSEVC  ; //AXC_MODE_DSEVC ; //AXC_MODE_ICLAMP ;
-     AxoClamp900ADemoHS2Mode = {AXC_MODE_TEVC ;} AXC_MODE_ICLAMP ;
+     AxoClamp900ADemoMode = True ;
+     AxoClamp900ADemoHS1Mode = AXC_MODE_IZERO ;
+     AxoClamp900ADemoHS2Mode = AXC_MODE_TEVC ;
 
     AXC_SignalName : Array[0..17] of String = (
     'Vc1',
@@ -6171,12 +6176,12 @@ begin
            // Set command voltage scale factor in voltage clamp mode
            if CommandSensitivity[ch] <> 0.0 then FVoltageCommandScaleFactor[AmpNumber] := CommandSensitivity[ch] ;
            // Enable voltage-clamp command, disable current clamp command
-           Err := 0 ;
-           AXC_SetExtCmdEnable(Axoclamp900AHnd,False,ch,AXC_MODE_ICLAMP,Err);
-           LogErrorAxoClamp900A(format('GetAxoclamp900AMode.AXC_SetExtCmdEnable Ch.%d Mode=%d',[ch,iMode]),Err,False) ;
-           Err := 0 ;
-           AXC_SetExtCmdEnable(Axoclamp900AHnd,True,ch,iMode,Err);
-           LogErrorAxoClamp900A(format('GetAxoclamp900AMode.AXC_SetExtCmdEnable Ch.%d',[ch,iMode]),Err,False) ;
+//           Err := 0 ;
+//           AXC_SetExtCmdEnable(Axoclamp900AHnd,False,ch,AXC_MODE_ICLAMP,Err);
+//           LogErrorAxoClamp900A(format('GetAxoclamp900AMode.AXC_SetExtCmdEnable Ch.%d Mode=%d',[ch,iMode]),Err,False) ;
+//           Err := 0 ;
+//           AXC_SetExtCmdEnable(Axoclamp900AHnd,True,ch,iMode,Err);
+//           LogErrorAxoClamp900A(format('GetAxoclamp900AMode.AXC_SetExtCmdEnable Ch.%d',[ch,iMode]),Err,False) ;
            LastMode[AmpNumber] := VCLAMPMode
            end
         else
@@ -6184,12 +6189,12 @@ begin
            // Set current scale factor in current clamp mode
            if CommandSensitivity[ch] <> 0.0 then FCurrentCommandScaleFactor[AmpNumber] := CommandSensitivity[ch] ;
            // Enable current-clamp command, disable voltage clamp command
-           Err := 0 ;
-           AXC_SetExtCmdEnable(Axoclamp900AHnd,False,ch,AXC_MODE_DSEVC,Err);
-           LogErrorAxoClamp900A(format('GetAxoclamp900AMode.AXC_SetExtCmdEnable Ch.%d Mode=%d',[ch,iMode]),Err,False) ;
-           Err := 0 ;
-           AXC_SetExtCmdEnable(Axoclamp900AHnd,True,ch,iMode,Err);
-           LogErrorAxoClamp900A(format('GetAxoclamp900AMode.AXC_SetExtCmdEnable Ch.%d Mode=%d',[ch,iMode]),Err,False) ;
+ //          Err := 0 ;
+ //          AXC_SetExtCmdEnable(Axoclamp900AHnd,False,ch,AXC_MODE_DSEVC,Err);
+ //          LogErrorAxoClamp900A(format('GetAxoclamp900AMode.AXC_SetExtCmdEnable Ch.%d Mode=%d',[ch,iMode]),Err,False) ;
+ //          Err := 0 ;
+ //          AXC_SetExtCmdEnable(Axoclamp900AHnd,True,ch,iMode,Err);
+ //          LogErrorAxoClamp900A(format('GetAxoclamp900AMode.AXC_SetExtCmdEnable Ch.%d Mode=%d',[ch,iMode]),Err,False) ;
            end;
         end ;
 
@@ -6245,6 +6250,20 @@ begin
     AXC_GetScaledOutputGain( Axoclamp900AHnd, Gain, AXChan, iMode, Err ) ;
     LogErrorAxoClamp900A(format('GetAxoclamp900AChannelSettings.AXC_GetScaledOutputGain Ch.%d ',[AxChan]),Err,False) ;
     ChanScale := Gain ;
+
+    if AxChan = 0 then
+       begin
+       Main.StatusBar.SimpleText := 'Axoclamp 900A: ' + Axoclamp900AList[0] + ' ' ;
+
+       Main.StatusBar.SimpleText := Main.StatusBar.SimpleText +
+                                    format('Ch. %d, Signal %d, Gain %.4g, Mode %d ',
+                                    [AxChan,iSignal,Gain,iMode]);
+       end
+       else begin
+       Main.StatusBar.SimpleText := Main.StatusBar.SimpleText +
+                                    format('Ch. %d, Signal %d, Gain %.4g, Mode %d ',
+                                   [AxChan,iSignal,Gain,iMode]);
+       end;
 
     // Channel name and units
     ChanName := AXC_SignalName[iSignal] ;
@@ -6334,11 +6353,15 @@ begin
 
         // Create list of possible paths for Axoclamp Commander folder
         Paths := TStringList.Create ;
+        s := format('c:\Program Files (x86)\Molecular Devices\Axoclamp 900A Commander\',[i]) ;
+        Paths.Add(s) ;
+        s := format('c:\Program Files\Molecular Devices\Axoclamp 900A Commander\',[i]) ;
+        Paths.Add(s) ;
         for i := 0 to 9 do
             begin
-            s := format('c:\Program Files\Molecular Devices\Axoclamp 900A Commander 1.%d\',[i]) ;
-            Paths.Add(s) ;
             s := format('c:\Program Files (x86)\Molecular Devices\Axoclamp 900A Commander 1.%d\',[i]) ;
+            Paths.Add(s) ;
+            s := format('c:\Program Files\Molecular Devices\Axoclamp 900A Commander 1.%d\',[i]) ;
             Paths.Add(s) ;
             end;
 
@@ -6454,8 +6477,8 @@ begin
         // Default settings for testing in demo mode
         AXC_SetMode( Axoclamp900AHnd, 0, AxoClamp900ADemoHS1Mode, Err ) ;
         AXC_SetMode( Axoclamp900AHnd, 1, AxoClamp900ADemoHS2Mode, Err ) ;
-        AXC_SetScaledOutputSignal( Axoclamp900AHnd, AXC_SIGNAL_ID_I1, 0, AxoClamp900ADemoHS1Mode, Err ) ;
-        AXC_SetScaledOutputGain( Axoclamp900AHnd, 2.0, 0, AxoClamp900ADemoHS1Mode, Err ) ;
+        AXC_SetScaledOutputSignal( Axoclamp900AHnd, AXC_SIGNAL_ID_DIV10I2, 0, AxoClamp900ADemoHS1Mode, Err ) ;
+        AXC_SetScaledOutputGain( Axoclamp900AHnd, 1.0, 0, AxoClamp900ADemoHS1Mode, Err ) ;
         AXC_SetScaledOutputSignal( Axoclamp900AHnd, AXC_SIGNAL_ID_10V1, 1, AxoClamp900ADemoHS2Mode, Err ) ;
         AXC_SetScaledOutputGain( Axoclamp900AHnd, 1.0, 1, AxoClamp900ADemoHS2Mode, Err ) ;
 
