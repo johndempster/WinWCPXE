@@ -755,6 +755,7 @@ unit MDIForm;
    V5.5.9 23.08.21 Tecella Triton X now supported.
    V5.6.0 27.08.21 Triton control panel updated. Now shuts down A/D and D/A in RecordFrm as well as seal test
    V5.6.1 14.09.21 Axoclamp 900A: debugging information now listed in status bar
+   V5.6.2 14.09.21 Axoclamp 900A: Demo mode turned off
             =======================================================================}
 
 interface
@@ -1003,7 +1004,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.6.1';
+      ProgVersion := 'V5.6.2';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
