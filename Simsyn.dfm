@@ -59,6 +59,7 @@ object SynapseSim: TSynapseSim
     MaxADCValue = 2047
     MinADCValue = -2048
     NumBytesPerSample = 2
+    FloatingPointSamples = False
     FixZeroLevels = False
     DisplaySelected = False
     FontSize = 8
@@ -391,8 +392,8 @@ object SynapseSim: TSynapseSim
         WordWrap = True
       end
       object edTauRise: TValidatedEdit
-        Left = 80
-        Top = 21
+        Left = 83
+        Top = 22
         Width = 57
         Height = 20
         AutoSize = False

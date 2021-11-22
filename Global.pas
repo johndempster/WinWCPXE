@@ -13,6 +13,7 @@ unit Global;
               vQuantile measurement variable added
   12/08/19 .. vAbsArea measurement variable added
   15/08/19 .. LatencyPercentage variable added WCP File Header. Latency time to % peak value
+  16.11.21 ... Quantal analysis (qanal.pas) settinfs added
 }
 
 interface
@@ -406,6 +407,12 @@ TRecPlotSettings = Record
     IgnoreLeakRecords : Boolean ;
     End;
 
+TQuantalAnalysis = record
+    EvokedType : string ;
+    MiniType : string ;
+    Potentials : Boolean ;
+    end;
+
 TSettings = record
           Resolution16Bit : Boolean ;
           NumChannels : Integer ;
@@ -473,7 +480,7 @@ TSettings = record
           MEPSCSim : TMEPSCSimParameters ;
           RecPlot : TRecPlotSettings ;
           OpenNewFileOnRecord : Boolean ;
-
+          QuantalAnalysis : TQuantalAnalysis ;
           end ;
 
 

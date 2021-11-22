@@ -4,7 +4,12 @@ unit Qanal;
   18/2/98 ... Now has All Record/Range radio buttons
   15/7/99 V3.0 ... Converted to 32 bit (Delphi V3.0)
   25/1/99 V3.0.5 ... Potential correction calculation fixed
-01.01.04 .. Out of memory error blocked when windows resized to tiny size    
+01.01.04 .. Out of memory error blocked when windows resized to tiny size
+  15/11/21 .. Error in variance calculation when non-linear summation
+              correction in use fixed. Variance is now corrected for nls
+              as well as mean endplate potential amplitude.
+  16.11.21 .. Settings now saved in Settings.QuantalAnalysis
+
   ======================================================}
 
 interface
@@ -12,7 +17,7 @@ interface
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
   Forms, Dialogs, StdCtrls, Global, Fileio, shared, printers, plotlib,
-  ValEdit, RangeEdit, ValidatedEdit ;
+  ValEdit, RangeEdit, ValidatedEdit, seslabio, math ;
 
 type
   TQuantFrm = class(TForm)
@@ -81,10 +86,14 @@ begin
 
      { Type of record containing evoked signals }
      cbEvokedType.items := RecordTypes ;
-     cbEvokedType.itemIndex := cbEvokedType.items.IndexOf('TEST') ;
+     cbEvokedType.itemIndex := cbEvokedType.items.IndexOf(Settings.QuantalAnalysis.EvokedType) ;
+
      { Type of record containing spontaneous miniature signals }
      cbMiniType.items := RecordTypes ;
-     cbMiniType.itemIndex := cbMiniType.items.IndexOf('MINI') ;
+     cbMiniType.itemIndex := cbMiniType.items.IndexOf(Settings.QuantalAnalysis.MiniType) ;
+
+     // Current/potential analysis flag
+     rbPotentials.Checked := Settings.QuantalAnalysis.Potentials ;
 
      edRecRange.HiLimit := fH.NumRecords ;
      edRecRange.HiValue := fH.NumRecords ;
@@ -128,6 +137,7 @@ var
    Rec,RecStart,RecEnd : LongInt ;
    UseCh,i : Integer ;
    Evoked : TSignal ;
+   EvokedUncorrected : TSignal ;
    QuantalContent : TQuantalContent ;
    Mini : TSignal ;
    NumFailures,NumInvalid : LongInt ;
@@ -135,14 +145,18 @@ var
    ReleaseProbability,PoolSize,Denom : single ;
    Units : string ;
    rH : TRecHeader ;
+   Peak : PSingleArray ;
+
 begin
 
      { Determine record range/channels to be plotted }
-     if rbAllRecords.Checked then begin
+     if rbAllRecords.Checked then
+        begin
         RecStart := 1 ;
         RecEnd := FH.NumRecords ;
         end
-     else begin
+     else
+        begin
         RecStart := Round(edRecRange.LoValue) ;
         RecEnd := Round(edRecRange.HiValue) ;
         end ;
@@ -155,43 +169,52 @@ begin
      { ** Calculate average of peak evoked and mini signals ** }
 
      Evoked.Sum := 0. ;
+     EvokedUncorrected.Sum := 0.0 ;
      Evoked.Num := 0 ;
+     EvokedUncorrected.Num := 0 ;
      Mini.Sum := 0. ;
      Mini.Num := 0 ;
      NumFailures := 0 ;
 
-     { Calculate driving force if potentials }
-     if rbPotentials.checked then begin
-        VRest := edVRest.Value ;
-        VReversal :=edVRev.Value ;
-        VDrive := VRest - VReversal ;
-        CorrectionFactor := edCorrectionFactor.Value ;
-        end ;
+     // Calculate driving force (not used in current analysis
+     VRest := edVRest.Value ;
+     VReversal := edVRev.Value ;
+     VDrive := VRest - VReversal ;
+     CorrectionFactor := edCorrectionFactor.Value ;
+
+     // Assign array to hold corrected EPC peak
+     GetMem( Peak, FH.NumRecords*Sizeof(Single));
 
      NumInvalid := 0 ;
-     for Rec := RecStart to RecEnd do begin
+     for Rec := RecStart to RecEnd do
+         begin
 
          { Read record analysis block from file }
          GetRecordHeaderOnly( fH, RH, Rec ) ;
 
+         // Get peak value
+         Peak[Rec] := RH.Value[UseCh*MaxAnalysisVariables+vPeak] ;
+
          { Add evoked peak to sum }
-         if UseRecord( RH, cbEvokedType.text ) then begin
-            x := RH.Value[UseCh*MaxAnalysisVariables+vPeak] ;
+         if UseRecord(RH, cbEvokedType.text)  then
+            begin
             { Correct potentials for non-linear summation }
+            EvokedUncorrected.Sum := EvokedUncorrected.Sum + Peak[Rec] ;
             if rbPotentials.checked and (Abs(VDrive) > VDriveLimit) then begin
-               Denom := 1. - Abs((CorrectionFactor*x)/VDrive) ;
-               if Denom <> 0.0 then x := x/Denom
+               Denom := 1.0 - Abs((CorrectionFactor*Peak[Rec])/VDrive) ;
+               if Denom >= 0.0 then Peak[Rec] := Peak[Rec]/Denom
                                else Inc(NumInvalid) ;
                end ;
-            Evoked.Sum := Evoked.Sum + x ;
+            Evoked.Sum := Evoked.Sum + Peak[Rec] ;
             Inc(Evoked.Num) ;
             end ;
 
          { Add spontaneous peak to sum }
          if UseRecord( RH, cbMiniType.text ) then begin
-            Mini.Sum := Mini.Sum + RH.Value[UseCh*MaxAnalysisVariables+vPeak] ;
+            Mini.Sum := Mini.Sum + Peak[Rec] ;
             Inc(Mini.Num) ;
             end ;
+
          { Number of stimulations which failed to evoked a post-synaptic signal }
          if UseRecord( RH, 'FAIL' ) then begin
             Inc(NumFailures) ;
@@ -199,36 +222,52 @@ begin
             end ;
 
          end ;
-     if Evoked.Num > 0 then Evoked.Mean := Evoked.Sum/Evoked.Num ;
-     if Mini.Num > 0 then Mini.Mean := Mini.Sum/Mini.Num ;
 
+     // Calculate means
+     Evoked.Mean := Evoked.Sum/Max(Evoked.Num,1) ;
+     EvokedUncorrected.Mean := EvokedUncorrected.Sum/Max(Evoked.Num,1) ;
+     Mini.Mean := Mini.Sum/Max(Mini.Num,1) ;
 
      { ** Calculate standard dev. of peak evoked and mini signals ** }
 
      Evoked.Sum := 0. ;
      Mini.Sum := 0. ;
-     for Rec := RecStart to RecEnd do begin
+     EvokedUncorrected.Sum := 0.0 ;
+     for Rec := RecStart to RecEnd do
+         begin
+
          { Read record analysis block from file }
          GetRecordHeaderOnly( fH, RH, Rec ) ;
+
          { Add evoked residual to S.D. summation }
-         if UseRecord( RH, cbEvokedType.text ) then begin
-            x := RH.Value[UseCh*MaxAnalysisVariables+vPeak] - Evoked.Mean ;
+         if UseRecord( RH, cbEvokedType.text ) then
+            begin
+            x := Peak[Rec] - Evoked.Mean ;
             Evoked.Sum := Evoked.Sum + x*x ;
+            x := RH.Value[UseCh*MaxAnalysisVariables+vPeak] - EvokedUncorrected.Mean ;
+            EvokedUncorrected.Sum := EvokedUncorrected.Sum + x*x ;
             end ;
 
          { Add spontaneous residual to sum }
-         if UseRecord( RH, cbMiniType.text ) then begin
-            x := RH.Value[UseCh*MaxAnalysisVariables+vPeak] - Mini.Mean ;
+         if UseRecord( RH, cbMiniType.text ) then
+            begin
+            x := Peak[Rec] - Mini.Mean ;
             Mini.Sum := Mini.Sum + x*x ;
             end ;
+
          end ;
 
-     if Evoked.Num > 1 then Evoked.SD := Sqrt( Evoked.Sum/(Evoked.Num -1. ) )
-                       else Evoked.SD := 0. ;
-     Evoked.Variance := Evoked.SD*Evoked.SD ;
-     if Mini.Num > 1 then Mini.SD := Sqrt( Mini.Sum/(Mini.Num -1. ) )
-                     else Mini.SD := 0. ;
-     Mini.Variance := Mini.SD*Mini.SD ;
+     // Corrected variance/sd
+     Evoked.Variance := Evoked.Sum/Max(Evoked.Num -1.0,1.0) ;
+     Evoked.SD := Sqrt(Evoked.Variance) ;
+
+     // Uncorrected variance/sd
+     EvokedUncorrected.Variance := EvokedUncorrected.Sum/Max(Evoked.Num -1.0,1.0) ;
+     EvokedUncorrected.SD := Sqrt(EvokedUncorrected.Variance) ;
+
+     // Mini variance/sd
+     Mini.Variance := Mini.Sum/Max(Mini.Num -1.0,1.0);
+     Mini.SD := sqrt(Mini.Variance) ;
 
      { ** Report mean/st.dev of evoked signal amplitudes ** }
 
@@ -252,16 +291,23 @@ begin
            end
         else mmResults.Lines.Add(format('Evoked currents (n=%d)',[Evoked.Num])) ;
 
-        mmResults.Lines.add( format( 'Mean = %.3g %s',[Evoked.Mean,Units] )) ;
-        if Evoked.Num > 1 then
-           mmResults.Lines.add( format( 'Standard deviation = %.3g %s',
-                                        [Evoked.SD,Units])) ;
+        if rbPotentials.checked then
+           begin
+           mmResults.Lines.add( format( 'Mean = %.3g (s.d. %.3g ) %s (nls corrected)',
+                                        [Evoked.Mean,Evoked.SD,Units] )) ;
+           mmResults.Lines.add( format( 'Mean = %.3g (s.d. %.3g ) %s (uncorrected)',
+                                        [EvokedUncorrected.Mean,EvokedUncorrected.SD,Units] )) ;
+           end
+        else
+          begin
+          mmResults.Lines.add( format( 'Mean = %.3g (s.d. %.3g ) %s',
+                                       [Evoked.Mean,Evoked.SD,Units] )) ;
+          end ;
+
         end
      else begin
-        if rbPotentials.checked then
-           mmResults.Lines.add('No evoked potentials available!')
-        else
-           mmResults.Lines.add('No evoked currents available!') ;
+        if rbPotentials.checked then mmResults.Lines.add('No evoked potentials available!')
+                                else mmResults.Lines.add('No evoked currents available!') ;
         end ;
 
      { Report mean/st.dev of miniature signal amplitudes }
@@ -275,13 +321,13 @@ begin
         else mmResults.Lines.Add(format('Spontaneous miniature currents (n=%d)',
                                        [Mini.Num])) ;
 
-        if Mini.Num > 0 then begin
-           mmResults.Lines.add( format( 'Mean = %.3g %s',[Mini.Mean,Units] )) ;
-           if Mini.Num > 1 then
-               mmResults.Lines.add( format( 'Standard deviation = %.3g %s',
-                                            [Mini.SD,Units] )) ;
+        if Mini.Num > 0 then
+           begin
+           mmResults.Lines.add( format( 'Mean = %.3g (s.d. %.3g ) %s',
+                                        [Mini.Mean,Mini.SD,Units] )) ;
            end
-           else mmResults.Lines.add( 'No minis available!' ) ;
+        else mmResults.Lines.add( 'No minis available!' ) ;
+
         end
      else begin
           mmResults.Lines.add( ' ' ) ;
@@ -293,18 +339,17 @@ begin
           Mini.SD := edMiniStDev.Value ;
           Mini.Num := 1 ;
 
-          if Mini.Mean <> 0. then begin
-             mmResults.Lines.add( format( 'Mean = %.3g %s (user entered)',
-                                         [Mini.Mean,Units] )) ;
-             mmResults.Lines.add( format( 'Standard deviation = %.3g %s (user entered)',
-                                         [Mini.SD,Units] )) ;
+          if Mini.Mean <> 0. then
+             begin
+             mmResults.Lines.add( format( 'Mean = %.3g (s.d. %.3g) %s (user entered)',
+                                          [Mini.Mean,Mini.SD,Units] )) ;
              Mini.Num := 1 ;
              end
           else mmResults.Lines.add( 'Invalid amplitude!' ) ;
           end ;
 
      mmResults.Lines.add( ' ' ) ;
-     if (Evoked.Num > 0) and (Mini.Num > 0) then begin
+     if (Evoked.Num > 0) and (Mini.Num > 0) and (Mini.Mean <> 0.0) then begin
         QuantalContent.Direct := Evoked.Mean / Mini.Mean ;
         mmResults.Lines.add( format( 'Quantal content = %.3g (direct method)',
                                      [QuantalContent.Direct] ) );
@@ -326,7 +371,8 @@ begin
         end ;
 
      if (Evoked.Num > 0) and (Mini.Num > 0) and (not rbPoisson.checked) and
-        (Abs(Mini.Mean) > 0. ) then begin
+        (Abs(Mini.Mean) > 0. ) then
+        begin
         ReleaseProbability := 1. - Evoked.Variance /
                                    (QuantalContent.Direct*Mini.Mean*Mini.Mean)
                                  + Mini.Variance/(Mini.Mean*Mini.Mean) ;
@@ -342,10 +388,22 @@ begin
      if (Evoked.Num = 0) and (Mini.Num = 0) then
         mmResults.Lines.add( 'No records available for analysis!' ) ;
 
+     if (Evoked.Mean = 0.0) and (Mini.Mean = 0.0) then
+        mmResults.Lines.add( 'NOTE! Peaks need to be measured using Waveform Measurements before quantal analysis.' ) ;
+
      { Copy results to log file }
      for i := 1 to mmResults.Lines.Count do WriteToLogFileNoDate( mmResults.Lines[i] ) ;
 
      Main.mnPrint.Enabled := True ;
+
+     // Release memory
+     FreeMem(Peak) ;
+
+     // Save settings
+     Settings.QuantalAnalysis.EvokedType := cbEvokedType.Text ;
+     Settings.QuantalAnalysis.MiniType := cbMiniType.Text ;
+     Settings.QuantalAnalysis.Potentials := rbPotentials.Checked ;
+
      end;
 
 

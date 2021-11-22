@@ -1,9 +1,9 @@
 object QuantFrm: TQuantFrm
   Left = 543
   Top = 243
-  Width = 553
-  Height = 484
   Caption = 'Quantal Analysis'
+  ClientHeight = 403
+  ClientWidth = 537
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
   Font.Color = clWindowText
@@ -91,7 +91,7 @@ object QuantFrm: TQuantFrm
     object Label5: TLabel
       Left = 8
       Top = 24
-      Width = 26
+      Width = 25
       Height = 15
       Caption = 'Type'
     end
@@ -101,7 +101,6 @@ object QuantFrm: TQuantFrm
       Width = 73
       Height = 23
       Hint = 'Record type which contains stimulus-evoked synaptic signals'
-      ItemHeight = 15
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
@@ -124,7 +123,7 @@ object QuantFrm: TQuantFrm
     object Label2: TLabel
       Left = 8
       Top = 40
-      Width = 26
+      Width = 25
       Height = 15
       Caption = 'Type'
     end
@@ -138,7 +137,7 @@ object QuantFrm: TQuantFrm
     object Label4: TLabel
       Left = 32
       Top = 120
-      Width = 77
+      Width = 76
       Height = 15
       Caption = 'Standard Dev.'
     end
@@ -150,7 +149,6 @@ object QuantFrm: TQuantFrm
       Hint = 
         'Record type  containing spontaneous single-quantum synaptic sign' +
         'als'
-      ItemHeight = 15
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
@@ -214,7 +212,7 @@ object QuantFrm: TQuantFrm
   object ModeGrp: TGroupBox
     Left = 136
     Top = 304
-    Width = 321
+    Width = 393
     Height = 89
     Caption = ' Mode '
     Font.Charset = DEFAULT_CHARSET
@@ -353,7 +351,7 @@ object QuantFrm: TQuantFrm
   object mmResults: TMemo
     Left = 136
     Top = 8
-    Width = 321
+    Width = 393
     Height = 289
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
@@ -413,7 +411,6 @@ object QuantFrm: TQuantFrm
       Width = 81
       Height = 23
       Hint = 'Input channel to be analysed'
-      ItemHeight = 15
       ParentShowHint = False
       ShowHint = True
       TabOrder = 2
@@ -429,7 +426,7 @@ object QuantFrm: TQuantFrm
       HiValue = 1.000000015047466E30
       HiLimit = 1.000000015047466E30
       Scale = 1.000000000000000000
-      NumberFormat = '%.f - %.f'
+      NumberFormat = '%.0f - %.0f'
     end
   end
 end

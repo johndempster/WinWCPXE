@@ -756,6 +756,11 @@ unit MDIForm;
    V5.6.0 27.08.21 Triton control panel updated. Now shuts down A/D and D/A in RecordFrm as well as seal test
    V5.6.1 14.09.21 Axoclamp 900A: debugging information now listed in status bar
    V5.6.2 14.09.21 Axoclamp 900A: Demo mode turned off
+   V5.6.3 22.11.21 CED Micro 1401 Mk4 now supported. Bugs in ADCMEM and DIGTIM fixed by Greg Smith CED.
+                   Bug in Qanal.pas causing standard deviation to be underestimated when non-linear summation correction in used fixed.
+                   Corrected and uncorrected mean and s.d. now reported.
+                   Synaptic signal simulation module updated to correctly apply effects of non-linear summation of potentials
+                   so that simulated quantal content now correctly determined by qanal.pas
             =======================================================================}
 
 interface
@@ -1286,6 +1291,11 @@ begin
      Settings.RecPlot.Cursor2 := -1 ;
      Settings.RecPlot.Cursor3 := -1 ;
      Settings.RecPlot.Cursor4 := -1 ;
+
+     // Quantal analysis default settings
+     Settings.QuantalAnalysis.EvokedType := 'TEST' ;
+     Settings.QuantalAnalysis.MiniType := 'MINI' ;
+     Settings.QuantalAnalysis.Potentials := false ;
 
      { Set the file names and handles for all header blocks to null }
      RawFH.FileHandle := -1 ;

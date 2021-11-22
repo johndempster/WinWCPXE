@@ -245,7 +245,6 @@ object EditProtocolFrm: TEditProtocolFrm
     object StimulusTab: TTabSheet
       Caption = 'Stimulus'
       ImageIndex = 1
-      ExplicitLeft = 2
       object ProtocolGrp: TGroupBox
         Left = 103
         Top = 0
@@ -11239,8 +11238,8 @@ object EditProtocolFrm: TEditProtocolFrm
     ParentFont = False
     TabOrder = 1
     object bOpen: TButton
-      Left = 8
-      Top = 36
+      Left = 3
+      Top = 33
       Width = 140
       Height = 17
       Hint = 'Load an existing waveform protocol file'

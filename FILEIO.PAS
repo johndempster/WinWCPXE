@@ -91,6 +91,7 @@ unit Fileio;
   07.07.19 ... FORMTOP= FORMLEFT=, FORMWIDTH=, FORMHEIGHT= added to INI file saving location of main form on screen
   30.07.19 ... 'TRISELO=', fHDR.RiseTimeLo, 'TRISEHi=', fHDR.RiseTimeHi added to WCP header
   14.08.19 ... 'LATPERC=', fHDR.LatencyPercentage added to WCP header
+  16.11.21 ... Quantal analysis (qanal.pas) settinfs added
   }
 
 
@@ -848,6 +849,12 @@ begin
          ReadFloat( Header, 'RECPCURS4=',Settings.RecPlot.Cursor4) ;
          ReadLogical( Header, 'RECPIGLEAK=', Settings.RecPlot.IgnoreLeakRecords ) ;
 
+         // Quantal analysis settings
+         ReadString( Header, 'QAEVTYPE=', Settings.QuantalAnalysis.EvokedType ) ;
+         ReadString( Header, 'QAMITYPE=', Settings.QuantalAnalysis.MiniType ) ;
+         ReadLogical( Header, 'QUPOT=', Settings.QuantalAnalysis.Potentials ) ;
+
+
           // Read stimulator global variables
           for i := 0 to MaxStimGlobalVars-1 do begin
               ReadFloat( Header, format('GVAR%d=',[i+1]),Stimulator.GlobalVar[i]) ;
@@ -1153,6 +1160,11 @@ begin
      AppendInt( Header, 'FORMLEFT=',Main.Left ) ;
      AppendInt( Header, 'FORMWIDTH=',Main.Width ) ;
      AppendInt( Header, 'FORMHEIGHT=',Main.Height ) ;
+
+     // Quantal analysis settings
+     AppendString( Header, 'QAEVTYPE=', Settings.QuantalAnalysis.EvokedType ) ;
+     AppendString( Header, 'QAMITYPE=', Settings.QuantalAnalysis.MiniType ) ;
+     AppendLogical( Header, 'QUPOT=', Settings.QuantalAnalysis.Potentials ) ;
 
      if FileWrite( IniFileHandle, Header, Sizeof(Header) ) <> Sizeof(Header) then
         ShowMessage( IniFileName + ' Write - Failed!' ) ;

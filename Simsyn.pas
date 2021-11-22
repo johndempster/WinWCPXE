@@ -20,7 +20,9 @@ unit Simsyn;
   09.08.13 .. ADC,Buf now allocated by GetMem()
   03.03.17 .. .Close form event now terminates bStart.Click event before
               closing form to prevent access violation
-
+  16.11.21 .. Evoked signal amplitudes now calculated by summing quantal amplitudes with gaussian noise.
+              Non-linear summation of potentials now correct, using correct formula and based upon
+              peak of quantal waveform rather than exponential amplitude set by user.
   ==================================================================}
 
 interface
@@ -101,6 +103,11 @@ type
     procedure SetUnits( Units : string ) ;
     procedure EditFieldsToSettings ;
     function CheckNewDataFileNeeded : Boolean ;
+    function EPCTimeCourse( x : single ;            // Time since transmitter release
+                            Amplitude : single ;    // Amplitude
+                            A1 : single ;           // Fast decay fraction
+                            A2 : single ) : Single ; // Slow decay fraction
+
   public
     { Public declarations }
     procedure ChangeDisplayGrid ;
@@ -267,9 +274,9 @@ procedure TSynapseSim.bStartClick(Sender: TObject);
   --------------------------------------------------------- }
 var
    i,j,ch,NumRecordsDone,iStartEPC : Integer ;
-   A1,A2,Amplitude,AmpTemp : Single  ;
+   A1,A2,Amplitude : Single  ;
    ySig,QuantalContent : Single ;
-   x,y : single ;
+   x,y,yPeak,yNlsScale,EPCPeakScale,QuantumPeak : single ;
    Done : Boolean ;
    RH : TRecHeader ; { Record header }
 begin
@@ -329,16 +336,14 @@ begin
         A2 := 0.0 ;
         end ;
 
-     { Temp variable for amplitude random number generator }
-     AmpTemp := 1. ;
-
      { Set channel parameters }
      { Estimate maximal quantal content of 100 trials }
      QuantalContent := 0. ;
      for i := 1 to 100 do
          QuantalContent := Max(QuantalContent,Binomial(Settings.SynapseSim.p,Settings.SynapseSim.n));
 
-     if RawFH.NumRecords <= 0 then begin
+     if RawFH.NumRecords <= 0 then
+        begin
         // Set calibration factor if file is empty
         Channel[ChSim].ADCScale := Abs(Settings.SynapseSim.DisplayRange) / (Main.SESLabIO.ADCMaxValue + 1);
         RH.ADCVoltageRange[ChSim] := 10.0 ;
@@ -352,6 +357,27 @@ begin
         RH.ADCVoltageRange[ChSim] := Channel[ChSim].ADCCalibrationFactor *
                                      Channel[ChSim].ADCScale * (Main.SESLabIO.ADCMaxValue +1) ;
         end ;
+
+
+//   Determine amplitude of miniature synaptic waveform and scaling factor for nls calculation
+
+     x := 0. ;
+     yPeak := 0.0 ;
+     iStartEPC := RawFH.NumSamples div 10 + Round(-(Settings.SynapseSim.Latency*ln(random))/RawFH.dt);
+     for i := 0 to RawFH.NumSamples-1 do
+         begin
+         if i >= iStartEPC then
+            begin
+            y  := EPCTimeCourse( x, edQuantumAmplitude.Value, A1, A2 ) ;
+            x := x + Rawfh.dt ;
+            end ;
+
+         // Determine peak amplitude
+         if y >= Abs(yPeak) then yPeak := y ;
+
+         end ;
+     QuantumPeak := yPeak ;
+     EPCPeakScale := yPeak / edQuantumAmplitude.Value ;
 
      Done := False ;
      while not Done do begin
@@ -367,39 +393,49 @@ begin
 
          { Set EPC amplitude }
          QuantalContent := Binomial( Settings.SynapseSim.p, Settings.SynapseSim.n ) ;
-         if QuantalContent > 0. then begin
-            Amplitude := ( Settings.SynapseSim.QuantumAmplitude*QuantalContent) +
-                        GaussianRandom(AmpTemp) * ( Settings.SynapseSim.QuantumStDev*sqrt(QuantalContent)) ;
-            if rbPotentials.Checked then begin
-               { Scale amplitude accouting for non-linear summation}
-               Amplitude := Amplitude / ((Amplitude/Abs(Settings.SynapseSim.VRest))+ 1.0) ;
-               end ;
-            end
-         else begin
-            Amplitude := 0. ;
-            end ;
+         Amplitude := 0.0 ;
+         for i := 1 to Round(QuantalContent) do
+             begin
+             Amplitude := Amplitude + edQuantumAmplitude.Value + RandG(0.0, Settings.SynapseSim.QuantumStDev) ;
+             end;
 
          x := 0. ;
          iStartEPC := RawFH.NumSamples div 10 + Round(-(Settings.SynapseSim.Latency*ln(random))/RawFH.dt);
          j := Channel[ChSim].ChannelOffset ;
-         for i := 0 to RawFH.NumSamples-1 do begin
+
+         // Calculate NLS scaling factor
+         if Abs(QuantalContent*QuantumPeak) > 0.001 then
+            begin
+            yNlsScale := (Abs(edVRest.Value) / (1.0 + (Abs(edVRest.Value)/(QuantalContent*QuantumPeak)))) /
+                         (Amplitude*EPCPeakScale) ;
+            end
+         else yNlsScale := 1.0 ;
+
+         for i := 0 to RawFH.NumSamples-1 do
+             begin
 
              { Create background noise with gaussian distribution }
              y := RandG(0.0, Settings.SynapseSim.NoiseRMS) ;
 
-             if i >= iStartEPC then begin
-                ySig := Amplitude*(A1*exp(-x/ Settings.SynapseSim.Tau1))  ;
-                if ckDoubleExponentialDecay.checked then
-                   ySig := ySig + Amplitude*(A2*exp(-x/ Settings.SynapseSim.Tau2)) ;
-                if Settings.SynapseSim.TauRise > 0. then
-                   ySig := ySig*0.5*(1.+erf( (x/Settings.SynapseSim.TauRise)-3. ) ) ;
-                y := y + ySig ;
+             if i >= iStartEPC then
+                begin
+                y  := y + EPCTimeCourse( x, Amplitude, A1, A2 ) ;
                 x := x + Rawfh.dt ;
                 end ;
+
+            // Scale for non-linear summation if potentials
+            if rbPotentials.Checked then y := y*yNlsScale ;
+
+             // Keep within display range
+
+             y := Min(Max(y,Main.SESLabIO.ADCMinValue*Channel[ChSim].ADCScale),
+                            Main.SESLabIO.ADCMaxValue*Channel[ChSim].ADCScale);
+
+             // Write to buffer
              ADC^[j] := Round(y/Channel[ChSim].ADCScale) + Channel[ChSim].ADCZero ;
+
              j := j + RawFH.NumChannels ;
              end ;
-
 
          scDisplay.TScale := RawFH.dt*Settings.TScale ;
          scDisplay.TUnits := Settings.TUnits ;
@@ -448,6 +484,25 @@ begin
      if CloseFormASAP then Close ;
 
      end;
+
+function TSynapseSim.EPCTimeCourse( x : single ;            // Time since transmitter release
+                                    Amplitude : single ;    // Amplitude
+                                    A1 : single ;           // Fast decay fraction
+                                    A2 : single ) : Single ; // Slow decay fraction
+// --------------------------------------
+// Calculate endplate current time course
+// --------------------------------------
+var
+    y : single ;
+begin
+     y := Amplitude*(A1*exp(-x/ Settings.SynapseSim.Tau1))  ;
+     if ckDoubleExponentialDecay.checked then
+        y := y + Amplitude*(A2*exp(-x/ Settings.SynapseSim.Tau2)) ;
+     if Settings.SynapseSim.TauRise > 0.0 then
+        y := y*0.5*(1.+erf( (x/Settings.SynapseSim.TauRise)-3. ) ) ;
+     Result := y ;
+end;
+
 
 
 function TSynapseSim.CheckNewDataFileNeeded : Boolean ;
