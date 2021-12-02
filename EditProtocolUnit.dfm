@@ -11238,8 +11238,8 @@ object EditProtocolFrm: TEditProtocolFrm
     ParentFont = False
     TabOrder = 1
     object bOpen: TButton
-      Left = 3
-      Top = 33
+      Left = 8
+      Top = 36
       Width = 140
       Height = 17
       Hint = 'Load an existing waveform protocol file'

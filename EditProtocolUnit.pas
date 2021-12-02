@@ -33,6 +33,11 @@ unit EditProtocolUnit;
 // 05.04.19 Digital stimulus protocol display now only shows one pattern when No. records = 1
 //          (rather than 1 + next increment.)
 // 06.02.20 PulseStaircase waveform type producing a series of pulses on a rising staircase added.
+// 01.12.21 Display of user-defined waveforms limited to sample of 10000 points to prevent long delays
+//          when large (> 10000) waveforms loaded.
+//          Initial delay no longer fixed at default (10 ms) for userr-entered wavedforms
+//          Parameter table numbers now set with up to 6 figure accuracy
+//
 
 interface
 
@@ -1548,7 +1553,9 @@ begin
     // Initialise settings if this is a new protocol
     if  (Prot.Stimulus[iStimElement].Parameters[spStartAmplitude].Value = 0.0) and
         (Prot.Stimulus[iStimElement].Parameters[spStartAmplitudeInc].Value = 0.0) and
-        (Prot.Stimulus[iStimElement].Parameters[spDuration].Value = 0.0) then begin
+        (Prot.Stimulus[iStimElement].Parameters[spNumPoints].Value = 0.0) and
+        (Prot.Stimulus[iStimElement].Parameters[spDuration].Value = 0.0) then
+        begin
         Prot.Stimulus[iStimElement].Parameters[spDelay].Value := 0.01 ;
         Prot.Stimulus[iStimElement].Parameters[spStartAmplitude].Value := 10.0 ;
         Prot.Stimulus[iStimElement].Parameters[spStartAmplitudeInc].Value := 10.0 ;
@@ -1569,24 +1576,28 @@ begin
 
     iRow := -1 ;
     bLoadFile.Visible := False ;
-    for i := 0 to High(ParList) do if ParList[i].Index >= 0 then begin
+    for i := 0 to High(ParList) do if ParList[i].Index >= 0 then
+        begin
         Inc(IRow) ;
         Table.cells[0,iRow] := ParNames[ParList[i].Index] ;
-        if ParList[i].Scale <> 0.0 then begin
+        if ParList[i].Scale <> 0.0 then
+           begin
            Value := Prot.Stimulus[iStimElement].Parameters[ParList[i].Index].Value ;
            // Substitute G1 ... G5 if global variable code present
-           s := format('%.2f %s',[Value*ParList[i].Scale,ParList[i].Units]);
+           s := format('%.6g %s',[Value*ParList[i].Scale,ParList[i].Units]);
            for g := 0 to High(Stimulator.GlobalVarFlag) do
                if Value = Stimulator.GlobalVarFlag[g] then s := format('G%d',[g+1]) ;
            Table.cells[1,iRow] := s ;
            end
-        else begin
+        else
+           begin
            Table.cells[1,iRow] := Prot.Stimulus[iStimElement].Parameters[ParList[i].Index].Text ;
            end ;
         Prot.Stimulus[iStimElement].Parameters[ParList[i].Index].Exists := True ;
 
         // Display file load button for file name
-        if ParList[i].Index = spFileName then begin
+        if ParList[i].Index = spFileName then
+           begin
            bLoadFile.Left := {Table.ColWidths[0] + Table.ColWidths[1]} + Table.Left + Table.Width + 2 ;
            bLoadFile.Top := Table.RowHeights[0]*iRow  + Table.Top + 2 ;
            bLoadFile.Visible := True ;
@@ -1755,7 +1766,7 @@ var
     DOPlot : TRect ;
     State : Integer ;
     s : string ;
-    StartAt,EndAt,NumPoints : Integer ;
+    StartAt,EndAt,jSteps,NumPoints : Integer ;
     Scale,Offset,TStart,TEnd,ScaleToPhaseAngle : single ;
 
 begin
@@ -1798,7 +1809,8 @@ begin
      DOPlot.Right := AOPlot[0].Right ;
 
      dT := 0.0 ;
-     for AONum := 0 to Prot.NumAOChannels-1 do begin
+     for AONum := 0 to Prot.NumAOChannels-1 do
+         begin
 
          // Get amplitude range
          GetAmplitudeRange( Prot, AONum, YMin, YMax ) ;
@@ -1845,14 +1857,16 @@ begin
              pbDisplay.canvas.MoveTo( XScale( AOPlot[AONum], 0.0, StimulusDuration, T ),
                                       YScale( AOPlot[AONum],YMin, YMax, Prot.AOHoldingLevel[AONum])) ;
 
-             for i := 0 to MaxStimElementsPerChannels-1 do begin
+             for i := 0 to MaxStimElementsPerChannels-1 do
+                 begin
 
                  iElem := i + AONum*MaxStimElementsPerChannels ;
 
                  if Prot.Stimulus[iElem].WaveShape = Ord(wvNone) then Continue ;
 
                  // Delay (at holding level)
-                 if Prot.Stimulus[iElem].Parameters[spDelay].Exists then begin
+                 if Prot.Stimulus[iElem].Parameters[spDelay].Exists then
+                    begin
                     Delay := Prot.Stimulus[iElem].Parameters[spDelay].Value ;
                     if Prot.Stimulus[iElem].Parameters[spDelayInc].Exists then begin
                        Delay := Delay +
@@ -1991,10 +2005,12 @@ begin
 
                 // Plot user-defined waveform
                 if (Prot.Stimulus[iElem].WaveShape = Ord(wvWave)) and
-                   (Prot.Stimulus[iElem].Buf <> Nil) then begin
+                   (Prot.Stimulus[iElem].Buf <> Nil) then
+                   begin
 
                    // No. points in waveform to be plotted and starting point in waveform buffer
-                   if Prot.Stimulus[iElem].Parameters[spNumPoints].Exists then begin
+                   if Prot.Stimulus[iElem].Parameters[spNumPoints].Exists then
+                      begin
                       NumPoints := Round(Prot.Stimulus[iElem].Parameters[spNumPoints].Value) ;
                       StartAt := 0 ;
                       if Prot.Stimulus[iElem].Parameters[spNumPointsInc].Exists then begin
@@ -2026,11 +2042,15 @@ begin
 
                    StartAt := Min(Max(StartAt,0),Prot.Stimulus[iElem].NumPointsInBuf-1) ;
                    EndAt := Min(Max(StartAt + NumPoints - 1,0),Prot.Stimulus[iElem].NumPointsInBuf-1) ;
-                   for j := StartAt to EndAt do begin
+                   jSteps := Max(((EndAt - StartAt)*(NumIncrements+1)) div 10000,1) ;
+                   j := StartAt ;
+                   while j <= EndAt do
+                       begin
                        Y := Prot.AOHoldingLevel[AONum] + Scale*Prot.Stimulus[iElem].Buf^[j] + Offset ;
-                       T := T + dT ;
+                       T := T + dT*jSteps ;
                        pbDisplay.canvas.LineTo( XScale( AOPlot[AONum],0.0, StimulusDuration, T ),
                                                 YScale(AOPlot[AONum],YMin,YMax,Y)) ;
+                       j := j + jSteps ;
                        end ;
 
                    // Return to holding level
@@ -2165,14 +2185,17 @@ begin
 
                    StartAt := Min(Max(StartAt,0),Prot.Stimulus[iElem].NumPointsInBuf-1) ;
                    EndAt := Min(Max(StartAt + NumPoints - 1,0),Prot.Stimulus[iElem].NumPointsInBuf-1) ;
-                   for j := StartAt to EndAt do
-                       begin
-                       pbDisplay.canvas.LineTo( XScale( DOPlot,0.0, StimulusDuration, T ),
+                   jSteps := Max( ((EndAt - StartAt)*(NumIncrements+1)) div 10000,1) ;
+                   j := StartAt ;
+                   while j <=  EndAt do
+                      begin
+                      pbDisplay.canvas.LineTo( XScale( DOPlot,0.0, StimulusDuration, T ),
                                                 YScaleDig(DOPlot,DONum,Round(Prot.Stimulus[iElem].Buf^[j])));
-                       T := T + dT ;
-                       pbDisplay.canvas.LineTo( XScale( DOPlot,0.0, StimulusDuration, T ),
+                      T := T + dT*jSteps ;
+                      pbDisplay.canvas.LineTo( XScale( DOPlot,0.0, StimulusDuration, T ),
                                                 YScaleDig(DOPlot,DONum,Round(Prot.Stimulus[iElem].Buf^[j])));
-                       end ;
+                      j := j + jSteps ;
+                      end ;
 
                    // Return to holding level
                    pbDisplay.canvas.LineTo( XScale( DOPlot,0.0, StimulusDuration, T ),
@@ -2417,20 +2440,20 @@ begin
     RecTable.RowCount := 1 ;
     if Prot.RecordDuration <= 0.0 then Prot.RecordDuration := 1.0 ;
     RecTable.cells[0,RecTable.RowCount-1] := 'Recording duration ' ;
-    RecTable.cells[1,RecTable.RowCount-1] := format('%.2f %s',
+    RecTable.cells[1,RecTable.RowCount-1] := format('%.6g %s',
                                              [Prot.RecordDuration*TScale,TUnits]);
 
     RecTable.RowCount := RecTable.RowCount + 1 ;
     if Prot.NumADCSamplesPerChannel < 256 then Prot.NumADCSamplesPerChannel := 2048 ;
     Stimulator.SetADCDACUpdateIntervals( Prot ) ;
     RecTable.cells[0,RecTable.RowCount-1] := 'Sampling interval ' ;
-    RecTable.cells[1,RecTable.RowCount-1] := format('%.4g %s',
+    RecTable.cells[1,RecTable.RowCount-1] := format('%.6g %s',
                                              [Prot.ADCSamplingInterval*TScale,TUnits]);
 
     RecTable.RowCount := RecTable.RowCount + 1 ;
     if Prot.StimulusPeriod <= 0.0 then Prot.StimulusPeriod := Min(Prot.RecordDuration*2.0,1.0) ;
     RecTable.cells[0,RecTable.RowCount-1] := 'Stimulus repeat period ' ;
-    RecTable.cells[1,RecTable.RowCount-1] := format('%.2f %s',
+    RecTable.cells[1,RecTable.RowCount-1] := format('%.6g %s',
                                              [Prot.StimulusPeriod*TScale,TUnits]);
 
     RecTable.RowCount := RecTable.RowCount + 1 ;

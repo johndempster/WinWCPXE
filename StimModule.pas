@@ -1634,12 +1634,14 @@ begin
 
         // Copy VPR to XML file
 
-        if FileFound = 0 then begin
+        if FileFound = 0 then
+           begin
 
            // Load VPR Protocol
            VPRFileName := Settings.VProtDirectory + SearchRec.Name ;
 
-           if LoadVPRProgram(VPRProg,VPRFileName,ExtVBuf) then begin
+           if LoadVPRProgram(VPRProg,VPRFileName,ExtVBuf) then
+              begin
               // Clear XML protocol
               ClearProtocol(Prot^) ;
 
@@ -1653,12 +1655,14 @@ begin
               Prot^.NumADCChannels := 2 ;
               Prot^.NumADCSamplesPerChannel := 2048 ;
               Prot^.ADCSamplingInterval := Prot^.RecordDuration / Prot^.NumADCSamplesPerChannel ;
-              if VPRProg.NumLeaks > 0 then begin
+              if VPRProg.NumLeaks > 0 then
+                 begin
                  Prot^.NumLeakSubtractionRecords := VPRProg.NumLeaks ;
                  Prot^.LeakSubtractionDivideFactor := VPRProg.LeakScale ;
                  Prot^.LeakSubtractionEnabled := True ;
                  end
-              else begin
+              else
+                 begin
                  Prot^.LeakSubtractionEnabled := False ;
                  Prot^.NumLeakSubtractionRecords := 4 ;
                  Prot^.LeakSubtractionDivideFactor := 4 ;
@@ -1955,14 +1959,17 @@ var
     i,j : Integer ;
 begin
 
-    for i := 0 to High(Prot.Stimulus) do begin
+    for i := 0 to High(Prot.Stimulus) do
+        begin
         if i < DOElementsStart then Prot.Stimulus[i].WaveShape := Ord(wvNone)
                                else Prot.Stimulus[i].WaveShape := Ord(wvDigNone) ;
         Prot.Stimulus[i].NumPointsInBuf := 0 ;
-        for j := 0 to High(Prot.Stimulus[i].Parameters) do begin
+        for j := 0 to High(Prot.Stimulus[i].Parameters) do
+            begin
             Prot.Stimulus[i].Parameters[j].Exists := False ;
             end ;
-        if Prot.Stimulus[i].Buf <> Nil then begin
+        if Prot.Stimulus[i].Buf <> Nil then
+           begin
            FreeMem(Prot.Stimulus[i].Buf) ;
            Prot.Stimulus[i].Buf := Nil ;
            end ;
@@ -2038,7 +2045,8 @@ begin
     AddElementBool( ProtNode, 'ADCSAMPLINGINTERVALKEEPFIXED', Prot.ADCSamplingIntervalKeepFixed ) ;
 
     // Analog output channels
-    for i := 0 to Prot.NumAOChannels-1 do begin
+    for i := 0 to Prot.NumAOChannels-1 do
+        begin
         iNode := ProtNode.AddChild( 'ANALOGOUTPUTCHANNEL' ) ;
         AddElementInt( iNode, 'NUMBER', i ) ;
         AddElementInt( iNode, 'STIMTYPE', Prot.AOStimType[i] ) ;
@@ -2048,17 +2056,20 @@ begin
         end ;
 
     // Digital output channels
-    for i := 0 to Prot.NumDOChannels-1 do begin
+    for i := 0 to Prot.NumDOChannels-1 do
+        begin
         iNode := ProtNode.AddChild( 'DIGITALOUTPUTCHANNEL' ) ;
         AddElementInt( iNode, 'NUMBER', i ) ;
         AddElementFloat( iNode, 'HOLDINGLEVEL', Prot.DOHoldingLevel[i] ) ;
         end ;
 
     // Analog waveform elements
-    for OutChan := 0 to Prot.NumAOChannels-1 do begin
+    for OutChan := 0 to Prot.NumAOChannels-1 do
+        begin
         iStart := OutChan*MaxStimElementsPerChannels ;
         for i := iStart to iStart + MaxStimElementsPerChannels do begin
-           if Prot.Stimulus[i].WaveShape > 0 then begin
+           if Prot.Stimulus[i].WaveShape > 0 then
+              begin
               iNode := ProtNode.AddChild( 'WAVEFORMELEMENT' ) ;
               AddElementText( iNode, 'OUTPUTCHANNELTYPE', 'ANALOG' ) ;
               AddElementInt( iNode, 'OUTPUTCHANNELNUMBER', OutChan ) ;
@@ -2067,9 +2078,9 @@ begin
               AddElementInt( iNode, 'WAVESHAPE', Prot.Stimulus[i].WaveShape ) ;
               // Parameters
               AddWaveformParameter( iNode, 'DELAY', spDelay, spDelayInc,
-                                 Prot.Stimulus[i].Parameters ) ;
+                                    Prot.Stimulus[i].Parameters ) ;
               AddWaveformParameter( iNode, 'STARTAMPLITUDE', spStartAmplitude, spStartAmplitudeInc,
-                                  Prot.Stimulus[i].Parameters ) ;
+                                    Prot.Stimulus[i].Parameters ) ;
               AddWaveformParameter( iNode, 'ENDAMPLITUDE', spEndAmplitude, spEndAmplitudeInc,
                                  Prot.Stimulus[i].Parameters ) ;
               AddWaveformParameter( iNode, 'DURATION', spDuration, spDurationInc,

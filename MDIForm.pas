@@ -761,6 +761,10 @@ unit MDIForm;
                    Corrected and uncorrected mean and s.d. now reported.
                    Synaptic signal simulation module updated to correctly apply effects of non-linear summation of potentials
                    so that simulated quantal content now correctly determined by qanal.pas
+   V5.6.4 24.11.21 CED support updated to make consistent with WinEDR version
+   V5.6.5 02.12.21 Stimulus Protocol Editor: Initial delay for user-entered waveforms no longer fixed at default of 10ms.
+                   All amplitude and time parameters now displayed with 6 figure precision to avoid rounding errors in D/A update interval.
+                   Speed of display of large user-defined waveforms increased by limiting display to a sample of 10000 points within waveform.
             =======================================================================}
 
 interface
@@ -1009,7 +1013,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.6.3';
+      ProgVersion := 'V5.6.5';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
