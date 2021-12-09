@@ -60,6 +60,8 @@ unit StimModule;
   01.03.17 FillDigWave() function added. TScale & TUnits now set in FormShow()
   31.05.18 Sine wave protocol added.
   06.02.20 PulseStaircase waveform type producing a series of pulses on a rising staircase added.
+  09.12.12 Frequency increment of wvWave sine waves caan now act as a multiplier as well as an additive increment
+           MULTIPLIERFLAG= added to waveform parameter records and spFrequencyMultiplierFlag added to protocol parameter list
   =============================================}
 
 interface
@@ -122,11 +124,9 @@ const
     spScaleInc = 21 ;
     spOffset = 22 ;
     spOffsetInc = 23 ;
-    MaxPars = 23 ;
+    spFrequencyMultiplierFlag = 24 ;
+    MaxPars = 24 ;
     MaxRecordingPars = 5 ;
-
-     //NumDigChannels = 8 ;
-     //NumDACChannels = 2 ;
 
      // Old .VPR protocol file constants
 
@@ -471,6 +471,7 @@ TWaveform = packed record
           ParameterName : string ;                // Element name
           iValue : Integer ;                      // Parameter value index # in ParList
           iIncrement : Integer ;                  // Parameter increment index # in ParList
+          iMultiplierFlag : Integer ;             // Use Parameter increment as multipler index # in ParList
           ParList : Array of TStimulusParameter   // Parameter array
           ) ;
 
@@ -486,6 +487,7 @@ TWaveform = packed record
           ParameterName : string ;                // Element name
           iValue : Integer ;                      // Parameter value index # in ParList
           iIncrement : Integer ;                  // Parameter increment index # in ParList
+          iMultiplierFlag : Integer ;             // Use Parameter increment as multipler index # in ParList
           var ParList : Array of TStimulusParameter   // Parameter array
           ) ;
 
@@ -541,7 +543,7 @@ function TStimulator.CreateWaveform(
   Create command voltage waveforms defined by protocol
   ----------------------------------------------------}
 var
-    ii,i,j,g,sh,iElem :Integer ;
+    ii,i,j,g,sh,iElem,iInc :Integer ;
 
     DisplayDuration : Single ;
 
@@ -563,6 +565,7 @@ var
     Scale,Offset,T,ScaleToPhaseAngle : single ;
     np : Integer ;
     VBuf : PSingleArray ;
+    FReq : single ;
 begin
 
      // Calculate DAC update interval
@@ -572,7 +575,8 @@ begin
      // Determine number of points in protocol
      // (Keep within available buffer)
      NumDACPoints := Round(Prot.RecordDuration/DACUpdateInterval) ;
-     if NumDACPoints > (Main.SESLabIO.DACBufferLimit div 2) then begin
+     if NumDACPoints > (Main.SESLabIO.DACBufferLimit div 2) then
+        begin
         NumDACPoints := Main.SESLabIO.DACBufferLimit div 2 ;
         Main.StatusBar.SimpleText :=
         ' WARNING! D/A buffer overflow! Stimulus waveform may be truncated. '  ;
@@ -582,11 +586,13 @@ begin
      { Create a digital D/A waveform from protocol list }
 
      // Fill DAC buffers with holding potential
-     for AONum := 0 to NumDACChannels-1 do begin
+     for AONum := 0 to NumDACChannels-1 do
+         begin
          // Set V->DAC scaling factor
          DACScale := DACScaleFactor(AONum) ;
          // Calculate DAC value
-         if AONum < Prot.NumAOChannels then begin
+         if AONum < Prot.NumAOChannels then
+            begin
             DACValue := Round( DACScale*Prot.AOHoldingLevel[AONum] ) ;
             end
          else DACValue := Round( DACScale*Main.SESLabIO.DACHoldingVoltage[AONum] ) ;
@@ -594,7 +600,8 @@ begin
          if DACValue < Main.SESLabIO.DACMinValue then DACValue := Main.SESLabIO.DACMinValue ;
          // Update buffer
          j := AONum ;
-         for i := 0 to NumDACPoints-1 do begin
+         for i := 0 to NumDACPoints-1 do
+             begin
              Buf[j] := DACValue ;
              j := j + NumDACChannels ;
              end ;
@@ -603,7 +610,8 @@ begin
      { Set default digital output buffer bit settings}
      Bit := 1 ;
      DigWord := Settings.DigitalPort.Value ;
-     for i := 0 to Prot.NumDOChannels-1 do begin
+     for i := 0 to Prot.NumDOChannels-1 do
+         begin
          DigWord := DigWord and (not Bit) ;
          if Prot.DOHoldingLevel[i] <> 0 then DigWord := DigWord or Bit ;
          Bit := Bit shl 1 ;
@@ -665,21 +673,41 @@ begin
              else NumPulses := 1 ;
 
              // Pulse period
-             if Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Exists then begin
+             if Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Exists then
+                begin
+
                 PulsePeriod := Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Value ;
                 if Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Exists then
                    begin
                    PulsePeriod := PulsePeriod + (Increment*
                                   Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Value) ;
                    end ;
+
                 end
-             else if Prot.Stimulus[iElem].Parameters[spFrequency].Exists then begin
-                PulsePeriod := 1.0/Max(Prot.Stimulus[iElem].Parameters[spFrequency].Value,1E-6) ;
+             else if Prot.Stimulus[iElem].Parameters[spFrequency].Exists then
+                begin
+
+                Freq := Prot.Stimulus[iElem].Parameters[spFrequency].Value ;
+
                 if Prot.Stimulus[iElem].Parameters[spFrequencyInc].Exists then
                    begin
-                   PulsePeriod := 1.0 / Max(1E-6,Prot.Stimulus[iElem].Parameters[spFrequency].Value +
-                                                 Prot.Stimulus[iElem].Parameters[spFrequencyInc].Value*Increment) ;
+
+                   if Prot.Stimulus[iElem].Parameters[spFrequencyMultiplierFlag].Exists and
+                      (Prot.Stimulus[iElem].Parameters[spFrequencyMultiplierFlag].Value = 1.0) then
+                      begin
+                      // Multiply by increment
+                      Freq := Prot.Stimulus[iElem].Parameters[spFrequency].Value ;
+                      for iInc := 1 to Increment do Freq := Freq*Prot.Stimulus[iElem].Parameters[spFrequencyInc].Value ;
+                      end
+                   else
+                      begin
+                      // Add increment
+                      Freq := Prot.Stimulus[iElem].Parameters[spFrequency].Value +
+                              Prot.Stimulus[iElem].Parameters[spFrequencyInc].Value*Increment ;
+                      end;
+                   PulsePeriod := 1.0 / Max(Freq,1E-6) ;
                    end ;
+
                 end
              else PulsePeriod := 0 ;
 
@@ -726,7 +754,8 @@ begin
                             DACCounter) ;
                 end ;
 
-             if (Prot.Stimulus[iElem].WaveShape = Ord(wvSine)) then begin
+             if (Prot.Stimulus[iElem].WaveShape = Ord(wvSine)) then
+                begin
                 // ----------------
                 // Create sine wave
                 // ----------------
@@ -734,7 +763,8 @@ begin
                 T := 0.0 ;
                 np := 0 ;
                 ScaleToPhaseAngle := (2.0*pi()) / PulsePeriod ;
-                while t <= Duration do begin
+                while t <= Duration do
+                    begin
                     VBuf^[np] := Prot.AOHoldingLevel[AONum] + StartAmplitude*sin(ScaleToPhaseAngle*T);
                     T := T + DACUpdateInterval ;
                     Inc(np) ;
@@ -856,16 +886,19 @@ begin
          // Initialise DigBuf counter
          DigCounter := 0 ;
 
-         for i := 0 to MaxStimElementsPerChannels-1 do begin
+         for i := 0 to MaxStimElementsPerChannels-1 do
+             begin
 
              iElem := i + DONum*MaxStimElementsPerChannels + DOElementsStart ;
 
              if Prot.Stimulus[iElem].WaveShape = Ord(wvDigNone) then Continue ;
 
              // Delay (at holding level)
-             if Prot.Stimulus[iElem].Parameters[spDelay].Exists then begin
+             if Prot.Stimulus[iElem].Parameters[spDelay].Exists then
+                begin
                 Delay := Prot.Stimulus[iElem].Parameters[spDelay].Value ;
-                if Prot.Stimulus[iElem].Parameters[spDelayInc].Exists then begin
+                if Prot.Stimulus[iElem].Parameters[spDelayInc].Exists then
+                   begin
                    Delay := Delay +
                             Prot.Stimulus[iElem].Parameters[spDelayInc].Value*Increment ;
                    end ;
@@ -873,9 +906,11 @@ begin
              else Delay := 0.0 ;
 
              // Pulse Duration
-             if Prot.Stimulus[iElem].Parameters[spDuration].Exists then begin
+             if Prot.Stimulus[iElem].Parameters[spDuration].Exists then
+                begin
                 Duration := Prot.Stimulus[iElem].Parameters[spDuration].Value ;
-                if Prot.Stimulus[iElem].Parameters[spDurationInc].Exists then begin
+                if Prot.Stimulus[iElem].Parameters[spDurationInc].Exists then
+                   begin
                    Duration := Duration +
                                Prot.Stimulus[iElem].Parameters[spDurationInc].Value*Increment ;
                    end ;
@@ -883,9 +918,11 @@ begin
              else Duration := 0.0 ;
 
              // Pulse train
-             if Prot.Stimulus[iElem].Parameters[spNumRepeats].Exists then begin
+             if Prot.Stimulus[iElem].Parameters[spNumRepeats].Exists then
+                begin
                 NumPulses := Round(Prot.Stimulus[iElem].Parameters[spNumRepeats].Value) + 1 ;
-                if Prot.Stimulus[iElem].Parameters[spNumRepeatsInc].Exists then begin
+                if Prot.Stimulus[iElem].Parameters[spNumRepeatsInc].Exists then
+                   begin
                    NumPulses := NumPulses +
                                 Round(Prot.Stimulus[iElem].Parameters[spNumRepeatsInc].Value)
                    end ;
@@ -893,18 +930,38 @@ begin
              else NumPulses := 1 ;
 
              // Pulse period
-             if Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Exists then begin
+             if Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Exists then
+                begin
+
                 PulsePeriod := Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Value ;
-                if Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Exists then begin
+                if Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Exists then
+                   begin
                    PulsePeriod := PulsePeriod +
                                   Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Value*Increment ;
                    end ;
                 end
-             else if Prot.Stimulus[iElem].Parameters[spFrequency].Exists then begin
-                PulsePeriod := 1.0/Max(Prot.Stimulus[iElem].Parameters[spFrequency].Value,1E-6) ;
-                if Prot.Stimulus[iElem].Parameters[spFrequencyInc].Exists then begin
-                   PulsePeriod := 1.0 / Max(1E-6,Prot.Stimulus[iElem].Parameters[spFrequency].Value +
-                                                 Prot.Stimulus[iElem].Parameters[spFrequencyInc].Value*Increment) ;
+             else if Prot.Stimulus[iElem].Parameters[spFrequency].Exists then
+                begin
+
+                Freq := Prot.Stimulus[iElem].Parameters[spFrequency].Value ;
+
+                if Prot.Stimulus[iElem].Parameters[spFrequencyInc].Exists then
+                   begin
+
+                   if Prot.Stimulus[iElem].Parameters[spFrequencyMultiplierFlag].Exists and
+                      (Prot.Stimulus[iElem].Parameters[spFrequencyMultiplierFlag].Value = 1.0) then
+                      begin
+                      // Multiply by increment
+                      Freq := Prot.Stimulus[iElem].Parameters[spFrequency].Value ;
+                      for iInc := 1 to Increment do Freq := Freq*Prot.Stimulus[iElem].Parameters[spFrequencyInc].Value ;
+                      end
+                   else
+                      begin
+                      // Add increment
+                      Freq := Prot.Stimulus[iElem].Parameters[spFrequency].Value +
+                              Prot.Stimulus[iElem].Parameters[spFrequencyInc].Value*Increment ;
+                      end;
+                   PulsePeriod := 1.0 / Max(Freq,1E-6) ;
                    end ;
                 end
              else PulsePeriod := 0 ;
@@ -983,7 +1040,8 @@ begin
     for i := 0 to High(Prot.Stimulus) do
         for j := 0 to High(Prot.Stimulus[i].Parameters) do
         for g := 0 to High(Stimulator.GlobalVarFlag) do
-            if Prot.Stimulus[i].Parameters[j].Value = GlobalVarFlag[g] then begin
+            if Prot.Stimulus[i].Parameters[j].Value = GlobalVarFlag[g] then
+               begin
                Prot.Stimulus[i].Parameters[j].Value := GlobalVar[g] ;
                end ;
     end ;
@@ -1001,7 +1059,8 @@ begin
     EndCount := Prot.NumRepeatsPerIncrement ;
     if Prot.LeakSubtractionEnabled then EndCount := EndCount + Prot.NumLeakSubtractionRecords ;
 
-    if RepeatCounter >= EndCount then begin
+    if RepeatCounter >= EndCount then
+       begin
        Inc(Increment) ;      // Next step
        RepeatCounter := 0 ;  // Clear repeat counter
        end ;
@@ -1016,13 +1075,15 @@ var
     LeakOffset : Integer ;
 begin
 
-    if LeakRecord then begin
+    if LeakRecord then
+       begin
        Result := format( 'Stim: %s Step %d/%d Leak %d/%d ',
                  [ANSIReplaceText(ExtractFileName(FileName),'.xml',''),
                  Increment+1,Stimulator.Prot.NumRecords div Max(Stimulator.Prot.NumRepeatsPerIncrement,1),
                   Stimulator.RepeatCounter+1,Stimulator.Prot.NumLeakSubtractionRecords]) ;
        end
-    else begin
+    else
+       begin
        if Prot.LeakSubtractionEnabled then LeakOffset := Prot.NumLeakSubtractionRecords
                                       else LeakOffset := 0 ;
        Result := format( 'Stim: %s Step %d/%d Repeat %d/%d ',
@@ -1050,7 +1111,8 @@ function TStimulator.LeakRecord : Boolean ;
 // ---------------------
 begin
     if Prot.LeakSubtractionEnabled and
-       (RepeatCounter < Abs(Stimulator.Prot.NumLeakSubtractionRecords)) then begin
+       (RepeatCounter < Abs(Stimulator.Prot.NumLeakSubtractionRecords)) then
+       begin
        Result := True ;
        end
     else Result := False ;
@@ -1066,8 +1128,10 @@ var
 begin
      Result := False ;
      { Determine if a digital channel is in use }
-     for DONum := 0 to Prot.NumDOChannels-1 do begin
-         for i := 0 to MaxStimElementsPerChannels-1 do begin
+     for DONum := 0 to Prot.NumDOChannels-1 do
+         begin
+         for i := 0 to MaxStimElementsPerChannels-1 do
+             begin
              iElem := i + DONum*MaxStimElementsPerChannels + DOElementsStart ;
              if Prot.Stimulus[iElem].WaveShape <> Ord(wvDigNone) then Result := True ;
              end ;
@@ -1093,7 +1157,8 @@ begin
 
      // Set A/D sampling interval
 
-     if Prot.ADCSamplingIntervalKeepFixed then begin
+     if Prot.ADCSamplingIntervalKeepFixed then
+        begin
         // Set record duration from sampling interval & samples/channel
         Main.SESLabIO.ADCNumChannels := Prot.NumADCChannels ;
         Main.SESLabIO.ADCSamplingInterval := Prot.ADCSamplingInterval ;
@@ -1107,7 +1172,8 @@ begin
         Prot.NumADCSamplesPerChannel := Max(Prot.NumADCSamplesPerChannel div 256,1)*256 ;
         Prot.RecordDuration := Prot.ADCSamplingInterval* Prot.NumADCSamplesPerChannel ;
         end
-     else begin
+     else
+        begin
         // Set sampling interval from requested duration and samples/channel
         Main.SESLabIO.ADCNumChannels := Prot.NumADCChannels ;
         Main.SESLabIO.ADCSamplingInterval := Prot.RecordDuration / Max(Prot.NumADCSamplesPerChannel,1) ;
@@ -1124,15 +1190,18 @@ begin
      DACUpdateInterval := Prot.RecordDuration / Max(Prot.NumADCSamplesPerChannel,1) ;
 
      // If very small pulses in waveform adjust
-     if ProtocolMinPulseDuration(Prot) < DACUpdateInterval then begin
+     if ProtocolMinPulseDuration(Prot) < DACUpdateInterval then
+        begin
         DACUpdateInterval := ProtocolMinPulseDuration(Prot)*0.1 ;
         end ;
 
      // If an externally defined waveform is in use ... its DAC update
      // interval over-rides the internal setting
      dt := 0.0 ;
-     for AONum := 0 to Prot.NumAOChannels-1 do begin
-         for i := 0 to MaxStimElementsPerChannels-1 do begin
+     for AONum := 0 to Prot.NumAOChannels-1 do
+         begin
+         for i := 0 to MaxStimElementsPerChannels-1 do
+             begin
              iElem := i + AONum*MaxStimElementsPerChannels ;
              if (Prot.Stimulus[iElem].WaveShape = Ord(wvWave)) and
                 Prot.Stimulus[iElem].Parameters[spDACUpdateInterval].Exists and
@@ -1142,8 +1211,10 @@ begin
              end ;
          end ;
 
-     for DONum := 0 to Prot.NumDOChannels-1 do begin
-         for i := 0 to MaxStimElementsPerChannels-1 do begin
+     for DONum := 0 to Prot.NumDOChannels-1 do
+         begin
+         for i := 0 to MaxStimElementsPerChannels-1 do
+             begin
              iElem := i + DONum*MaxStimElementsPerChannels  + DOElementsStart ;
              if (Prot.Stimulus[iElem].WaveShape = Ord(wvDigWave)) and
                 Prot.Stimulus[iElem].Parameters[spDACUpdateInterval].Exists and
@@ -1156,7 +1227,8 @@ begin
       if dt <> 0.0 then DACUpdateInterval := dt ;
 
      // If fixed (user set) D/A update interval flag set, over-ride with fixed value
-     if Prot.AOUpdateIntervalKeepFixed then begin
+     if Prot.AOUpdateIntervalKeepFixed then
+        begin
         DACUpdateInterval := Prot.AOUpdateIntervalFixed ;
         end ;
 
@@ -1194,12 +1266,14 @@ var
    iHold : Integer ;
    VScale : single ;
 begin
-     if Prot.NumLeakSubtractionRecords <> 0 then begin
+     if Prot.NumLeakSubtractionRecords <> 0 then
+        begin
         iHold := Buf[0] ;
         if Prot.LeakSubtractionDivideFactor <> 0 then VScale := 1./Prot.LeakSubtractionDivideFactor
                                                  else VScale := 1. ;
         j := 0 ;
-        for i := 0 to NumDACPoints-1 do begin
+        for i := 0 to NumDACPoints-1 do
+            begin
             Buf[j] := Round((Buf[j] - iHold)*VScale) + iHold ;
             j := j + NumDACChannels ;
             end ;
@@ -1243,7 +1317,8 @@ begin
      j := DACCounter*NumDACChannels + Chan ;
      DACValue := StartValue ;
      DACIncrement := (EndValue - StartValue) / NumPoints ;
-     for i := 1 to NumPoints do if j < jLimit then begin
+     for i := 1 to NumPoints do if j < jLimit then
+         begin
          iDACValue := Round(DACScale*DACValue) ;
          if iDACValue < iDACMin then iDACValue := iDACMin ;
          if iDACValue > iDACMax then iDACValue := iDACMax ;
@@ -1266,11 +1341,13 @@ var
 begin
 
      // Get amplifier stimulus scaling factor
-     if ANSIContainsText(Prot.AOChannelUnits[Chan],'V') then begin
+     if ANSIContainsText(Prot.AOChannelUnits[Chan],'V') then
+        begin
         // Voltage stimulus
         AmplifierDivideFactor := Amplifier.VoltageCommandScaleFactor[Chan] ;
         end
-     else begin
+     else
+        begin
         // Current stimulus
         AmplifierDivideFactor := Amplifier.CurrentCommandScaleFactor[Chan] ;
         end ;
@@ -1292,7 +1369,8 @@ var
 begin
 
     // Init global variable to zero
-    for i :=  0 to MaxStimGlobalVars-1 do begin
+    for i :=  0 to MaxStimGlobalVars-1 do
+        begin
         GlobalVar[i] := 0.0 ;
         GlobalVarFlag[i] := (i+1)*1.0E8 ;
         end;
@@ -1325,7 +1403,8 @@ begin
      // Load waveform
      j := DACCounter*NumDACChannels + Chan ;
      DACBufLimit := Main.SESLabIO.ADCBufferLimit ;
-     for i := StartAt to EndAt do if j <= DACBufLimit then begin
+     for i := StartAt to EndAt do if j <= DACBufLimit then
+         begin
          DACValue := Round(DACScale*(Scale*VBuf[i] + Offset + Prot.AOHoldingLevel[Chan])) ;
          DACValue := Max( Min( DACValue, Main.SESLabIO.DACMaxValue ),
                                         -Main.SESLabIO.DACMaxValue-1 ) ;
@@ -1880,14 +1959,17 @@ begin
     TMin := Prot.RecordDuration ;
     NumIncrements := Prot.NumRecords div Max(Prot.NumRepeatsPerIncrement,1) ;
 
-    for iElem := 0 to High(Prot.Stimulus) do begin
+    for iElem := 0 to High(Prot.Stimulus) do
+        begin
         if (Prot.Stimulus[iElem].WaveShape = Ord(wvNone)) or
            (Prot.Stimulus[iElem].WaveShape = Ord(wvDigNone)) then Continue ;
 
         // Delay
-        if Prot.Stimulus[iElem].Parameters[spDelay].Exists then begin
+        if Prot.Stimulus[iElem].Parameters[spDelay].Exists then
+           begin
            T := Prot.Stimulus[iElem].Parameters[spDelay].Value ;
-           if T <> 0.0 then begin
+           if T <> 0.0 then
+              begin
               TMin := Min(TMin,T) ;
               if Prot.Stimulus[iElem].Parameters[spDelayInc].Exists then begin
                  T := T + ((NumIncrements-1)*
@@ -1898,11 +1980,14 @@ begin
            end ;
 
         // Pulse Duration
-        if Prot.Stimulus[iElem].Parameters[spDuration].Exists then begin
+        if Prot.Stimulus[iElem].Parameters[spDuration].Exists then
+           begin
            T := Prot.Stimulus[iElem].Parameters[spDuration].Value ;
-           if T <> 0.0 then begin
+           if T <> 0.0 then
+              begin
               TMin := Min(TMin,T) ;
-              if Prot.Stimulus[iElem].Parameters[spDurationInc].Exists then begin
+              if Prot.Stimulus[iElem].Parameters[spDurationInc].Exists then
+                 begin
                  T := T + ((NumIncrements-1)*
                            Prot.Stimulus[iElem].Parameters[spDurationInc].Value);
                  TMin := Min(TMin,T) ;
@@ -1923,7 +2008,8 @@ var
     i : Integer ;
 begin
      { Set DAC0 elements to none }
-     for i := DAC0Start to DAC0End do begin
+     for i := DAC0Start to DAC0End do
+         begin
          Stimulator.Prog.Shape[i] := wvNone ;
          Stimulator.Prog.Delay[i] := 0. ;
          Stimulator.Prog.Duration[i] := 0. ;
@@ -1931,16 +2017,17 @@ begin
          end ;
 
      { Set DAC1 elements to none }
-     for i := DAC1Start to DAC1End do begin
+     for i := DAC1Start to DAC1End do
+         begin
          Stimulator.Prog.Shape[i] := wvNone ;
          Stimulator.Prog.Delay[i] := 0. ;
          Stimulator.Prog.Duration[i] := 0. ;
          Stimulator.Prog.NumPulses[i] := 1 ;
          end ;
 
-
      { Set digital elements to none }
-     for i := DigStart to DigEnd do begin
+     for i := DigStart to DigEnd do
+         begin
          Stimulator.Prog.Shape[i] := wvDigNone ;
          Stimulator.Prog.Delay[i] := 0. ;
          Stimulator.Prog.Duration[i] := 0. ;
@@ -2077,29 +2164,29 @@ begin
               // Waveform shape
               AddElementInt( iNode, 'WAVESHAPE', Prot.Stimulus[i].WaveShape ) ;
               // Parameters
-              AddWaveformParameter( iNode, 'DELAY', spDelay, spDelayInc,
+              AddWaveformParameter( iNode, 'DELAY', spDelay, spDelayInc,spNone,
                                     Prot.Stimulus[i].Parameters ) ;
-              AddWaveformParameter( iNode, 'STARTAMPLITUDE', spStartAmplitude, spStartAmplitudeInc,
+              AddWaveformParameter( iNode, 'STARTAMPLITUDE', spStartAmplitude, spStartAmplitudeInc,spNone,
                                     Prot.Stimulus[i].Parameters ) ;
-              AddWaveformParameter( iNode, 'ENDAMPLITUDE', spEndAmplitude, spEndAmplitudeInc,
+              AddWaveformParameter( iNode, 'ENDAMPLITUDE', spEndAmplitude, spEndAmplitudeInc,spNone,
                                  Prot.Stimulus[i].Parameters ) ;
-              AddWaveformParameter( iNode, 'DURATION', spDuration, spDurationInc,
+              AddWaveformParameter( iNode, 'DURATION', spDuration, spDurationInc,spNone,
                                  Prot.Stimulus[i].Parameters ) ;
-              AddWaveformParameter( iNode, 'NUMREPEATS', spNumRepeats, spNumRepeatsInc,
+              AddWaveformParameter( iNode, 'NUMREPEATS', spNumRepeats, spNumRepeatsInc,spNone,
                                  Prot.Stimulus[i].Parameters ) ;
-              AddWaveformParameter( iNode, 'REPEATPERIOD', spRepeatPeriod, spRepeatPeriodInc,
+              AddWaveformParameter( iNode, 'REPEATPERIOD', spRepeatPeriod, spRepeatPeriodInc,spNone,
                                  Prot.Stimulus[i].Parameters ) ;
-              AddWaveformParameter( iNode, 'FREQUENCY', spFrequency, spFrequencyInc,
+              AddWaveformParameter( iNode, 'FREQUENCY', spFrequency, spFrequencyInc,spFrequencyMultiplierFlag,
                                  Prot.Stimulus[i].Parameters ) ;
               AddWaveformParameterText( iNode, 'FILENAME', spFileName,
                                         Prot.Stimulus[i].Parameters ) ;
-              AddWaveformParameter( iNode, 'DACUPDATEINTERVAL', spDACUpdateInterval, spNone,
+              AddWaveformParameter( iNode, 'DACUPDATEINTERVAL', spDACUpdateInterval, spNone,spNone,
                                  Prot.Stimulus[i].Parameters ) ;
-              AddWaveformParameter( iNode, 'NUMPOINTS', spNumPoints, spNumPointsInc,
+              AddWaveformParameter( iNode, 'NUMPOINTS', spNumPoints, spNumPointsInc,spNone,
                                  Prot.Stimulus[i].Parameters ) ;
-              AddWaveformParameter( iNode, 'SCALE', spScale, spScaleInc,
+              AddWaveformParameter( iNode, 'SCALE', spScale, spScaleInc,spNone,
                                  Prot.Stimulus[i].Parameters ) ;
-              AddWaveformParameter( iNode, 'OFFSET', spOffset, spOffsetInc,
+              AddWaveformParameter( iNode, 'OFFSET', spOffset, spOffsetInc,spNone,
                                  Prot.Stimulus[i].Parameters ) ;
 
               end ;
@@ -2107,10 +2194,13 @@ begin
         end ;
 
     // Digital waveform elements
-    for OutChan := 0 to Prot.NumDOChannels-1 do begin
+    for OutChan := 0 to Prot.NumDOChannels-1 do
+        begin
         iStart := OutChan*MaxStimElementsPerChannels + DOElementsStart ;
-        for i := iStart to iStart + MaxStimElementsPerChannels - 1 do begin
-           if Prot.Stimulus[i].WaveShape > 0 then begin
+        for i := iStart to iStart + MaxStimElementsPerChannels - 1 do
+           begin
+           if Prot.Stimulus[i].WaveShape > 0 then
+              begin
               iNode := ProtNode.AddChild( 'WAVEFORMELEMENT' ) ;
               AddElementText( iNode, 'OUTPUTCHANNELTYPE', 'DIGITAL' ) ;
               AddElementInt( iNode, 'OUTPUTCHANNELNUMBER', OutChan ) ;
@@ -2118,23 +2208,23 @@ begin
               // Waveform shape
               AddElementInt( iNode, 'WAVESHAPE', Prot.Stimulus[i].WaveShape ) ;
               // Parameters
-              AddWaveformParameter( iNode, 'DELAY', spDelay, spDelayInc,
+              AddWaveformParameter( iNode, 'DELAY', spDelay, spDelayInc,spNone,
                                  Prot.Stimulus[i].Parameters ) ;
-              AddWaveformParameter( iNode, 'DIGITALLEVEL', spDigAmplitude, spDigAmplitudeInc,
+              AddWaveformParameter( iNode, 'DIGITALLEVEL', spDigAmplitude, spDigAmplitudeInc,spNone,
                                   Prot.Stimulus[i].Parameters ) ;
-              AddWaveformParameter( iNode, 'DURATION', spDuration, spDurationInc,
+              AddWaveformParameter( iNode, 'DURATION', spDuration, spDurationInc,spNone,
                                  Prot.Stimulus[i].Parameters ) ;
-              AddWaveformParameter( iNode, 'NUMREPEATS', spNumRepeats, spNumRepeatsInc,
+              AddWaveformParameter( iNode, 'NUMREPEATS', spNumRepeats, spNumRepeatsInc,spNone,
                                  Prot.Stimulus[i].Parameters ) ;
-              AddWaveformParameter( iNode, 'REPEATPERIOD', spRepeatPeriod, spRepeatPeriodInc,
+              AddWaveformParameter( iNode, 'REPEATPERIOD', spRepeatPeriod, spRepeatPeriodInc,spNone,
                                  Prot.Stimulus[i].Parameters ) ;
-              AddWaveformParameter( iNode, 'FREQUENCY', spFrequency, spFrequencyInc,
+              AddWaveformParameter( iNode, 'FREQUENCY', spFrequency, spFrequencyInc,spFrequencyMultiplierFlag,
                                  Prot.Stimulus[i].Parameters ) ;
               AddWaveformParameterText( iNode, 'FILENAME', spFileName,
                                         Prot.Stimulus[i].Parameters ) ;
-              AddWaveformParameter( iNode, 'NUMPOINTS', spNumPoints, spNumPointsInc,
+              AddWaveformParameter( iNode, 'NUMPOINTS', spNumPoints, spNumPointsInc,spNone,
                                  Prot.Stimulus[i].Parameters ) ;
-              AddWaveformParameter( iNode, 'DACUPDATEINTERVAL', spDACUpdateInterval, spNone,
+              AddWaveformParameter( iNode, 'DACUPDATEINTERVAL', spDACUpdateInterval, spNone,spNone,
                                  Prot.Stimulus[i].Parameters ) ;
               end ;
            end ;
@@ -2233,10 +2323,12 @@ begin
     NodeIndex := 0 ;
     Prot.NumAOChannels := 0 ;
     ChanNum := 0 ;
-    While FindXMLNode(ProtNode,'ANALOGOUTPUTCHANNEL',iNode,NodeIndex) do begin
+    While FindXMLNode(ProtNode,'ANALOGOUTPUTCHANNEL',iNode,NodeIndex) do
+        begin
         ChanNum := Prot.NumAOChannels ;
         GetElementInt( iNode, 'NUMBER', ChanNum ) ;
-        if (ChanNum >= 0) and (ChanNum <= High(Prot.AOChannelUnits)) then begin
+        if (ChanNum >= 0) and (ChanNum <= High(Prot.AOChannelUnits)) then
+           begin
            GetElementInt( iNode, 'STIMTYPE', Prot.AOStimType[ChanNum] ) ;
            GetElementText( iNode, 'UNITS', Prot.AOChannelUnits[ChanNum] ) ;
            GetElementFloat( iNode, 'HOLDINGLEVEL', Prot.AOHoldingLevel[ChanNum] ) ;
@@ -2252,10 +2344,12 @@ begin
     Prot.NumDOChannels := 0 ;
     NodeIndex := 0 ;
     ChanNum := 0 ;
-    While FindXMLNode(ProtNode,'DIGITALOUTPUTCHANNEL',iNode,NodeIndex) do begin
+    While FindXMLNode(ProtNode,'DIGITALOUTPUTCHANNEL',iNode,NodeIndex) do
+        begin
         //ChanNum := Prot.NumDOChannels ;
         GetElementInt( iNode, 'NUMBER', ChanNum ) ;
-        if (ChanNum >= 0) and (ChanNum <= High(Prot.DOHoldingLevel)) then begin
+        if (ChanNum >= 0) and (ChanNum <= High(Prot.DOHoldingLevel)) then
+           begin
            GetElementInt( iNode, 'HOLDINGLEVEL', Prot.DOHoldingLevel[ChanNum] ) ;
            Inc(Prot.NumDOChannels) ;
            end ;
@@ -2267,7 +2361,8 @@ begin
     // Waveform elements
 
     NodeIndex := 0 ;
-    While FindXMLNode(ProtNode,'WAVEFORMELEMENT',iNode,NodeIndex) do begin
+    While FindXMLNode(ProtNode,'WAVEFORMELEMENT',iNode,NodeIndex) do
+        begin
 
         GetElementText( iNode, 'OUTPUTCHANNELTYPE', ChanType ) ;
         GetElementInt( iNode, 'OUTPUTCHANNELNUMBER', ChanNum ) ;
@@ -2287,36 +2382,36 @@ begin
         GetElementInt( iNode, 'WAVESHAPE', Prot.Stimulus[iElement].WaveShape ) ;
 
            // Parameters
-        GetWaveformParameter( iNode, 'DELAY', spDelay, spDelayInc,
+        GetWaveformParameter( iNode, 'DELAY', spDelay, spDelayInc,spNone,
                               Prot.Stimulus[iElement].Parameters ) ;
-        GetWaveformParameter( iNode, 'STARTAMPLITUDE', spStartAmplitude, spStartAmplitudeInc,
+        GetWaveformParameter( iNode, 'STARTAMPLITUDE', spStartAmplitude, spStartAmplitudeInc,spNone,
                               Prot.Stimulus[iElement].Parameters ) ;
-        GetWaveformParameter( iNode, 'ENDAMPLITUDE', spEndAmplitude, spEndAmplitudeInc,
+        GetWaveformParameter( iNode, 'ENDAMPLITUDE', spEndAmplitude, spEndAmplitudeInc,spNone,
                               Prot.Stimulus[iElement].Parameters ) ;
-        GetWaveformParameter( iNode, 'DIGITALLEVEL', spDigAmplitude, spDigAmplitudeInc,
+        GetWaveformParameter( iNode, 'DIGITALLEVEL', spDigAmplitude, spDigAmplitudeInc,spNone,
                               Prot.Stimulus[iElement].Parameters ) ;
-        GetWaveformParameter( iNode, 'DURATION', spDuration, spDurationInc,
+        GetWaveformParameter( iNode, 'DURATION', spDuration, spDurationInc,spNone,
                               Prot.Stimulus[iElement].Parameters ) ;
-        GetWaveformParameter( iNode, 'NUMREPEATS', spNumRepeats, spNumRepeatsInc,
+        GetWaveformParameter( iNode, 'NUMREPEATS', spNumRepeats, spNumRepeatsInc,spNone,
                               Prot.Stimulus[iElement].Parameters ) ;
-        GetWaveformParameter( iNode, 'REPEATPERIOD', spRepeatPeriod, spRepeatPeriodInc,
+        GetWaveformParameter( iNode, 'REPEATPERIOD', spRepeatPeriod, spRepeatPeriodInc,spNone,
                               Prot.Stimulus[iElement].Parameters ) ;
-        GetWaveformParameter( iNode, 'FREQUENCY', spFREQUENCY, spFREQUENCYInc,
+        GetWaveformParameter( iNode, 'FREQUENCY', spFREQUENCY, spFREQUENCYInc,spFrequencyMultiplierFlag,
                               Prot.Stimulus[iElement].Parameters ) ;
 
         GetWaveformParameterText( iNode, 'FILENAME', spFileName,
                                   Prot.Stimulus[iElement].Parameters ) ;
 
-        GetWaveformParameter( iNode, 'DACUPDATEINTERVAL', spDACUpdateInterval, spNone,
+        GetWaveformParameter( iNode, 'DACUPDATEINTERVAL', spDACUpdateInterval, spNone,spNone,
                               Prot.Stimulus[iElement].Parameters ) ;
 
-        GetWaveformParameter( iNode, 'NUMPOINTS', spNumPoints, spNumPointsInc,
+        GetWaveformParameter( iNode, 'NUMPOINTS', spNumPoints, spNumPointsInc,spNone,
                               Prot.Stimulus[iElement].Parameters ) ;
 
-        GetWaveformParameter( iNode, 'SCALE', spScale, spScaleInc,
+        GetWaveformParameter( iNode, 'SCALE', spScale, spScaleInc,spNone,
                               Prot.Stimulus[iElement].Parameters ) ;
 
-        GetWaveformParameter( iNode, 'OFFSET', spOffset, spOffsetInc,
+        GetWaveformParameter( iNode, 'OFFSET', spOffset, spOffsetInc,spNone,
                               Prot.Stimulus[iElement].Parameters ) ;
 
         // Load user-defined waveform
@@ -2547,22 +2642,37 @@ procedure TStimulator.AddWaveformParameter(
           ParameterName : string ;                // Element name
           iValue : Integer ;                      // Parameter value index # in ParList
           iIncrement : Integer ;                  // Parameter increment index # in ParList
+          iMultiplierFlag : Integer ;             // Use Parameter increment as multipler index # in ParList
           ParList : Array of TStimulusParameter   // Parameter array
           ) ;
 var
     iNode : IXMLNode ;
 begin
 
-     if ParList[iValue].Exists then begin
+     if ParList[iValue].Exists then
+        begin
+
         iNode := ParentNode.AddChild( ParameterName ) ;
+
         AddElementFloat( iNode, 'VALUE', ParList[iValue].Value ) ;
-        if iIncrement >= 0 then begin
+
+        if iIncrement >= 0 then
+           begin
            if ParList[iIncrement].Exists then begin
               AddElementFloat( iNode, 'INCREMENT', ParList[iIncrement].Value ) ;
               end ;
            end ;
+
+        if iMultiplierFlag >= 0 then
+           begin
+           if ParList[iMultiplierFlag].Exists then
+              begin
+              AddElementFloat( iNode, 'MULTIPLIERFLAG', ParList[iMultiplierFlag].Value ) ;
+              end ;
+           end ;
         end ;
-     end ;
+
+end ;
 
 
 procedure TStimulator.AddWaveformParameterText(
@@ -2575,11 +2685,13 @@ var
     iNode : IXMLNode ;
 begin
 
-     if ParList[iValue].Exists then begin
+     if ParList[iValue].Exists then
+        begin
         iNode := ParentNode.AddChild( ParameterName ) ;
         AddElementText( iNode, 'VALUE', ParList[iValue].Text ) ;
         end ;
-     end ;
+
+end ;
 
 
 procedure TStimulator.GetWaveformParameter(
@@ -2587,6 +2699,7 @@ procedure TStimulator.GetWaveformParameter(
           ParameterName : string ;                // Element name
           iValue : Integer ;                      // Parameter value index # in ParList
           iIncrement : Integer ;                  // Parameter increment index # in ParList
+          iMultiplierFlag : Integer ;        // Use Parameter increment as multipler index # in ParList
           var ParList : Array of TStimulusParameter   // Parameter array
           ) ;
 // ------------------------------
@@ -2602,22 +2715,37 @@ begin
     if iIncrement >= 0 then ParList[iIncrement].Exists := False ;
 
     NodeIndex := 0 ;
-    if FindXMLNode(ParentNode,ParameterName,ChildNode,NodeIndex) then begin
+    if FindXMLNode(ParentNode,ParameterName,ChildNode,NodeIndex) then
+       begin
 
        // Get value
-       if GetElementFloat( ChildNode, 'VALUE', Value ) then begin
+       if GetElementFloat( ChildNode, 'VALUE', Value ) then
+          begin
           ParList[iValue].Value := Value ;
           ParList[iValue].Exists := True ;
           end ;
 
        // Get increment (if required)
-       if iIncrement >= 0 then begin
-          if GetElementFloat( ChildNode, 'INCREMENT', Value ) then begin
+       if iIncrement >= 0 then
+          begin
+          if GetElementFloat( ChildNode, 'INCREMENT', Value ) then
+             begin
              ParList[iIncrement].Value := Value ;
              ParList[iIncrement].Exists := True ;
              end ;
           end ;
-       end ;
+
+       // Get multipler flag (1.0=TRUE) (if required)
+       if iMultiplierFlag >= 0 then
+          begin
+          if GetElementFloat( ChildNode, 'MULTIPLIERFLAG', Value ) then
+             begin
+             ParList[iMultiplierFlag].Value := Value ;
+             ParList[iMultiplierFlag].Exists := True ;
+             end ;
+          end ;
+
+       end;
 
      end ;
 

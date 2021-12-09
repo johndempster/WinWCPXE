@@ -37,6 +37,9 @@ unit EditProtocolUnit;
 //          when large (> 10000) waveforms loaded.
 //          Initial delay no longer fixed at default (10 ms) for userr-entered wavedforms
 //          Parameter table numbers now set with up to 6 figure accuracy
+//  09.12.12 Frequency increment of wvWave sine waves caan now act as a multiplier as well as an additive increment
+//           MULTIPLIERFLAG= added to waveform parameter records and spFrequencyMultiplierFlag added to protocol parameter list
+//          'Multiply by increment (1=Y,0=N) ' added to parameter table
 //
 
 interface
@@ -1043,11 +1046,12 @@ begin
     ParNames[spScaleInc] := 'Scale by (increment) ' ;
     ParNames[spOffset] := 'Offset by ' ;
     ParNames[spOffsetInc] := 'Offset by (increment) ' ;
+    ParNames[spFrequencyMultiplierFlag] := 'Multiply by increment (1=Y,0=N) ' ;
 
     Table.ColWidths[0] := 150 ;
     for i := 0 to High(ParNames) do begin
         Table.ColWidths[0] := Max( Table.ColWidths[0],
-                                   Table.canvas.TextWidth(ParNames[i]) ) ;
+                                   Table.canvas.TextWidth(ParNames[i]) + 20) ;
         end ;
 //    TUnits := 'ms' ;
 //    TScale := 1000.0 ;
@@ -1198,6 +1202,9 @@ begin
            ParamList[5].Index := spFrequencyInc ;
            ParamList[5].Units :=  'Hz' ;
            ParamList[5].Scale := 1.0 ;
+           ParamList[6].Index := spFrequencyMultiplierFlag ;
+           ParamList[6].Units :=  '' ;
+           ParamList[6].Scale := 1.0 ;
            end ;
 
         wvPulseStaircase : begin
@@ -1725,7 +1732,7 @@ const
 var
     Top :Integer ;
     Left :Integer ;
-    i,j,g,sh,iElem,Incr :Integer ;
+    i,j,g,sh,iElem,Incr,iInc :Integer ;
     ChannelSpacing : Integer ;
     DigSpacing : Integer ;
     ChannelHeight : Integer ;
@@ -1754,7 +1761,7 @@ var
     Y,YMax,YMin,T,dT : Single ;
     TMax : Single ;
     StartAmplitude,EndAmplitude : Single ;
-    Delay,Duration,PulsePeriod : Single ;
+    Delay,Duration,PulsePeriod,Freq : Single ;
     NumPulses,iPulse : Integer ;
     Space : Integer ;
     VerticalSpacing : Integer ;
@@ -1898,17 +1905,37 @@ begin
                 // Pulse period
                 if Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Exists then begin
                    PulsePeriod := Prot.Stimulus[iElem].Parameters[spRepeatPeriod].Value ;
-                   if Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Exists then begin
+                   if Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Exists then
+                      begin
                       PulsePeriod := PulsePeriod +
                                      Prot.Stimulus[iElem].Parameters[spRepeatPeriodInc].Value*Incr ;
                       end ;
                    end
-                else if Prot.Stimulus[iElem].Parameters[spFrequency].Exists then begin
-                   PulsePeriod := 1.0/Max(Prot.Stimulus[iElem].Parameters[spFrequency].Value,1E-6) ;
-                   if Prot.Stimulus[iElem].Parameters[spFrequencyInc].Exists then begin
-                      PulsePeriod := 1.0 / Max(1E-6,Prot.Stimulus[iElem].Parameters[spFrequency].Value +
-                                                    Prot.Stimulus[iElem].Parameters[spFrequencyInc].Value*Incr) ;
+                else if Prot.Stimulus[iElem].Parameters[spFrequency].Exists then
+                   begin
+
+                   Freq := Prot.Stimulus[iElem].Parameters[spFrequency].Value ;
+
+                   if Prot.Stimulus[iElem].Parameters[spFrequencyInc].Exists then
+                      begin
+
+                      if Prot.Stimulus[iElem].Parameters[spFrequencyMultiplierFlag].Exists and
+                        (Prot.Stimulus[iElem].Parameters[spFrequencyMultiplierFlag].Value = 1.0) then
+                         begin
+                         // Multiply by increment
+                         Freq := Prot.Stimulus[iElem].Parameters[spFrequency].Value ;
+                         for iInc := 1 to Incr do Freq := Freq*Prot.Stimulus[iElem].Parameters[spFrequencyInc].Value ;
+                         end
+                      else
+                         begin
+                         // Add increment
+                         Freq := Prot.Stimulus[iElem].Parameters[spFrequency].Value +
+                                 Prot.Stimulus[iElem].Parameters[spFrequencyInc].Value*Incr ;
+                         end;
+
                       end ;
+                   PulsePeriod := 1.0 / Max(Freq,1E-6) ;
+
                    end
                 else PulsePeriod := 0 ;
 

@@ -3,7 +3,7 @@ object EditProtocolFrm: TEditProtocolFrm
   Top = 362
   Caption = 'EditProtocolFrm'
   ClientHeight = 643
-  ClientWidth = 953
+  ClientWidth = 992
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -24,13 +24,14 @@ object EditProtocolFrm: TEditProtocolFrm
   object Page: TPageControl
     Left = 172
     Top = 200
-    Width = 773
+    Width = 812
     Height = 441
     ActivePage = StimulusTab
     TabOrder = 0
     OnChange = PageChange
     object RecordTab: TTabSheet
       Caption = 'Recording'
+      ExplicitWidth = 765
       object lbError: TLabel
         Left = 376
         Top = 8
@@ -245,6 +246,7 @@ object EditProtocolFrm: TEditProtocolFrm
     object StimulusTab: TTabSheet
       Caption = 'Stimulus'
       ImageIndex = 1
+      ExplicitWidth = 765
       object ProtocolGrp: TGroupBox
         Left = 103
         Top = 0
@@ -11088,14 +11090,14 @@ object EditProtocolFrm: TEditProtocolFrm
       object ParameterTableGrp: TGroupBox
         Left = 474
         Top = 0
-        Width = 290
+        Width = 327
         Height = 217
         Caption = 'ParameterTableGrp'
         TabOrder = 2
         object Table: TStringGrid
-          Left = 8
-          Top = 15
-          Width = 255
+          Left = 4
+          Top = 20
+          Width = 294
           Height = 194
           ColCount = 2
           DefaultColWidth = 100
@@ -11120,7 +11122,7 @@ object EditProtocolFrm: TEditProtocolFrm
             18)
         end
         object bLoadFile: TButton
-          Left = 267
+          Left = 304
           Top = 32
           Width = 20
           Height = 18
@@ -12269,7 +12271,7 @@ object EditProtocolFrm: TEditProtocolFrm
   object DisplayGrp: TGroupBox
     Left = 172
     Top = 0
-    Width = 773
+    Width = 812
     Height = 193
     Caption = ' Waveform '
     Font.Charset = DEFAULT_CHARSET
@@ -12282,7 +12284,7 @@ object EditProtocolFrm: TEditProtocolFrm
     object pbDisplay: TPaintBox
       Left = 8
       Top = 16
-      Width = 753
+      Width = 785
       Height = 169
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack

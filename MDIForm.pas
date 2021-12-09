@@ -765,6 +765,8 @@ unit MDIForm;
    V5.6.5 02.12.21 Stimulus Protocol Editor: Initial delay for user-entered waveforms no longer fixed at default of 10ms.
                    All amplitude and time parameters now displayed with 6 figure precision to avoid rounding errors in D/A update interval.
                    Speed of display of large user-defined waveforms increased by limiting display to a sample of 10000 points within waveform.
+   V5.6.6 09.12.21 Stimulus protocols: Sine wave element frequency increments can now be multiplicative as well as additive.
+                   CED 1401: Minimum D/A update rate of CED Power 1401s reduced from 100 microsec to 10 microsec
             =======================================================================}
 
 interface
@@ -1013,7 +1015,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.6.5';
+      ProgVersion := 'V5.6.6';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
