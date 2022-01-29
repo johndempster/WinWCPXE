@@ -75,7 +75,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
         OnChange = cbGainChange
       end
       object cbChannel: TComboBox
-        Left = 87
+        Left = 90
         Top = 16
         Width = 57
         Height = 21
@@ -160,7 +160,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
       Top = 208
       Width = 308
       Height = 113
-      ActivePage = VpipTab
+      ActivePage = CfastTab
       TabOrder = 2
       object CfastTab: TTabSheet
         Caption = 'Cfast'
@@ -248,7 +248,7 @@ object EPC9PanelFrm: TEPC9PanelFrm
         end
         object udCFast: TUpDown
           Left = 195
-          Top = -3
+          Top = -2
           Width = 16
           Height = 24
           Min = -1000000
@@ -264,7 +264,6 @@ object EPC9PanelFrm: TEPC9PanelFrm
           Min = -1000000
           Max = 1000000
           TabOrder = 5
-          OnChangingEx = udCFastTauChangingEx
         end
       end
       object CslowTab: TTabSheet
