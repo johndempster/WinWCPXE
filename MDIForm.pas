@@ -768,6 +768,7 @@ unit MDIForm;
    V5.6.6 09.12.21 Stimulus protocols: Sine wave element frequency increments can now be multiplicative as well as additive.
                    CED 1401: Minimum D/A update rate of CED Power 1401s reduced from 100 microsec to 10 microsec
    V5.6.7 29.01.22 Heka amplifiers; Amplifier # no longer forced to be at zero.
+   V5.6.8 21.02.22 Debug log for Digidata 1440 added
             =======================================================================}
 
 interface
@@ -1016,7 +1017,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.6.7';
+      ProgVersion := 'V5.6.8';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
