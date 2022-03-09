@@ -4,6 +4,8 @@ unit MeasureThread;
 // ==================================================================
 // 13.04.21
 // 17.08.21 .. Peak-peak peak measurement option added
+// 09.03.22 .. Latency measurement now correctly calculated
+//             LatencyPercentageIn Added to Create() arguments and iTimeZero set correctly
 
 interface
 
@@ -48,7 +50,8 @@ type
                       NumChannels : Integer ;
                       iStartIn : Array of Integer ;
                       iEndIn : Array of Integer ;
-                      iTimeZeroIn : Array of Integer
+                      iTimeZeroIn : Array of Integer ;
+                      LatencyPercentageIn : Single
                       );
 
   protected
@@ -72,7 +75,8 @@ constructor TMeasureThread.Create( StartAtIn : Integer ;          // Statt at re
                                    NumChannels : Integer ;        // No. signal channels
                                    iStartIn : Array of Integer ;  // Starting sample (for each channel)
                                    iEndIn : Array of Integer ;    // End sample
-                                   iTimeZeroIn : Array of Integer // T=0 sample
+                                   iTimeZeroIn : Array of Integer ; // T=0 sample
+                                   LatencyPercentageIn : Single     // Latency % threshold
                                    );
 // ----------------------------
 // Create and initialise thread
@@ -89,6 +93,7 @@ begin
   StartAtRec := StartAtIn ;
   EndAtRec := EndAtIn ;
   TypeToBeAnalysed := TypeToBeAnalysedIn ;
+  LatencyPercentage := LatencyPercentageIn ;
 
   for ch := 0 to NumChannels-1 do
       begin
@@ -121,7 +126,7 @@ var
    Diff,MaxDiff : single ;
    A : array[-15..15] of single ;
    ASum : single ;
-   jLow,jHigh,iTimeZero,iStep : Integer ;
+   jLow,jHigh,iStep : Integer ;
    row,col : Integer ;
    iY,i0,i1,j0,j1 : Integer ;
    EndPoint : Integer ;
@@ -377,7 +382,7 @@ begin
                   Y := ADC^[iLatency*fH.NumChannels + ChOffset]*Invert ;
                   // Exit when amplitude drops below lower limit
                   until (Y <= YLatency) or (iLatency <= 0) ;
-                rH.Value[ch*MaxAnalysisVariables+vLatency] := ((iLatency - iTimeZero )*rH.dt) ;
+                rH.Value[ch*MaxAnalysisVariables+vLatency] := ((iLatency - iTimeZero[ch] )*rH.dt) ;
 
                 { Calculate max. rate of rise (over range from iStart ... peak ) }
                 if FH.RateOfRiseMode = SlopeDifference then

@@ -95,6 +95,8 @@ unit Measure;
                Results saved in CSV table with suffix <file name> .wfm.csv
                Absolute peak values now correctly entered in results table
    17.08.21 .. Peak-peak peak measurement option added
+   09.03.22 .. Latency measurement now correctly calculated
+
   ==========================================================================}
 interface
 
@@ -948,7 +950,8 @@ begin
                                                 FH.NumChannels,
                                                 iStart,
                                                 iEnd,
-                                                iTimeZero ) ;
+                                                iTimeZero,
+                                                edLatencyPercentage.Value ) ;
 
      end;
 
