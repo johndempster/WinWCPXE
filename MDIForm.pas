@@ -770,6 +770,7 @@ unit MDIForm;
    V5.6.7 29.01.22 Heka amplifiers; Amplifier # no longer forced to be at zero.
    V5.6.8 21.02.22 Debug log for Digidata 1440 added
    V5.6.9 09.03.22 Waveform Measurements: Latency measurement now correctly calculated
+   V5.7.0 23.05.22 Ext Trigger and Ext Stimulus Trigger now works with Tecella Pico 2 patch clamp
 
             =======================================================================}
 
@@ -1019,7 +1020,7 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.6.9';
+      ProgVersion := 'V5.7.0';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
 
       { Get directory which contains WinWCP program }
