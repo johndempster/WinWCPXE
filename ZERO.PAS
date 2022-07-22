@@ -4,13 +4,16 @@ unit Zero;
   Channel zero level setup module
   -----------------------------------------------------------
   3/8/99 ... 32 bit version
-  29.08.12 ... Now callable from recordfrm and replay forms}
+  29.08.12 ... Now callable from recordfrm and replay forms
+  26.05.22 ... Channel zero settings now directly updated from within OK button method
+               (Avoids zero being forced to record-relative when cancel button pressed)
+  }
 
 interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, StdCtrls, Global, Mask, Shared, fileio, maths, ValEdit,
+  Forms, Dialogs, StdCtrls, Mask, maths, ValEdit,
   ValidatedEdit;
 
 type
@@ -54,13 +57,19 @@ implementation
 
 {$R *.DFM}
 
+uses WCPFIleUnit;
+
 procedure TZeroFrm.FormShow(Sender: TObject);
 { ----------------------------------
   Initialisation when form is opened
   ---------------------------------- }
 begin
 
-     edChannel.text := format('Ch.%d %s',[Chan,ChanName]) ;
+//     ChanName := WCPFile.Channel[Chan].ADCName ;
+     edChannel.text := format('Ch.%d %s',[Chan,WCPFile.Channel[Chan].ADCName]) ;
+     OldZeroAt := WCPFile.Channel[Chan].ADCZeroAt ;
+     NumZeroAveraged := WCPFile.FH.NumZeroAvg ;
+     MaxValue := WCPFile.FH.MaxADCValue ;
 
      { Starting sample for zero level average (-1=fixed level) }
      edAtSample.LoLimit := 0 ;
@@ -93,6 +102,7 @@ begin
      end ;
 
 
+
 procedure TZeroFrm.bOKClick(Sender: TObject);
 { -----------------
   Update zero level
@@ -101,11 +111,19 @@ begin
      if rbFromRecord.checked then begin
           NewZeroAt := Round(edAtSample.Value) ;
           NumZeroAveraged := Round(edNumAveraged.Value) ;
+          WCPFile.FH.NumZeroAvg := NumZeroAveraged ;
+          WCPFile.Channel[Chan].ADCZeroAt := NewZeroAt ;
           end
      else begin
           Level := Round(edFixedLevel.Value) ;
+          WCPFile.Channel[Chan].ADCZero := ZeroFrm.Level ;
           NewZeroAt := -1 ;
+          WCPFile.Channel[Chan].ADCZeroAt := NewZeroAt ;
           end ;
+
+     // Save changes to file header
+     WCPFile.SaveHeader( WCPFile.FH ) ;
+
      end;
 
 

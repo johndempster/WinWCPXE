@@ -25,13 +25,14 @@ unit Average;
               ADC32 and Sum buffers now allocated inside bDoAveragesClick procedure
               Averaged signals at upper/lower limits of signal range no longer wrap around.
   12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
+  26.05.22 .. ZeroFrm now settings Channel record zero level settings directly
   ========================================================================== }
 interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, StdCtrls, ExtCtrls, Global, Shared, FileIo, maths,
-  ValEdit, RangeEdit, ScopeDisplay, ComCtrls, ValidatedEdit, math, seslabio ;
+  Forms, Dialogs, StdCtrls, ExtCtrls, maths,
+  ValEdit, RangeEdit, ScopeDisplay, ComCtrls, ValidatedEdit, math, seslabio, WCPFIleUnit;
 
 type
   TAvgFrm = class(TForm)
@@ -115,24 +116,24 @@ procedure TAvgFrm.FormShow(Sender: TObject);
 begin
 
      { Create record type selector box }
-     cbRecordType.items := RecordTypes ;
+     cbRecordType.items := WCPFile.RecordTypes ;
      cbRecordType.items.delete(0) ; {Remove 'ALL' item}
 
      { Create time to be averaged selector box }
-     cbRecTypeToBeAveraged.items := RecordTypes ;
+     cbRecTypeToBeAveraged.items := WCPFile.RecordTypes ;
      if cbRecTypeToBeAveraged.itemIndex < 0 then cbRecTypeToBeAveraged.itemIndex := 0 ;
 
-     edRecordNum.HiLimit := RawFH.NumRecords ;
-     edRecordNum.HiValue := RawFH.NumRecords ;
+     edRecordNum.HiLimit := WCPFile.RawFH.NumRecords ;
+     edRecordNum.HiValue := WCPFile.RawFH.NumRecords ;
      edRecordNum.LoLimit := 1 ;
      edRecordNum.LoValue := sbRecordNum.position ;
 
      edRange.LoLimit := 1 ;
      edRange.LoValue := edRange.LoLimit ;
-     edRange.HiLimit := RawFH.NumRecords ;
+     edRange.HiLimit := WCPFile.RawFH.NumRecords ;
      edRange.HiValue := edRange.HiLimit ;
 
-     edBlockSize.Value :=  RawfH.NumRecords ;
+     edBlockSize.Value :=  WCPFile.RawfH.NumRecords ;
 
      { Initialise average alignment mode combo box }
      if cbAlignMode.ItemIndex < 0 then cbAlignMode.ItemIndex := 0 ;
@@ -147,8 +148,8 @@ begin
      NewFile ;
 
      { Set up range of records to be displayed in averaging setup display }
-     RawFH.RecordNum := 1 ;
-     UpdateScrollBar( sbRecordNum, RawFH.RecordNum, 1, RawfH.NumRecords ) ;
+     WCPFile.RawFH.RecordNum := 1 ;
+     WCPFile.UpdateScrollBar( sbRecordNum, WCPFile.RawFH.RecordNum, 1, WCPFile.RawfH.NumRecords ) ;
 
      DisplayRecord ;
 
@@ -164,41 +165,41 @@ begin
 
      // Reallocate A/D sample buffer
      if ADC16 <> Nil then FreeMem(ADC16) ;
-     GetMem( ADC16, Max(RawFH.NumSamples*RawFH.NumChannels*2,1024) ) ;
+     GetMem( ADC16, Max(WCPFile.RawFH.NumSamples*WCPFile.RawFH.NumChannels*2,1024) ) ;
      scDisplay.SetDataBuf( ADC16 ) ;
 
-     if RawFH.NumRecords > 0 then begin
+     if WCPFile.RawFH.NumRecords > 0 then begin
         { Set up scope display }
-        scDisplay.MaxADCValue := RawFH.MaxADCValue ;
-        scDisplay.MinADCValue := RawFH.MinADCValue ;
-        scDisplay.DisplayGrid := Settings.DisplayGrid ;
-        scDisplay.MaxPoints := RawfH.NumSamples ;
-        scDisplay.NumPoints := RawfH.NumSamples ;
-        scDisplay.NumChannels := RawfH.NumChannels ;
+        scDisplay.MaxADCValue := WCPFile.RawFH.MaxADCValue ;
+        scDisplay.MinADCValue := WCPFile.RawFH.MinADCValue ;
+        scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
+        scDisplay.MaxPoints := WCPFile.RawfH.NumSamples ;
+        scDisplay.NumPoints := WCPFile.RawfH.NumSamples ;
+        scDisplay.NumChannels := WCPFile.RawfH.NumChannels ;
 
         { Set channel information }
-        for ch := 0 to RawfH.NumChannels-1 do begin
-            scDisplay.ChanUnits[ch] := Channel[Ch].ADCUnits ;
-            scDisplay.ChanName[ch] := Channel[Ch].ADCName ;
-            scDisplay.ChanScale[ch] := Channel[ch].ADCScale ;
+        for ch := 0 to scDisplay.NumChannels-1 do begin
+            scDisplay.ChanUnits[ch] := WCPFile.Channel[Ch].ADCUnits ;
+            scDisplay.ChanName[ch] := WCPFile.Channel[Ch].ADCName ;
+            scDisplay.ChanScale[ch] := WCPFile.Channel[ch].ADCScale ;
             // If the number of channels has changed, zoom out display
-            if OldNumChannels <> RawFH.NumChannels then begin
-               Channel[ch].yMin := Main.SESLabIO.ADCMinValue ;
-               Channel[ch].yMax := Main.SESLabIO.ADCMaxValue ;
+            if OldNumChannels <> scDisplay.NumChannels then begin
+               WCPFile.Channel[ch].yMin := Main.SESLabIO.ADCMinValue ;
+               WCPFile.Channel[ch].yMax := Main.SESLabIO.ADCMaxValue ;
                end ;
-            scDisplay.ChanOffsets[ch] := Channel[ch].ChannelOffset ;
-            scDisplay.ChanVisible[ch] := Channel[ch].InUse ;
-            scDisplay.yMin[ch] := Channel[Ch].yMin ;
-            scDisplay.yMax[ch] := Channel[Ch].yMax ;
+            scDisplay.ChanOffsets[ch] := WCPFile.Channel[ch].ChannelOffset ;
+            scDisplay.ChanVisible[ch] := WCPFile.Channel[ch].InUse ;
+            scDisplay.yMin[ch] := WCPFile.Channel[Ch].yMin ;
+            scDisplay.yMax[ch] := WCPFile.Channel[Ch].yMax ;
             end ;
-        OldNumChannels := FH.NumChannels ;
-        scDisplay.ChanZeroAvg := FH.NumZeroAvg ;
-        
+        OldNumChannels := WCPFile.FH.NumChannels ;
+        scDisplay.ChanZeroAvg := WCPFile.FH.NumZeroAvg ;
+
         scDisplay.xMin := 0 ;
-        scDisplay.xMax := RawFH.NumSamples ;
+        scDisplay.xMax := WCPFile.RawFH.NumSamples ;
         scDisplay.xOffset := 0 ;
-        scDisplay.TScale := RawFH.dt*Settings.TScale ;
-        scDisplay.TUnits := Settings.TUnits ;
+        scDisplay.TScale := WCPFile.RawFH.dt*WCPFile.Settings.TScale ;
+        scDisplay.TUnits := WCPFile.Settings.TUnits ;
 
         { Set initial position of alignment cursors }
         scDisplay.ClearVerticalCursors ;
@@ -207,12 +208,12 @@ begin
         scDisplay.LinkVerticalCursors(Cursor0,Cursor1);
 
         scDisplay.VerticalCursors[Cursor0] := 5 ;
-        scDisplay.VerticalCursors[Cursor1] := RawFH.NumSamples - 5 ;
+        scDisplay.VerticalCursors[Cursor1] := scDisplay.NumPoints - 5 ;
 
         scDisplay.ClearHorizontalCursors ;
-        for ch := 0 to RawFH.NumChannels-1 do begin
-            scDisplay.AddHorizontalCursor(ch,Settings.Colors.Cursors,True,'z') ;
-            scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
+        for ch := 0 to scDisplay.NumChannels-1 do begin
+            scDisplay.AddHorizontalCursor(ch,WCPFile.Settings.Colors.Cursors,True,'z') ;
+            scDisplay.HorizontalCursors[ch] := WCPFile.Channel[ch].ADCZero ;
             end ;
 
         
@@ -243,23 +244,23 @@ begin
 
      if ADC16 = Nil then Exit ;
 
-     RawfH.RecordNum := SbRecordNum.position ;
+     WCPFile.RawfH.RecordNum := SbRecordNum.position ;
 
      { Read record data from file }
-     GetRecord( RawfH, RH, RawfH.RecordNum, ADC16^ ) ;
+     WCPFile.GetRecord( WCPFile.RawfH, RH, WCPFile.RawfH.RecordNum, ADC16^ ) ;
 
-     scDisplay.TScale := RawFH.dt*Settings.TScale ;
+     scDisplay.TScale := WCPFile.RawFH.dt*WCPFile.Settings.TScale ;
 
-     for ch := 0 to RawFH.NumChannels-1 do begin
+     for ch := 0 to scDisplay.NumChannels-1 do begin
          // Zero level
-         scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
+         scDisplay.HorizontalCursors[ch] := WCPFile.Channel[ch].ADCZero ;
          // Start of area from which zero level was computed (-1 indicates fixed zero level)
-         scDisplay.ChanZeroAt[ch] := Channel[ch].ADCZeroAt ;
+         scDisplay.ChanZeroAt[ch] := WCPFile.Channel[ch].ADCZeroAt ;
          // Signal scaling factor
-         scDisplay.ChanScale[ch] := Channel[ch].ADCScale ;
+         scDisplay.ChanScale[ch] := WCPFile.Channel[ch].ADCScale ;
          end ;
      // No. of samples in zero level area
-     scDisplay.ChanZeroAvg := RawFH.NumZeroAvg ;
+     scDisplay.ChanZeroAvg := WCPFile.RawFH.NumZeroAvg ;
 
      scDisplay.SetDataBuf( ADC16 ) ;
 
@@ -271,7 +272,7 @@ begin
         cbRecordType.ItemIndex := cbRecordType.items.indexOf(RH.RecType);
 
      { Update record number display }
-     edRecordNum.HiValue := RawfH.NumRecords ;
+     edRecordNum.HiValue := WCPFile.RawfH.NumRecords ;
      edRecordNum.LoValue := sbRecordNum.position ;
 
      end ;
@@ -291,7 +292,7 @@ var
    iExt,OldHandle,Temp : Integer ;
    StartAtRec,EndAtRec,RecordNum : Integer ;
    StartOfBlock,EndOfBlock,BlockSize,NumRecordsAveraged : Integer ;
-   iStart,iEnd : Integer ;
+   iStart,iEnd, np : Integer ;
    Done, OK : Boolean ;
    RepeatCounter,NumRepeats : Integer ;
    ADC32 : PIntArray ;
@@ -305,31 +306,32 @@ begin
      { Create averages file }
 
      { Copy details from original file header (except file handle!!!!) }
-     OldHandle := AvgFH.FileHandle ;
-     AvgfH := RawfH ;
-     AvgFH.FileHandle := OldHandle ;
+     OldHandle := WCPFile.AvgFH.FileHandle ;
+     WCPFile.AvgfH := WCPFile.RawfH ;
+     WCPFile.AvgFH.FileHandle := OldHandle ;
 
      // Allocate buffer
-     GetMem( ADC32, RawFH.NumSamples*RawFH.NumChannels*SizeOf(Integer));
-     GetMem( Sum, RawFH.NumSamples*RawFH.NumChannels*SizeOf(Single));
-     for i := 0 to (RawFH.NumChannels*RawFH.NumSamples)-1 do Sum^[i] := 0. ;
+     np := WCPFile.RawFH.NumSamples*WCPFile.RawFH.NumChannels ;
+     GetMem( ADC32, np*SizeOf(Integer));
+     GetMem( Sum, np*SizeOf(Single));
+     for i := 0 to np-1 do Sum^[i] := 0. ;
 
      { The averages data file name has the same name as the original file
        but with the extension .avg }
-     AvgfH.FileName := ChangeFileExt( RawfH.FileName, '.avg' ) ;
+     WCPFile.AvgfH.FileName := ChangeFileExt( WCPFile.RawfH.FileName, '.avg' ) ;
 
      { Create file to hold averages }
-     FileCloseSafe(  AvgFH.FileHandle ) ;
-     AvgfH.FileHandle := FileCreate( AvgfH.FileName ) ;
+     WCPFile.FileCloseSafe(  WCPFile.AvgFH.FileHandle ) ;
+     WCPFile.AvgfH.FileHandle := FileCreate( WCPFile.AvgfH.FileName ) ;
 
      { Save header block and request}
-     if AvgfH.FileHandle >= 0 then begin
-           AvgfH.NumRecords := 0 ;
-           SaveHeader( AvgfH ) ;
+     if WCPFile.AvgfH.FileHandle >= 0 then begin
+           WCPFile.AvgfH.NumRecords := 0 ;
+           WCPFile.SaveHeader( WCPFile.AvgfH ) ;
            OK := True ;
            end
      else begin
-          ShowMessage( format('FileCreate Error =%d',[AvgfH.FileHandle])) ;
+          ShowMessage( format('FileCreate Error =%d',[WCPFile.AvgfH.FileHandle])) ;
           OK := False ;
           end ;
 
@@ -362,12 +364,12 @@ begin
 
         { Read record data from file }
         if RecordNum <= EndAtRec then begin
-           GetRecord32( RawfH, RH, RecordNum, ADC32^ ) ;
+           WCPFile.GetRecord32( WCPFile.RawfH, RH, RecordNum, ADC32^ ) ;
            end;
 
         { If no records in buffer yet ... Initialise averaging array }
         if NumRecordsAveraged = 0 then begin
-           for i := 0 to (RawFH.NumChannels*RawFH.NumSamples)-1 do Sum^[i] := 0. ;
+           for i := 0 to np-1 do Sum^[i] := 0. ;
            LastUsedRH := RH ;
            end ;
 
@@ -380,13 +382,13 @@ begin
            LastUsedRH := RH ;
 
            { Add each channel to record average }
-           for ch := 0 to RawFH.NumChannels-1 do begin
+           for ch := 0 to WCPFile.RawFH.NumChannels-1 do begin
 
                { Subtract zero level }
-               j := Channel[ch].ChannelOffset ;
-               for i := 0 to RawFH.NumSamples-1 do begin
-                   ADC32^[j] := ADC32^[j] - Channel[ch].ADCZero ;
-                   j := j +  RawFH.NumChannels ;
+               j := WCPFile.Channel[ch].ChannelOffset ;
+               for i := 0 to WCPFile.RawFH.NumSamples-1 do begin
+                   ADC32^[j] := ADC32^[j] - WCPFile.Channel[ch].ADCZero ;
+                   j := j +  WCPFile.RawFH.NumChannels ;
                    end ;
 
                { Get range of samples to be averaged from positions of cursors 0 and 1 }
@@ -405,9 +407,9 @@ begin
                   of its rising phase with that of the average }
 
                   { Find peaks within cursor 0-1 region}
-                  PeakPositive := RawFH.MinADCValue*2 ;
-                  PeakNegative := RawFH.MaxADCValue*2 ;
-                  j := iStart*RawFH.NumChannels + Channel[ch].ChannelOffset ;
+                  PeakPositive := WCPFile.RawFH.MinADCValue*2 ;
+                  PeakNegative := WCPFile.RawFH.MaxADCValue*2 ;
+                  j := iStart*WCPFile.RawFH.NumChannels + WCPFile.Channel[ch].ChannelOffset ;
                   for i := iStart to iEnd do begin
                       iY := ADC32^[j] ;
                       if iY > PeakPositive then begin
@@ -418,7 +420,7 @@ begin
                          PeakNegative := iY ;
                          PeakNegativeAt := i ;
                          end ;
-                      j := j +  RawFH.NumChannels ;
+                      j := j +  WCPFile.RawFH.NumChannels ;
                       end ;
 
                   if cbAlignMode.ItemIndex = OnPositiveRise then begin
@@ -434,7 +436,7 @@ begin
                   iY := Peak ;
                   HalfPeakAt := PeakAt ;
                   while (iY >= HalfPeak) and (HalfPeakAt > iStart) do begin
-                      j := HalfPeakAt*RawFH.NumChannels + Channel[ch].ChannelOffset ;
+                      j := HalfPeakAt*WCPFile.RawFH.NumChannels + WCPFile.Channel[ch].ChannelOffset ;
                       iY := Abs(ADC32^[j]) ;
                       HalfPeakAt := HalfPeakAt - 1;
                       end ;
@@ -446,11 +448,11 @@ begin
                { Add signal to average. (Note how signal is scaled by
                binary->real scaling factor. This allows averaging of
                records with different gains) }
-               for i := 0 to RawFH.NumSamples-1 do begin
-                   iFrom := Max(Min(i + Shift,RawFH.NumSamples-1),0) ;
-                   jFrom := iFrom*RawFH.NumChannels + Channel[ch].ChannelOffset ;
-                   jTo := i*RawFH.NumChannels + Channel[ch].ChannelOffset ;
-                   Sum^[jTo] := Sum^[jTo] + ADC32^[jFrom]*Channel[ch].ADCScale ;
+               for i := 0 to WCPFile.RawFH.NumSamples-1 do begin
+                   iFrom := Max(Min(i + Shift,WCPFile.RawFH.NumSamples-1),0) ;
+                   jFrom := iFrom*WCPFile.RawFH.NumChannels + WCPFile.Channel[ch].ChannelOffset ;
+                   jTo := i*WCPFile.RawFH.NumChannels + WCPFile.Channel[ch].ChannelOffset ;
+                   Sum^[jTo] := Sum^[jTo] + ADC32^[jFrom]*WCPFile.Channel[ch].ADCScale ;
                    end ;
                end ;
 
@@ -464,36 +466,36 @@ begin
         if (RecordNum >= EndOfBlock) or (RecordNum >= EndAtRec) or bDoAverages.Enabled then begin
 
            if NumRecordsAveraged > 0 then begin
-              for ch := 0 to RawFH.NumChannels-1 do begin
-                  j := Channel[ch].ChannelOffset ;
-                  for i := 0 to RawFH.NumSamples-1 do begin
+              for ch := 0 to WCPFile.RawFH.NumChannels-1 do begin
+                  j := WCPFile.Channel[ch].ChannelOffset ;
+                  for i := 0 to WCPFile.RawFH.NumSamples-1 do begin
                       ADC32^[j] := Round( Sum^[j] /
-                                 (NumRecordsAveraged*Channel[ch].ADCScale) + Channel[ch].ADCZero ) ;
-                      ADC32^[j] := Min(Max(ADC32^[j],RawFH.MinADCValue),RawFH.MaxADCValue);           ;
-                      j := j + RawFH.NumChannels ;
+                                 (NumRecordsAveraged*WCPFile.Channel[ch].ADCScale) + WCPFile.Channel[ch].ADCZero ) ;
+                      ADC32^[j] := Min(Max(ADC32^[j],WCPFile.RawFH.MinADCValue),WCPFile.RawFH.MaxADCValue);           ;
+                      j := j + WCPFile.RawFH.NumChannels ;
                       end ;
                   end ;
               end
            else begin
               { Fill record with zero if no records available }
-              for ch := 0 to RawFH.NumChannels-1 do begin
-                  j := Channel[ch].ChannelOffset ;
-                  for i := 0 to RawFH.NumSamples-1 do begin
-                      ADC32^[j] := Channel[ch].ADCZero ;
-                      j := j + RawFH.NumChannels ;
+              for ch := 0 to WCPFile.RawFH.NumChannels-1 do begin
+                  j := WCPFile.Channel[ch].ChannelOffset ;
+                  for i := 0 to WCPFile.RawFH.NumSamples-1 do begin
+                      ADC32^[j] := WCPFile.Channel[ch].ADCZero ;
+                      j := j + WCPFile.RawFH.NumChannels ;
                       end ;
                   end ;
               end ;
 
            { Save record to averages file  }
-           AvgfH.NumRecords := AvgfH.NumRecords + 1 ;
-           LastUsedRH.Number := AvgfH.NumRecords ;
+           WCPFile.AvgfH.NumRecords := WCPFile.AvgfH.NumRecords + 1 ;
+           LastUsedRH.Number := WCPFile.AvgfH.NumRecords ;
            LastUsedRH.Ident := format('%d-%d %d',[StartOfBlock,
                                                    EndOfBlock,
                                                    NumRecordsAveraged] ) ;
            LastUsedRH.AnalysisAvailable := false ;
            LastUsedRH.EqnType := None ;
-           PutRecord32( AvgfH, LastUsedRH, AvgfH.NumRecords, ADC32^ ) ;
+           WCPFile.PutRecord32( WCPFile.AvgfH, LastUsedRH, WCPFile.AvgfH.NumRecords, ADC32^ ) ;
 
            if rbSequentialRecords.Checked then begin
               // Only increment averaging block range in sequential mode
@@ -511,7 +513,7 @@ begin
         // Report progress
         Main.StatusBar.SimpleText := format(
         ' Signal Average : Adding record %d/%d to average %d ',
-            [RecordNum,EndAtRec,AvgfH.NumRecords+1]) ;
+            [RecordNum,EndAtRec,WCPFile.AvgfH.NumRecords+1]) ;
 
         // Increment to next record
         if rbSequentialRecords.Checked then Inc(RecordNum)
@@ -532,12 +534,12 @@ begin
         end ;
 
      { Save file header }
-     SaveHeader( AvgfH ) ;
+     WCPFile.SaveHeader( WCPFile.AvgfH ) ;
 
      // Final Report
      Main.StatusBar.SimpleText := format(
      ' Signal Average : %d-%d (%d averages created)',
-            [StartAtRec,EndAtRec,AvgfH.NumRecords]) ;
+            [StartAtRec,EndAtRec,WCPFile.AvgfH.NumRecords]) ;
 
      { Restore buttons }
      Screen.Cursor := crDefault ;
@@ -559,7 +561,7 @@ procedure TAvgFrm.FormClose(Sender: TObject; var Action: TCloseAction);
   ---------------------- }
 begin
 
-     if (AvgFH.NumRecords > 0) and (AvgFH.FileName <> '') then Main.mnShowAveraged.Click ;
+     if (WCPFile.AvgFH.NumRecords > 0) and (WCPFile.AvgFH.FileName <> '') then Main.mnShowAveraged.Click ;
 
      Action :=caFree ;
      end;
@@ -611,7 +613,7 @@ procedure TAvgFrm.ckBadRecordClick(Sender: TObject);
 begin
      if ckBadRecord.checked then RH.Status := 'REJECTED'
                             else RH.Status := 'ACCEPTED' ;
-     PutRecordHeaderOnly( RawfH, RH, RawfH.RecordNum ) ;
+     WCPFile.PutRecordHeaderOnly( WCPFile.RawfH, RH, WCPFile.RawfH.RecordNum ) ;
      end;
 
 
@@ -621,7 +623,7 @@ procedure TAvgFrm.cbRecordTypeChange(Sender: TObject);
   ----------------------------}
 begin
      RH.RecType := cbRecordType.text ;
-     PutRecordHeaderOnly( RawfH, RH, RawfH.RecordNum ) ;
+     WCPFile.PutRecordHeaderOnly( WCPFile.RawfH, RH, WCPFile.RawfH.RecordNum ) ;
      end;
 
 
@@ -638,16 +640,16 @@ var
    ch : Integer ;
 begin
 
-     for ch := 0 to scDisplay.NumChannels-1 do if Channel[ch].InUse then begin
-         Channel[Ch].yMin := scDisplay.YMin[Ch] ;
-         Channel[Ch].yMax := scDisplay.YMax[Ch] ;
+     for ch := 0 to scDisplay.NumChannels-1 do if WCPFile.Channel[ch].InUse then begin
+         WCPFile.Channel[Ch].yMin := scDisplay.YMin[Ch] ;
+         WCPFile.Channel[Ch].yMax := scDisplay.YMax[Ch] ;
          // Fix baseline if required
-         if Settings.FixedZeroLevels or (Channel[ch].ADCZeroAt >= 0) then begin
-            if scDisplay.HorizontalCursors[ch] <> Channel[ch].ADCZero then begin
-               scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
+         if WCPFile.Settings.FixedZeroLevels or (WCPFile.Channel[ch].ADCZeroAt >= 0) then begin
+            if scDisplay.HorizontalCursors[ch] <> WCPFile.Channel[ch].ADCZero then begin
+               scDisplay.HorizontalCursors[ch] := WCPFile.Channel[ch].ADCZero ;
                end ;
             end
-         else Channel[ch].ADCZero := Round(scDisplay.HorizontalCursors[ch]) ;
+         else WCPFile.Channel[ch].ADCZero := Round(scDisplay.HorizontalCursors[ch]) ;
 
          end ;
 
@@ -673,9 +675,9 @@ procedure TAvgFrm.ChangeDisplayGrid ;
   Update grid pattern on oscilloscope display
   -------------------------------------------- }
 begin
-     scDisplay.MaxADCValue := RawFH.MaxADCValue ;
-     scDisplay.MinADCValue := RawFH.MinADCValue ;
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.MaxADCValue := WCPFile.RawFH.MaxADCValue ;
+     scDisplay.MinADCValue := WCPFile.RawFH.MinADCValue ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
      scDisplay.Invalidate ;
      end ;
 
@@ -685,8 +687,8 @@ procedure  TAvgFrm.ZoomOut ;
   Set minimum display magnification
   --------------------------------- }
 begin
-     scDisplay.MaxADCValue := RawFH.MaxADCValue ;
-     scDisplay.MinADCValue := RawFH.MinADCValue ;
+     scDisplay.MaxADCValue := WCPFile.RawFH.MaxADCValue ;
+     scDisplay.MinADCValue := WCPFile.RawFH.MinADCValue ;
      scDisplay.ZoomOut ;
      end ;
 
@@ -700,37 +702,28 @@ begin
      if (Button = mbRight) and (scDisplay.ActiveHorizontalCursor >=0) then begin
         ZeroFrm.EnableFromRecord := True ;
         ZeroFrm.Chan := scDisplay.ActiveHorizontalCursor ;
-        ZeroFrm.Level := Channel[ZeroFrm.Chan].ADCZero ;
-        ZeroFrm.ChanName := Channel[ZeroFrm.Chan].ADCName ;
         ZeroFrm.NewZeroAt := Round(scDisplay.ScreenCoordToX( ZeroFrm.Chan, X )) ;
-        ZeroFrm.OldZeroAt := Channel[ZeroFrm.Chan].ADCZeroAt ;
         ZeroFrm. NumSamplesPerRecord := scDisplay.NumPoints ;
-        ZeroFrm.NumZeroAveraged := FH.NumZeroAvg ;
-        ZeroFrm.MaxValue := FH.MaxADCValue ;
         ZeroFrm.Left := Self.Left + Main.Left + 10 + scDisplay.Left + X;
         ZeroFrm.Top := Self.Top + Main.Top + 10 + scDisplay.Top + Y ;
         ZeroFrm.ShowModal ;
-        Channel[ZeroFrm.Chan].ADCZero := ZeroFrm.Level ;
-        Channel[ZeroFrm.Chan].ADCZeroAt := ZeroFrm.NewZeroAt ;
-        FH.NumZeroAvg := ZeroFrm.NumZeroAveraged ;
-        SaveHeader( FH ) ;
         if ZeroFrm.ModalResult = mrOK then DisplayRecord ;
         end
      else begin
         // Update zero baseline cursor
         if scDisplay.ActiveHorizontalCursor >= 0 then begin
-           if Channel[scDisplay.ActiveHorizontalCursor].ADCZeroAt < 0 then begin
+           if WCPFile.Channel[scDisplay.ActiveHorizontalCursor].ADCZeroAt < 0 then begin
               // Fixed baseline level (update zero level to new position)
-              Channel[scDisplay.ActiveHorizontalCursor].ADCZero := Round(
+              WCPFile.Channel[scDisplay.ActiveHorizontalCursor].ADCZero := Round(
               scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor]) ;
               end
            else begin
               // Baseline level computed from record (return to computed level)
               scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor] :=
-              Channel[scDisplay.ActiveHorizontalCursor].ADCZero ;
+              WCPFile.Channel[scDisplay.ActiveHorizontalCursor].ADCZero ;
               scDisplay.Invalidate ;
               end ;
-           SaveHeader( AvgFH ) ;
+           WCPFile.SaveHeader( WCPFile.AvgFH ) ;
            end ;
         end ;
      edBlockSize.SetFocus ;
@@ -741,7 +734,7 @@ procedure TAvgFrm.ckFixedZeroLevelsClick(Sender: TObject);
 // Enable/Disable fixed zero levels
 // --------------------------------
 begin
-     Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
+     WCPFile.Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
      end;
 
 end.

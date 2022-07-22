@@ -2,10 +2,8 @@ program winwcp;
 
 uses
   Forms,
-  MDIForm in 'MDIForm.pas' {Main},
   winwcp_TLB in 'winwcp_TLB.pas',
   AutoUnit in 'AutoUnit.pas' {AUTO: CoClass},
-  Global in 'Global.pas',
   ImportRawUnit in 'ImportRawUnit.pas' {ImportRawFrm},
   LEAKSUB in 'LEAKSUB.PAS' {LeakSubFrm},
   Log in 'Log.pas' {LogFrm},
@@ -20,7 +18,6 @@ uses
   SETAXES in 'SETAXES.PAS' {SetAxesFrm},
   InputChannelSetup in 'InputChannelSetup.pas' {InputChannelSetupFrm},
   SETVAR in 'SETVAR.PAS' {SetVarFrm},
-  Shared in 'Shared.pas',
   SIMHH in 'SIMHH.PAS' {VClampSim},
   Simsyn in 'Simsyn.pas' {SynapseSim},
   StimModule in 'StimModule.pas' {Stimulator: TDataModule},
@@ -29,7 +26,6 @@ uses
   AmpModule in 'AmpModule.pas' {Amplifier: TDataModule},
   AVERAGE in 'AVERAGE.PAS' {AvgFrm},
   Ced1902u in 'Ced1902u.pas' {CED1902Frm},
-  Convert in 'Convert.pas',
   COPYREC in 'COPYREC.PAS' {CopyRecDlg},
   CURVFIT in 'CURVFIT.PAS' {FitFrm},
   DEFSET in 'DEFSET.PAS' {DefSetFrm},
@@ -45,7 +41,6 @@ uses
   ImportASCIIUnit in 'ImportASCIIUnit.pas' {ImportASCIIFrm},
   FilePropsUnit in 'FilePropsUnit.pas' {FilePropsDlg},
   Replay in 'Replay.pas' {ReplayFrm},
-  FILEIO in 'FILEIO.PAS',
   RecPlotUnit in 'RecPlotUnit.pas' {RecPlotFrm},
   TritonPanelUnit in 'TritonPanelUnit.pas' {TritonPanelFrm},
   PrintTableUnit in 'PrintTableUnit.pas' {PrintTableFrm},
@@ -56,7 +51,9 @@ uses
   MATFileWriterUnit in 'MATFileWriterUnit.pas',
   EPC9PanelUnit in 'EPC9PanelUnit.pas' {EPC9PanelFrm},
   DCLAMPUnit in 'DCLAMPUnit.pas' {DCLAMPFrm},
-  MeasureThread in 'MeasureThread.pas';
+  MeasureThread in 'MeasureThread.pas',
+  WCPFIleUnit in 'WCPFIleUnit.pas' {WCPFile: TDataModule},
+  MDIForm in 'MDIForm.pas' {Main};
 
 {$R *.TLB}
 
@@ -64,8 +61,8 @@ uses
 
 begin
   Application.Initialize;
-  Application.HelpFile := 'winwcp.chm';
   Application.CreateForm(TMain, Main);
+  Application.HelpFile := 'winwcp.chm';
   Application.CreateForm(TImportRawFrm, ImportRawFrm);
   Application.CreateForm(TPrintGraphFrm, PrintGraphFrm);
   Application.CreateForm(TPrintRecFrm, PrintRecFrm);
@@ -81,5 +78,7 @@ begin
   Application.CreateForm(TExportFrm, ExportFrm);
   Application.CreateForm(TPrintTableFrm, PrintTableFrm);
   Application.CreateForm(TDirectorySelectFrm, DirectorySelectFrm);
+  Application.CreateForm(TWCPFile, WCPFile);
+
   Application.Run;
 end.

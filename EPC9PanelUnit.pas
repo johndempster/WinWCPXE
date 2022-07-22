@@ -248,7 +248,7 @@ implementation
 
 {$R *.dfm}
 
-uses MDIForm, SEALTEST;
+uses MDIForm, SEALTEST, WCPFIleUnit;
 
 
 procedure TEPC9PanelFrm.FormShow(Sender: TObject);
@@ -972,7 +972,7 @@ begin
      GentleModeChange := False ;
 
      // Load settings from XML file
-     SettingsFileName := Main.SettingsDirectory + 'EPC9 settings.xml' ;
+     SettingsFileName := WCPFile.SettingsDirectory + 'EPC9 settings.xml' ;
      if FileExists( SettingsFileName ) then LoadFromXMLFile( SettingsFileName ) ;
 
      //Update patch clamp

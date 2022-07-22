@@ -15,7 +15,7 @@ interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, StdCtrls, Buttons, global, shared, Spin, maths,
+  Forms, Dialogs, StdCtrls, Buttons, Spin, maths,
   ValEdit, ValidatedEdit ;
 
 type

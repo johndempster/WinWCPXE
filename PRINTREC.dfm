@@ -50,6 +50,11 @@ object PrintRecFrm: TPrintRecFrm
       ShowHint = True
       TabOrder = 0
       OnKeyPress = CalibrationBarTableKeyPress
+      ColWidths = (
+        45
+        45)
+      RowHeights = (
+        18)
     end
     object bDefaultSettings: TButton
       Left = 8

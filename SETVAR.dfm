@@ -25,7 +25,6 @@ object SetVarFrm: TSetVarFrm
     Font.Height = -12
     Font.Name = 'Arial'
     Font.Style = []
-    ItemHeight = 15
     ParentFont = False
     TabOrder = 0
   end
@@ -40,7 +39,6 @@ object SetVarFrm: TSetVarFrm
     Font.Height = -12
     Font.Name = 'Arial'
     Font.Style = []
-    ItemHeight = 15
     ParentFont = False
     TabOrder = 1
   end

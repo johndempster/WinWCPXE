@@ -2,7 +2,7 @@ unit Replay;
 { ================================================
   WinWCP View Records module (c) J. Dempster 1996-97
   Lets users view sets of signals records on screen
-  2/5/97 ... Channel names on display and print-out
+  2/5/97 ... Channel names on display and print-out                  ec0
              now only displayed when channel enabled
   12/6/97 ... COPY DATA Buffer overflow fixed
   16/6/97 ... Cursor can now be written to log file
@@ -43,14 +43,15 @@ unit Replay;
   23.09.13 .. Recording start time now encoded in en-GB format
   18.11.15 .. TReplayCursors.Base removed since use was redundant.
   12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
+  26.05.22 .. ZeroFrm now settings Channel record zero level settings directly
   ===================================================}
 interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, StdCtrls, ExtCtrls, Global, Shared, FileIo, Zero, ClipBrd,
-  PrintRec,Printers, PlotLib, menus, maths, Grids, RangeEdit, ValEdit,
-  ScopeDisplay, ComCtrls, CursorLabel, ValidatedEdit, HTMLLabel, seslabio, math, dateutils ;
+  Forms, Dialogs, StdCtrls, ExtCtrls, Zero, ClipBrd,
+  PrintRec,Printers, {PlotLib,} menus, maths, Grids, RangeEdit, ValEdit,
+  ScopeDisplay, ComCtrls, CursorLabel, ValidatedEdit, HTMLLabel, seslabio, math, dateutils, WCPFIleUnit ;
 
 type
 
@@ -166,7 +167,7 @@ begin
      Height := Main.StatusBar.Top - Top - 10 ;
      Width := Main.ClientWidth - Left - 20 ;
 
-     cbRecordType.items := RecordTypes ;
+     cbRecordType.items := WCPFile.RecordTypes ;
      cbRecordType.items.delete(0) ; {Remove 'ALL' item}
 
      SetStoreMode(Main.mnStoreTraces.Checked) ;
@@ -191,55 +192,55 @@ begin
 
      // Reallocate A/D sample buffer
      if ADC <> Nil then FreeMem(ADC) ;
-     GetMem( ADC, Max(FH.NumSamples*FH.NumChannels*2,1024) ) ;
+     GetMem( ADC, Max(WCPFile.FH.NumSamples*WCPFile.FH.NumChannels*2,1024) ) ;
 
      // Update log if file ident changed
      if IdentChanged then begin
-        FH.IdentLine := edIdent.text ;
-        RawFH.IdentLine := EdIdent.text ;
-        SaveHeader(FH) ;
-        SaveHeader(RawFH) ;
-        WriteToLogFile( format('File ident changed to %s',[FH.IdentLine])) ;
+        WCPFile.FH.IdentLine := edIdent.text ;
+        WCPFile.RawFH.IdentLine := EdIdent.text ;
+        WCPFile.SaveHeader(WCPFile.FH) ;
+        WCPFile.SaveHeader(WCPFile.FH) ;
+        WCPFile.WriteToLogFile( format('File ident changed to %s',[WCPFile.FH.IdentLine])) ;
         IdentChanged := False ;
         end ;
 
-     if FH.NumRecords > 0 then begin
-        Caption := Main.UpdateCaption( FH, 'View ' ) ;
+     if WCPFile.FH.NumRecords > 0 then begin
+        Caption := Main.UpdateCaption( WCPFile.FH, 'View ' ) ;
 
-        EdIdent.text := FH.IdentLine ;
+        EdIdent.text := WCPFile.FH.IdentLine ;
 
-        FH.RecordNum := 1 ;
-        UpdateScrollBar( sbRecordNum, FH.RecordNum, 1, fH.NumRecords ) ;
+        WCPFile.FH.RecordNum := 1 ;
+        WCPFile.UpdateScrollBar( sbRecordNum, WCPFile.FH.RecordNum, 1, WCPFile.fH.NumRecords ) ;
 
         edRecordNum.LoLimit := 1 ;
-        edRecordNum.HiLimit := FH.NumRecords ;
+        edRecordNum.HiLimit := WCPFile.FH.NumRecords ;
         edRecordNum.LoValue := 1 ;
-        edRecordNum.HiValue := FH.NumRecords ;
+        edRecordNum.HiValue := WCPFile.FH.NumRecords ;
 
         { Create horizontal cursors }
         scDisplay.ClearHorizontalCursors ;
-        for ch := 0 to FH.NumChannels-1 do
+        for ch := 0 to WCPFile.FH.NumChannels-1 do
             scDisplay.AddHorizontalCursor(ch,clGreen,True,'z') ;
 
         { Continuous record display channel }
-        scDisplay.MaxADCValue := RawFH.MaxADCValue ;
-        scDisplay.MinADCValue := RawFH.MinADCValue ;
-        scDisplay.DisplayGrid := Settings.DisplayGrid ;
+        scDisplay.MaxADCValue := WCPFile.RawFH.MaxADCValue ;
+        scDisplay.MinADCValue := WCPFile.RawFH.MinADCValue ;
+        scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
         OldNumSamples := scDisplay.MaxPoints ;
-        scDisplay.MaxPoints := FH.NumSamples ;
+        scDisplay.MaxPoints := WCPFile.FH.NumSamples ;
         scDisplay.NumPoints := scDisplay.MaxPoints ;
-        scDisplay.NumChannels := FH.NumChannels ;
+        scDisplay.NumChannels := WCPFile.FH.NumChannels ;
 
-        if OldNumSamples <> FH.NumSamples then begin
-             Channel[0].xMin := 0 ;
-             Channel[0].xMax := FH.NumSamples ;
+        if OldNumSamples <> WCPFile.FH.NumSamples then begin
+             WCPFile.Channel[0].xMin := 0 ;
+             WCPFile.Channel[0].xMax := WCPFile.FH.NumSamples ;
              end ;
 
-        scDisplay.xMax := MinInt([Round(Channel[0].xMax),FH.NumSamples-1])  ;
-        scDisplay.xMin := MinInt([Round(Channel[0].xMin),scDisplay.xMax]) ;
+        scDisplay.xMax := Min(Round(WCPFile.Channel[0].xMax),WCPFile.FH.NumSamples-1)  ;
+        scDisplay.xMin := Min(Round(WCPFile.Channel[0].xMin),scDisplay.xMax) ;
         if scDisplay.xMin = scDisplay.xMax then begin
            scDisplay.xMin := 0 ;
-           scDisplay.xMax := FH.NumSamples-1 ;
+           scDisplay.xMax := WCPFile.FH.NumSamples-1 ;
            end ;
 
         // Add vertical cursors to display
@@ -247,20 +248,20 @@ begin
 
         { Initial settings of display }
 
-        for ch := 0 to FH.NumChannels-1 do begin
-            scDisplay.ChanUnits[ch] := Channel[ch].ADCUnits ;
-            scDisplay.ChanName[ch] := Channel[ch].ADCName ;
-            scDisplay.ChanScale[ch] := Channel[ch].ADCScale ;
-            scDisplay.ChanUnits[ch] := Channel[ch].ADCUnits ;
-            scDisplay.ChanZero[ch] := Channel[ch].ADCZero ;
-            scDisplay.ChanZeroAt[ch] := Channel[ch].ADCZeroAt ;
-            scDisplay.ChanOffsets[ch] := Channel[ch].ChannelOffset ;
-            scDisplay.yMin[ch] := Channel[ch].yMin ;
-            scDisplay.yMax[ch] := Channel[ch].yMax ;
-            scDisplay.ChanVisible[ch] := Channel[ch].InUse ;
+        for ch := 0 to WCPFile.FH.NumChannels-1 do begin
+            scDisplay.ChanUnits[ch] := WCPFile.Channel[ch].ADCUnits ;
+            scDisplay.ChanName[ch] := WCPFile.Channel[ch].ADCName ;
+            scDisplay.ChanScale[ch] := WCPFile.Channel[ch].ADCScale ;
+            scDisplay.ChanUnits[ch] := WCPFile.Channel[ch].ADCUnits ;
+            scDisplay.ChanZero[ch] := WCPFile.Channel[ch].ADCZero ;
+            scDisplay.ChanZeroAt[ch] := WCPFile.Channel[ch].ADCZeroAt ;
+            scDisplay.ChanOffsets[ch] := WCPFile.Channel[ch].ChannelOffset ;
+            scDisplay.yMin[ch] := WCPFile.Channel[ch].yMin ;
+            scDisplay.yMax[ch] := WCPFile.Channel[ch].yMax ;
+            scDisplay.ChanVisible[ch] := WCPFile.Channel[ch].InUse ;
             scDisplay.ChanColor[ch] := clBlue ;
             end ;
-        scDisplay.ChanZeroAvg := FH.NumZeroAvg ;
+        scDisplay.ChanZeroAvg := WCPFile.FH.NumZeroAvg ;
 
         scDisplay.SetDataBuf( ADC ) ;
         SetStoreMode( Main.mnStoreTraces.Checked ) ;
@@ -314,14 +315,14 @@ procedure TReplayFrm.ChangeDisplayGrid ;
   -------------------------------------------- }
 var
     ch : Integer ;
-  
+
 begin
-     scDisplay.MaxADCValue := RawFH.MaxADCValue ;
-     scDisplay.MinADCValue := RawFH.MinADCValue ;
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.MaxADCValue := WCPFile.RawFH.MaxADCValue ;
+     scDisplay.MinADCValue := WCPFile.RawFH.MinADCValue ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
 
      for ch := 0 to scDisplay.NumChannels-1 do begin
-         scDisplay.ChanVisible[ch] := Channel[ch].InUse ;
+         scDisplay.ChanVisible[ch] := WCPFile.Channel[ch].InUse ;
          end ;
 
      scDisplay.Invalidate ;
@@ -334,15 +335,15 @@ procedure  TReplayFrm.ZoomOutAll ;
   23/10/01
   --------------------------------- }
 begin
-     scDisplay.MaxADCValue := RawFH.MaxADCValue ;
-     scDisplay.MinADCValue := RawFH.MinADCValue ;
-     scDisplay.MaxPoints := FH.NumSamples ;
+     scDisplay.MaxADCValue := WCPFile.RawFH.MaxADCValue ;
+     scDisplay.MinADCValue := WCPFile.RawFH.MinADCValue ;
+     scDisplay.MaxPoints := WCPFile.FH.NumSamples ;
      scDisplay.NumPoints := scDisplay.MaxPoints ;
-     scDisplay.NumChannels := FH.NumChannels ;
+     scDisplay.NumChannels := WCPFile.FH.NumChannels ;
 
      scDisplay.ZoomOut ;
-     Channel[0].xMin := scDisplay.xMin ;
-     Channel[0].xMax := scDisplay.xMax ;
+     WCPFile.Channel[0].xMin := scDisplay.xMin ;
+     WCPFile.Channel[0].xMax := scDisplay.xMax ;
 
      end ;
 
@@ -375,19 +376,19 @@ var
    StartTime : TDateTime ;
 begin
 
-     fH.RecordNum := SbRecordNum.position ;
-     fH.CurrentRecord := SbRecordNum.position ;
+     WCPFile.fH.RecordNum := SbRecordNum.position ;
+     WCPFile.fH.CurrentRecord := SbRecordNum.position ;
 
      { Read record data from file }
-     GetRecord( fH, RH, fH.RecordNum, ADC^ ) ;
+     WCPFile.GetRecord( WCPFile.fH, RH, WCPFile.fH.RecordNum, ADC^ ) ;
 
      { Update low pass filter text box }
-     if Settings.CutOffFrequency > 0.0 then begin
+     if WCPFile.Settings.CutOffFrequency > 0.0 then begin
         ckLPFilterInUse.Checked := True ;
         edLPFilter.Visible := True ;
         lbLPFilter.Visible := True ;
         if RH.dt > 0.0 then edLPFilter.Scale := 1.0/RH.dt ;
-        edLPFilter.Value := Settings.CutOffFrequency ;
+        edLPFilter.Value := WCPFile.Settings.CutOffFrequency ;
         end
      else begin
         ckLPFilterInUse.Checked := False ;
@@ -396,16 +397,16 @@ begin
         end ;
 
      { Set horizontal zero baseline cursors }
-     for ch := 0 to FH.NumChannels-1 do begin
+     for ch := 0 to WCPFile.FH.NumChannels-1 do begin
          // Zero level
-         scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
+         scDisplay.HorizontalCursors[ch] := WCPFile.Channel[ch].ADCZero ;
          // Start of area from which zero level was computed (-1 indicates fixed zero level)
-         scDisplay.ChanZeroAt[ch] := Channel[ch].ADCZeroAt ;
+         scDisplay.ChanZeroAt[ch] := WCPFile.Channel[ch].ADCZeroAt ;
          // Signal scaling factor
-         scDisplay.ChanScale[ch] := Channel[ch].ADCScale ;
+         scDisplay.ChanScale[ch] := WCPFile.Channel[ch].ADCScale ;
          end ;
      // No. of samples in zero level area
-     scDisplay.ChanZeroAvg := FH.NumZeroAvg ;
+     scDisplay.ChanZeroAvg := WCPFile.FH.NumZeroAvg ;
 
      { Show whether record has been rejected by operator }
      if RH.Status = 'ACCEPTED' then ckBadRecord.checked := False
@@ -417,8 +418,8 @@ begin
       meTime.Clear ;
       meTime.Lines.Add('') ;
       meTime.Lines[0] := format('%.3fs',[RH.Time]) ;
-     if FH.RecordingStartTimeSecs > 0.0 then begin
-        StartTime := Main.StrToDate( FH.RecordingStartTime ) ;
+     if WCPFile.FH.RecordingStartTimeSecs > 0.0 then begin
+        StartTime := Main.StrToDate( WCPFile.FH.RecordingStartTime ) ;
         StartTime := System.DateUtils.IncMillisecond(StartTime,Round(RH.Time*1000.0)) ;
         meTime.Lines[1] := FormatDateTime('hh:mm:ss.zzz',StartTime) ;
         end ;
@@ -427,13 +428,13 @@ begin
      edRecordIdent.Text := RH.Ident ;
 
      { Update record number display }
-     edRecordNum.HiValue := fH.NumRecords ;
+     edRecordNum.HiValue := WCPFile.fH.NumRecords ;
      edRecordNum.LoValue := sbRecordNum.position ;
 
      { Continuous record display channel }
-     scDisplay.TScale := RH.dt*Settings.TScale ;
-     scDisplay.TUnits := Settings.TUnits ;
-     scDisplay.RecordNumber := fH.RecordNum ;
+     scDisplay.TScale := RH.dt*WCPFile.Settings.TScale ;
+     scDisplay.TUnits := WCPFile.Settings.TUnits ;
+     scDisplay.RecordNumber := WCPFile.fH.RecordNum ;
      scDisplay.Invalidate ;
      end ;
 
@@ -487,7 +488,7 @@ begin
                      $46 : cbRecordType.ItemIndex := cbRecordType.Items.IndexOf('FAIL') ;
                      end ;
                   RH.RecType := cbRecordType.text ;
-                  PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+                  WCPFile.PutRecordHeaderOnly( WCPFile.fH, RH, WCPFile.fH.RecordNum ) ;
                   end ;
                end ;
           $52 : begin
@@ -495,7 +496,7 @@ begin
                   ckBadRecord.Checked := not ckBadRecord.Checked ;
                   If ckBadRecord.Checked then RH.Status := 'REJECTED'
                                          else RH.Status := 'ACCEPTED' ;
-                  PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+                  WCPFile.PutRecordHeaderOnly( WCPFile.fH, RH, WCPFile.fH.RecordNum ) ;
                   end;
                end ;
           end ;
@@ -510,7 +511,7 @@ procedure TReplayFrm.edRecordNumKeyPress(Sender: TObject; var Key: Char);
 begin
      if key = chr(13) then begin
         sbRecordNum.Position := Round(edRecordNum.LoValue) ;
-        edRecordNum.HiValue := FH.NumRecords ;
+        edRecordNum.HiValue := WCPFile.FH.NumRecords ;
         DisplayRecord ;
         end ;
      end;
@@ -523,7 +524,7 @@ procedure TReplayFrm.ckBadRecordClick(Sender: TObject);
 begin
      if ckBadRecord.checked then RH.Status := 'REJECTED'
                             else RH.Status := 'ACCEPTED' ;
-     PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+     WCPFile.PutRecordHeaderOnly( WCPFile.fH, RH, WCPFile.fH.RecordNum ) ;
      end;
 
 
@@ -533,7 +534,7 @@ procedure TReplayFrm.cbRecordTypeChange(Sender: TObject);
   ----------------------------}
 begin
      RH.RecType := cbRecordType.text ;
-     PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+     WCPFile.PutRecordHeaderOnly( WCPFile.fH, RH, WCPFile.fH.RecordNum ) ;
      end;
 
 
@@ -556,8 +557,8 @@ begin
      PrintRecFrm.ShowModal ;
      if PrintRecFrm.ModalResult = mrOK then begin
         scDisplay.ClearPrinterTitle ;
-        scDisplay.AddPrinterTitleLine( 'File : ' + FH.FileName ) ;
-        scDisplay.AddPrinterTitleLine( FH.IdentLine ) ;
+        scDisplay.AddPrinterTitleLine( 'File : ' + WCPFile.FH.FileName ) ;
+        scDisplay.AddPrinterTitleLine( WCPFile.FH.IdentLine ) ;
         scDisplay.Print ;
         end ;
      end ;
@@ -574,8 +575,8 @@ begin
      PrintRecFrm.ShowModal ;
      if PrintRecFrm.ModalResult = mrOK then begin
         scDisplay.ClearPrinterTitle ;
-        scDisplay.AddPrinterTitleLine( 'File : ' + FH.FileName ) ;
-        scDisplay.AddPrinterTitleLine( FH.IdentLine ) ;
+        scDisplay.AddPrinterTitleLine( 'File : ' + WCPFile.FH.FileName ) ;
+        scDisplay.AddPrinterTitleLine( WCPFile.FH.IdentLine ) ;
         scDisplay.CopyImageToClipboard ;
         end ;
      end ;
@@ -615,23 +616,23 @@ begin
         s := 'Rec' + #9 + 'T' ;
         if rbUseC0CursorasZero.Checked then s:= s + #9 + 'Diff' ;
         for ch := 0 to scDisplay.NumChannels-1 do if scDisplay.ChanVisible[ch] then begin
-            s := s + #9 + Channel[ch].ADCName ;
+            s := s + #9 + WCPFile.Channel[ch].ADCName ;
             if rbUseC0CursorasZero.Checked then s := s + #9 + 'Diff';
             end ;
-        WriteToLogFileNoDate( s ) ;
+        WCPFile.WriteToLogFileNoDate( s ) ;
         // Column units
-        s := #9 + Settings.TUnits ;
-        if rbUseC0CursorasZero.Checked then s := s + #9 + Settings.TUnits ;
+        s := #9 + WCPFile.Settings.TUnits ;
+        if rbUseC0CursorasZero.Checked then s := s + #9 + WCPFile.Settings.TUnits ;
         for ch := 0 to scDisplay.NumChannels-1 do if scDisplay.ChanVisible[ch] then begin
-            s := s + #9 + Channel[ch].ADCUnits ;
-            if rbUseC0CursorasZero.Checked then s := s + #9 + Channel[ch].ADCUnits ;
+            s := s + #9 + WCPFile.Channel[ch].ADCUnits ;
+            if rbUseC0CursorasZero.Checked then s := s + #9 + WCPFile.Channel[ch].ADCUnits ;
             end ;
-        WriteToLogFileNoDate( s ) ;
+        WCPFile.WriteToLogFileNoDate( s ) ;
         FirstSave := False ;
         end ;
 
      // Write data
-     s := format('%d',[FH.RecordNum] ) ;
+     s := format('%d',[WCPFile.FH.RecordNum] ) ;
 
      { Time zero cursor }
      Cursor0Pos := Round(scDisplay.VerticalCursors[Cursors.C0]) ;
@@ -640,23 +641,23 @@ begin
      // Time values
      if rbUseC0CursorasZero.Checked then begin
         s := s + #9 + format( '%.5g',
-                         [(Cursor1Pos-Cursor0Pos)*RH.dt*Settings.TScale]) ;
+                         [(Cursor1Pos-Cursor0Pos)*RH.dt*WCPFile.Settings.TScale]) ;
         end
      else begin
         s := s + #9 + format( '%.5g',
-                         [(Cursor1Pos)*RH.dt*Settings.TScale]) ;
+                         [(Cursor1Pos)*RH.dt*WCPFile.Settings.TScale]) ;
         end ;
 
      for ch := 0 to scDisplay.NumChannels-1 do if scDisplay.ChanVisible[ch] then begin
          // Signal level at readout cursor
          if rbUseC0CursorasZero.Checked then begin
             y := scDisplay.ChanScale[ch] *
-                 ( ADC^[(Cursor1Pos*FH.NumChannels)+Channel[ch].ChannelOffset] -
-                   ADC^[(Cursor0Pos*FH.NumChannels)+Channel[ch].ChannelOffset]) ;
+                 ( ADC^[(Cursor1Pos*WCPFile.FH.NumChannels)+WCPFile.Channel[ch].ChannelOffset] -
+                   ADC^[(Cursor0Pos*WCPFile.FH.NumChannels)+WCPFile.Channel[ch].ChannelOffset]) ;
             end
          else begin
             y := scDisplay.ChanScale[ch]*
-                 ( ADC^[(Cursor1Pos*FH.NumChannels)+Channel[ch].ChannelOffset]
+                 ( ADC^[(Cursor1Pos*WCPFile.FH.NumChannels)+WCPFile.Channel[ch].ChannelOffset]
                         - scDisplay.HorizontalCursors[ch] ) ;
             end ;
 
@@ -664,7 +665,7 @@ begin
          s := s + #9 + format( '%.5g ',[y] );
          end ;
 
-     WriteToLogFileNoDate( s ) ;
+     WCPFile.WriteToLogFileNoDate( s ) ;
 
      end;
 
@@ -704,23 +705,29 @@ begin
 
         { Update channel descriptors with any changes to display }
         for ch := 0 to scDisplay.NumChannels-1 do begin
-            Channel[ch].InUse := scDisplay.ChanVisible[ch] ;
+            WCPFile.Channel[ch].InUse := scDisplay.ChanVisible[ch] ;
 
-            if Channel[ch].InUse then begin
-               Channel[Ch].yMin := scDisplay.YMin[Ch] ;
-               Channel[Ch].yMax := scDisplay.YMax[Ch] ;
+            if WCPFile.Channel[ch].InUse then
+               begin
+               WCPFile.Channel[Ch].yMin := scDisplay.YMin[Ch] ;
+               WCPFile.Channel[Ch].yMax := scDisplay.YMax[Ch] ;
 
                { Get signal baseline cursor }
-               if Settings.FixedZeroLevels or (Channel[ch].ADCZeroAt >= 0) then begin
-                  if scDisplay.HorizontalCursors[ch] <> Channel[ch].ADCZero then begin
-                     scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
+               if WCPFile.Settings.FixedZeroLevels or (WCPFile.Channel[ch].ADCZeroAt >= 0) then
+                  begin
+                  if scDisplay.HorizontalCursors[ch] <> WCPFile.Channel[ch].ADCZero then
+                     begin
+                     scDisplay.HorizontalCursors[ch] := WCPFile.Channel[ch].ADCZero ;
                      end ;
                   end
-               else Channel[ch].ADCZero := Round(scDisplay.HorizontalCursors[ch]) ;
+               else
+                  begin
+                  WCPFile.Channel[ch].ADCZero := Round(scDisplay.HorizontalCursors[ch]) ;
+                  end;
                end ;
             end ;
-        Channel[0].xMin := scDisplay.xMin ;
-        Channel[0].xMax := scDisplay.xMax ;
+        WCPFile.Channel[0].xMin := scDisplay.xMin ;
+        WCPFile.Channel[0].xMax := scDisplay.xMax ;
 
         TScopeDisplay(Sender).CursorChangeInProgress := False ;
         end ;
@@ -734,7 +741,7 @@ procedure TReplayFrm.edGroupKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
         RH.Number := Round( Edgroup.Value ) ;
-        PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+        WCPFile.PutRecordHeaderOnly( WCPFile.fH, RH, WCPFile.fH.RecordNum ) ;
         end ;
      end;
 
@@ -750,40 +757,31 @@ begin
         // If right-mouse button down, display zero baseline level selection dialog box
         ZeroFrm.EnableFromRecord := True ;
         ZeroFrm.Chan := scDisplay.ActiveHorizontalCursor ;
-        ZeroFrm.Level := Channel[ZeroFrm.Chan].ADCZero ;
-        ZeroFrm.ChanName := Channel[ZeroFrm.Chan].ADCName ;
         ZeroFrm.NewZeroAt := Round(scDisplay.ScreenCoordToX( ZeroFrm.Chan, X )) ;
-        ZeroFrm.OldZeroAt := Channel[ZeroFrm.Chan].ADCZeroAt ;
         ZeroFrm. NumSamplesPerRecord := scDisplay.NumPoints ;
-        ZeroFrm.NumZeroAveraged := FH.NumZeroAvg ;
-        ZeroFrm.MaxValue := FH.MaxADCValue ;
         ZeroFrm.Left := Self.Left + Main.Left + 10 + scDisplay.Left + X;
         ZeroFrm.Top := Self.Top + Main.Top + 10 + scDisplay.Top + Y ;
         ZeroFrm.ShowModal ;
-        Channel[ZeroFrm.Chan].ADCZero := ZeroFrm.Level ;
-        Channel[ZeroFrm.Chan].ADCZeroAt := ZeroFrm.NewZeroAt ;
-        FH.NumZeroAvg := ZeroFrm.NumZeroAveraged ;
-        SaveHeader( FH ) ;
-        scDisplay.HorizontalCursors[ZeroFrm.Chan] := Channel[ZeroFrm.Chan].ADCZero ;
+        scDisplay.HorizontalCursors[ZeroFrm.Chan] := WCPFile.Channel[ZeroFrm.Chan].ADCZero ;
         if ZeroFrm.ModalResult = mrOK then DisplayRecord ;
         end
      else begin
         // Update zero baseline cursor
         if scDisplay.ActiveHorizontalCursor >= 0 then begin
-           if Channel[scDisplay.ActiveHorizontalCursor].ADCZeroAt < 0 then begin
+           if WCPFile.Channel[scDisplay.ActiveHorizontalCursor].ADCZeroAt < 0 then begin
               // Fixed baseline level (update zero level to new position)
-              if not Settings.FixedZeroLevels then begin
-                 Channel[scDisplay.ActiveHorizontalCursor].ADCZero := Round(
+              if not WCPFile.Settings.FixedZeroLevels then begin
+                 WCPFile.Channel[scDisplay.ActiveHorizontalCursor].ADCZero := Round(
                  scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor]) ;
                  end ;
               end
            else begin
               // Baseline level computed from record (return to computed level)
               scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor] :=
-              Channel[scDisplay.ActiveHorizontalCursor].ADCZero ;
+              WCPFile.Channel[scDisplay.ActiveHorizontalCursor].ADCZero ;
               scDisplay.Invalidate ;
               end ;
-           SaveHeader( FH ) ;
+           WCPFile.SaveHeader( WCPFile.FH ) ;
            end ;
         end ;
      edGroup.SetFocus ;
@@ -798,11 +796,11 @@ begin
 
      // Update log if file ident changed
      if IdentChanged then begin
-        FH.IdentLine := edIdent.text ;
-        RawFH.IdentLine := EdIdent.text ;
-        SaveHeader(FH) ;
-        SaveHeader(RawFH) ;
-        WriteToLogFile( format('File ident changedto %s',[FH.IdentLine])) ;
+        WCPFile.FH.IdentLine := edIdent.text ;
+        WCPFile.RawFH.IdentLine := EdIdent.text ;
+        WCPFile.SaveHeader(WCPFile.FH) ;
+        WCPFile.SaveHeader(WCPFile.RawFH) ;
+        WCPFile.WriteToLogFile( format('File ident changedto %s',[WCPFile.FH.IdentLine])) ;
         IdentChanged := False ;
         end ;
 
@@ -830,7 +828,7 @@ begin
 procedure TReplayFrm.FormActivate(Sender: TObject);
 begin
 
-     ckFixedZeroLevels.Checked := Settings.FixedZeroLevels ;
+     ckFixedZeroLevels.Checked := WCPFile.Settings.FixedZeroLevels ;
 
      // Ensure display channels visibility is updated
      ChangeDisplayGrid ;
@@ -846,8 +844,8 @@ procedure TReplayFrm.ckLPFilterInUseClick(Sender: TObject);
 begin
      { Note. Settings.CutOffFrequency=0 indicates no filtering }
      if ckLPFilterInUse.Checked
-        and (Settings.CutOffFrequency <= 0.0) then Settings.CutOffFrequency := 0.1
-                                              else Settings.CutOffFrequency := 0.0 ;
+        and (WCPFile.Settings.CutOffFrequency <= 0.0) then WCPFile.Settings.CutOffFrequency := 0.1
+                                                      else WCPFile.Settings.CutOffFrequency := 0.0 ;
      DisplayRecord ;
      end;
 
@@ -858,7 +856,7 @@ procedure TReplayFrm.edLPFilterKeyPress(Sender: TObject; var Key: Char);
 // ----------------------------------------------
 begin
      if key = chr(13) then begin
-        Settings.CutOffFrequency := edLPFilter.Value ;
+        WCPFile.Settings.CutOffFrequency := edLPFilter.Value ;
         DisplayRecord ;
         end ;
      end;
@@ -879,10 +877,10 @@ procedure TReplayFrm.EdRecordIdentKeyPress(Sender: TObject; var Key: Char);
 // ------------------------------
 begin
 
-        WriteToLogFile( format('Rec %d: Marker changed %s to %s',
-                        [fH.RecordNum,RH.Ident,EdRecordIdent.text])) ;
+        WCPFile.WriteToLogFile( format('Rec %d: Marker changed %s to %s',
+                        [WCPFile.fH.RecordNum,RH.Ident,EdRecordIdent.text])) ;
         RH.Ident := EdRecordIdent.text ;
-        PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+        WCPFile.PutRecordHeaderOnly( WCPFile.fH, RH, WCPFile.fH.RecordNum ) ;
 
      end;
 
@@ -940,7 +938,7 @@ procedure TReplayFrm.EdRecordIdentChange(Sender: TObject);
 // -------------------------
 begin
      RH.Ident := EdRecordIdent.text ;
-     PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+     WCPFile.PutRecordHeaderOnly( WCPFile.fH, RH, WCPFile.fH.RecordNum ) ;
      end;
 
 
@@ -949,7 +947,7 @@ procedure TReplayFrm.ckFixedZeroLevelsClick(Sender: TObject);
 // Enable/Disable fixed zero levels
 // --------------------------------
 begin
-     Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
+     WCPFile.Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
      end;
 
 end.

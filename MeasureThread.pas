@@ -6,11 +6,13 @@ unit MeasureThread;
 // 17.08.21 .. Peak-peak peak measurement option added
 // 09.03.22 .. Latency measurement now correctly calculated
 //             LatencyPercentageIn Added to Create() arguments and iTimeZero set correctly
+// 05.07.22 .. Both T.90% and T.x now use same DecayTime() procedure to find decay time
+//             Decay to fixed level option added
 
 interface
 
 uses
-  System.Classes, global ;
+  System.Classes, WCPFIleUnit ;
 
 type
   TMeasureThread = class(TThread)
@@ -24,6 +26,7 @@ type
     iTimeZero : Array[0..MaxChannels-1] of Integer ;
     LatencyPercentage : Single ;
 
+    FH : TFileHeader ;
     RH : TRecHeader ; { Record header }
 
     function Slope(
@@ -40,6 +43,16 @@ type
              iChan : Integer                // Channel
              ) : Single ;
 
+   function DecayTime(
+          var ADC : Array of Single ;
+          iPeakAt : Integer ;     // Start at point
+          iEnd : Integer ;        // End at point
+          ChOffset : Integer ;    // Channel offset in ADC
+          Invert : Integer ;      // Invert signal
+          EndThreshold : Single   // Decay end-point threshold
+          ) : Single ;            // Return decay time
+
+
         procedure QuickSort(var A: array of Single ; iLo, iHi: Integer) ;
 
 
@@ -51,7 +64,8 @@ type
                       iStartIn : Array of Integer ;
                       iEndIn : Array of Integer ;
                       iTimeZeroIn : Array of Integer ;
-                      LatencyPercentageIn : Single
+                      LatencyPercentageIn : Single ;
+                      FHIn : TFileHeader              // File header of WCP file
                       );
 
   protected
@@ -61,7 +75,7 @@ type
 
 implementation
 
-uses Measure, Shared, FileIo, math, seslabio, MDIForm, SysUtils, WinTypes, WinProcs, Messages, StrUtils  ;
+uses Measure, math, seslabio, MDIForm, SysUtils, WinTypes, WinProcs, Messages, StrUtils ;
 
 const
      ForwardDifference = 0 ;
@@ -76,7 +90,8 @@ constructor TMeasureThread.Create( StartAtIn : Integer ;          // Statt at re
                                    iStartIn : Array of Integer ;  // Starting sample (for each channel)
                                    iEndIn : Array of Integer ;    // End sample
                                    iTimeZeroIn : Array of Integer ; // T=0 sample
-                                   LatencyPercentageIn : Single     // Latency % threshold
+                                   LatencyPercentageIn : Single ;    // Latency % threshold
+                                   FHIn : TFileHeader             // File header of WCP file
                                    );
 // ----------------------------
 // Create and initialise thread
@@ -101,6 +116,9 @@ begin
       iEnd[ch] := iEndIn[ch] ;
       iTimeZero[ch] := iTimeZeroIn[ch] ;
       end ;
+
+  FH := FHIn ;
+
 end;
 
 
@@ -178,7 +196,7 @@ begin
          begin
 
          { Read record data from file }
-         GetRecord( fH, rH, Rec, InBuf^ ) ;
+         WCPFile.GetRecord( fH, rH, Rec, InBuf^ ) ;
 
          // Copy to float array
          for i := 0 to fH.NumSamples*fH.NumChannels-1 do ADC^[i] := InBuf^[i] ;
@@ -203,20 +221,20 @@ begin
                 rH.Value[vStart + vTime] := rH.Time ;
                 rH.Value[vStart + vInterval] := (rH.Time  - PreviousTime) ;
 
-                ChOffset := Channel[ch].ChannelOffset ;
+                ChOffset := WCPFile.Channel[ch].ChannelOffset ;
 
                 { Subtract zero level }
-                j := Channel[ch].ChannelOffset ;
+                j := WCPFile.Channel[ch].ChannelOffset ;
                 for i := 0 to fH.NumSamples-1 do
                     begin
-                    ADC^[j] := ADC^[j] - Channel[ch].ADCZero ;
+                    ADC^[j] := ADC^[j] - WCPFile.Channel[ch].ADCZero ;
                     j := j + fH.NumChannels ;
                     end ;
 
                 { Calculate average and area within cursors 0-1 }
                 Sum := 0.0 ;
                 AbsSum := 0.0 ;
-                j := iStart[ch]*fH.NumChannels + Channel[ch].ChannelOffset ;
+                j := iStart[ch]*fH.NumChannels + WCPFile.Channel[ch].ChannelOffset ;
                 for i := iStart[ch] to iEnd[ch] do
                     begin
                     Sum := Sum + ADC^[j] ;
@@ -226,14 +244,14 @@ begin
                 NumAvg := (iEnd[ch] - iStart[ch]) + 1 ;
                 Avg := Sum / NumAvg ;
 
-                rH.Value[vStart + vAverage] := (Avg * Channel[ch].ADCScale) ;
-                rH.Value[vStart + vArea] := (Sum * rH.dt * Channel[ch].ADCScale) ;
-                rH.Value[vStart + vAbsArea] := (AbsSum * rH.dt * Channel[ch].ADCScale) ;
+                rH.Value[vStart + vAverage] := (Avg * WCPFile.Channel[ch].ADCScale) ;
+                rH.Value[vStart + vArea] := (Sum * rH.dt * WCPFile.Channel[ch].ADCScale) ;
+                rH.Value[vStart + vAbsArea] := (AbsSum * rH.dt * WCPFile.Channel[ch].ADCScale) ;
 
                 { Calculate variance within cursors 0-1 }
 
                 Sum := 0. ;
-                j := iStart[ch]*fH.NumChannels + Channel[ch].ChannelOffset ;
+                j := iStart[ch]*fH.NumChannels + WCPFile.Channel[ch].ChannelOffset ;
                 for i := iStart[ch] to iEnd[ch] do
                     begin
                     Residual := ADC^[j] - Avg ;
@@ -241,14 +259,14 @@ begin
                     j := j + fH.NumChannels ;
                     end ;
                 Avg := Sum / NumAvg ;
-                rH.Value[vStart + vVariance] := (Avg * Channel[ch].ADCScale
-                                                   * Channel[ch].ADCScale) ;
+                rH.Value[vStart + vVariance] := (Avg * WCPFile.Channel[ch].ADCScale
+                                                   * WCPFile.Channel[ch].ADCScale) ;
 
                 { Find peaks within cursor 0-1 region}
 
-                PeakPositive := RawFH.MinADCValue*2 ;
-                PeakNegative := RawFH.MaxADCValue*2 ;
-                j := iStart[ch]*fH.NumChannels + Channel[ch].ChannelOffset ;
+                PeakPositive := FH.MinADCValue*2 ;
+                PeakNegative := FH.MaxADCValue*2 ;
+                j := iStart[ch]*fH.NumChannels + WCPFile.Channel[ch].ChannelOffset ;
                 for i := iStart[ch] to iEnd[ch] do
                     begin
                     Y := ADC^[j] ;
@@ -312,7 +330,7 @@ begin
                 Peak := 0.0 ;
                 for i := i0 to i1 do
                     begin
-                    j := i*FH.NumChannels + Channel[ch].ChannelOffset ;
+                    j := i*FH.NumChannels + WCPFile.Channel[ch].ChannelOffset ;
                     Peak := Peak + ADC^[j] ;
                     end ;
                 Peak := Peak / (i1 - i0 + 1) ;
@@ -320,12 +338,12 @@ begin
                 if FH.PeakMode = PeakPeaks then
                    begin
                    // Peak-peak measurement
-                   rH.Value[vStart + vPeak] := (PeakPositive - PeakNegative)*Channel[ch].ADCScale ;
+                   rH.Value[vStart + vPeak] := (PeakPositive - PeakNegative)*WCPFile.Channel[ch].ADCScale ;
                    end
                 else
                   begin
                   // Pos, neg or absolute measurement
-                  rH.Value[vStart + vPeak] := Peak*Channel[ch].ADCScale ;
+                  rH.Value[vStart + vPeak] := Peak*WCPFile.Channel[ch].ADCScale ;
                   end ;
 
                 { Special exception for records designated as transmission
@@ -408,55 +426,37 @@ begin
 
                 Peak10 := Round(Abs(Peak)*0.1) ;
 
-                i := Max(PeakAt - 1,0);
-                repeat
-                  Inc(i) ;
-                  Y := ADC^[i*fH.NumChannels + ChOffset]*Invert ;
-                  until (Y < Peak10) or (i > iEnd[ch]) ;
+                // Decay time to 90% of peak
+                TXAmplitude := Round(Abs(Peak)*(100.0-90.0)*0.01);
+                rH.Value[vStart + vt90] := DecayTime( ADC^, PeakAt,iEnd[ch],ChOffset,Invert,TXAmplitude) ;
 
-                YPrev := ADC^[Max(i-1,0)*fH.NumChannels + ChOffset]*Invert ;
-                if (Y <> YPrev) then begin
-                   dDecay := -((Peak10 - Y) /(Y - YPrev)) *rH.dt ;
-                   end
-                else dDecay := 0.0 ;
-
-                rH.Value[vStart + vT90] := (i-PeakAt)*rH.dt + dDecay ;
-
-                // T.x% Duration from Peak - user selected % decay from peak
-                // V4.0.5 Exact decay point determined by interpolation between
-                // first point below threshold and last point above threshold
-                TXAmplitude := Round(Abs(Peak)*(100.0-FH.DecayTimePercentage)*0.01);
-                i := PeakAt - 1 ;
-                TXAmplitudeAt := iEnd[ch] ;
-                repeat
-                  Inc(i) ;
-                  Y := ADC^[i*fH.NumChannels + ChOffset]*Invert ;
-                  if Y >= TXAmplitude then TXAmplitudeAt := i ;
-                  until (Y < 0) or (i > iEnd[ch]) ;
-
-                YPrev := ADC^[Max(TXAmplitudeAt-1,0)*fH.NumChannels + ChOffset]*Invert ;
-                if (Y <> YPrev) then
+                // T.x% Duration from Peak - user selected point
+                if FH.DecayTimeToLevel then
                    begin
-                   dDecay := -((TXAmplitude - Y) /(Y - YPrev)) *rH.dt ;
+                   // Decay to fixed level
+                   TXAmplitude := FH.DecayTimeLevel / WCPFile.Channel[ch].ADCScale ;
                    end
-                else dDecay := 0.0 ;
-
-                rH.Value[vStart + vtDecay] := ((TXAmplitudeAt-PeakAt+1)*rH.dt + dDecay) ;
+                else
+                   begin
+                   // Decay time x% of peak
+                   TXAmplitude := Round(Abs(Peak)*(100.0-FH.DecayTimePercentage)*0.01);
+                   end ;
+                rH.Value[vStart + vtDecay] := DecayTime( ADC^, PeakAt,iEnd[ch],ChOffset,Invert,TXAmplitude) ;
 
                 { Baseline level determined from average of samples at TZero cursor
                 (Note. TZero cursor always taken from channel 0) }
-                i0 := Min(Max(Channel[ch].ADCZeroAt,0),FH.NumSamples-1) ;
+                i0 := Min(Max(WCPFile.Channel[ch].ADCZeroAt,0),FH.NumSamples-1) ;
                 i1 := Min(i0 + Max(FH.NumZeroAvg,1) - 1,FH.NumSamples-1) ;
                 Sum := 0. ;
-                j := i0*fH.NumChannels + Channel[ch].ChannelOffset ;
+                j := i0*fH.NumChannels + WCPFile.Channel[ch].ChannelOffset ;
                 for i := i0 to i1 do
                     begin
-                    Sum := Sum + (ADC^[j] + Channel[ch].ADCZero) ;
+                    Sum := Sum + (ADC^[j] + WCPFile.Channel[ch].ADCZero) ;
                     j := j + fH.NumChannels ;
                     end ;
                 NumAvg := (i1 - i0) + 1 ;
                 Avg := Sum / NumAvg ;
-                rH.Value[vStart + vBaseline] := (Avg*Channel[ch].ADCScale) ;
+                rH.Value[vStart + vBaseline] := (Avg*WCPFile.Channel[ch].ADCScale) ;
 
                 // Calculate X% quantile
                 GetMem(SortBuf,Max(iEnd[ch]-iStart[ch] + 1,1)*SizeOf(Single));
@@ -465,18 +465,18 @@ begin
                 iStep := Max((iEnd[ch] - iStart[ch]) div 5000,1) ;
                 while i <= iEnd[ch] do
                     begin
-                    SortBuf^[nSort] := ADC^[i*fH.NumChannels + Channel[ch].ChannelOffset] ;
+                    SortBuf^[nSort] := ADC^[i*fH.NumChannels + WCPFile.Channel[ch].ChannelOffset] ;
                     Inc(nSort) ;
                     i := i + iStep ;
                     end ;
 
                 QuickSort( SortBuf^, 0, nSort-1) ;
                 iQuantile := Max(Round(FH.QuantilePercentage*nSort*0.01)-1,0);
-                rH.Value[vStart + vQuantile] := SortBuf^[iQuantile]*Channel[ch].ADCScale ;
+                rH.Value[vStart + vQuantile] := SortBuf^[iQuantile]*WCPFile.Channel[ch].ADCScale ;
                 FreeMem(SortBuf) ;
 
                 // Add measurements for channel to list
-                s := format('"%s","%s",',[Channel[ch].ADCName,Channel[ch].ADCUnits]) ;
+                s := format('"%s","%s",',[WCPFile.Channel[ch].ADCName,WCPFile.Channel[ch].ADCUnits]) ;
                 for i := 0 to LastMeasureVariable do
                     begin
                     j := vStart + Integer(MeasureFrm.VarList.Objects[i]) ;
@@ -496,7 +496,7 @@ begin
          Inc(NumRecAnalysed) ;
 
          { Save record header containing analysis results back to file  }
-         PutRecordHeaderOnly( fH, rH, Rec ) ;
+         WCPFile.PutRecordHeaderOnly( fH, rH, Rec ) ;
 
          Rec := Rec + 1;
 
@@ -536,10 +536,7 @@ begin
      Dispose(InBuf) ;
 
      // Save header data to .WCP file
-     SaveHeader(FH) ;
-
-
-
+     WCPFile.SaveHeader(FH) ;
 
 end;
 
@@ -591,14 +588,14 @@ begin
          for j := jLow to jHigh do
              begin
              k := Min(Max(i+j,0),fH.NumSamples-1)*FH.NumChannels
-                  + Channel[iChan].ChannelOffset ;
+                  + WCPFile.Channel[iChan].ChannelOffset ;
              Diff := Diff + A[j]*ADC[k] ;
              end ;
          Diff := Diff / ASum ;
          if Diff > MaxDiff then MaxDiff := Diff ;
          end ;
 
-     Result := (MaxDiff * Channel[iChan].ADCSCale) / rH.dt ;
+     Result := (MaxDiff * WCPFile.Channel[iChan].ADCSCale) / rH.dt ;
 
      end ;
 
@@ -630,7 +627,7 @@ begin
    SumYT := 0.0 ;
    nPoints := iEnd - iStart + 1 ;
    for i := iStart to iEnd do begin
-      Y := ADC[i*FH.NumChannels + Channel[iChan].ChannelOffset] ;
+      Y := ADC[i*FH.NumChannels + WCPFile.Channel[iChan].ChannelOffset] ;
       SumT := SumT + t ;
       SumT2 := SumT2 + t*t ;
       SumY := SumY + Y ;
@@ -642,9 +639,49 @@ begin
    if Denom <> 0.0 then Result := ((nPoints*SumYT) - (SumT*SumY))/ Denom
                    else Result := 0.0 ;
 
-   Result := Channel[iChan].ADCSCale*Result ;
+   Result := WCPFile.Channel[iChan].ADCSCale*Result ;
 
    end ;
+
+
+function TMeasureThread.DecayTime(
+          var ADC : Array of Single ;
+          iPeakAt : Integer ;     // Peak of signal point
+          iEnd : Integer ;        // End at point
+          ChOffset : Integer ;    // Channel offset in ADC
+          Invert : Integer ;      // Invert signal
+          EndThreshold : Single   // Decay end-point threshold
+          ) : Single ;            // Return decay time
+// ------------------------------------
+// Decay time from peak to EndThreshold
+// ------------------------------------
+
+var
+    iDecayEndAt : Integer ;
+    y,dDecay,yPrev : single ;
+begin
+
+    // Find point at which threshold crossed
+
+    iDecayEndAt := iPeakAt - 1 ;
+    repeat
+        Inc(iDecayEndAt) ;
+        Y := ADC[iDecayEndAt*fH.NumChannels + ChOffset]*Invert ;
+        until (Y < EndThreshold) or (iDecayEndAt >= iEnd) ;
+
+    // V4.0.5 Exact decay point determined by interpolation between
+    // first point below threshold and last point above threshold
+
+    YPrev := ADC[Max(iDecayEndAt-1,0)*fH.NumChannels + ChOffset]*Invert ;
+    if (Y <> YPrev) then
+       begin
+       dDecay := -((EndThreshold - Y) /(Y - YPrev)) *rH.dt ;
+       end
+    else dDecay := 0.0 ;
+
+    Result := ((iDecayEndAt - iPeakAt+1)*rH.dt + dDecay) ;
+
+end ;
 
 
 procedure TMeasureThread.QuickSort(var A: array of Single ; iLo, iHi: Integer) ;

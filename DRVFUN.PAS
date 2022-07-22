@@ -18,7 +18,7 @@ interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, ExtCtrls, StdCtrls, Grids, global, shared, fileio, maths,
+  Forms, Dialogs, ExtCtrls, StdCtrls, Grids, maths,
   ScopeDisplay, ValEdit, RangeEdit, ComCtrls, ValidatedEdit, seslabio, math ;
 
 type
@@ -83,7 +83,7 @@ implementation
 
 {$R *.DFM}
 
-uses mdiform, Zero ;
+uses mdiform, Zero , WCPFIleUnit, System.StrUtils ;
 
 const
      { Deconvolution parameter table rows/column definitions}
@@ -112,7 +112,7 @@ procedure TDrvFunFrm.FormShow(Sender: TObject);
 begin
 
      { Initialise Channel combo box }
-     cbChannel.items := ChannelNames ;
+     cbChannel.items := WCPFile.ChannelNames ;
      if cbChannel.ItemIndex < 0 then cbChannel.ItemIndex := 0 ;
 
      { Set button states }
@@ -131,10 +131,10 @@ procedure TDrvFunFrm.NewFile ;
 begin
 
      { Set up range of records to be displayed in averaging setup display }
-     if FH.Numrecords > 0 then begin
-        UpdateScrollBar( sbRecordNum, 1, 1, fH.NumRecords ) ;
-        edRecRange.HiLimit := FH.NumRecords ;
-        edRecRange.HiValue := FH.NumRecords ;
+     if WCPFile.FH.Numrecords > 0 then begin
+        WCPFile.UpdateScrollBar( sbRecordNum, 1, 1, WCPFile.fH.NumRecords ) ;
+        edRecRange.HiLimit := WCPFile.FH.NumRecords ;
+        edRecRange.HiValue := WCPFile.FH.NumRecords ;
         edRecRange.LoLimit := 1.0 ;
         edRecRange.LoValue := 1.0 ;
 
@@ -151,43 +151,43 @@ procedure TDrvFunFrm.InitialiseDisplay ;
   Initialise scope display to show selected channel
   -------------------------------------------------- }
 var
-    ch : Integer ;  
+    ch : Integer ;
 begin
      { Set up scope display }
-     scDisplay.MaxADCValue := FH.MaxADCValue ;
-     scDisplay.MinADCValue := FH.MinADCValue ;
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.MaxADCValue := WCPFile.FH.MaxADCValue ;
+     scDisplay.MinADCValue := WCPFile.FH.MinADCValue ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
      scDisplay.DisableChannelVisibilityButton := True ;
 
-     scDisplay.MaxPoints := FH.NumSamples ;
-     scDisplay.NumPoints := FH.NumSamples ;
-     scDisplay.NumChannels := FH.NumChannels ;
+     scDisplay.MaxPoints := WCPFile.FH.NumSamples ;
+     scDisplay.NumPoints := WCPFile.FH.NumSamples ;
+     scDisplay.NumChannels := WCPFile.FH.NumChannels ;
      { Set channel information }
-     for ch := 0 to FH.NumChannels-1 do begin
-         scDisplay.ChanOffsets[ch] := Channel[ch].ChannelOffset ;     
-         scDisplay.ChanUnits[ch] := Channel[Ch].ADCUnits ;
-         scDisplay.ChanName[ch] := Channel[Ch].ADCName ;
-         scDisplay.ChanScale[ch] := Channel[ch].ADCScale ;         
-         scDisplay.yMin[ch] := Channel[Ch].yMin ;
-         scDisplay.yMax[ch] := Channel[Ch].yMax ;
+     for ch := 0 to WCPFile.FH.NumChannels-1 do begin
+         scDisplay.ChanOffsets[ch] := WCPFile.Channel[ch].ChannelOffset ;
+         scDisplay.ChanUnits[ch] := WCPFile.Channel[Ch].ADCUnits ;
+         scDisplay.ChanName[ch] := WCPFile.Channel[Ch].ADCName ;
+         scDisplay.ChanScale[ch] := WCPFile.Channel[ch].ADCScale ;
+         scDisplay.yMin[ch] := WCPFile.Channel[Ch].yMin ;
+         scDisplay.yMax[ch] := WCPFile.Channel[Ch].yMax ;
          if ch = cbChannel.ItemIndex then scDisplay.ChanVisible[ch] := True
                                      else scDisplay.ChanVisible[ch] := False ;
          end ;
 
      scDisplay.xMin := 0 ;
-     scDisplay.xMax := FH.NumSamples - 1 ;
+     scDisplay.xMax := WCPFile.FH.NumSamples - 1 ;
 
      scDisplay.ClearHorizontalCursors ;
      { Voltage channel baseline }
      BaseLineCursor := scDisplay.AddHorizontalCursor(cbChannel.ItemIndex,
-                       Settings.Colors.Cursors,True,'z') ;
-     scDisplay.HorizontalCursors[BaselineCursor] := Channel[cbChannel.ItemIndex].ADCZero ;
-     scDisplay.ChanZeroAt[cbChannel.ItemIndex] := Channel[cbChannel.ItemIndex].ADCZeroAt ;
-     scDisplay.ChanZeroAvg := FH.NumZeroAvg ;
+                       WCPFile.Settings.Colors.Cursors,True,'z') ;
+     scDisplay.HorizontalCursors[BaselineCursor] := WCPFile.Channel[cbChannel.ItemIndex].ADCZero ;
+     scDisplay.ChanZeroAt[cbChannel.ItemIndex] := WCPFile.Channel[cbChannel.ItemIndex].ADCZeroAt ;
+     scDisplay.ChanZeroAvg := WCPFile.FH.NumZeroAvg ;
 
      scDisplay.xOffset := 0 ;
-     scDisplay.TScale := FH.dt{*Settings.TScale} ;
-     scDisplay.TUnits := Settings.TUnits ;
+     scDisplay.TScale := WCPFile.FH.dt{*Settings.TScale} ;
+     scDisplay.TUnits := WCPFile.Settings.TUnits ;
 
      end ;
 
@@ -202,22 +202,22 @@ var
    EqnType : TEqnType ;
 begin
 
-     FH.RecordNum := SbRecordNum.position ;
+     WCPFile.FH.RecordNum := SbRecordNum.position ;
 
      { Read record data from file }
-     GetRecord( FH, RH, FH.RecordNum, ADC^ ) ;
+     WCPFile.GetRecord( WCPFile.FH, RH, WCPFile.FH.RecordNum, ADC^ ) ;
 
      scDisplay.SetDataBuf( ADC ) ;
 
-     scDisplay.HorizontalCursors[BaselineCursor] := Channel[cbChannel.ItemIndex].ADCZero ;
-     scDisplay.ChanZeroAt[cbChannel.ItemIndex] := Channel[cbChannel.ItemIndex].ADCZeroAt ;
-     scDisplay.ChanZeroAvg := FH.NumZeroAvg ;
+     scDisplay.HorizontalCursors[BaselineCursor] := WCPFile.Channel[cbChannel.ItemIndex].ADCZero ;
+     scDisplay.ChanZeroAt[cbChannel.ItemIndex] := WCPFile.Channel[cbChannel.ItemIndex].ADCZeroAt ;
+     scDisplay.ChanZeroAvg := WCPFile.FH.NumZeroAvg ;
 
-     edRecordNum.HiLimit := FH.NumRecords ;
-     edRecordNum.HiValue := FH.NumRecords ;
+     edRecordNum.HiLimit := WCPFile.FH.NumRecords ;
+     edRecordNum.HiValue := WCPFile.FH.NumRecords ;
      edRecordNum.LoValue := sbRecordNum.position ;
      edRecordNum.LoValue := sbRecordNum.position ;
-     edRecordNum.HiValue := FH.NumRecords ;
+     edRecordNum.HiValue := WCPFile.FH.NumRecords ;
 
      { Show whether record has been rejected by operator }
      if RH.Status = 'ACCEPTED' then ckBadRecord.checked := False
@@ -230,8 +230,8 @@ begin
         scDisplay.ClearLines ;
         iLine := scDisplay.CreateLine( cbChannel.ItemIndex, clRed, psSolid, 1 ) ;
         MathFunc.Setup( EqnType,
-                        Settings.TUnits,
-                        Channel[cbChannel.ItemIndex].ADCUnits)  ;
+                        WCPFile.Settings.TUnits,
+                        WCPFile.Channel[cbChannel.ItemIndex].ADCUnits)  ;
 
         { Transfer best-fit equation parameters from record header }
         for i := 0 to MathFunc.NumParameters-1 do begin
@@ -239,12 +239,12 @@ begin
             end ;
         TZeroAt := RH.FitCursor0 ;
 
-        for i := 0 to FH.NumSamples-1 do begin
+        for i := 0 to WCPFile.FH.NumSamples-1 do begin
             if i >= TZeroAt then
-               y := MathFunc.Value( (i-TZeroAt)*RH.dt*Settings.TScale )
-                    /Channel[cbChannel.ItemIndex].ADCScale
+               y := MathFunc.Value( (i-TZeroAt)*RH.dt*WCPFile.Settings.TScale )
+                    /WCPFile.Channel[cbChannel.ItemIndex].ADCScale
             else y := 0.0 ;
-            scDisplay.AddPointToLine( iLine, i, y+Channel[cbChannel.ItemIndex].ADCZero ) ;
+            scDisplay.AddPointToLine( iLine, i, y+WCPFile.Channel[cbChannel.ItemIndex].ADCZero ) ;
             end ;
 
         //nPars := MathFunc.NumParameters ;
@@ -306,7 +306,7 @@ begin
 procedure TDrvFunFrm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
 
-     if (DrvFH.NumRecords > 0) and (DrvFH.FileName <> '') then begin
+     if (WCPFile.DrvFH.NumRecords > 0) and (WCPFile.DrvFH.FileName <> '') then begin
         Main.mnShowDrivingFunction.visible := True ;
         Main.mnShowDrivingFunction.Enabled := True ;
         Main.mnShowDrivingFunction.Click ;
@@ -353,7 +353,7 @@ procedure TDrvFunFrm.ckBadRecordClick(Sender: TObject);
 begin
      if ckBadRecord.checked then RH.Status := 'REJECTED'
                             else RH.Status := 'ACCEPTED' ;
-     PutRecordHeaderOnly( FH, RH, FH.RecordNum ) ;
+     WCPFile.PutRecordHeaderOnly( WCPFIle.FH, RH, WCPFIle.FH.RecordNum ) ;
      end;
 
 
@@ -377,12 +377,12 @@ begin
      if rbAllRecords.checked then begin
         { Analyse all records in file }
         StartAt := 1 ;
-        EndAt := FH.NumRecords ;
+        EndAt := WCPFIle.FH.NumRecords ;
         end
      else if rbThisRecord.checked then begin
         { Analyse the currently displayed record }
-        StartAt := FH.RecordNum ;
-        EndAt := FH.RecordNum ;
+        StartAt := WCPFIle.FH.RecordNum ;
+        EndAt := WCPFIle.FH.RecordNum ;
         end
      else begin
         StartAt := Round(edRecRange.LoValue) ;
@@ -391,22 +391,22 @@ begin
 
 
      { Copy details from original file header (except file handle!!!!) }
-     OldHandle := DrvFH.FileHandle ;
-     DrvfH := fH ;
-     DrvFH.FileHandle := OldHandle ;
+     OldHandle := WCPFIle.DrvFH.FileHandle ;
+     WCPFIle.DrvfH := WCPFIle.fH ;
+     WCPFIle.DrvFH.FileHandle := OldHandle ;
 
      { The driving functions data file name has the same name as the original file
        but with the extension .dfn }
-     DrvFH.FileName := ChangeFileExt( FH.FileName, '.dfn' ) ;
+     WCPFIle.DrvFH.FileName := ChangeFileExt( WCPFIle.FH.FileName, '.dfn' ) ;
      { Create file to hold driving function }
-     if DrvFH.FileHandle >= 0 then FileClose(  DrvFH.FileHandle ) ;
-     DrvFH.FileHandle := FileCreate( DrvFH.FileName ) ;
+     if WCPFIle.DrvFH.FileHandle >= 0 then FileClose(  WCPFIle.DrvFH.FileHandle ) ;
+     WCPFIle.DrvFH.FileHandle := FileCreate( WCPFIle.DrvFH.FileName ) ;
      { Save header block and request}
-     if DrvFH.FileHandle >= 0 then begin
-           DrvFH.NumRecords := 0 ;
-           SaveHeader( DrvfH ) ;
+     if WCPFIle.DrvFH.FileHandle >= 0 then begin
+           WCPFIle.DrvFH.NumRecords := 0 ;
+           WCPFile.SaveHeader( WCPFIle.DrvfH ) ;
            end
-     else SHowMessage( format('FileCreate Error = %d',[DrvFH.FileHandle]));
+     else SHowMessage( format('FileCreate Error = %d',[WCPFIle.DrvFH.FileHandle]));
 
      { Channel to be deconvoluted }
      ChSel := cbChannel.ItemIndex ;
@@ -416,7 +416,7 @@ begin
      While not Done do begin
 
          { Read record data from file }
-         GetRecord( fH, RH, Rec, ADC^ ) ;
+         WCPFile.GetRecord( WCPFIle.fH, RH, Rec, ADC^ ) ;
 
          { if record is ACCEPTED ... process it }
          if (RH.Status = 'ACCEPTED') and
@@ -432,17 +432,17 @@ begin
            { Make the size of the transform buffer a power of 2 equal to
              (or greater than) the number of samples points in the record }
            nFFT := 128 ;
-           repeat nFFT := nFFT*2 until nFFT >= (FH.NumSamples) ;
+           repeat nFFT := nFFT*2 until nFFT >= (WCPFIle.FH.NumSamples) ;
            { Fill the buffer with zero values }
            for i := 1 to 2*nFFT do YSig^[i] := 0. ;
 
            { Copy signal from ADC buffer and convert to scaled units }
-           YScale := Channel[cbChannel.ItemIndex].ADCScale ;
-           YZero :=  Channel[cbChannel.ItemIndex].ADCZero ;
-           j := Channel[cbChannel.ItemIndex].ChannelOffset ;
-           for i := 1 to FH.NumSamples do begin
+           YScale := WCPFile.Channel[cbChannel.ItemIndex].ADCScale ;
+           YZero :=  WCPFile.Channel[cbChannel.ItemIndex].ADCZero ;
+           j := WCPFile.Channel[cbChannel.ItemIndex].ChannelOffset ;
+           for i := 1 to WCPFIle.FH.NumSamples do begin
                YSig^[i] := (ADC^[j] - YZero)*YScale ;
-               j := j + FH.NumChannels ;
+               j := j + WCPFIle.FH.NumChannels ;
                end ;
 
            { Transform the signal to the frequency domain }
@@ -450,8 +450,8 @@ begin
 
            { Create the function which the signal is to be deconvolved from }
            MathFunc.Setup( RH.EqnType,
-                           Settings.TUnits,
-                           Channel[ChSel].ADCUnits ) ;
+                           WCPFile.Settings.TUnits,
+                           WCPFile.Channel[ChSel].ADCUnits ) ;
 
            case RH.EqnType of
              Exponential : MathFunc.Parameters[2] := 0. ;
@@ -488,7 +488,7 @@ begin
 
            { Create the function }
            for i := 1 to 2*nFFT do begin
-               t := (i-1)*RH.dt*Settings.TScale ;
+               t := (i-1)*RH.dt*WCPFile.Settings.TScale ;
                yFunc^[i] := MathFunc.Value( t )
                end ;
 
@@ -541,7 +541,7 @@ begin
                  end ;
               { Create function }
               for i := 1 to 2*nFFT do begin
-                  t := (i-1)*RH.dt*Settings.TScale;
+                  t := (i-1)*RH.dt*WCPFile.Settings.TScale;
                   yFunc^[i] := MathFunc.Value( t ) ;
                   end ;
 
@@ -575,39 +575,39 @@ begin
               if Abs(VDrive) > 1E-4 then for i := 1 to nFFT do YSig^[i] := YSig^[i]/VDrive ;
 
               { Create appropriate conductance units }
-              if Contains('nA',Channel[ChSel].ADCUnits) then
-                 Channel[ChSel].ADCUnits := 'uS/ms'
-              else if Contains('pA',Channel[ChSel].ADCUnits) then
-                 Channel[ChSel].ADCUnits := 'nS/ms'
-              else if Contains('uA',Channel[ChSel].ADCUnits) then
-                 Channel[ChSel].ADCUnits := 'mS/ms'
-              else Channel[ChSel].ADCUnits := '??/ms' ;
+              if ContainsText('nA',WCPFile.Channel[ChSel].ADCUnits) then
+                 WCPFile.Channel[ChSel].ADCUnits := 'uS/ms'
+              else if ContainsText('pA',WCPFile.Channel[ChSel].ADCUnits) then
+                 WCPFile.Channel[ChSel].ADCUnits := 'nS/ms'
+              else if ContainsText('uA',WCPFile.Channel[ChSel].ADCUnits) then
+                 WCPFile.Channel[ChSel].ADCUnits := 'mS/ms'
+              else WCPFile.Channel[ChSel].ADCUnits := '??/ms' ;
 
               { Find maximum and minimum of driving function }
               YMin := MaxSingle ;
               YMax := -MaxSingle ;
-              for i := 0 to FH.NumSamples-1 do begin
+              for i := 0 to WCPFIle.FH.NumSamples-1 do begin
                   y := YSig^[i] ;
                   if Y < YMin then YMin := Y ;
                   if Y > YMax then YMax := Y ;
                   end ;
-              YScale := 2.*Abs(YMax - YMin) / FH.MaxADCValue ;
+              YScale := 2.*Abs(YMax - YMin) / WCPFIle.FH.MaxADCValue ;
               YZero := 0 ;
               end ;
 
            { Copy the driving function into the signal record replacing the
              orginal signal }
            j := cbChannel.ItemIndex ;
-           for i := 1 to FH.NumSamples do begin
+           for i := 1 to WCPFIle.FH.NumSamples do begin
                ADC^[j] := Round(YSig^[i]/YScale + YZero );
-               j := j + FH.NumChannels ;
+               j := j + WCPFIle.FH.NumChannels ;
                end ;
 
            { Save record to Transforms file  }
-           Inc(DrvFH.NumRecords) ;
+           Inc(WCPFIle.DrvFH.NumRecords) ;
            RH.AnalysisAvailable := false ;
            RH.EqnType := None ;
-           PutRecord( DrvfH, RH, DrvFH.NumRecords, ADC^ ) ;
+           WCPFile.PutRecord( WCPFIle.DrvfH, RH, WCPFIle.DrvFH.NumRecords, ADC^ ) ;
            end ;
 
          Main.StatusBar.SimpleText := format('Driving function: %d/%d',
@@ -619,7 +619,7 @@ begin
 
          end ;
 
-     SaveHeader( DrvFH ) ;
+     WCPFile.SaveHeader( WCPFIle.DrvFH ) ;
      if not bDoTransforms.Enabled then Close
      else begin
         bDoTransforms.Enabled := True ;
@@ -653,9 +653,9 @@ procedure TDrvFunFrm.ChangeDisplayGrid ;
   Update grid pattern on oscilloscope display
   -------------------------------------------- }
 begin
-     scDisplay.MaxADCValue := DrvFH.MaxADCValue ;
-     scDisplay.MinADCValue := DrvFH.MinADCValue ;
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.MaxADCValue := WCPFIle.DrvFH.MaxADCValue ;
+     scDisplay.MinADCValue := WCPFIle.DrvFH.MinADCValue ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
      scDisplay.Invalidate ;
      end ;
 
@@ -665,8 +665,8 @@ procedure  TDrvFunFrm.ZoomOut ;
   Set minimum display magnification
   --------------------------------- }
 begin
-     scDisplay.MaxADCValue := DrvFH.MaxADCValue ;
-     scDisplay.MinADCValue := DrvFH.MinADCValue ;
+     scDisplay.MaxADCValue := WCPFIle.DrvFH.MaxADCValue ;
+     scDisplay.MinADCValue := WCPFIle.DrvFH.MinADCValue ;
      scDisplay.ZoomOut ;
      end ;
 
@@ -675,17 +675,17 @@ procedure TDrvFunFrm.scDisplayCursorChange(Sender: TObject);
 var
    ch : Integer ;
 begin
-     for ch := 0 to scDisplay.NumChannels-1 do if Channel[ch].InUse then begin
-         Channel[Ch].yMin := scDisplay.YMin[Ch] ;
-         Channel[Ch].yMax := scDisplay.YMax[Ch] ;
+     for ch := 0 to scDisplay.NumChannels-1 do if WCPFile.Channel[ch].InUse then begin
+         WCPFile.Channel[Ch].yMin := scDisplay.YMin[Ch] ;
+         WCPFile.Channel[Ch].yMax := scDisplay.YMax[Ch] ;
 
          // Fix baseline if required
-         if Settings.FixedZeroLevels or (Channel[ch].ADCZeroAt >= 0) then begin
-            if scDisplay.HorizontalCursors[ch] <> Channel[ch].ADCZero then begin
-               scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
+         if WCPFile.Settings.FixedZeroLevels or (WCPFile.Channel[ch].ADCZeroAt >= 0) then begin
+            if scDisplay.HorizontalCursors[ch] <> WCPFile.Channel[ch].ADCZero then begin
+               scDisplay.HorizontalCursors[ch] := WCPFile.Channel[ch].ADCZero ;
                end ;
             end
-         else Channel[ch].ADCZero := Round(scDisplay.HorizontalCursors[ch]) ;
+         else WCPFile.Channel[ch].ADCZero := Round(scDisplay.HorizontalCursors[ch]) ;
 
          end ;
      end;
@@ -699,37 +699,37 @@ begin
      if (Button = mbRight) and (scDisplay.ActiveHorizontalCursor >=0) then begin
         ZeroFrm.EnableFromRecord := True ;
         ZeroFrm.Chan := cbChannel.ItemIndex ;
-        ZeroFrm.Level := Channel[ZeroFrm.Chan].ADCZero ;
-        ZeroFrm.ChanName := Channel[ZeroFrm.Chan].ADCName ;
+        ZeroFrm.Level := WCPFile.Channel[ZeroFrm.Chan].ADCZero ;
+        ZeroFrm.ChanName := WCPFile.Channel[ZeroFrm.Chan].ADCName ;
         ZeroFrm.NewZeroAt := Round(scDisplay.ScreenCoordToX( ZeroFrm.Chan, X )) ;
-        ZeroFrm.OldZeroAt := Channel[ZeroFrm.Chan].ADCZeroAt ;
+        ZeroFrm.OldZeroAt := WCPFile.Channel[ZeroFrm.Chan].ADCZeroAt ;
         ZeroFrm. NumSamplesPerRecord := scDisplay.NumPoints ;
-        ZeroFrm.NumZeroAveraged := FH.NumZeroAvg ;
-        ZeroFrm.MaxValue := FH.MaxADCValue ;
+        ZeroFrm.NumZeroAveraged := WCPFIle.FH.NumZeroAvg ;
+        ZeroFrm.MaxValue := WCPFIle.FH.MaxADCValue ;
         ZeroFrm.Left := Self.Left + Main.Left + 10 + scDisplay.Left + X;
         ZeroFrm.Top := Self.Top + Main.Top + 10 + scDisplay.Top + Y ;
         ZeroFrm.ShowModal ;
-        Channel[ZeroFrm.Chan].ADCZero := ZeroFrm.Level ;
-        Channel[ZeroFrm.Chan].ADCZeroAt := ZeroFrm.NewZeroAt ;
-        FH.NumZeroAvg := ZeroFrm.NumZeroAveraged ;
-        SaveHeader( FH ) ;
+        WCPFile.Channel[ZeroFrm.Chan].ADCZero := ZeroFrm.Level ;
+        WCPFile.Channel[ZeroFrm.Chan].ADCZeroAt := ZeroFrm.NewZeroAt ;
+        WCPFIle.FH.NumZeroAvg := ZeroFrm.NumZeroAveraged ;
+        WCPFile.SaveHeader( WCPFIle.FH ) ;
         if ZeroFrm.ModalResult = mrOK then DisplayRecord ;
 
         end
      else begin
         // Update zero baseline cursor
         if scDisplay.ActiveHorizontalCursor >= 0 then begin
-           if Channel[cbChannel.ItemIndex].ADCZeroAt < 0 then begin
+           if WCPFile.Channel[cbChannel.ItemIndex].ADCZeroAt < 0 then begin
               // Fixed baseline level (update zero level to new position)
-              Channel[cbChannel.ItemIndex].ADCZero := Round(
+              WCPFile.Channel[cbChannel.ItemIndex].ADCZero := Round(
               scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor]) ;
               end
            else begin
               // Baseline level computed from record (return to computed level)
               scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor] :=
-              Channel[cbChannel.ItemIndex].ADCZero ;
+              WCPFile.Channel[cbChannel.ItemIndex].ADCZero ;
               end ;
-           SaveHeader( DrvFH ) ;
+           WCPFile.SaveHeader( WCPFIle.DrvFH ) ;
            scDisplay.Invalidate ;
            end ;
         end ;
@@ -763,7 +763,7 @@ begin
 
 procedure TDrvFunFrm.FormActivate(Sender: TObject);
 begin
-    ckFixedZeroLevels.Checked := Settings.FixedZeroLevels ;
+    ckFixedZeroLevels.Checked := WCPFile.Settings.FixedZeroLevels ;
     end;
 
 procedure TDrvFunFrm.ckFixedZeroLevelsClick(Sender: TObject);
@@ -771,7 +771,7 @@ procedure TDrvFunFrm.ckFixedZeroLevelsClick(Sender: TObject);
 // Enable/Disable fixed zero levels
 // --------------------------------
 begin
-     Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
+     WCPFile.Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
      end;
 
 end.

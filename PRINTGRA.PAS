@@ -8,7 +8,7 @@ interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, StdCtrls, Spin, Buttons, Global, Printers, Shared,
+  Forms, Dialogs, StdCtrls, Spin, Buttons, Printers,
   ValEdit, XYPlotDisplay, ExtCtrls, ValidatedEdit ;
 
 type
@@ -62,6 +62,8 @@ implementation
 
 {$R *.DFM}
 
+uses WCPFIleUnit;
+
 
 procedure TPrintGraphFrm.FormShow(Sender: TObject);
 { --------------------------------------------
@@ -87,18 +89,18 @@ begin
         SettingsPan.Top := PrinterSelectGrp.Top ;
         end ;
 
-     edTopMargin.Value := Settings.Plot.TopMargin ;
-     edBottomMargin.Value := Settings.Plot.BottomMargin ;
-     edLeftMargin.Value := Settings.Plot.LeftMargin ;
-     edRightMargin.Value := Settings.Plot.RightMargin ;
-     edBitMapWidth.Value := Settings.BitMapWidth ;
-     edBitMapHeight.Value := Settings.BitMapHeight ;
+     edTopMargin.Value := WCPFile.Settings.Plot.TopMargin ;
+     edBottomMargin.Value := WCPFile.Settings.Plot.BottomMargin ;
+     edLeftMargin.Value := WCPFile.Settings.Plot.LeftMargin ;
+     edRightMargin.Value := WCPFile.Settings.Plot.RightMargin ;
+     edBitMapWidth.Value := WCPFile.Settings.BitMapWidth ;
+     edBitMapHeight.Value := WCPFile.Settings.BitMapHeight ;
 
      { Fill Fonts list with typefaces available to printer }
      cbFontName.items := printer.fonts ;
-     edFontSize.Value := Settings.Plot.FontSize ;
-     edLineThickness.Value := Settings.Plot.LineThickness ;
-     cbFontName.itemindex := cbFontName.items.indexof(Settings.Plot.FontName) ;
+     edFontSize.Value := WCPFile.Settings.Plot.FontSize ;
+     edLineThickness.Value := WCPFile.Settings.Plot.LineThickness ;
+     cbFontName.itemindex := cbFontName.items.indexof(WCPFile.Settings.Plot.FontName) ;
      if cbFontName.itemindex < 0 then  cbFontName.itemindex := 0 ;
 
      end;
@@ -106,29 +108,29 @@ begin
 
 procedure TPrintGraphFrm.bOKClick(Sender: TObject);
 // ------------------------
-// Accept settings and exit
+// Accept WCPFile.Settings and exit
 // ------------------------
 begin
-     { Save new settings }
-     Settings.Plot.TopMargin := edTopMargin.Value ;
-     Settings.Plot.BottomMargin := edBottomMargin.Value ;
-     Settings.Plot.LeftMargin:= edLeftMargin.Value  ;
-     Settings.Plot.RightMargin := edRightMargin.Value ;
-     Settings.Plot.FontName := cbFontName.text ;
-     Settings.Plot.FontSize := Round(edFontSize.Value) ;
-     Settings.Plot.LineThickness := Round(edLineThickness.Value) ;
-     Settings.BitMapWidth := Round(edBitMapWidth.Value)  ;
-     Settings.BitMapHeight := Round(edBitMapHeight.Value)  ;
+     { Save new WCPFile.Settings }
+     WCPFile.Settings.Plot.TopMargin := edTopMargin.Value ;
+     WCPFile.Settings.Plot.BottomMargin := edBottomMargin.Value ;
+     WCPFile.Settings.Plot.LeftMargin:= edLeftMargin.Value  ;
+     WCPFile.Settings.Plot.RightMargin := edRightMargin.Value ;
+     WCPFile.Settings.Plot.FontName := cbFontName.text ;
+     WCPFile.Settings.Plot.FontSize := Round(edFontSize.Value) ;
+     WCPFile.Settings.Plot.LineThickness := Round(edLineThickness.Value) ;
+     WCPFile.Settings.BitMapWidth := Round(edBitMapWidth.Value)  ;
+     WCPFile.Settings.BitMapHeight := Round(edBitMapHeight.Value)  ;
 
-     { Update settings in XYplot component }
-     Plot.PrinterTopMargin := Round(Settings.Plot.TopMargin) ;
-     Plot.PrinterBottomMargin := Round(Settings.Plot.BottomMargin) ;
-     Plot.PrinterLeftMargin := Round(Settings.Plot.LeftMargin) ;
-     Plot.PrinterRightMargin := Round(Settings.Plot.RightMargin) ;
-     Plot.PrinterFontSize := Settings.Plot.FontSize ;
-     Plot.PrinterLineWidth := Settings.Plot.LineThickness ;
-     Plot.MetafileWidth := Settings.BitMapWidth ;
-     Plot.MetafileHeight := Settings.BitMapHeight ;
+     { Update WCPFile.Settings in XYplot component }
+     Plot.PrinterTopMargin := Round(WCPFile.Settings.Plot.TopMargin) ;
+     Plot.PrinterBottomMargin := Round(WCPFile.Settings.Plot.BottomMargin) ;
+     Plot.PrinterLeftMargin := Round(WCPFile.Settings.Plot.LeftMargin) ;
+     Plot.PrinterRightMargin := Round(WCPFile.Settings.Plot.RightMargin) ;
+     Plot.PrinterFontSize := WCPFile.Settings.Plot.FontSize ;
+     Plot.PrinterLineWidth := WCPFile.Settings.Plot.LineThickness ;
+     Plot.MetafileWidth := WCPFile.Settings.BitMapWidth ;
+     Plot.MetafileHeight := WCPFile.Settings.BitMapHeight ;
      Plot.Invalidate ;
 
      end;

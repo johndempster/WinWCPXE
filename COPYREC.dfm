@@ -92,6 +92,11 @@ object CopyRecDlg: TCopyRecDlg
       Font.Style = []
       ParentFont = False
       TabOrder = 0
+      ColWidths = (
+        45
+        45)
+      RowHeights = (
+        18)
     end
     object bDefaultSettings: TButton
       Left = 8

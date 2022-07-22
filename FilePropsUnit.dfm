@@ -60,6 +60,10 @@ object FilePropsDlg: TFilePropsDlg
     TabOrder = 2
     object TabProperties: TTabSheet
       Caption = 'Properties'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object meProperties: TMemo
         Left = 8
         Top = 8

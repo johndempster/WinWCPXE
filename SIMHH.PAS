@@ -23,7 +23,7 @@ interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, StdCtrls, TabNotBk, ExtCtrls, Global, Shared, FileIO, maths,
+  Forms, Dialogs, StdCtrls, TabNotBk, ExtCtrls, maths,
   ValEdit, ScopeDisplay, ComCtrls, math, ValidatedEdit, HTMLLabel, seslabio, strutils ;
 
 type
@@ -141,7 +141,7 @@ var
 
 implementation
 
-uses mdiform ;
+uses mdiform , WCPFIleUnit;
 
 {$R *.DFM}
 const
@@ -155,35 +155,35 @@ procedure TVClampSim.FormShow(Sender: TObject);
   --------------------------------------}
 begin
 
-     edNumSamples.Value := Settings.NumSamples ;
-     edNumSteps.Value := Settings.VClampSim.NumSteps ;
-     edGMax.Value := Settings.VClampSim.GMax ;
-     edGLeak.Value := Settings.VClampSim.GLeak  ;
-     edGSeries.Value := Settings.VClampSim.GSeries ;
-     edCm.Value := Settings.VClampSim.Cm ;
-     edVRev.Value := Settings.VClampSim.VRev ;
-     edVHold.Value := Settings.VClampSim.VHold ;
-     edVStep.Value := Settings.VClampSim.VStep ;
-     edNoiseRMS.Value := Settings.VClampSim.NoiseRMS ;
+     edNumSamples.Value := WCPFile.Settings.NumSamples ;
+     edNumSteps.Value := WCPFile.Settings.VClampSim.NumSteps ;
+     edGMax.Value := WCPFile.Settings.VClampSim.GMax ;
+     edGLeak.Value := WCPFile.Settings.VClampSim.GLeak  ;
+     edGSeries.Value := WCPFile.Settings.VClampSim.GSeries ;
+     edCm.Value := WCPFile.Settings.VClampSim.Cm ;
+     edVRev.Value := WCPFile.Settings.VClampSim.VRev ;
+     edVHold.Value := WCPFile.Settings.VClampSim.VHold ;
+     edVStep.Value := WCPFile.Settings.VClampSim.VStep ;
+     edNoiseRMS.Value := WCPFile.Settings.VClampSim.NoiseRMS ;
 
      { Activation gate (m) parameters }
-     edMInfVHalf.Value := Settings.VClampSim.m.VHalf ;
-     edMInfVSlope.Value := Settings.VClampSim.m.VSlope ;
-     edMTauMin.Value := Settings.VClampSim.m.TauMin ;
-     edMTauMax.Value := Settings.VClampSim.m.TauMax ;
-     edMTauVhalf.Value := Settings.VClampSim.m.TauVHalf ;
-     edMTauVslope.Value := Settings.VClampSim.m.TauVslope ;
-     edPower.Value := Settings.VClampSim.m.P ;
+     edMInfVHalf.Value := WCPFile.Settings.VClampSim.m.VHalf ;
+     edMInfVSlope.Value := WCPFile.Settings.VClampSim.m.VSlope ;
+     edMTauMin.Value := WCPFile.Settings.VClampSim.m.TauMin ;
+     edMTauMax.Value := WCPFile.Settings.VClampSim.m.TauMax ;
+     edMTauVhalf.Value := WCPFile.Settings.VClampSim.m.TauVHalf ;
+     edMTauVslope.Value := WCPFile.Settings.VClampSim.m.TauVslope ;
+     edPower.Value := WCPFile.Settings.VClampSim.m.P ;
 
      // Inactivation gate
-     ckInActivation.Checked := Settings.VClampSim.UseInactivation ;
-     edHInfVHalf.Value := Settings.VClampSim.h.VHalf ;
-     edHInfVSlope.Value := Settings.VClampSim.h.VSlope ;
-     edHTauMin.Value := Settings.VClampSim.h.TauMin ;
-     edHTauMax.Value := Settings.VClampSim.h.TauMax ;
-     edHTauVhalf.Value := Settings.VClampSim.h.TauVHalf ;
-     edHTauVslope.Value := Settings.VClampSim.h.TauVslope ;
-     Settings.VClampSim.h.P := 1. ;
+     ckInActivation.Checked := WCPFile.Settings.VClampSim.UseInactivation ;
+     edHInfVHalf.Value := WCPFile.Settings.VClampSim.h.VHalf ;
+     edHInfVSlope.Value := WCPFile.Settings.VClampSim.h.VSlope ;
+     edHTauMin.Value := WCPFile.Settings.VClampSim.h.TauMin ;
+     edHTauMax.Value := WCPFile.Settings.VClampSim.h.TauMax ;
+     edHTauVhalf.Value := WCPFile.Settings.VClampSim.h.TauVHalf ;
+     edHTauVslope.Value := WCPFile.Settings.VClampSim.h.TauVslope ;
+     WCPFile.Settings.VClampSim.h.P := 1. ;
 
      { Initialise control buttons }
      bStart.Enabled := True ;
@@ -205,45 +205,45 @@ var
    ch,i : Integer ;
 begin
 
-     if RawFH.NumRecords = 0 then begin
-        RawFH.NumChannels := 2 ;
-        RawFH.NumSamples := Settings.NumSamples ;
+     if WCPFIle.RawFH.NumRecords = 0 then begin
+        WCPFIle.RawFH.NumChannels := 2 ;
+        WCPFIle.RawFH.NumSamples := WCPFile.Settings.NumSamples ;
         end;
 
      { Set up scope display }
      scDisplay.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
      scDisplay.MinADCValue := Main.SESLabIO.ADCMinValue ;
 
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
 
-     scDisplay.MaxPoints := Settings.NumSamples ;
-     scDisplay.NumPoints := Settings.NumSamples ;
+     scDisplay.MaxPoints := WCPFile.Settings.NumSamples ;
+     scDisplay.NumPoints := WCPFile.Settings.NumSamples ;
      scDisplay.NumChannels := 2 ;
 
      { Set channel information }
      for ch := 0 to scDisplay.NumChannels-1 do begin
-         Channel[ch].ChannelOffset := ch ;
-         scDisplay.ChanOffsets[ch] := Channel[ch].ChannelOffset ;
-         scDisplay.ChanUnits[ch] := Channel[Ch].ADCUnits ;
-         scDisplay.ChanName[ch] := Channel[Ch].ADCName ;
-         scDisplay.ChanScale[ch] := Channel[Ch].ADCScale ;
-         Channel[Ch].yMin := scDisplay.MinADCValue ;
-         Channel[Ch].yMax := scDisplay.MaxADCValue ;
-         scDisplay.yMin[ch] := Channel[ch].yMin ;
-         scDisplay.yMax[ch] := Channel[ch].yMax ;
+         WCPFile.Channel[ch].ChannelOffset := ch ;
+         scDisplay.ChanOffsets[ch] := WCPFile.Channel[ch].ChannelOffset ;
+         scDisplay.ChanUnits[ch] := WCPFile.Channel[Ch].ADCUnits ;
+         scDisplay.ChanName[ch] := WCPFile.Channel[Ch].ADCName ;
+         scDisplay.ChanScale[ch] := WCPFile.Channel[Ch].ADCScale ;
+         WCPFile.Channel[Ch].yMin := scDisplay.MinADCValue ;
+         WCPFile.Channel[Ch].yMax := scDisplay.MaxADCValue ;
+         scDisplay.yMin[ch] := WCPFile.Channel[ch].yMin ;
+         scDisplay.yMax[ch] := WCPFile.Channel[ch].yMax ;
          scDisplay.ChanVisible[ch] := True ;
          end ;
 
      scDisplay.xMin := 0 ;
-     scDisplay.xMax := Settings.NumSamples - 1 ;
+     scDisplay.xMax := WCPFile.Settings.NumSamples - 1 ;
      scDisplay.xOffset := 0 ;
-     scDisplay.TScale := RawFH.dt*1000.0 ;
-     scDisplay.TUnits := Settings.TUnits ;
+     scDisplay.TScale := WCPFIle.RawFH.dt*1000.0 ;
+     scDisplay.TUnits := WCPFile.Settings.TUnits ;
 
      // Reallocate A/D sample buffer
      if ADC <> Nil then FreeMem(ADC) ;
-     GetMem( ADC, Max(Settings.NumSamples*scDisplay.NumChannels*2,1024) ) ;
-     for i := 0 to Settings.NumSamples*scDisplay.NumChannels-1 do ADC^[i] := 0 ;
+     GetMem( ADC, Max(WCPFile.Settings.NumSamples*scDisplay.NumChannels*2,1024) ) ;
+     for i := 0 to WCPFile.Settings.NumSamples*scDisplay.NumChannels-1 do ADC^[i] := 0 ;
      scDisplay.SetDataBuf( ADC ) ;
 
      CloseFormASAP := False ;
@@ -256,37 +256,37 @@ procedure TVClampSim.EditFieldsToSettings ;
 // ------------------------------
 begin
 
-     Settings.NumSamples := Min(Round(edNumSamples.Value),Main.SESLabIO.ADCBufferLimit) ;
-     edNumSamples.Value := Settings.NumSamples ;
+     WCPFile.Settings.NumSamples := Min(Round(edNumSamples.Value),Main.SESLabIO.ADCBufferLimit) ;
+     edNumSamples.Value := WCPFile.Settings.NumSamples ;
 
-     Settings.VClampSim.NumSteps := Round(edNumSteps.Value) ;
-     Settings.VClampSim.GMax := edGMax.Value ;
-     Settings.VClampSim.GLeak := edGLeak.Value ;
-     Settings.VClampSim.GSeries := edGSeries.Value ;
-     Settings.VClampSim.Cm := edCm.Value ;
-     Settings.VClampSim.VRev := edVRev.Value ;
-     Settings.VClampSim.VHold := edVHold.Value ;
-     Settings.VClampSim.VStep := edVStep.Value ;
-     Settings.VClampSim.NoiseRMS := edNoiseRMS.Value ;
+     WCPFile.Settings.VClampSim.NumSteps := Round(edNumSteps.Value) ;
+     WCPFile.Settings.VClampSim.GMax := edGMax.Value ;
+     WCPFile.Settings.VClampSim.GLeak := edGLeak.Value ;
+     WCPFile.Settings.VClampSim.GSeries := edGSeries.Value ;
+     WCPFile.Settings.VClampSim.Cm := edCm.Value ;
+     WCPFile.Settings.VClampSim.VRev := edVRev.Value ;
+     WCPFile.Settings.VClampSim.VHold := edVHold.Value ;
+     WCPFile.Settings.VClampSim.VStep := edVStep.Value ;
+     WCPFile.Settings.VClampSim.NoiseRMS := edNoiseRMS.Value ;
 
-     Settings.VClampSim.m.VHalf := edMInfVHalf.Value ;
-     Settings.VClampSim.m.VSlope := edMInfVSlope.Value ;
-     Settings.VClampSim.m.TauMin := edMTauMin.Value ;
-     Settings.VClampSim.m.TauMax := edMTauMax.Value ;
-     Settings.VClampSim.m.TauVHalf := edMTauVhalf.Value ;
-     Settings.VClampSim.m.TauVslope := edMTauVslope.Value ;
-     Settings.VClampSim.m.P := edPower.Value ;
+     WCPFile.Settings.VClampSim.m.VHalf := edMInfVHalf.Value ;
+     WCPFile.Settings.VClampSim.m.VSlope := edMInfVSlope.Value ;
+     WCPFile.Settings.VClampSim.m.TauMin := edMTauMin.Value ;
+     WCPFile.Settings.VClampSim.m.TauMax := edMTauMax.Value ;
+     WCPFile.Settings.VClampSim.m.TauVHalf := edMTauVhalf.Value ;
+     WCPFile.Settings.VClampSim.m.TauVslope := edMTauVslope.Value ;
+     WCPFile.Settings.VClampSim.m.P := edPower.Value ;
 
      { Inactivation gate (h) parameters }
-     Settings.VClampSim.UseInactivation := ckInActivation.Checked ;
-     Settings.VClampSim.h.VHalf := edHInfVHalf.Value ;
-     Settings.VClampSim.h.VSlope := edHInfVSlope.Value ;
-     Settings.VClampSim.h.TauMin := edHTauMin.Value ;
-     Settings.VClampSim.h.TauMax := edHTauMin.Value ;
-     Settings.VClampSim.h.TauVHalf := edHTauVhalf.Value ;
-     Settings.VClampSim.h.TauVslope := edHTauVslope.Value ;
+     WCPFile.Settings.VClampSim.UseInactivation := ckInActivation.Checked ;
+     WCPFile.Settings.VClampSim.h.VHalf := edHInfVHalf.Value ;
+     WCPFile.Settings.VClampSim.h.VSlope := edHInfVSlope.Value ;
+     WCPFile.Settings.VClampSim.h.TauMin := edHTauMin.Value ;
+     WCPFile.Settings.VClampSim.h.TauMax := edHTauMin.Value ;
+     WCPFile.Settings.VClampSim.h.TauVHalf := edHTauVhalf.Value ;
+     WCPFile.Settings.VClampSim.h.TauVslope := edHTauVslope.Value ;
 
-     Settings.VClampSim.h.P := 1. ;
+     WCPFile.Settings.VClampSim.h.P := 1. ;
 
      end ;
 
@@ -313,129 +313,129 @@ begin
      bAbort.Enabled := True ;
      CloseFormASAP := False ;
 
-     // Copy settings from edit fields to Settings.VClampSim
+     // Copy settings from edit fields to WCPFile.Settings.VClampSim
      EditFieldsToSettings ;
 
      if not CheckNewDataFileNeeded then Exit ;
 
-     WriteToLogFile( 'Hodgkin-Huxley Voltage Clamp Simulation ' ) ;
-     WriteToLogFile( 'GMax = ' + edGMax.text ) ;
-     WriteToLogFile( 'GLeak = ' + edGLeak.text ) ;
-     WriteToLogFile( 'GSeries = ' + edGSeries.text ) ;
-     WriteToLogFile( 'Cm = ' + edCm.text ) ;
-     WriteToLogFile( 'VRev = ' + edVRev.text ) ;
-     WriteToLogFile( 'm V.half = ' + edMInfVHalf.text ) ;
-     WriteToLogFile( 'm V.slope = ' + edMInfVSlope.text ) ;
-     WriteToLogFile( 'm Tau.min = ' + edMTauMin.text ) ;
-     WriteToLogFile( 'm Tau.max = ' + edMTauMax.text ) ;
-     WriteToLogFile( 'm Tau.vhalf = ' + edMTauVHalf.text ) ;
-     WriteToLogFile( 'm Tau.vslope = ' + edMTauVslope.text ) ;
-     WriteToLogFile( 'm Power factor = ' + edPower.text ) ;
-     WriteToLogFile( 'h V.half = ' + edHInfVHalf.text ) ;
-     WriteToLogFile( 'h Tau.min = ' + edHTauMin.text ) ;
-     WriteToLogFile( 'h Tau.max = ' + edHTauMax.text ) ;
-     WriteToLogFile( 'h Tau.vhalf = ' + edHTauVHalf.text ) ;
-     WriteToLogFile( 'h Tau.vslope = ' + edHTauVslope.text ) ;
+     WCPFile.WriteToLogFile( 'Hodgkin-Huxley Voltage Clamp Simulation ' ) ;
+     WCPFile.WriteToLogFile( 'GMax = ' + edGMax.text ) ;
+     WCPFile.WriteToLogFile( 'GLeak = ' + edGLeak.text ) ;
+     WCPFile.WriteToLogFile( 'GSeries = ' + edGSeries.text ) ;
+     WCPFile.WriteToLogFile( 'Cm = ' + edCm.text ) ;
+     WCPFile.WriteToLogFile( 'VRev = ' + edVRev.text ) ;
+     WCPFile.WriteToLogFile( 'm V.half = ' + edMInfVHalf.text ) ;
+     WCPFile.WriteToLogFile( 'm V.slope = ' + edMInfVSlope.text ) ;
+     WCPFile.WriteToLogFile( 'm Tau.min = ' + edMTauMin.text ) ;
+     WCPFile.WriteToLogFile( 'm Tau.max = ' + edMTauMax.text ) ;
+     WCPFile.WriteToLogFile( 'm Tau.vhalf = ' + edMTauVHalf.text ) ;
+     WCPFile.WriteToLogFile( 'm Tau.vslope = ' + edMTauVslope.text ) ;
+     WCPFile.WriteToLogFile( 'm Power factor = ' + edPower.text ) ;
+     WCPFile.WriteToLogFile( 'h V.half = ' + edHInfVHalf.text ) ;
+     WCPFile.WriteToLogFile( 'h Tau.min = ' + edHTauMin.text ) ;
+     WCPFile.WriteToLogFile( 'h Tau.max = ' + edHTauMax.text ) ;
+     WCPFile.WriteToLogFile( 'h Tau.vhalf = ' + edHTauVHalf.text ) ;
+     WCPFile.WriteToLogFile( 'h Tau.vslope = ' + edHTauVslope.text ) ;
 
-     Settings.VClampSim.h.P := 1. ;
+     WCPFile.Settings.VClampSim.h.P := 1. ;
 
      { Capacity current time constant }
-     TauC := Settings.VClampSim.Cm / Settings.VClampSim.GSeries ;
+     TauC := WCPFile.Settings.VClampSim.Cm / WCPFile.Settings.VClampSim.GSeries ;
 
      { Set channel parameters }
 
      { If this is the first record in the file create
      an appropriate scaling factor }
-     if RawfH.NumRecords = 0 then begin
+     if WCPFIle.RawFH.NumRecords = 0 then begin
 
         NewFile ;
 
         UpdateDisplayScale ;
 
-        Channel[ChIm].ADCScale := scDisplay.ChanScale[ChIm];
+        WCPFile.Channel[ChIm].ADCScale := scDisplay.ChanScale[ChIm];
         RH.ADCVoltageRange[ChIm] := 10. ;
-        Channel[ChIm].ADCCalibrationFactor := RH.ADCVoltageRange[ChIm] /
-                                  ( Channel[ChIm].ADCScale * (Main.SESLabIO.ADCMaxValue+1) ) ;
+        WCPFile.Channel[ChIm].ADCCalibrationFactor := RH.ADCVoltageRange[ChIm] /
+                                  ( WCPFile.Channel[ChIm].ADCScale * (Main.SESLabIO.ADCMaxValue+1) ) ;
 
         { Set voltage channel scaling factor }
-        Channel[ChVm].ADCScale := scDisplay.ChanScale[ChVm];
-        scDisplay.ChanScale[ChVm] := Channel[ChVm].ADCScale ;
+        WCPFile.Channel[ChVm].ADCScale := scDisplay.ChanScale[ChVm];
+        scDisplay.ChanScale[ChVm] := WCPFile.Channel[ChVm].ADCScale ;
         RH.ADCVoltageRange[ChVm] := 10. ;
-        Channel[ChVm].ADCCalibrationFactor := RH.ADCVoltageRange[ChVm] /
-                                  ( Channel[ChVm].ADCScale * (Main.SESLabIO.ADCMaxValue+1) ) ;
+        WCPFile.Channel[ChVm].ADCCalibrationFactor := RH.ADCVoltageRange[ChVm] /
+                                  ( WCPFile.Channel[ChVm].ADCScale * (Main.SESLabIO.ADCMaxValue+1) ) ;
 
         // Determine longest transient time course
         TauMax := 0.0 ;
-        for i := 0 to Settings.VClampSim.NumSteps-1 do begin
+        for i := 0 to WCPFile.Settings.VClampSim.NumSteps-1 do begin
             V := edVHold.Value + edVStep.Value*i ;
             Tau := TauFunction( V,
-                                Settings.VClampSim.m.TauMin,
-                                Settings.VClampSim.m.TauMax,
-                                Settings.VClampSim.m.TauVHalf,
-                                Settings.VClampSim.m.TauVSlope) ;
+                                WCPFile.Settings.VClampSim.m.TauMin,
+                                WCPFile.Settings.VClampSim.m.TauMax,
+                                WCPFile.Settings.VClampSim.m.TauVHalf,
+                                WCPFile.Settings.VClampSim.m.TauVSlope) ;
             TauMax := Max(Tau,TauMax) ;
             if ckInactivation.Checked then
                Tau := TauFunction( V,
-                                   Settings.VClampSim.h.TauMin,
-                                   Settings.VClampSim.h.TauMax,
-                                   Settings.VClampSim.h.TauVHalf,
-                                   Settings.VClampSim.h.TauVSlope) ;
+                                   WCPFile.Settings.VClampSim.h.TauMin,
+                                   WCPFile.Settings.VClampSim.h.TauMax,
+                                   WCPFile.Settings.VClampSim.h.TauVHalf,
+                                   WCPFile.Settings.VClampSim.h.TauVSlope) ;
             TauMax := Max(Tau,TauMax) ;
             end ;
-        RawFH.dt := TauMax*5.0 / RawFH.NumSamples ;
+        WCPFIle.RawFH.dt := TauMax*5.0 / WCPFIle.RawFH.NumSamples ;
 
         end
      else begin
-        GetRecordHeaderOnly( RawfH, RH, RawfH.NumRecords ) ;
+        WCPFile.GetRecordHeaderOnly( WCPFIle.RawFH, RH, WCPFIle.RawFH.NumRecords ) ;
         GroupNumber := Round(RH.Number) ;
         end ;
 
-     IMax := Channel[ChIm].ADCScale*Main.SESLabIO.ADCMaxValue*nAToAmps ;
+     IMax := WCPFile.Channel[ChIm].ADCScale*Main.SESLabIO.ADCMaxValue*nAToAmps ;
 
      { Set channel magnification }
-     for ch := 0 to RawfH.NumChannels-1 do begin
-         Channel[Ch].ADCZero := 0 ;
-         Channel[Ch].xMin := 0 ;
-         Channel[Ch].xMax := RawfH.NumSamples-1 ;
-         Channel[Ch].yMin := Main.SESLabIO.ADCMinValue ;
-         Channel[Ch].yMax := Main.SESLabIO.ADCMaxValue ;
-         Channel[Ch].InUse := True ;
+     for ch := 0 to WCPFIle.RawFH.NumChannels-1 do begin
+         WCPFile.Channel[Ch].ADCZero := 0 ;
+         WCPFile.Channel[Ch].xMin := 0 ;
+         WCPFile.Channel[Ch].xMax := WCPFIle.RawFH.NumSamples-1 ;
+         WCPFile.Channel[Ch].yMin := Main.SESLabIO.ADCMinValue ;
+         WCPFile.Channel[Ch].yMax := Main.SESLabIO.ADCMaxValue ;
+         WCPFile.Channel[Ch].InUse := True ;
          end ;
 
-     Channel[CHVm].ADCName := 'Vm' ;
-     Channel[CHVm].ADCUnits := 'mV' ;
-     Channel[CHIm].ADCName := 'Im' ;
-     Channel[CHIm].ADCUnits := 'nA' ;
+     WCPFile.Channel[CHVm].ADCName := 'Vm' ;
+     WCPFile.Channel[CHVm].ADCUnits := 'mV' ;
+     WCPFile.Channel[CHIm].ADCName := 'Im' ;
+     WCPFile.Channel[CHIm].ADCUnits := 'nA' ;
 
      // Set A/D sample range
-     RawFH.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
-     RawFH.MinADCValue := Main.SESLabIO.ADCMinValue ;
+     WCPFIle.RawFH.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
+     WCPFIle.RawFH.MinADCValue := Main.SESLabIO.ADCMinValue ;
 
      GroupNumber := 0 ;
 
      { Set voltage channel to fixed zero level }
-     Channel[ChVm].ADCZeroAt := -1 ;
-     CHannel[ChVm].ADCZero := 0 ;
+     WCPFile.Channel[ChVm].ADCZeroAt := -1 ;
+     WCPFile.Channel[ChVm].ADCZero := 0 ;
      { Current channel zero level calculated frm samples 0..19}
-     Channel[ChIm].ADCZeroAt := 0 ;
-     SaveHeader( RawFH ) ;
+     WCPFile.Channel[ChIm].ADCZeroAt := 0 ;
+     WCPFile.SaveHeader( WCPFIle.RawFH ) ;
      FirstRecord := False ;
 
      { Volts --> bits scale factor }
-     VScale := Channel[ChVm].ADCScale / VoltsTomV ;
+     VScale := WCPFile.Channel[ChVm].ADCScale / VoltsTomV ;
      { Amps --> bits scale factor }
-     IScale := Channel[ChIm].ADCScale / AmpsTonA ;
+     IScale := WCPFile.Channel[ChIm].ADCScale / AmpsTonA ;
 
      // Command voltage time constant 0.1 ms
-     TauV := 1E-4/RawFH.dt ;
+     TauV := 1E-4/WCPFIle.RawFH.dt ;
 
      NumRecordsDone := 0 ;
      Done := False ;
      while not Done do begin
 
-        VTest := (NumRecordsDone+1)*Settings.VClampSim.VStep ;
-        iStart := RawFH.NumSamples div 10 ;
-        iEnd := RawFH.NumSamples - iStart ;
+        VTest := (NumRecordsDone+1)*WCPFile.Settings.VClampSim.VStep ;
+        iStart := WCPFIle.RawFH.NumSamples div 10 ;
+        iEnd := WCPFIle.RawFH.NumSamples - iStart ;
         Inc(GroupNumber) ;
 
         { ** Create leak subtraction pulse ** }
@@ -447,30 +447,30 @@ begin
            VLeak := VTest / NumPulses ;
 
            {Create leak pulse record }
-           VOld := Settings.VClampSim.VHold ;
+           VOld := WCPFile.Settings.VClampSim.VHold ;
            x := 0. ;
            Ic := 0. ;
-           for i := 0 to RawFH.NumSamples-1 do begin
+           for i := 0 to WCPFIle.RawFH.NumSamples-1 do begin
 
-               if (i < iStart) then vp := Settings.VClampSim.VHold
-               else if (i < iEnd) then vp := Settings.VClampSim.VHold + VLeak
-               else vp := Settings.VClampSim.VHold ;
+               if (i < iStart) then vp := WCPFile.Settings.VClampSim.VHold
+               else if (i < iEnd) then vp := WCPFile.Settings.VClampSim.VHold + VLeak
+               else vp := WCPFile.Settings.VClampSim.VHold ;
 
                {Voltage channel }
-               j := i*RawFH.NumChannels + ChVm ;
+               j := i*WCPFIle.RawFH.NumChannels + ChVm ;
                ADC^[j] := Round( Vp/VScale ) ;
 
                { Find membrane potential after voltage drop along
                pipette series resistance }
-               Vm := Vp / ( 1. + Settings.VClampSim.GLeak/Settings.VClampSim.GSeries ) ;
+               Vm := Vp / ( 1. + WCPFile.Settings.VClampSim.GLeak/WCPFile.Settings.VClampSim.GSeries ) ;
 
                { Current channel }
-               Im := (Vm * Settings.VClampSim.GLeak) + RandG(0.0,Settings.VClampSim.NoiseRMS) /
+               Im := (Vm * WCPFile.Settings.VClampSim.GLeak) + RandG(0.0,WCPFile.Settings.VClampSim.NoiseRMS) /
                             sqrt(Max(Abs(NumPulses),1)) ;
 
                { Add capacity current }
                if Vp <> VOld then begin
-                  Ic := (Vp - Vold) * Settings.VClampSim.GSeries * 0.1 ;
+                  Ic := (Vp - Vold) * WCPFile.Settings.VClampSim.GSeries * 0.1 ;
                   x := 0. ;
                   end ;
                VOld := Vp ;
@@ -478,98 +478,98 @@ begin
 
                { Keep within display limits }
                Im := Max(Min(Im,IMax),-IMax) ;
-               x := x + RawFH.dt ;
+               x := x + WCPFIle.RawFH.dt ;
 
-               j := i*RawFH.NumChannels + ChIm ;
+               j := i*WCPFIle.RawFH.NumChannels + ChIm ;
                ADC^[j] := Round( Im/IScale ) ;
                end ;
 
            { Save leak record to file }
-           Inc(RawFH.NumRecords) ;
+           Inc(WCPFIle.RawFH.NumRecords) ;
            RH.Status := 'ACCEPTED' ;
            RH.RecType := 'LEAK' ;
            RH.Number := GroupNumber ;
            RH.Time := RH.Number ;
-           RH.dt := RawfH.dt ;
+           RH.dt := WCPFIle.RawFH.dt ;
            RH.EqnType := None ;
            RH.AnalysisAvailable := False ;
            RH.Ident := ' ' ;
-           PutRecord( RawfH, RH, RawfH.NumRecords, ADC^ ) ;
+           WCPFile.PutRecord( WCPFIle.RawFH, RH, WCPFIle.RawFH.NumRecords, ADC^ ) ;
            end ;
 
         { ** Create test pulse ** }
 
         x := 0. ;
-        Gm := Settings.VClampSim.GLeak ;
-        Vm := Settings.VClampSim.VHold / ( 1. + Gm/Settings.VClampSim.GSeries ) ;
+        Gm := WCPFile.Settings.VClampSim.GLeak ;
+        Vm := WCPFile.Settings.VClampSim.VHold / ( 1. + Gm/WCPFile.Settings.VClampSim.GSeries ) ;
         { Initial values of m and h parameters }
         m := Boltz( Vm,
-                    Settings.VClampSim.m.VHalf,
-                    Settings.VClampSim.m.VSlope ) ;
+                    WCPFile.Settings.VClampSim.m.VHalf,
+                    WCPFile.Settings.VClampSim.m.VSlope ) ;
         h := Boltz( Vm,
-                    Settings.VClampSim.h.VHalf,
-                    Settings.VClampSim.h.VSlope ) ;
+                    WCPFile.Settings.VClampSim.h.VHalf,
+                    WCPFile.Settings.VClampSim.h.VSlope ) ;
         Ic := 0. ;
-        VOld := Settings.VClampSim.VHold ;
+        VOld := WCPFile.Settings.VClampSim.VHold ;
 
-        for i := 0 to RawFH.NumSamples-1 do begin
+        for i := 0 to WCPFIle.RawFH.NumSamples-1 do begin
 
-            if i < iStart then vp := Settings.VClampSim.VHold
-            else if i < iEnd then vp := Settings.VClampSim.VHold + VTest
-            else vp := Settings.VClampSim.VHold ;
+            if i < iStart then vp := WCPFile.Settings.VClampSim.VHold
+            else if i < iEnd then vp := WCPFile.Settings.VClampSim.VHold + VTest
+            else vp := WCPFile.Settings.VClampSim.VHold ;
 
             {Voltage channel }
-            j := i*RawFH.NumChannels + ChVm ;
+            j := i*WCPFIle.RawFH.NumChannels + ChVm ;
 
             { Find membrane potential after voltage drop along
             pipette series resistance }
 
-            Vm := Vp / ( 1. + Gm/Settings.VClampSim.GSeries ) ;
+            Vm := Vp / ( 1. + Gm/WCPFile.Settings.VClampSim.GSeries ) ;
             ADC^[j] := Round( Vp/VScale ) ;
             { Current channel }
             { ACTIVATION KINETICS }
             {Calculate m.zero & m.infinity from Boltzmann function }
-            Settings.VClampSim.m.Inf := Boltz( Vm,
-                                               Settings.VClampSim.m.VHalf,
-                                               Settings.VClampSim.m.VSlope ) ;
+            WCPFile.Settings.VClampSim.m.Inf := Boltz( Vm,
+                                               WCPFile.Settings.VClampSim.m.VHalf,
+                                               WCPFile.Settings.VClampSim.m.VSlope ) ;
             { Calculate time constant }
-            Settings.VClampSim.m.Tau := TauFunction( Vm,
-                                                     Settings.VClampSim.m.TauMin,
-                                                     Settings.VClampSim.m.TauMax,
-                                                     Settings.VClampSim.m.TauVhalf,
-                                                     Settings.VClampSim.m.TauVslope) ;
+            WCPFile.Settings.VClampSim.m.Tau := TauFunction( Vm,
+                                                     WCPFile.Settings.VClampSim.m.TauMin,
+                                                     WCPFile.Settings.VClampSim.m.TauMax,
+                                                     WCPFile.Settings.VClampSim.m.TauVhalf,
+                                                     WCPFile.Settings.VClampSim.m.TauVslope) ;
             { Calculate value of activation parameter }
-            m := Settings.VClampSim.m.Inf - (Settings.VClampSim.m.Inf - m)*
-                 exp( -RawFH.dt/Settings.VClampSim.m.Tau ) ;
+            m := WCPFile.Settings.VClampSim.m.Inf - (WCPFile.Settings.VClampSim.m.Inf - m)*
+                 exp( -WCPFIle.RawFH.dt/WCPFile.Settings.VClampSim.m.Tau ) ;
             { Calculate conductance }
-            Gm := Settings.VClampSim.GMax*Power(m,Settings.VClampSim.m.p) ;
+            Gm := WCPFile.Settings.VClampSim.GMax*Power(m,WCPFile.Settings.VClampSim.m.p) ;
 
             { INACTIVATION KINETICS }
-            if Settings.VClampSim.UseInactivation then begin
-               Settings.VClampSim.h.Inf := Boltz( Vm,
-                                                  Settings.VClampSim.h.VHalf,
-                                                  Settings.VClampSim.h.Vslope ) ;
-               Settings.VClampSim.h.Tau := TauFunction( Vm,
-                                  Settings.VClampSim.h.TauMin,
-                                  Settings.VClampSim.h.TauMax,
-                                  Settings.VClampSim.h.TauVhalf,
-                                  Settings.VClampSim.h.TauVslope) ;
-               h := Settings.VClampSim.h.Inf -
-                          (Settings.VClampSim.h.Inf -
+            if WCPFile.Settings.VClampSim.UseInactivation then begin
+               WCPFile.Settings.VClampSim.h.Inf := Boltz( Vm,
+                                                  WCPFile.Settings.VClampSim.h.VHalf,
+                                                  WCPFile.Settings.VClampSim.h.Vslope ) ;
+               WCPFile.Settings.VClampSim.h.Tau := TauFunction( Vm,
+                                  WCPFile.Settings.VClampSim.h.TauMin,
+                                  WCPFile.Settings.VClampSim.h.TauMax,
+                                  WCPFile.Settings.VClampSim.h.TauVhalf,
+                                  WCPFile.Settings.VClampSim.h.TauVslope) ;
+               h := WCPFile.Settings.VClampSim.h.Inf -
+                          (WCPFile.Settings.VClampSim.h.Inf -
                           h)*
-                          exp( -RawFH.dt/Settings.VClampSim.h.Tau ) ;
+                          exp( -WCPFIle.RawFH.dt/WCPFile.Settings.VClampSim.h.Tau ) ;
                Gm := Gm*h ;
                end ;
 
             { Add leak conductance }
-            Gm := Gm + Settings.VClampSim.GLeak ;
+            Gm := Gm + WCPFile.Settings.VClampSim.GLeak ;
             { Calculate current }
-            Im := (Vm - Settings.VClampSim.VRev)*Gm +
-                  RandG(0.0,Settings.VClampSim.NoiseRMS) ;
+            Im := (Vm - WCPFile.Settings.VClampSim.VRev)*Gm +
+                  RandG(0.0,WCPFile.Settings.VClampSim.NoiseRMS) ;
 
             { Add capacity current }
             if Vp <> VOld then begin
-               Ic := (Vp - Vold) * Settings.VClampSim.GSeries * 0.1 ;
+               Ic := (Vp - Vold) * WCPFile.Settings.VClampSim.GSeries * 0.1 ;
                x := 0. ;
                end ;
             VOld := Vp ;
@@ -577,35 +577,35 @@ begin
             Im := Im + Ic*exp( -x/TauC ) ;
             {Keep within display limits }
             Im := Max(Min(Im,IMax),-IMax) ;
-            x := x + RawFH.dt ;
+            x := x + WCPFIle.RawFH.dt ;
 
-            j := i*RawFH.NumChannels + ChIm ;
+            j := i*WCPFIle.RawFH.NumChannels + ChIm ;
             ADC^[j] :=  Round( Im/IScale ) ;
             end ;
 
         { Force a display of new sweep }
-        scDisplay.TScale := RawFH.dt*Settings.TScale ;
+        scDisplay.TScale := WCPFIle.RawFH.dt*WCPFile.Settings.TScale ;
         scDisplay.SetDataBuf( ADC ) ;
 
         { Save Record to file }
-        Inc(RawFH.NumRecords) ;
+        Inc(WCPFIle.RawFH.NumRecords) ;
         RH.Status := 'ACCEPTED' ;
         RH.RecType := 'TEST' ;
         RH.Number := GroupNumber ;
         RH.Time := RH.Number ;
-        RH.dt := RawfH.dt ;
+        RH.dt := WCPFIle.RawFH.dt ;
         RH.EqnType := None ;
         RH.Ident := ' ' ;
 
-        PutRecord( RawfH, RH, RawfH.NumRecords, ADC^ ) ;
+        WCPFile.PutRecord( WCPFIle.RawFH, RH, WCPFIle.RawFH.NumRecords, ADC^ ) ;
 
         Inc(NumRecordsDone) ;
         { Terminate when all records done }
         Main.StatusBar.SimpleText := format(
         'Voltage-activated Currents Simulation : Record %d/%d created.',
-        [NumRecordsDone,Settings.VClampSim.NumSteps] ) ;
+        [NumRecordsDone,WCPFile.Settings.VClampSim.NumSteps] ) ;
 
-        if (NumRecordsDone >= Settings.VClampSim.NumSteps) or bStart.Enabled then Done := True ;
+        if (NumRecordsDone >= WCPFile.Settings.VClampSim.NumSteps) or bStart.Enabled then Done := True ;
 
         { Allow other activities during loop }
         scDisplay.Invalidate ;
@@ -616,7 +616,7 @@ begin
         end ;
 
      { Save file header data }
-     SaveHeader(RawFH) ;
+     WCPFile.SaveHeader(WCPFIle.RawFH) ;
 
      Main.StatusBar.SimpleText := format(
      ' Voltage-activated Currents Simulation : %d records created.',
@@ -651,8 +651,8 @@ begin
      scDisplay.ChanScale[ChIm] := AmpsTonA*IMax / (Main.SESLabIO.ADCMaxValue+1) ;
      scDisplay.ChanScale[ChVm] := (VMax*VoltsTomV) / (Main.SESLabIO.ADCMaxValue+1) ;
 
-     scDisplay.TScale := RawFH.dt*Settings.TScale ;
-     scDisplay.TUnits := Settings.TUnits ;
+     scDisplay.TScale := WCPFIle.RawFH.dt*WCPFile.Settings.TScale ;
+     scDisplay.TUnits := WCPFile.Settings.TUnits ;
 
      scDisplay.Invalidate ;
 
@@ -696,10 +696,10 @@ procedure TVClampSim.FormClose(Sender: TObject; var Action: TCloseAction);
   ---------------------- }
 begin
 
-     // Copy settings from edit fields to Settings.VClampSim
+     // Copy settings from edit fields to WCPFile.Settings.VClampSim
      EditFieldsToSettings ;
 
-     if RawFH.NumRecords > 0 then begin
+     if WCPFIle.RawFH.NumRecords > 0 then begin
         Main.mnShowRaw.Enabled := True ;
         Main.mnShowRaw.Click ;
         Main.mnZoomOutAll.Click ;
@@ -752,7 +752,7 @@ procedure TVClampSim.ChangeDisplayGrid ;
 begin
      scDisplay.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
      scDisplay.MinADCValue := Main.SESLabIO.ADCMinValue ;
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
 
      scDisplay.Invalidate ;
      end ;
@@ -773,9 +773,9 @@ var
    ch : Integer ;
 begin
      { Update channel descriptors with any changes to display }
-     for ch := 0 to scDisplay.NumChannels-1 do if Channel[ch].InUse then begin
-         Channel[Ch].yMin := scDisplay.YMin[Ch] ;
-         Channel[Ch].yMax := scDisplay.YMax[Ch] ;
+     for ch := 0 to scDisplay.NumChannels-1 do if WCPFile.Channel[ch].InUse then begin
+         WCPFile.Channel[Ch].yMin := scDisplay.YMin[Ch] ;
+         WCPFile.Channel[Ch].yMax := scDisplay.YMax[Ch] ;
          end ;
      end;
 
@@ -823,15 +823,15 @@ begin
      NewFileName := '' ;
 
      // Create a new file if none open
-     if RawFH.FileHandle <= 0 then begin
+     if WCPFIle.RawFH.FileHandle <= 0 then begin
         // No file open .. open new one
-        NewFileName := Main.CreateIndexedFileName( RawFH.FileName ) ;
+        NewFileName := WCPFile.CreateIndexedFileName( WCPFIle.RawFH.FileName ) ;
         end
-     else if (RawFH.NumRecords > 0) and
-        ((RawFH.NumChannels <> 2) or (RawFH.NumSamples <> Round(edNumSamples.Value))) then begin
+     else if (WCPFIle.RawFH.NumRecords > 0) and
+        ((WCPFIle.RawFH.NumChannels <> 2) or (WCPFIle.RawFH.NumSamples <> Round(edNumSamples.Value))) then begin
         // No. channels or samples changed .. create .nn.wcp file
         // Extract stem of file name
-        Stem := ANSIReplaceText( RawFH.FileName, '.wcp', '.' ) ;
+        Stem := ANSIReplaceText( WCPFIle.RawFH.FileName, '.wcp', '.' ) ;
         n := Pos( '.', Stem ) ;
         if n > 0 then Stem := LeftStr(Stem,n) ;
 
@@ -844,9 +844,9 @@ begin
 
      // Create new file (if required)
      if NewFileName <> '' then begin
-        RawFH.NumChannels := 2 ;
-        RawFH.NumSamples := Round(edNumSamples.Value) ;
-        Main.CreateNewDataFile( NewFileName ) ;
+        WCPFIle.RawFH.NumChannels := 2 ;
+        WCPFIle.RawFH.NumSamples := Round(edNumSamples.Value) ;
+        WCPFIle.CreateNewDataFile( NewFileName ) ;
         Result := True ;
         end
      else Result := True ;

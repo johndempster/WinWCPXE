@@ -15,7 +15,7 @@ interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, StdCtrls, global, shared, ValEdit, ValidatedEdit,
+  Forms, Dialogs, StdCtrls, ValEdit, ValidatedEdit,
   ExtCtrls ;
 
 type
@@ -96,7 +96,7 @@ implementation
 
 {$R *.DFM}
 
-uses mdiform  , AmpModule;
+uses mdiform  , AmpModule, WCPFIleUnit;
 
 const
      CurrentClampUnits = 'pA' ;
@@ -148,8 +148,8 @@ begin
      SetAOPanel( panAO2,lbAO2,edLevelAO2,2 ) ;
      SetAOPanel( panAO3,lbAO3,edLevelAO3,3 ) ;
 
-     ckFileNameIncludeDate.Checked := Settings.FileNameIncludeDate ;
-     edFileNamePrefix.Text := Settings.FileNamePrefix ;
+     ckFileNameIncludeDate.Checked := WCPFile.Settings.FileNameIncludeDate ;
+     edFileNamePrefix.Text := WCPFile.Settings.FileNamePrefix ;
 
      Initialised := True ;
 
@@ -225,8 +225,8 @@ begin
      if rbOn6.checked then Value := Value or 64 ;
      if rbOn7.checked then Value := Value or 128 ;
      Main.SESLabIO.DIGHoldingLevel := Value ;
-     Settings.FileNameIncludeDate := ckFileNameIncludeDate.Checked ;
-     Settings.FileNamePrefix := edFileNamePrefix.Text ;
+     WCPFile.Settings.FileNameIncludeDate := ckFileNameIncludeDate.Checked ;
+     WCPFile.Settings.FileNamePrefix := edFileNamePrefix.Text ;
 
      end ;
 
@@ -255,8 +255,8 @@ begin
 procedure TDefSetFrm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
 
-     Settings.FileNameIncludeDate := ckFileNameIncludeDate.Checked ;
-     Settings.FileNamePrefix := edFileNamePrefix.Text ;
+     WCPFile.Settings.FileNameIncludeDate := ckFileNameIncludeDate.Checked ;
+     WCPFile.Settings.FileNamePrefix := edFileNamePrefix.Text ;
 
      Action := caFree ;
      end;

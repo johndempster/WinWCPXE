@@ -47,7 +47,7 @@ unit InputChannelSetup;
 interface
 
 uses WinTypes, WinProcs, Classes, Graphics, Forms, Controls, Buttons,
-  StdCtrls, Spin, ExtCtrls, shared, sysUtils, Grids, Dialogs, Global, FileIo,
+  StdCtrls, Spin, ExtCtrls, sysUtils, Grids, Dialogs,
   maths, ValEdit, ValidatedEdit, math, ComCtrls, strutils ;
 
 type
@@ -163,7 +163,7 @@ var
 
 implementation
 
-uses Mdiform, AmpModule, seslabio , TritonPanelUnit;
+uses Mdiform, AmpModule, seslabio , TritonPanelUnit, WCPFIleUnit;
 
 {$R *.DFM}
 
@@ -181,7 +181,7 @@ begin
      AmpNumberonDisplay := -1 ;
 
      { Set time units radio buttons }
-     if Settings.TUnits = 's' then rbTSecs.checked := true
+     if WCPFile.Settings.TUnits = 's' then rbTSecs.checked := true
                               else rbTmsecs.checked := true ;
 
      // List of available analog input channels
@@ -235,7 +235,7 @@ begin
 
 procedure TInputChannelSetupFrm.FillAmplifierSettings ;
 // ----------------------------
-// Fill amplifier settings page
+// Fill amplifier WCPFile.Settings page
 // ----------------------------
 var
     AmplifierType : Integer ;
@@ -347,7 +347,7 @@ begin
 
 procedure TInputChannelSetupFrm.UpdateAmplifierSettings ;
 // ---------------------------------------------
-// Update amplifier settings from editing panel
+// Update amplifier WCPFile.Settings from editing panel
 // ---------------------------------------------
 begin
 
@@ -382,7 +382,7 @@ begin
      Amplifier.VoltageCommandScaleFactor[cbVoltageCommandChannel.ItemIndex] := edVoltageCommandScaleFactor.Value ;
      Amplifier.CurrentCommandScaleFactor[cbCurrentCommandChannel.ItemIndex] := edCurrentCommandScaleFactor.Value ;
 
-     // Update A/D channels with settings from amplifiers
+     // Update A/D channels with WCPFile.Settings from amplifiers
      UpdateADCChannelsWithAmplifierSettings
 
      end ;
@@ -396,7 +396,7 @@ var
    AmpNumber, ch : Integer ;
 begin
 
-     // Ensure channel calibration is matched to amplifier settings
+     // Ensure channel calibration is matched to amplifier WCPFile.Settings
      UpdateADCChannelsWithAmplifierSettings ;
 
      { Set channel calibration table }
@@ -437,7 +437,7 @@ begin
 
 procedure TInputChannelSetupFrm.UpdateADCChannelsWithAmplifierSettings ;
 // ---------------------------------------------------
-// Update A/D channel settings with amplifier settings
+// Update A/D channel WCPFile.Settings with amplifier WCPFile.Settings
 // ---------------------------------------------------
 var
    ch,ADCInput : Integer ;
@@ -467,7 +467,7 @@ var
     ch : Integer ;
 begin
 
-     // Update channels with calibration settings from table
+     // Update channels with calibration WCPFile.Settings from table
      for ch := 0 to Main.SESLabIO.ADCMaxChannels-1  do begin
          Main.SESLabIO.ADCChannelName[ch] := ChannelTable.cells[ChName,ch+1] ;
          Main.SESLabIO.ADCChannelUnits[ch] := ChannelTable.cells[ChUnits,ch+1] ;
@@ -475,8 +475,8 @@ begin
          Main.SESLabIO.ADCChannelInputNumber[ch] := ExtractInt(ChannelTable.cells[ChInputChannel,ch+1]) ;
          end ;
 
-     // Update channels with amplifier settings
-     // (Amplifier settings over-ride user-entered channel settings
+     // Update channels with amplifier WCPFile.Settings
+     // (Amplifier WCPFile.Settings over-ride user-entered channel WCPFile.Settings
      //  if an amplifier is defined)
      UpdateADCChannelsWithAmplifierSettings ;
 
@@ -485,17 +485,17 @@ begin
 
 procedure TInputChannelSetupFrm.rbTmsecsClick(Sender: TObject);
 begin
-     Settings.TUnits := 'ms' ;
-     Settings.TScale := SecsToms ;
-     Settings.TUnscale := MsToSecs ;
+     WCPFile.Settings.TUnits := 'ms' ;
+     WCPFile.Settings.TScale := SecsToms ;
+     WCPFile.Settings.TUnscale := MsToSecs ;
      end;
 
 
 procedure TInputChannelSetupFrm.rbTSecsClick(Sender: TObject);
 begin
-     Settings.TUnits := 's' ;
-     Settings.TScale := 1. ;
-     Settings.TUnscale := 1. ;
+     WCPFile.Settings.TUnits := 's' ;
+     WCPFile.Settings.TScale := 1. ;
+     WCPFile.Settings.TUnscale := 1. ;
      end;
 
 
@@ -520,16 +520,16 @@ var
    VPU,Gain : Single ;
 begin
 
-        // Update currently displayed amplifier settings
+        // Update currently displayed amplifier WCPFile.Settings
         UpdateAmplifierSettings ;
 
-        // Update Channel Settings
+        // Update Channel WCPFile.Settings
         UpdateChannelSettings ;
 
         if Amplifier.AmplifierType[0] = amTriton then begin
-            Settings.NumChannels := Min(Settings.NumChannels,2) ;
+            WCPFile.Settings.NumChannels := Min(WCPFile.Settings.NumChannels,2) ;
             if Main.FormExists( 'TritonPanelFrm' ) then TritonPanelFrm.UpdateTritonSettings ;
-            // Update channels with amplifier settings
+            // Update channels with amplifier WCPFile.Settings
             for ch := 0 to 15 {Main.SESLabIO.ADCMaxChannels-1}  do begin
                 Name := Main.SESLabIO.ADCChannelName[ch] ;
                 Units := Main.SESLabIO.ADCChannelUnits[ch] ;
@@ -544,11 +544,11 @@ begin
             end ;
 
         // Add Names of channels to list
-        ChannelNames.Clear ;
-        for ch := 0 to Settings.NumChannels-1 do
-            ChannelNames.Add( format('Ch.%d %s',[ch,Main.SESLabIO.ADCChannelName[ch]]) ) ;
+        WCPFIle.ChannelNames.Clear ;
+        for ch := 0 to WCPFile.Settings.NumChannels-1 do
+            WCPFIle.ChannelNames.Add( format('Ch.%d %s',[ch,Main.SESLabIO.ADCChannelName[ch]]) ) ;
 
-        // Initialise channel display settings to minimum magnification
+        // Initialise channel display WCPFile.Settings to minimum magnification
         for ch := 0 to 15 {Main.SESLabIO.ADCMaxChannels-1}  do begin
             Main.SESLabIO.ADCChannelYMin[ch] := Main.SESLabIO.ADCMinValue ;
             Main.SESLabIO.ADCChannelYMax[ch] := Main.SESLabIO.ADCMaxValue ;
@@ -645,7 +645,7 @@ begin
 
 procedure TInputChannelSetupFrm.rbVClampClick(Sender: TObject);
 // ----------------------------------
-// Select voltage-clamp mode settings
+// Select voltage-clamp mode WCPFile.Settings
 // ----------------------------------
 begin
      ClampMode := VClampMode ;
@@ -654,7 +654,7 @@ begin
 
 procedure TInputChannelSetupFrm.rbIClampClick(Sender: TObject);
 // ----------------------------------
-// Select current-clamp mode settings
+// Select current-clamp mode WCPFile.Settings
 // ----------------------------------
 begin
      ClampMode := IClampMode ;
@@ -679,7 +679,7 @@ begin
 
 procedure TInputChannelSetupFrm.bLoadDefaultSettingsClick(Sender: TObject);
 // -----------------------
-// Reload default settings
+// Reload default WCPFile.Settings
 // ------------------------
 begin
      Amplifier.LoadDefaultAmplifierSettings(AmplifiersTab.TabIndex) ;
@@ -725,7 +725,7 @@ begin
 
 procedure TInputChannelSetupFrm.bSaveSettingsClick(Sender: TObject);
 // ---------------
-//  Save settings
+//  Save WCPFile.Settings
 // ---------------
 var
   s : TStringList ;
@@ -733,9 +733,9 @@ var
 begin
 
      SaveDialog.options := [ofOverwritePrompt,ofHideReadOnly,ofPathMustExist] ;
-     SaveDialog.InitialDir := Main.SettingsDirectory ;
-     SetCurrentDir(Main.SettingsDirectory) ;
-     SaveDialog.Title := 'Save Amplifier/Input Channel Settings' ;
+     SaveDialog.InitialDir := WCPFile.SettingsDirectory ;
+     SetCurrentDir(WCPFile.SettingsDirectory) ;
+     SaveDialog.Title := 'Save Amplifier/Input Channel WCPFile.Settings' ;
      SaveDialog.FileName := '*.xml' ;
      SaveDialog.Filter := ' XML Files (*.XML)';
 
@@ -749,13 +749,13 @@ begin
 
         s := TStringList.Create ;
         //s.LoadFromFile(SaveDialog.FileName) ;
-        s.Insert(0,'<SETTINGS>') ;
+        s.Insert(0,'<WCPFile.Settings>') ;
         s.Insert(0,'<?xml version="1.0"?>') ;
         s.SaveToFile(FileName) ;
         Amplifier.SaveToXMLFile(FileName,True) ;
         Main.SESLabIO.SaveToXMLFile(FileName,True) ;
         s.LoadFromFile(FileName) ;
-        s.Add('</SETTINGS>') ;
+        s.Add('</WCPFile.Settings>') ;
         s.SaveToFile(FileName) ;
         s.Free ;
         end ;
@@ -765,14 +765,14 @@ begin
 
 procedure TInputChannelSetupFrm.bLoadSettingsClick(Sender: TObject);
 // --------------------------------------------------
-// Load amplifier & lab. interface settings from file
+// Load amplifier & lab. interface WCPFile.Settings from file
 // --------------------------------------------------
 begin
      OpenDialog.options := [ofOverwritePrompt,ofHideReadOnly,ofPathMustExist] ;
      OpenDialog.FileName := '*.xml' ;
-     OpenDialog.InitialDir := Main.SettingsDirectory ;
-     SetCurrentDir(Main.SettingsDirectory) ;
-     OpenDialog.Title := 'Load Amplifier/Input Channel Settings' ;
+     OpenDialog.InitialDir := WCPFile.SettingsDirectory ;
+     SetCurrentDir(WCPFile.SettingsDirectory) ;
+     OpenDialog.Title := 'Load Amplifier/Input Channel WCPFile.Settings' ;
      OpenDialog.Filter := ' XML Files (*.XML)';
 
      if OpenDialog.execute then begin

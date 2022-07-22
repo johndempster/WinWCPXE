@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ValidatedEdit, maths, Grids, global, ADCDataFile,math ;
+  Dialogs, StdCtrls, ValidatedEdit, maths, Grids, ADCDataFile,math ;
 
 
 

@@ -237,6 +237,11 @@ object ImportRawFrm: TImportRawFrm
       ParentFont = False
       ScrollBars = ssNone
       TabOrder = 0
+      ColWidths = (
+        50
+        50
+        50
+        50)
       RowHeights = (
         18
         18

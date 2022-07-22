@@ -1,5 +1,5 @@
 unit Curvfit;
-{ ==========================================================================
+{ ==========================================================================                                                                                             ewfile
   WinWCP - Curve fitting module (c) J Dempster, 1996, All Rights Reserved
   V1.7f 16/7/97 ... Blocks of data in table and Summary grid can now be
                     selected for copying to clipboard
@@ -46,15 +46,16 @@ unit Curvfit;
   12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
   03.03.17 .. .Close form event now terminates bDoAnalysis.Click event before
               closing form to prevent access violation
+  26.05.22 .. ZeroFrm now settings Channel record zero level settings directly
   ==========================================================================}
 interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, ExtCtrls, Grids, StdCtrls, TabNotBk, Global, Shared, Zero,
-  FileIO, SetAxes, SetVar, PrintGra,
+  Forms, Dialogs, ExtCtrls, Grids, StdCtrls, TabNotBk, Zero,
+  SetAxes, SetVar, PrintGra,
   Printers, ClipBrd, PrintRec, maths, ScopeDisplay, ValEdit, RangeEdit,
-  XYPlotDisplay, ComCtrls, ValidatedEdit, math, strutils, seslabio ;
+  XYPlotDisplay, ComCtrls, ValidatedEdit, math, strutils, seslabio, WCPFIleUnit ;
 
 const
      NumFitChannels = 2 ;
@@ -219,6 +220,7 @@ TCurveFitCursors = Record
 
   private
     { Private declarations }
+   FH : TFileHeader ;
    Hist : THistogram ;          { Dwell-time histogram data record }
    Func : TMathFunc ;
    ADC : PSmallIntArray ;
@@ -313,7 +315,7 @@ begin
      Width := Main.ClientWidth - Left - 20 ;
 
      { Record type }
-     cbRecordType.items := RecordTypes ;
+     cbRecordType.items := WCPFile.RecordTypes ;
      cbRecordType.items.delete(0) ; {Remove 'ALL' item}
 
      { Get list of equations available for fitting }
@@ -376,7 +378,7 @@ begin
      { Continuous record display channel }
      scDisplay.MaxADCValue := FH.MaxADCValue ;
      scDisplay.MinADCValue := FH.MinADCValue ;
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
      scDisplay.DisableChannelVisibilityButton := True ;
 
      scDisplay.MaxPoints := FH.NumSamples ;
@@ -388,25 +390,25 @@ begin
 
      { Set channel information }
      for ch := 0 to NumFitChannels-1 do begin
-         scDisplay.ChanUnits[ch] := Channel[cbFitChannel.ItemIndex].ADCUnits ;
-         scDisplay.ChanName[ch] := Channel[cbFitChannel.ItemIndex].ADCName ;
-         scDisplay.ChanScale[ch] := Channel[cbFitChannel.ItemIndex].ADCScale ;
-         scDisplay.ChanUnits[ch] := Channel[cbFitChannel.ItemIndex].ADCUnits ;
-         scDisplay.ChanZero[ch] := Channel[cbFitChannel.ItemIndex].ADCZero ;
+         scDisplay.ChanUnits[ch] := WCPFile.Channel[cbFitChannel.ItemIndex].ADCUnits ;
+         scDisplay.ChanName[ch] := WCPFile.Channel[cbFitChannel.ItemIndex].ADCName ;
+         scDisplay.ChanScale[ch] := WCPFile.Channel[cbFitChannel.ItemIndex].ADCScale ;
+         scDisplay.ChanUnits[ch] := WCPFile.Channel[cbFitChannel.ItemIndex].ADCUnits ;
+         scDisplay.ChanZero[ch] := WCPFile.Channel[cbFitChannel.ItemIndex].ADCZero ;
          scDisplay.ChanOffsets[ch] := ch ;
-         scDisplay.yMin[ch] := Channel[cbFitChannel.ItemIndex].yMin ;
-         scDisplay.yMax[ch] := Channel[cbFitChannel.ItemIndex].yMax ;
+         scDisplay.yMin[ch] := WCPFile.Channel[cbFitChannel.ItemIndex].yMin ;
+         scDisplay.yMax[ch] := WCPFile.Channel[cbFitChannel.ItemIndex].yMax ;
          scDisplay.ChanVisible[ch] := True ;
          scDisplay.ChanColor[ch] := clBlue ;
          end ;
-     scDisplay.ChanName[chData] := Channel[cbFitChannel.ItemIndex].ADCName ;
+     scDisplay.ChanName[chData] := WCPFile.Channel[cbFitChannel.ItemIndex].ADCName ;
      scDisplay.ChanName[chRes] := 'Res.' ;
-     Range := Channel[cbFitChannel.ItemIndex].yMax
-              - Channel[cbFitChannel.ItemIndex].yMin ;
+     Range := WCPFile.Channel[cbFitChannel.ItemIndex].yMax
+              - WCPFile.Channel[cbFitChannel.ItemIndex].yMin ;
      scDisplay.yMin[chRes] := -0.5*Range ;
      scDisplay.yMax[chRes] := 0.5*Range ;
-     scDisplay.TScale := FH.dt*Settings.TScale ;
-     scDisplay.TUnits := Settings.TUnits ; 
+     scDisplay.TScale := FH.dt*WCPFile.Settings.TScale ;
+     scDisplay.TUnits := WCPFile.Settings.TUnits ;
 
      end ;
 
@@ -417,6 +419,9 @@ procedure TFitFrm.NewFile ;
   -----------------------------------------------------}
 begin
 
+     FH := WCPFile.FH ;
+     WCPFile.GetHeader( FH ) ;
+
      if FH.Numrecords > 0 then begin
         Caption := Main.UpdateCaption( FH, 'Curve Fit ' ) ;
 
@@ -426,10 +431,10 @@ begin
         GetMem( ADC, FH.NumSamples*FH.NumChannels*2 ) ;
 
         { Initialise Fit Channel combo box }
-        cbFitChannel.items := ChannelNames ;
+        cbFitChannel.items := WCPFile.ChannelNames ;
         if cbFitChannel.ItemIndex < 0 then cbFitChannel.ItemIndex := 0 ;
 
-        cbTypeToBeAnalysed.items := RecordTypes ;
+        cbTypeToBeAnalysed.items := WCPFile.RecordTypes ;
         if cbTypeToBeAnalysed.itemIndex < 0 then cbTypeToBeAnalysed.itemIndex := 0 ;
 
         edRecRange.LoLimit := 1 ;
@@ -451,13 +456,13 @@ begin
         scDisplay.ClearHorizontalCursors ;
         Cursors.Base[ChData] := scDisplay.AddHorizontalCursor(
                                 ChData,
-                                Settings.Colors.Cursors,
+                                WCPFile.Settings.Colors.Cursors,
                                 True,
                                 'z') ;
-        scDisplay.HorizontalCursors[Cursors.Base[ChData]] := Channel[cbFitChannel.ItemIndex].ADCZero ;
+        scDisplay.HorizontalCursors[Cursors.Base[ChData]] := WCPFile.Channel[cbFitChannel.ItemIndex].ADCZero ;
         Cursors.Base[ChRes] := scDisplay.AddHorizontalCursor(
                                ChRes,
-                               Settings.Colors.Cursors,
+                               WCPFile.Settings.Colors.Cursors,
                                True,
                                'z') ;
         scDisplay.HorizontalCursors[Cursors.Base[ChRes]] := 0 ;
@@ -486,7 +491,7 @@ begin
         HistogramLimitsNeeded := True ;
 
         FH.RecordNum := 1 ;
-        UpdateScrollBar( sbRecordNum, FH.RecordNum, 1, fH.NumRecords ) ;
+        WCPFile.UpdateScrollBar( sbRecordNum, FH.RecordNum, 1, fH.NumRecords ) ;
 
         DisplayRecord ;
 
@@ -527,8 +532,8 @@ begin
 
      { Equation parameters }
      Func.Setup( EqnType,
-                 Settings.TUnits,
-                 Channel[FitCh].ADCUnits ) ;
+                 WCPFile.Settings.TUnits,
+                 WCPFile.Channel[FitCh].ADCUnits ) ;
 
      { Set function parameter variables }
      for Par := 0 to Func.NumParameters-1 do begin
@@ -545,10 +550,10 @@ begin
      for ch := 0 to FH.NumChannels-1 do begin
          if ch <> FitCh then begin
             jVar := ch*MaxAnalysisVariables + vFitAvg ;
-            VarName[jVar] := ' Avg. (' + Channel[ch].ADCName + ')' ;
+            VarName[jVar] := ' Avg. (' + WCPFile.Channel[ch].ADCName + ')' ;
             VarNames.AddObject( VarName[jVar],
                                 TObject(jVar)) ;
-            Units[jVar] := Channel[ch].ADCUnits ;
+            Units[jVar] := WCPFile.Channel[ch].ADCUnits ;
             SetCheckBoxCaption(jVar ) ;
             end ;
          end ;
@@ -556,7 +561,7 @@ begin
      { Residual standard deviation }
      VarName[vFitResSD] := 'ResSD' ;
      VarNames.AddObject( VarName[vFitResSD], TObject(vFitResSD)) ;
-     Units[vFitResSD] := Channel[cbFitChannel.ItemIndex].ADCUnits ;
+     Units[vFitResSD] := WCPFile.Channel[cbFitChannel.ItemIndex].ADCUnits ;
      SetCheckBoxCaption(vFitResSD ) ;
 
      { Degrees of freedom }
@@ -603,10 +608,10 @@ begin
      edRecordNum.HiValue := fH.NumRecords ;
 
      { Read record data from file }
-     GetRecord( fH, RH, fH.RecordNum, ADC^ ) ;
+     WCPFile.GetRecord( fH, RH, fH.RecordNum, ADC^ ) ;
 
      { Move A/D samples to be fitted to first channel in scDisplay }
-     jFrom := Channel[cbFitChannel.ItemIndex].ChannelOffset ;
+     jFrom := WCPFile.Channel[cbFitChannel.ItemIndex].ChannelOffset ;
      jTo := ChData ;
      jEnd := (FH.NumSamples-1)*FH.NumChannels ;
      if FH.NumSamples <= ((High(DispBuf^)+1) div 2) then nDisplaySkip := 1
@@ -620,7 +625,7 @@ begin
 
      scDisplay.MaxPoints := FH.NumSamples div nDisplaySkip ;
      scDisplay.NumPoints := scDisplay.MaxPoints ;
-     scDisplay.TScale := RH.dt*Settings.TScale ;
+     scDisplay.TScale := RH.dt*WCPFile.Settings.TScale ;
      scDisplay.SetDataBuf( DispBuf ) ;
 
      if (RH.EqnType <> None) and (RH.FitCursor1 <> RH.FitCursor2) then begin
@@ -646,16 +651,16 @@ begin
 
      { Set horizontal cursors }
      scDisplay.HorizontalCursors[Cursors.Base[ChData]] :=
-                                               Channel[RH.FitChan].ADCZero ;
+                                               WCPFile.Channel[RH.FitChan].ADCZero ;
      // Start of area from which zero level was computed (-1 indicates fixed zero level)
-     scDisplay.ChanZeroAt[ChData] := Channel[RH.FitChan].ADCZeroAt ;
+     scDisplay.ChanZeroAt[ChData] := WCPFile.Channel[RH.FitChan].ADCZeroAt ;
      scDisplay.ChanZeroAvg := FH.NumZeroAvg ;
 
      scDisplay.HorizontalCursors[Cursors.Base[ChRes]] := 0 ;
 
      { Make sure display scaling factor is same as for channel }
-     scDisplay.ChanScale[ChData] := Channel[RH.FitChan].ADCScale ;
-     scDisplay.ChanScale[ChRes] := Channel[RH.FitChan].ADCScale ;
+     scDisplay.ChanScale[ChData] := WCPFile.Channel[RH.FitChan].ADCScale ;
+     scDisplay.ChanScale[ChRes] := WCPFile.Channel[RH.FitChan].ADCScale ;
 
      { Show whether record has been rejected by operator }
      if RH.Status = 'ACCEPTED' then ckBadRecord.checked := False
@@ -681,7 +686,7 @@ begin
      if RH.EqnType <> None then begin
 
         { Draw fitted line on record }
-        Func.Setup( RH.EqnType, Settings.TUnits,Channel[RH.FitChan].ADCUnits ) ;
+        Func.Setup( RH.EqnType, WCPFile.Settings.TUnits,WCPFile.Channel[RH.FitChan].ADCUnits ) ;
 
         for i := 0 to Func.NumParameters-1 do begin
             Func.Parameters[i] := RH.Value[i*MaxAnalysisVariables + vFitPar] ;
@@ -693,11 +698,11 @@ begin
         j := 0 ;
         for i := 0 to scDisplay.NumPoints-1 do begin
             if i >= scDisplay.VerticalCursors[Cursors.T0] then begin
-              y := (Func.Value(t)/Channel[RH.FitChan].ADCScale)
-                    + Channel[RH.FitChan].ADCZero ;
+              y := (Func.Value(t)/WCPFile.Channel[RH.FitChan].ADCScale)
+                    + WCPFile.Channel[RH.FitChan].ADCZero ;
                // Draw fitted line over data
                scDisplay.AddPointToLine( iLine, i, y ) ;
-               t := t + RH.dt*nDisplaySkip*Settings.TScale ;
+               t := t + RH.dt*nDisplaySkip*WCPFile.Settings.TScale ;
                // Compute residual
                DispBuf^[j+ChRes] := Min(Max( Round(y) - DispBuf^[j+ChData],
                                              scDisplay.MinADCValue),scDisplay.MaxADCValue);
@@ -738,9 +743,9 @@ begin
         { Averages from other channels }
         for ch := 0 to fH.NumChannels-1 do if ch <> RH.FitChan then
             Results.Add( format('Avg. %s %.4g %s',
-                                    [Channel[ch].ADCName,
+                                    [WCPFile.Channel[ch].ADCName,
                                      RH.Value[MaxAnalysisVariables*ch + VFitAvg],
-                                     Channel[ch].ADCUnits] ) ) ;
+                                     WCPFile.Channel[ch].ADCUnits] ) ) ;
         end
      else begin
         RH.FitChan := cbFitChannel.ItemIndex ;
@@ -759,7 +764,7 @@ procedure TFitFrm.ChangeDisplayGrid ;
 begin
      scDisplay.MaxADCValue := FH.MaxADCValue ;
      scDisplay.MinADCValue := FH.MinADCValue ;
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
      scDisplay.Invalidate ;
      end ;
 
@@ -820,8 +825,8 @@ begin
      OK := True ;
      { -- Select type of equation to be fitted -- }
      Func.Setup( TEqnType(cbEquation.Items.Objects[cbEquation.ItemIndex]),
-                 Settings.TUnits,
-                 Channel[cbFitChannel.ItemIndex].ADCUnits ) ;
+                 WCPFile.Settings.TUnits,
+                 WCPFile.Channel[cbFitChannel.ItemIndex].ADCUnits ) ;
 
      { Fit curve to all records in selected range }
      Rec := StartAtRec ;
@@ -832,7 +837,7 @@ begin
            OK := True ;
 
            { Read record data from file }
-           GetRecord( fH, RH, Rec, ADC^ ) ;
+           WCPFile.GetRecord( fH, RH, Rec, ADC^ ) ;
 
            { Fit curve if record meets selection criteria }
            if UseRecord(RH,cbTypeToBeAnalysed.text) then begin
@@ -850,11 +855,11 @@ begin
               for ch := 0 to fh.NumChannels-1 do begin
                   Sum := 0. ;
                   for i := iStart to iEnd do begin
-                      j := i*fH.NumChannels + Channel[ch].ChannelOffset ;
+                      j := i*fH.NumChannels + WCPFile.Channel[ch].ChannelOffset ;
                       Sum := Sum + ADC^[j] ;
                       end ;
-                  Average[ch] := Channel[ch].ADCScale *
-                                ( Sum /(iEnd-iStart+1) - Channel[ch].ADCZero ) ;
+                  Average[ch] := WCPFile.Channel[ch].ADCScale *
+                                ( Sum /(iEnd-iStart+1) - WCPFile.Channel[ch].ADCZero ) ;
                   end ;
 
               { Copy data points into fitting array
@@ -862,12 +867,12 @@ begin
               nFit := 0 ;
               i := iStart ;
               ChFit := cbFitChannel.ItemIndex ;
-              yZero := Channel[ChFit].ADCZero ;
+              yZero := WCPFile.Channel[ChFit].ADCZero ;
               TZero := nDisplaySkip*Round(scDisplay.VerticalCursors[Cursors.T0]) ;
               repeat
-                  FitData^.x[nFit] := (i - TZero)*RH.dt*Settings.TScale ;
-                  j := i*fH.NumChannels + Channel[ChFit].ChannelOffset ;
-                  FitData^.y[nFit] := ( ADC^[j] - yZero ) * Channel[ChFit].ADCScale ;
+                  FitData^.x[nFit] := (i - TZero)*RH.dt*WCPFile.Settings.TScale ;
+                  j := i*fH.NumChannels + WCPFile.Channel[ChFit].ChannelOffset ;
+                  FitData^.y[nFit] := ( ADC^[j] - yZero ) * WCPFile.Channel[ChFit].ADCScale ;
                   Inc(i) ;
                   if nFit < High(FitData^.x) then Inc(nFit) ;
                   until i > iEnd ;
@@ -933,7 +938,7 @@ begin
                  end ;
 
               { Save record header containing analysis results back to file  }
-              PutRecordHeaderOnly( fH, RH, Rec ) ;
+              WCPFile.PutRecordHeaderOnly( fH, RH, Rec ) ;
 
               { Display fitted curve }
               if OK then begin
@@ -994,12 +999,12 @@ begin
      try
 
         { Read record data from file }
-        GetRecord( fH, RH, sbRecordNum.Position, ADC^ ) ;
+        WCPFile.GetRecord( fH, RH, sbRecordNum.Position, ADC^ ) ;
 
         FitCh := cbFitChannel.ItemIndex ;
         Func.Setup( TEqnType(cbEquation.Items.Objects[cbEquation.ItemIndex]),
-                    Settings.TUnits,
-                    Channel[FitCh].ADCUnits ) ;
+                    WCPFile.Settings.TUnits,
+                    WCPFile.Channel[FitCh].ADCUnits ) ;
 
         { Get range of samples to be fitted from positions of cursors 0 and 1 }
         iStart := Min( Round(scDisplay.VerticalCursors[Cursors.C0]),
@@ -1009,15 +1014,15 @@ begin
 
         { Copy data points into fitting array }
         nPoints := 0 ;
-        ChOffset := Channel[FitCh].ChannelOffset ;
+        ChOffset := WCPFile.Channel[FitCh].ChannelOffset ;
         iStep := Max(((iEnd - iStart) + High(Data^.x)+1) div (High(Data^.x)+1),1) ;
         i := iStart ;
         repeat
-            Data^.x[nPoints] := (i - scDisplay.VerticalCursors[Cursors.T0]) * RH.dt*Settings.TScale ;
+            Data^.x[nPoints] := (i - scDisplay.VerticalCursors[Cursors.T0]) * RH.dt*WCPFile.Settings.TScale ;
             j := i*fH.NumChannels + ChOffset ;
             Data^.y[nPoints] := ADC^[j] ;
-            Data^.y[nPoints] := ( Data^.y[nPoints] - Channel[FitCh].ADCZero )
-                                * Channel[FitCh].ADCScale ;
+            Data^.y[nPoints] := ( Data^.y[nPoints] - WCPFile.Channel[FitCh].ADCZero )
+                                * WCPFile.Channel[FitCh].ADCScale ;
             i := i + iStep ;
             if nPoints < High(Data^.x) then Inc(nPoints) ;
             until i >= iEnd ;
@@ -1158,7 +1163,7 @@ begin
      EndAtRec := Round(edPlotRange.HiValue ) ;
      for Rec := StartAtRec to EndAtRec do begin
          { Read record analysis block from file }
-         GetRecordHeaderOnly( fH, RH, Rec ) ;
+         WCPFile.GetRecordHeaderOnly( fH, RH, Rec ) ;
          { Add to plot if selected and valid }
          if UseRecord(RH,cbTypeToBeAnalysed.text) and (RH.EqnType <> None) then begin
             x := RH.Value[XVar] ;
@@ -1170,17 +1175,17 @@ begin
 
      { Create X and Y axes labels }
      plPlot.xAxisLabel := '' ;
-     if xVar > vTime then plPlot.xAxisLabel := Channel[RH.FitChan].ADCName + ' ';
+     if xVar > vTime then plPlot.xAxisLabel := WCPFile.Channel[RH.FitChan].ADCName + ' ';
      plPlot.xAxisLabel := plPlot.xAxisLabel + VarName[xVar]
                           + ' ' + Units[xVar] ;
      plPlot.yAxisLabel := '' ;
-     if yVar > vTime then plPlot.yAxisLabel := Channel[RH.FitChan].ADCName + ' ';
+     if yVar > vTime then plPlot.yAxisLabel := WCPFile.Channel[RH.FitChan].ADCName + ' ';
      plPlot.yAxisLabel := plPlot.yAxisLabel + VarName[yVar]
                           + ' ' + Units[yVar] ;
 
      { Create readout cursors for X/Y plot }
      plPlot.ClearVerticalCursors ;
-     Cursors.PlotRead := plPlot.AddVerticalCursor( Settings.Colors.Cursors, '?r',0 ) ;
+     Cursors.PlotRead := plPlot.AddVerticalCursor( WCPFile.Settings.Colors.Cursors, '?r',0 ) ;
      plPlot.VerticalCursors[Cursors.PlotRead] := 0.5*(plPlot.xAxisMin + plPlot.xAxisMax) ;
 
      bNewXYPlot.Enabled := True ;
@@ -1210,7 +1215,7 @@ begin
     Rec := StartAtRec ;
     Done := False ;
     While not Done do begin
-       GetRecordHeaderOnly( fH, RH, Rec ) ;
+       WCPFile.GetRecordHeaderOnly( fH, RH, Rec ) ;
        if UseRecord(RH,cbTypeToBeAnalysed.text) and (RH.EqnType <> None)
           or (Rec > EndAtRec) then begin
           EqnType := RH.EqnType ;
@@ -1284,7 +1289,7 @@ begin
      Screen.Cursor := crHourglass ;
      for Rec := RecStart to RecEnd do begin
             { Read record analysis block from file }
-            GetRecordHeaderOnly( fH, RH, Rec ) ;
+            WCPFile.GetRecordHeaderOnly( fH, RH, Rec ) ;
             if UseRecord( RH, cbTypeToBeAnalysed.text )
                and (RH.EqnType <> None) then begin
                x := RH.Value[HistVar] ;
@@ -1307,7 +1312,7 @@ begin
 
      { Create X and Y axes labels }
      plHist.xAxisLabel := '' ;
-     if HistVar > vTime then plHist.xAxisLabel := Channel[HistCh].ADCName + ' ';
+     if HistVar > vTime then plHist.xAxisLabel := WCPFile.Channel[HistCh].ADCName + ' ';
      plHist.xAxisLabel := plHist.xAxisLabel + VarName[HistVar]
                           + ' ' + Units[HistVar] ;
 
@@ -1325,7 +1330,7 @@ begin
 
      { Create readout cursors }
      plHist.ClearVerticalCursors ;
-     Cursors.HistRead := plHist.AddVerticalCursor( Settings.Colors.Cursors, '?r',0 ) ;
+     Cursors.HistRead := plHist.AddVerticalCursor( WCPFile.Settings.Colors.Cursors, '?r',0 ) ;
      plHist.VerticalCursors[Cursors.HistRead] := Hist.Bins[Hist.NumBins div 2].Mid ;
 
      Screen.Cursor := crDefault ;
@@ -1411,7 +1416,7 @@ begin
      for Rec := RecStart to RecEnd do begin
 
          { Get record header containing analysis results }
-         GetRecordHeaderOnly( fH, RH, Rec ) ;
+         WCPFile.GetRecordHeaderOnly( fH, RH, Rec ) ;
 
          { Add record to analysis (if valid and of selected type }
          if UseRecord( RH, cbTypeToBeAnalysed.text ) then begin
@@ -1439,7 +1444,7 @@ begin
 
      { Re-read the analysis blocks to get residual deviations from mean }
      for Rec := RecStart to RecEnd do begin
-         GetRecordHeaderOnly( fH, RH, Rec ) ;
+         WCPFile.GetRecordHeaderOnly( fH, RH, Rec ) ;
          if UseRecord(RH,cbTypeToBeAnalysed.text) then begin
             for iVar := 0 to NumVariables-1 do begin
                 jVar := GetCheckBoxVariableNumber(iVar) ;
@@ -1805,7 +1810,7 @@ begin
      EndAt := Round(edPlotRange.HiValue) ;
      for Rec := StartAt to EndAt do begin
          { Read analysis data from record }
-         GetRecordHeaderOnly( fH, rH, Rec ) ;
+         WCPFile.GetRecordHeaderOnly( fH, rH, Rec ) ;
          { Only use ACCEPTED records of appropriate type }
          if UseRecord( rH, cbTypeToBeAnalysed.text ) and
             ((RH.EqnType = EqnType) or ckIncludeBadFits.Checked) then begin
@@ -1842,7 +1847,7 @@ begin
 procedure TFitFrm.FormActivate(Sender: TObject);
 begin
      { Enable available copy and print menu options when window becomes active }
-     ckFixedZeroLevels.Checked := Settings.FixedZeroLevels ;
+     ckFixedZeroLevels.Checked := WCPFile.Settings.FixedZeroLevels ;
      DisplayRecord ;
      end;
 
@@ -1854,7 +1859,7 @@ procedure TFitFrm.ckBadRecordClick(Sender: TObject);
 begin
      if ckBadRecord.checked then RH.Status := 'REJECTED'
                             else RH.Status := 'ACCEPTED' ;
-     PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+     WCPFile.PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
      end;
 
 
@@ -2022,7 +2027,7 @@ begin
                      $46 : cbRecordType.ItemIndex := cbRecordType.Items.IndexOf('FAIL') ;
                      end ;
                   RH.RecType := cbRecordType.text ;
-                  PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+                  WCPFile.PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
                   end ;
                end ;
           $52 : begin
@@ -2030,7 +2035,7 @@ begin
                   ckBadRecord.Checked := not ckBadRecord.Checked ;
                   If ckBadRecord.Checked then RH.Status := 'REJECTED'
                                          else RH.Status := 'ACCEPTED' ;
-                  PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+                  WCPFile.PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
                   end;
                end ;
           end ;
@@ -2045,7 +2050,7 @@ procedure TFitFrm.cbRecordTypeChange(Sender: TObject);
   ----------------------------}
 begin
      RH.RecType := cbRecordType.text ;
-     PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+     WCPFile.PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
      end;
 
 
@@ -2184,8 +2189,8 @@ begin
      if Page.ActivePage = CurveFitTab then scDisplay.CopyDataToClipboard
      else if Page.ActivePage = XYPlotTab then plPlot.CopyDataToClipboard
      else if Page.ActivePage = HistogramTab then plHist.CopyDataToClipboard
-     else if Page.ActivePage = SummaryTab then CopyStringGrid(Summary)
-     else if Page.ActivePage = TablesTab then CopyStringGrid(Table);
+     else if Page.ActivePage = SummaryTab then Main.CopyStringGrid(Summary)
+     else if Page.ActivePage = TablesTab then Main.CopyStringGrid(Table);
      end ;
 
 
@@ -2247,7 +2252,7 @@ begin
        PrintTableFrm.Title :=  'Curve Fit Summary: ' ;
        PrintTableFrm.ShowModal ;
        if PrintTableFrm.ModalResult = mrOK then
-          WriteToLogFile( 'Curve Fit  summary table printed' ) ;
+          WCPFile.WriteToLogFile( 'Curve Fit  summary table printed' ) ;
        end ;
 
      if Page.ActivePage = TablesTab then begin
@@ -2255,7 +2260,7 @@ begin
        PrintTableFrm.Title :=  'Curve Fit: ' ;
        PrintTableFrm.ShowModal ;
        if PrintTableFrm.ModalResult = mrOK then
-          WriteToLogFile( 'Curve Fit results table printed' ) ;
+          WCPFile.WriteToLogFile( 'Curve Fit results table printed' ) ;
 
        end ;
 
@@ -2308,37 +2313,28 @@ begin
         (scDisplay.ActiveHorizontalCursor = ChData) then begin
         ZeroFrm.EnableFromRecord := True ;        
         ZeroFrm.Chan := scDisplay.ActiveHorizontalCursor ;
-        ZeroFrm.Level := Channel[ZeroFrm.Chan].ADCZero ;
-        ZeroFrm.ChanName := Channel[ZeroFrm.Chan].ADCName ;
         ZeroFrm.NewZeroAt := Round(scDisplay.ScreenCoordToX( ZeroFrm.Chan, X )) ;
-        ZeroFrm.OldZeroAt := Channel[ZeroFrm.Chan].ADCZeroAt ;
         ZeroFrm. NumSamplesPerRecord := scDisplay.NumPoints ;
-        ZeroFrm.NumZeroAveraged := FH.NumZeroAvg ;
-        ZeroFrm.MaxValue := FH.MaxADCValue ;
         ZeroFrm.Left := Self.Left + Main.Left + 10 + scDisplay.Left + X;
         ZeroFrm.Top := Self.Top + Main.Top + 10 + scDisplay.Top + Y ;
         ZeroFrm.ShowModal ;
-        Channel[ZeroFrm.Chan].ADCZero := ZeroFrm.Level ;
-        Channel[ZeroFrm.Chan].ADCZeroAt := ZeroFrm.NewZeroAt ;
-        FH.NumZeroAvg := ZeroFrm.NumZeroAveraged ;
-        SaveHeader( FH ) ;
         if ZeroFrm.ModalResult = mrOK then DisplayRecord ;
         end
      else begin
        // Update zero baseline cursor
         if scDisplay.ActiveHorizontalCursor >= 0 then begin
-           if Channel[RH.FitChan].ADCZeroAt < 0 then begin
+           if WCPFile.Channel[RH.FitChan].ADCZeroAt < 0 then begin
               // Fixed baseline level (update zero level to new position)
-              Channel[RH.FitChan].ADCZero := Round(
+              WCPFile.Channel[RH.FitChan].ADCZero := Round(
               scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor]) ;
               end
            else begin
               // Baseline level computed from record (return to computed level)
               scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor] :=
-              Channel[RH.FitChan].ADCZero ;
+              WCPFile.Channel[RH.FitChan].ADCZero ;
               scDisplay.Invalidate ;
               end ;
-           SaveHeader( FH ) ;
+           WCPFile.SaveHeader( FH ) ;
            end ;
 
         end ;
@@ -2367,17 +2363,17 @@ begin
         //TZeroCursorPos := scDisplay.VerticalCursors[Cursors.T0] ;
 
          // Fix baseline if required
-         if Settings.FixedZeroLevels or (Channel[chData].ADCZeroAt >= 0) then begin
-            if scDisplay.HorizontalCursors[chData] <> Channel[chData].ADCZero then begin
-               scDisplay.HorizontalCursors[chData] := Channel[chData].ADCZero ;
+         if WCPFile.Settings.FixedZeroLevels or (WCPFile.Channel[chData].ADCZeroAt >= 0) then begin
+            if scDisplay.HorizontalCursors[chData] <> WCPFile.Channel[chData].ADCZero then begin
+               scDisplay.HorizontalCursors[chData] := WCPFile.Channel[chData].ADCZero ;
                end ;
             end
-         else Channel[chData].ADCZero := Round(scDisplay.HorizontalCursors[chData]) ;
+         else WCPFile.Channel[chData].ADCZero := Round(scDisplay.HorizontalCursors[chData]) ;
 
 
         if (RH.EqnType <> None) and (RH.FitChan >= 0) then begin
-           Channel[RH.FitChan].yMin := scDisplay.YMin[chData] ;
-           Channel[RH.FitChan].yMax := scDisplay.YMax[chData] ;
+           WCPFile.Channel[RH.FitChan].yMin := scDisplay.YMin[chData] ;
+           WCPFile.Channel[RH.FitChan].yMax := scDisplay.YMax[chData] ;
            end ;
 
         Range := scDisplay.YMax[chData] - scDisplay.YMin[chData] ;
@@ -2411,7 +2407,7 @@ begin
 
         for Rec := StartAtRec to EndAtRec do begin
             { Read record analysis block from file }
-            GetRecordHeaderOnly( fH, RH, Rec ) ;
+            WCPFile.GetRecordHeaderOnly( fH, RH, Rec ) ;
             { Set record status/type according to filter criteria }
             if FilterFrm.AllRecords then begin
                if FilterFrm.SetRecordStatus then rH.Status := FilterFrm.Status ;
@@ -2426,7 +2422,7 @@ begin
                end ;
 
             { Write analysis block }
-            PutRecordHeaderOnly( fH, RH, Rec ) ;
+            WCPFile.PutRecordHeaderOnly( fH, RH, Rec ) ;
 
             { Update progress }
             Main.StatusBar.SimpleText := format(
@@ -2437,13 +2433,13 @@ begin
             end ;
 
         { Log change to log file }
-        if not FilterFrm.AllRecords then WriteToLogFile (
+        if not FilterFrm.AllRecords then WCPFile.WriteToLogFile (
                                Format('Records filtered %s = %.3g <= %s <= %.3g',
                                [FilterFrm.Status,
                                FilterFrm.LowerLimit,
                                FilterFrm.VarName,
                                FilterFrm.UpperLimit] ))
-        else WriteToLogFile (Format('All Records = %s',[FilterFrm.Status])) ;
+        else WCPFile.WriteToLogFile (Format('All Records = %s',[FilterFrm.Status])) ;
 
         { Update plot }
         bNewXYPlot.Click ;
@@ -2556,12 +2552,12 @@ begin
      { Present user with standard Save File dialog box }
      SaveDialog.options := [ofOverwritePrompt,ofHideReadOnly,ofPathMustExist] ;
      SaveDialog.DefaultExt := '.txt' ;
-     SaveDialog.FileName := ChangeFileExt( RawFH.FileName, '.txt' ) ;
+     SaveDialog.FileName := ChangeFileExt( FH.FileName, '.txt' ) ;
      SaveDialog.Filter := ' Text Files (*.txt)|*.txt' ;
      SaveDialog.Title := 'Save Table' ;
-     if Settings.DataDirectory <> '' then begin
-        SetCurrentDir(Settings.DataDirectory);
-        SaveDialog.InitialDir := Settings.DataDirectory ;
+     if WCPFile.Settings.DataDirectory <> '' then begin
+        SetCurrentDir(WCPFile.Settings.DataDirectory);
+        SaveDialog.InitialDir := WCPFile.Settings.DataDirectory ;
         end;
      if not SaveDialog.execute then Exit ;
 
@@ -2603,7 +2599,7 @@ begin
 
 procedure TFitFrm.ckFixedZeroLevelsClick(Sender: TObject);
 begin
-     Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
+     WCPFile.Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
      end;
 
 end.

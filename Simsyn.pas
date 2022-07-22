@@ -29,7 +29,7 @@ interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, ExtCtrls, StdCtrls, Shared, FileIo, Global, maths,
+  Forms, Dialogs, ExtCtrls, StdCtrls, maths,
   ValEdit, ScopeDisplay, math, ComCtrls, ValidatedEdit, seslabio, strutils ;
 
 type
@@ -122,7 +122,7 @@ var
 
 implementation
 uses
-    MDIForm ;
+    MDIForm , WCPFIleUnit;
 {$R *.DFM}
 
 const
@@ -134,23 +134,23 @@ procedure TSynapseSim.FormShow(Sender: TObject);
   --------------------------------------}
 begin
 
-      edNumRecords.Value:= Settings.SynapseSim.NumRecords ;
-      edRecordDuration.Value := Settings.SynapseSim.RecordDuration ;
-      edNumSamples.Value := Settings.NumSamples ;
-      edTauRise.Value := Settings.SynapseSim.TauRise ;
-      edTau1.Value := Settings.SynapseSim.Tau1 ;
-      edLatency.Value := Settings.SynapseSim.Latency ;
-      ckDoubleExponentialDecay.Checked := Settings.SynapseSim.DoubleExponentialDecay ;
-      edTau2.Value := Settings.SynapseSim.Tau2 ;
-      edSlowDecayFraction.Value := Settings.SynapseSim.A2Fraction ;
-      edQuantumAmplitude.Value := Settings.SynapseSim.QuantumAmplitude ;
-      edQuantumStDev.Value := Settings.SynapseSim.QuantumStDev ;
-      edPoolSize.Value := Settings.SynapseSim.n ;
-      edReleaseProbability.Value := Settings.SynapseSim.p ;
-      edNoiseRMS.Value := Settings.SynapseSim.NoiseRMS ;
-      edDisplayRange.Value := Settings.SynapseSim.DisplayRange ;
-      edVRest.Value := Settings.SynapseSim.VRest ;
-      setUnits(  Settings.SynapseSim.Units ) ;
+      edNumRecords.Value:= WCPFile.Settings.SynapseSim.NumRecords ;
+      edRecordDuration.Value := WCPFile.Settings.SynapseSim.RecordDuration ;
+      edNumSamples.Value := WCPFile.Settings.NumSamples ;
+      edTauRise.Value := WCPFile.Settings.SynapseSim.TauRise ;
+      edTau1.Value := WCPFile.Settings.SynapseSim.Tau1 ;
+      edLatency.Value := WCPFile.Settings.SynapseSim.Latency ;
+      ckDoubleExponentialDecay.Checked := WCPFile.Settings.SynapseSim.DoubleExponentialDecay ;
+      edTau2.Value := WCPFile.Settings.SynapseSim.Tau2 ;
+      edSlowDecayFraction.Value := WCPFile.Settings.SynapseSim.A2Fraction ;
+      edQuantumAmplitude.Value := WCPFile.Settings.SynapseSim.QuantumAmplitude ;
+      edQuantumStDev.Value := WCPFile.Settings.SynapseSim.QuantumStDev ;
+      edPoolSize.Value := WCPFile.Settings.SynapseSim.n ;
+      edReleaseProbability.Value := WCPFile.Settings.SynapseSim.p ;
+      edNoiseRMS.Value := WCPFile.Settings.SynapseSim.NoiseRMS ;
+      edDisplayRange.Value := WCPFile.Settings.SynapseSim.DisplayRange ;
+      edVRest.Value := WCPFile.Settings.SynapseSim.VRest ;
+      setUnits(  WCPFile.Settings.SynapseSim.Units ) ;
 
      bStart.Enabled := True ;
      bAbort.Enabled := False ;
@@ -179,47 +179,47 @@ begin
 
 
      { Set number of channels = 1 (only if file is empty) }
-     if RawFH.NumRecords = 0 then begin
-        RawFH.NumChannels := 1 ;
-        Channel[0].ChannelOffset := 0 ;
+     if WCPFile.RawFH.NumRecords = 0 then begin
+        WCPFile.RawFH.NumChannels := 1 ;
+        WCPFile.Channel[0].ChannelOffset := 0 ;
         end ;
 
      { Display simulated record }
      scDisplay.MaxADCValue :=  Main.SESLabIO.ADCMaxValue ;
      scDisplay.MinADCValue := -Main.SESLabIO.ADCMaxValue -1 ;
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
 
-     scDisplay.MaxPoints := Settings.NumSamples ;
-     scDisplay.NumPoints := Settings.NumSamples ;
+     scDisplay.MaxPoints := WCPFile.Settings.NumSamples ;
+     scDisplay.NumPoints := WCPFile.Settings.NumSamples ;
      scDisplay.NumChannels := 1 ;
 
-     Channel[ChSim].ADCScale := Abs(edDisplayRange.Value) / Main.SESLabIO.ADCMaxValue ;
-     scDisplay.ChanScale[ChSim] := Channel[ChSim].ADCScale ;
+     WCPFile.Channel[ChSim].ADCScale := Abs(edDisplayRange.Value) / Main.SESLabIO.ADCMaxValue ;
+     scDisplay.ChanScale[ChSim] := WCPFile.Channel[ChSim].ADCScale ;
 
      { Set channel information }
      for ch := 0 to scDisplay.NumChannels-1 do begin
-         scDisplay.ChanOffsets[ch] := Channel[ch].ChannelOffset ;
-         scDisplay.ChanUnits[ch] := Channel[Ch].ADCUnits ;
-         scDisplay.ChanName[ch] := Channel[Ch].ADCName ;
-         scDisplay.ChanScale[ch] := Channel[ch].ADCScale ;
-         Channel[Ch].yMin := scDisplay.MinADCValue ;
-         Channel[Ch].yMax := scDisplay.MaxADCValue ;
-         scDisplay.yMin[ch] := Channel[Ch].yMin ;
-         scDisplay.yMax[ch] := Channel[Ch].yMax ;
+         scDisplay.ChanOffsets[ch] := WCPFile.Channel[ch].ChannelOffset ;
+         scDisplay.ChanUnits[ch] := WCPFile.Channel[Ch].ADCUnits ;
+         scDisplay.ChanName[ch] := WCPFile.Channel[Ch].ADCName ;
+         scDisplay.ChanScale[ch] := WCPFile.Channel[ch].ADCScale ;
+         WCPFile.Channel[Ch].yMin := scDisplay.MinADCValue ;
+         WCPFile.Channel[Ch].yMax := scDisplay.MaxADCValue ;
+         scDisplay.yMin[ch] := WCPFile.Channel[Ch].yMin ;
+         scDisplay.yMax[ch] := WCPFile.Channel[Ch].yMax ;
          scDisplay.ChanVisible[ch] := True
          end ;
 
      scDisplay.xMin := 0 ;
-     scDisplay.xMax := Settings.NumSamples ;
+     scDisplay.xMax := WCPFile.Settings.NumSamples ;
      scDisplay.xOffset := 0 ;
-     scDisplay.TScale := RawFH.dt*Settings.TScale ;
-     scDisplay.TUnits := Settings.TUnits ;
+     scDisplay.TScale := WCPFile.RawFH.dt*WCPFile.Settings.TScale ;
+     scDisplay.TUnits := WCPFile.Settings.TUnits ;
 
      // Reallocate A/D sample buffer
      if ADC <> Nil then FreeMem(ADC) ;
-     GetMem( ADC, Max(Settings.NumSamples*RawFH.NumChannels*2,1024) ) ;
+     GetMem( ADC, Max(WCPFile.Settings.NumSamples*WCPFile.RawFH.NumChannels*2,1024) ) ;
      { Clear all channels }
-     for i := 0 to Settings.NumSamples*RawFH.NumChannels-1 do ADC^[i] := 0 ;
+     for i := 0 to WCPFile.Settings.NumSamples*WCPFile.RawFH.NumChannels-1 do ADC^[i] := 0 ;
      scDisplay.SetDataBuf( ADC ) ;
 
      end ;
@@ -231,10 +231,10 @@ begin
      edQuantumStDev.Units := Units ;
      edNoiseRMS.Units := Units ;
      edDisplayRange.Units := Units ;
-     Channel[ChSim].ADCUnits := Units ;
-     scDisplay.ChanUnits[ChSim] := Channel[ChSim].ADCUnits ;
+     WCPFile.Channel[ChSim].ADCUnits := Units ;
+     scDisplay.ChanUnits[ChSim] := WCPFile.Channel[ChSim].ADCUnits ;
      scDisplay.Invalidate ;
-     Settings.SynapseSim.Units := Units ;
+     WCPFile.Settings.SynapseSim.Units := Units ;
 
      end ;
 
@@ -245,25 +245,25 @@ procedure TSynapseSim.EditFieldsToSettings ;
 // ------------------------------
 begin
 
-    Settings.NumSamples := Min(Round(edNumSamples.Value),Main.SESLabIO.ADCBufferLimit) ;
-    Settings.NumSamples := 256*Max(Settings.NumSamples div 256,1) ;
-    edNumSamples.Value := Settings.NumSamples ;
+    WCPFile.Settings.NumSamples := Min(Round(edNumSamples.Value),Main.SESLabIO.ADCBufferLimit) ;
+    WCPFile.Settings.NumSamples := 256*Max(WCPFile.Settings.NumSamples div 256,1) ;
+    edNumSamples.Value := WCPFile.Settings.NumSamples ;
 
-     Settings.SynapseSim.NumRecords := Round(edNumRecords.Value) ;
-     Settings.SynapseSim.RecordDuration := edRecordDuration.Value ;
-     Settings.SynapseSim.TauRise := edTauRise.Value ;
-     Settings.SynapseSim.Tau1 := edTau1.Value ;
-     Settings.SynapseSim.Latency := edLatency.Value ;
-     Settings.SynapseSim.Tau2 := edTau2.Value ;
-     Settings.SynapseSim.A2Fraction := edSlowDecayFraction.Value ;
-     Settings.SynapseSim.QuantumAmplitude := edQuantumAmplitude.Value ;
-     Settings.SynapseSim.QuantumStDev := edQuantumStDev.Value ;
-     Settings.SynapseSim.n := edPoolSize.Value ;
-     Settings.SynapseSim.p := edReleaseProbability.Value ;
-     Settings.SynapseSim.NoiseRMS := edNoiseRMS.Value ;
-     Settings.SynapseSim.DisplayRange := edDisplayRange.Value ;
-     Settings.SynapseSim.VRest := edVRest.Value ;
-     Settings.SynapseSim.DoubleExponentialDecay := ckDoubleExponentialDecay.Checked ;
+     WCPFile.Settings.SynapseSim.NumRecords := Round(edNumRecords.Value) ;
+     WCPFile.Settings.SynapseSim.RecordDuration := edRecordDuration.Value ;
+     WCPFile.Settings.SynapseSim.TauRise := edTauRise.Value ;
+     WCPFile.Settings.SynapseSim.Tau1 := edTau1.Value ;
+     WCPFile.Settings.SynapseSim.Latency := edLatency.Value ;
+     WCPFile.Settings.SynapseSim.Tau2 := edTau2.Value ;
+     WCPFile.Settings.SynapseSim.A2Fraction := edSlowDecayFraction.Value ;
+     WCPFile.Settings.SynapseSim.QuantumAmplitude := edQuantumAmplitude.Value ;
+     WCPFile.Settings.SynapseSim.QuantumStDev := edQuantumStDev.Value ;
+     WCPFile.Settings.SynapseSim.n := edPoolSize.Value ;
+     WCPFile.Settings.SynapseSim.p := edReleaseProbability.Value ;
+     WCPFile.Settings.SynapseSim.NoiseRMS := edNoiseRMS.Value ;
+     WCPFile.Settings.SynapseSim.DisplayRange := edDisplayRange.Value ;
+     WCPFile.Settings.SynapseSim.VRest := edVRest.Value ;
+     WCPFile.Settings.SynapseSim.DoubleExponentialDecay := ckDoubleExponentialDecay.Checked ;
 
      end ;
 
@@ -290,45 +290,45 @@ begin
      CloseFormASAP := False ;
      NumRecordsDone := 0 ;
 
-     Channel[ChSim].ADCUnits := Settings.SynapseSim.Units ;
-     if Channel[ChSim].ADCUnits = 'mV' then Channel[ChSim].ADCName := 'Vm'
-                                       else Channel[ChSim].ADCName := 'Im' ;
+     WCPFile.Channel[ChSim].ADCUnits := WCPFile.Settings.SynapseSim.Units ;
+     if WCPFile.Channel[ChSim].ADCUnits = 'mV' then WCPFile.Channel[ChSim].ADCName := 'Vm'
+                                       else WCPFile.Channel[ChSim].ADCName := 'Im' ;
 
-     Channel[ChSim].ADCZero := 0 ;
-     Channel[ChSim].xMin := 0 ;
-     Channel[ChSim].xMax := Settings.NumSamples-1 ;
-     Channel[ChSim].yMin := Main.SESLabIO.ADCMinValue ;
-     Channel[ChSim].yMax := Main.SESLabIO.ADCMaxValue ;
-     Channel[ChSim].InUse := True ;
-     RawFH.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
-     RawFH.MinADCValue := Main.SESLabIO.ADCMinValue ;
+     WCPFile.Channel[ChSim].ADCZero := 0 ;
+     WCPFile.Channel[ChSim].xMin := 0 ;
+     WCPFile.Channel[ChSim].xMax := WCPFile.Settings.NumSamples-1 ;
+     WCPFile.Channel[ChSim].yMin := Main.SESLabIO.ADCMinValue ;
+     WCPFile.Channel[ChSim].yMax := Main.SESLabIO.ADCMaxValue ;
+     WCPFile.Channel[ChSim].InUse := True ;
+     WCPFile.RawFH.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
+     WCPFile.RawFH.MinADCValue := Main.SESLabIO.ADCMinValue ;
 
-     WriteToLogFile( 'Synaptic current simulation') ;
-     WriteToLogFile( 'Tau(rise) = ' + edTauRise.text ) ;
-     WriteToLogFile( 'Tau(1) = ' + edTau1.text ) ;
-     WriteToLogFile( 'Latency = ' + edLatency.text ) ;
-     WriteToLogFile( 'Quantum amplitude = ' + edQuantumAmplitude.text ) ;
-     WriteToLogFile( 'Quantum st. dev. = ' + edQuantumStDev.text ) ;
-     WriteToLogFile( 'Pool Size = ' + edPoolSize.text ) ;
-     WriteToLogFile( 'Release Probability = ' + edReleaseProbability.text ) ;
-     WriteToLogFile( 'Noise RMS = ' + edNoiseRMS.text ) ;
+     WCPFile.WriteToLogFile( 'Synaptic current simulation') ;
+     WCPFile.WriteToLogFile( 'Tau(rise) = ' + edTauRise.text ) ;
+     WCPFile.WriteToLogFile( 'Tau(1) = ' + edTau1.text ) ;
+     WCPFile.WriteToLogFile( 'Latency = ' + edLatency.text ) ;
+     WCPFile.WriteToLogFile( 'Quantum amplitude = ' + edQuantumAmplitude.text ) ;
+     WCPFile.WriteToLogFile( 'Quantum st. dev. = ' + edQuantumStDev.text ) ;
+     WCPFile.WriteToLogFile( 'Pool Size = ' + edPoolSize.text ) ;
+     WCPFile.WriteToLogFile( 'Release Probability = ' + edReleaseProbability.text ) ;
+     WCPFile.WriteToLogFile( 'Noise RMS = ' + edNoiseRMS.text ) ;
 
      { Sampling interval }
-     Settings.NumSamples := Round(edNumSamples.Value) ;
-     RawFH.NumSamples := Settings.NumSamples ;
-     RawFH.NumChannels := 1 ;
+     WCPFile.Settings.NumSamples := Round(edNumSamples.Value) ;
+     WCPFile.RawFH.NumSamples := WCPFile.Settings.NumSamples ;
+     WCPFile.RawFH.NumChannels := 1 ;
 
      // Reallocate A/D sample buffer
      if ADC <> Nil then FreeMem(ADC) ;
-     GetMem( ADC, Max(RawFH.NumSamples*RawFH.NumChannels*2,1024) ) ;
+     GetMem( ADC, Max(WCPFile.RawFH.NumSamples*WCPFile.RawFH.NumChannels*2,1024) ) ;
      scDisplay.SetDataBuf( ADC ) ;
 
-     RawFH.dt := Settings.SynapseSim.RecordDuration / Settings.NumSamples ;
+     WCPFile.RawFH.dt := WCPFile.Settings.SynapseSim.RecordDuration / WCPFile.Settings.NumSamples ;
      if ckDoubleExponentialDecay.checked then begin
         { Time constant for 2nd decay exponential }
-        WriteToLogFile( 'Tau(2) = ' + edTau2.text ) ;
-        A2 := Settings.SynapseSim.A2Fraction ;
-        WriteToLogFile( 'Slow amplitude fraction = ' + edTau2.text ) ;
+        WCPFile.WriteToLogFile( 'Tau(2) = ' + edTau2.text ) ;
+        A2 := WCPFile.Settings.SynapseSim.A2Fraction ;
+        WCPFile.WriteToLogFile( 'Slow amplitude fraction = ' + edTau2.text ) ;
         A1 := 1. - A2 ;
         end
      else begin
@@ -340,22 +340,22 @@ begin
      { Estimate maximal quantal content of 100 trials }
      QuantalContent := 0. ;
      for i := 1 to 100 do
-         QuantalContent := Max(QuantalContent,Binomial(Settings.SynapseSim.p,Settings.SynapseSim.n));
+         QuantalContent := Max(QuantalContent,Binomial(WCPFile.Settings.SynapseSim.p,WCPFile.Settings.SynapseSim.n));
 
-     if RawFH.NumRecords <= 0 then
+     if WCPFile.RawFH.NumRecords <= 0 then
         begin
         // Set calibration factor if file is empty
-        Channel[ChSim].ADCScale := Abs(Settings.SynapseSim.DisplayRange) / (Main.SESLabIO.ADCMaxValue + 1);
+        WCPFile.Channel[ChSim].ADCScale := Abs(WCPFile.Settings.SynapseSim.DisplayRange) / (Main.SESLabIO.ADCMaxValue + 1);
         RH.ADCVoltageRange[ChSim] := 10.0 ;
-        Channel[ChSim].ADCCalibrationFactor := RH.ADCVoltageRange[ChSim] /
-                                              ( Channel[ChSim].ADCScale * (Main.SESLabIO.ADCMaxValue +1) ) ;
+        WCPFile.Channel[ChSim].ADCCalibrationFactor := RH.ADCVoltageRange[ChSim] /
+                                              ( WCPFile.Channel[ChSim].ADCScale * (Main.SESLabIO.ADCMaxValue +1) ) ;
         end
      else begin
         // Set RH.ADCVoltageRange to account for any changes in current scaling
         // if records already exist
-        Channel[ChSim].ADCScale := Abs(edDisplayRange.Value) / (Main.SESLabIO.ADCMaxValue + 1);
-        RH.ADCVoltageRange[ChSim] := Channel[ChSim].ADCCalibrationFactor *
-                                     Channel[ChSim].ADCScale * (Main.SESLabIO.ADCMaxValue +1) ;
+        WCPFile.Channel[ChSim].ADCScale := Abs(edDisplayRange.Value) / (Main.SESLabIO.ADCMaxValue + 1);
+        RH.ADCVoltageRange[ChSim] := WCPFile.Channel[ChSim].ADCCalibrationFactor *
+                                     WCPFile.Channel[ChSim].ADCScale * (Main.SESLabIO.ADCMaxValue +1) ;
         end ;
 
 
@@ -363,13 +363,13 @@ begin
 
      x := 0. ;
      yPeak := 0.0 ;
-     iStartEPC := RawFH.NumSamples div 10 + Round(-(Settings.SynapseSim.Latency*ln(random))/RawFH.dt);
-     for i := 0 to RawFH.NumSamples-1 do
+     iStartEPC := WCPFile.RawFH.NumSamples div 10 + Round(-(WCPFile.Settings.SynapseSim.Latency*ln(random))/WCPFile.RawFH.dt);
+     for i := 0 to WCPFile.RawFH.NumSamples-1 do
          begin
          if i >= iStartEPC then
             begin
             y  := EPCTimeCourse( x, edQuantumAmplitude.Value, A1, A2 ) ;
-            x := x + Rawfh.dt ;
+            x := x + WCPFile.Rawfh.dt ;
             end ;
 
          // Determine peak amplitude
@@ -383,25 +383,25 @@ begin
      while not Done do begin
 
          // Ensure display channel scaling factor is up to date
-         scDisplay.ChanScale[ChSim] := Channel[ChSim].ADCScale ;
+         scDisplay.ChanScale[ChSim] := WCPFile.Channel[ChSim].ADCScale ;
 
          { Clear all channels }
          for ch := 0 to scDisplay.NumChannels-1 do
-             for i := 0 to RawFH.NumSamples-1 do ADC[i] := 0 ;
+             for i := 0 to WCPFile.RawFH.NumSamples-1 do ADC[i] := 0 ;
 
          { Create simulated synaptic current }
 
          { Set EPC amplitude }
-         QuantalContent := Binomial( Settings.SynapseSim.p, Settings.SynapseSim.n ) ;
+         QuantalContent := Binomial( WCPFile.Settings.SynapseSim.p, WCPFile.Settings.SynapseSim.n ) ;
          Amplitude := 0.0 ;
          for i := 1 to Round(QuantalContent) do
              begin
-             Amplitude := Amplitude + edQuantumAmplitude.Value + RandG(0.0, Settings.SynapseSim.QuantumStDev) ;
+             Amplitude := Amplitude + edQuantumAmplitude.Value + RandG(0.0, WCPFile.Settings.SynapseSim.QuantumStDev) ;
              end;
 
          x := 0. ;
-         iStartEPC := RawFH.NumSamples div 10 + Round(-(Settings.SynapseSim.Latency*ln(random))/RawFH.dt);
-         j := Channel[ChSim].ChannelOffset ;
+         iStartEPC := WCPFile.RawFH.NumSamples div 10 + Round(-(WCPFile.Settings.SynapseSim.Latency*ln(random))/WCPFile.RawFH.dt);
+         j := WCPFile.Channel[ChSim].ChannelOffset ;
 
          // Calculate NLS scaling factor
          if Abs(QuantalContent*QuantumPeak) > 0.001 then
@@ -411,16 +411,16 @@ begin
             end
          else yNlsScale := 1.0 ;
 
-         for i := 0 to RawFH.NumSamples-1 do
+         for i := 0 to WCPFile.RawFH.NumSamples-1 do
              begin
 
              { Create background noise with gaussian distribution }
-             y := RandG(0.0, Settings.SynapseSim.NoiseRMS) ;
+             y := RandG(0.0, WCPFile.Settings.SynapseSim.NoiseRMS) ;
 
              if i >= iStartEPC then
                 begin
                 y  := y + EPCTimeCourse( x, Amplitude, A1, A2 ) ;
-                x := x + Rawfh.dt ;
+                x := x + WCPFile.Rawfh.dt ;
                 end ;
 
             // Scale for non-linear summation if potentials
@@ -428,41 +428,41 @@ begin
 
              // Keep within display range
 
-             y := Min(Max(y,Main.SESLabIO.ADCMinValue*Channel[ChSim].ADCScale),
-                            Main.SESLabIO.ADCMaxValue*Channel[ChSim].ADCScale);
+             y := Min(Max(y,Main.SESLabIO.ADCMinValue*WCPFile.Channel[ChSim].ADCScale),
+                            Main.SESLabIO.ADCMaxValue*WCPFile.Channel[ChSim].ADCScale);
 
              // Write to buffer
-             ADC^[j] := Round(y/Channel[ChSim].ADCScale) + Channel[ChSim].ADCZero ;
+             ADC^[j] := Round(y/WCPFile.Channel[ChSim].ADCScale) + WCPFile.Channel[ChSim].ADCZero ;
 
-             j := j + RawFH.NumChannels ;
+             j := j + WCPFile.RawFH.NumChannels ;
              end ;
 
-         scDisplay.TScale := RawFH.dt*Settings.TScale ;
-         scDisplay.TUnits := Settings.TUnits ;
+         scDisplay.TScale := WCPFile.RawFH.dt*WCPFile.Settings.TScale ;
+         scDisplay.TUnits := WCPFile.Settings.TUnits ;
 
          { Save Record to file }
-         Inc(RawFH.NumRecords) ;
+         Inc(WCPFile.RawFH.NumRecords) ;
          RH.Status := 'ACCEPTED' ;
-         if (Settings.SynapseSim.n = 1. )
-            and (Settings.SynapseSim.p = 1. ) then RH.RecType := 'MINI'
+         if (WCPFile.Settings.SynapseSim.n = 1. )
+            and (WCPFile.Settings.SynapseSim.p = 1. ) then RH.RecType := 'MINI'
                                               else RH.RecType := 'EVOK' ;
 
-         RH.Number := RawfH.NumRecords ;
+         RH.Number := WCPFile.RawfH.NumRecords ;
          RH.Time := RH.Number ;
-         RH.dt := RawfH.dt ;
+         RH.dt := WCPFile.RawfH.dt ;
          RH.EqnType := None ;
          RH.AnalysisAvailable := False ;
          RH.Ident := ' ' ;
-         PutRecord( RawfH, RH, RawfH.NumRecords, ADC^ ) ;
+         WCPFile.PutRecord( WCPFile.RawfH, RH, WCPFile.RawfH.NumRecords, ADC^ ) ;
 
          { Terminate when all records done (or abort button pressed) }
          Inc(NumRecordsDone) ;
 
          Main.StatusBar.SimpleText := format(
          'Nerve-evoked EPSC simulation : Record %d/%d created.',
-         [NumRecordsDone,Settings.SynapseSim.NumRecords] ) ;
+         [NumRecordsDone,WCPFile.Settings.SynapseSim.NumRecords] ) ;
 
-         if (NumRecordsDone >= Settings.SynapseSim.NumRecords) or bStart.Enabled then Done := True ;
+         if (NumRecordsDone >= WCPFile.Settings.SynapseSim.NumRecords) or bStart.Enabled then Done := True ;
 
          scDisplay.Invalidate ;
          Application.ProcessMessages ;
@@ -471,7 +471,7 @@ begin
 
          end ;
 
-     SaveHeader( RawFH ) ;
+     WCPFile.SaveHeader( WCPFile.RawFH ) ;
 
      Main.StatusBar.SimpleText := format(
                                   'Nerve-evoked EPSC simulation : %d records created.',
@@ -495,11 +495,11 @@ function TSynapseSim.EPCTimeCourse( x : single ;            // Time since transm
 var
     y : single ;
 begin
-     y := Amplitude*(A1*exp(-x/ Settings.SynapseSim.Tau1))  ;
+     y := Amplitude*(A1*exp(-x/ WCPFile.Settings.SynapseSim.Tau1))  ;
      if ckDoubleExponentialDecay.checked then
-        y := y + Amplitude*(A2*exp(-x/ Settings.SynapseSim.Tau2)) ;
-     if Settings.SynapseSim.TauRise > 0.0 then
-        y := y*0.5*(1.+erf( (x/Settings.SynapseSim.TauRise)-3. ) ) ;
+        y := y + Amplitude*(A2*exp(-x/ WCPFile.Settings.SynapseSim.Tau2)) ;
+     if WCPFile.Settings.SynapseSim.TauRise > 0.0 then
+        y := y*0.5*(1.+erf( (x/WCPFile.Settings.SynapseSim.TauRise)-3. ) ) ;
      Result := y ;
 end;
 
@@ -517,15 +517,15 @@ begin
      NewFileName := '' ;
 
      // Create a new file if none open
-     if RawFH.FileHandle <= 0 then begin
+     if WCPFile.RawFH.FileHandle <= 0 then begin
         // No file open .. open new one
-        NewFileName := Main.CreateIndexedFileName( RawFH.FileName ) ;
+        NewFileName := WCPFIle.CreateIndexedFileName( WCPFile.RawFH.FileName ) ;
         end
-     else if (RawFH.NumRecords > 0) and
-        ((RawFH.NumChannels <> 1) or (RawFH.NumSamples <> Round(edNumSamples.Value))) then begin
+     else if (WCPFile.RawFH.NumRecords > 0) and
+        ((WCPFile.RawFH.NumChannels <> 1) or (WCPFile.RawFH.NumSamples <> Round(edNumSamples.Value))) then begin
         // No. channels or samples changed .. create .nn.wcp file
         // Extract stem of file name
-        Stem := ANSIReplaceText( RawFH.FileName, '.wcp', '.' ) ;
+        Stem := ANSIReplaceText( WCPFile.RawFH.FileName, '.wcp', '.' ) ;
         n := Pos( '.', Stem ) ;
         if n > 0 then Stem := LeftStr(Stem,n) ;
 
@@ -538,9 +538,9 @@ begin
 
      // Create new file (if required)
      if NewFileName <> '' then begin
-        RawFH.NumChannels := 1 ;
-        RawFH.NumSamples := Round(edNumSamples.Value) ;
-        Main.CreateNewDataFile( NewFileName ) ;
+        WCPFile.RawFH.NumChannels := 1 ;
+        WCPFile.RawFH.NumSamples := Round(edNumSamples.Value) ;
+        WCPFile.CreateNewDataFile( NewFileName ) ;
         Result := True ;
         end
      else Result := True ;
@@ -565,7 +565,7 @@ procedure TSynapseSim.ChangeDisplayGrid ;
 begin
      scDisplay.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
      scDisplay.MinADCValue := -Main.SESLabIO.ADCMaxValue -1 ;
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
 
      scDisplay.Invalidate ;
      end ;
@@ -685,7 +685,7 @@ begin
 
 procedure TSynapseSim.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-     if RawFH.NumRecords > 0 then begin
+     if WCPFile.RawFH.NumRecords > 0 then begin
         Main.mnShowRaw.Enabled := True ;
         Main.mnShowRaw.Click ;
         Main.mnZoomOutAll.Click ;
@@ -736,9 +736,9 @@ var
    ch : Integer ;
 begin
      { Update channel descriptors with any changes to display }
-     for ch := 0 to scDisplay.NumChannels-1 do if Channel[ch].InUse then begin
-         Channel[Ch].yMin := scDisplay.YMin[Ch] ;
-         Channel[Ch].yMax := scDisplay.YMax[Ch] ;
+     for ch := 0 to scDisplay.NumChannels-1 do if WCPFile.Channel[ch].InUse then begin
+         WCPFile.Channel[Ch].yMin := scDisplay.YMin[Ch] ;
+         WCPFile.Channel[Ch].yMax := scDisplay.YMax[Ch] ;
          end ;
      end;
 
@@ -766,8 +766,8 @@ procedure TSynapseSim.edDisplayRangeKeyPress(Sender: TObject;
 // ---------------------
 begin
      if key = #13 then begin
-        Channel[ChSim].ADCScale := Abs(edDisplayRange.Value) / Main.SESLabIO.ADCMaxValue ;
-        scDisplay.ChanScale[ChSim] := Channel[ChSim].ADCScale ;
+        WCPFile.Channel[ChSim].ADCScale := Abs(edDisplayRange.Value) / Main.SESLabIO.ADCMaxValue ;
+        scDisplay.ChanScale[ChSim] := WCPFile.Channel[ChSim].ADCScale ;
         scDisplay.Invalidate ;
         end ;
      end;

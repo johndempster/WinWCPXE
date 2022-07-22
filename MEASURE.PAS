@@ -96,16 +96,19 @@ unit Measure;
                Absolute peak values now correctly entered in results table
    17.08.21 .. Peak-peak peak measurement option added
    09.03.22 .. Latency measurement now correctly calculated
+   26.05.22 .. ZeroFrm now settings Channel record zero level settings directly
+   05.07.22 .. Decay time to fixed level option added
+               Variable list now created by procedure AddVariableToTable()
 
   ==========================================================================}
 interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, StdCtrls, Grids, ExtCtrls, TabNotBk, Global, Shared, FileIo,
+  Forms, Dialogs, StdCtrls, Grids, ExtCtrls, TabNotBk,
   Zero, SetAxes, SetVar, Printers, ClipBrd, maths,
   ScopeDisplay, XYPlotDisplay, ComCtrls, ValEdit, RangeEdit, Spin,
-  ValidatedEdit, math, seslabio, strutils, MMSYSTEM, MeasureThread  ;
+  ValidatedEdit, math, seslabio, strutils, MMSYSTEM, MeasureThread, WCPFIleUnit  ;
 
 type
 
@@ -214,8 +217,7 @@ TMeasureFrmCursors = Record
     gpRiseTime: TGroupBox;
     edRiseTime: TRangeEdit;
     gpDecayTime: TGroupBox;
-    edDecayTimePercentage: TValidatedEdit;
-    Label1: TLabel;
+    edDecayTimeThreshold: TValidatedEdit;
     GroupBox10: TGroupBox;
     edHistMin: TValidatedEdit;
     Label18: TLabel;
@@ -276,6 +278,8 @@ TMeasureFrmCursors = Record
     gpLatency: TGroupBox;
     Label14: TLabel;
     edLatencyPercentage: TValidatedEdit;
+    rbDecayTimePercent: TRadioButton;
+    rbDecayTimeToLevel: TRadioButton;
     procedure bDoAnalysisClick(Sender: TObject);
     procedure bAbortClick(Sender: TObject);
     procedure bNewXYPlotClick(Sender: TObject);
@@ -305,7 +309,6 @@ TMeasureFrmCursors = Record
     procedure bClearTableClick(Sender: TObject);
     procedure bXYFitClick(Sender: TObject);
     procedure cbPeakModeChange(Sender: TObject);
-    procedure edDecayTimePercentageKeyPress(Sender: TObject; var Key: Char);
     procedure bGetCursorsClick(Sender: TObject);
     procedure bAddVariableClick(Sender: TObject);
     procedure bClearAllTableVariablesClick(Sender: TObject);
@@ -319,8 +322,12 @@ TMeasureFrmCursors = Record
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure rbDecayTimePercentClick(Sender: TObject);
+    procedure rbDecayTimeToLevelClick(Sender: TObject);
 
   private
+
+   FH : TFileHeader ;            // Local copy of WCP file header
 
    Cursors : TMeasureFrmCursors ;
    ADC : PSmallIntArray ;
@@ -391,6 +398,7 @@ TMeasureFrmCursors = Record
      StErr : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
 
     procedure NewFile ;
+    procedure UpdateVariableNames ;
     procedure DisplayRecord ;
     procedure CopyDataToClipboard ;
     procedure CopyImageToClipboard ;
@@ -444,10 +452,10 @@ begin
      Height := Main.StatusBar.Top - Top -10 ;
      Width := Main.ClientWidth - Left - 20 ;
 
-     cbRecordType.items := RecordTypes ;
+     cbRecordType.items := WCPFile.RecordTypes ;
      cbRecordType.items.delete(0) ; {Remove 'ALL' item}
 
-     cbTypeToBeAnalysed.items := RecordTypes ;
+     cbTypeToBeAnalysed.items := WCPFile.RecordTypes ;
      if cbTypeToBeAnalysed.itemIndex < 0 then cbTypeToBeAnalysed.itemIndex := 0 ;
 
      // Rate of rise mode
@@ -473,7 +481,7 @@ begin
      cbHistEquation.Items.AddObject( '2 Gaussians', TObject(Gaussian2)) ;
      cbHistEquation.Items.AddObject( '3 Gaussians', TObject(Gaussian3)) ;
 
-     ckLockChannelCursors.Checked := Settings.LockChannelCursors ;
+     ckLockChannelCursors.Checked := WCPFile.Settings.LockChannelCursors ;
 
      SetStoreMode(Main.mnStoreTraces.Checked) ;
 
@@ -495,16 +503,36 @@ procedure TMeasureFrm.NewFile ;
   -----------------------------------------------------}
 var
    ch,v : Integer ;
-   VarUnits : Array[0..MaxChannels-1] of String ;
 begin
 
-     if FH.NumRecords <= 0 then begin
+     // Get internal copy of currently displayed WCP file header
+     FH := WCPFile.FH ;
+     WCPFile.GetHeader( FH ) ;
+
+     if FH.NumRecords <= 0 then
+        begin
         Close ;
         Exit ;
         end ;
 
      // T.(x%) decay time percentage of peak value
-     edDecayTimePercentage.Value := FH.DecayTimePercentage ;
+     if FH.DecayTimeToLevel then
+        begin
+        // Decay time to fixed level option
+        rbDecayTimeToLevel.Checked := True ;
+        rbDecayTimePercent.Checked := False ;
+        edDecayTimeThreshold.Value := FH.DecayTimeLevel ;
+        edDecayTimeThreshold.Units := '' ;
+        end
+     else
+        begin
+        // Decay time to % of peak option
+        rbDecayTimeToLevel.Checked := False ;
+        rbDecayTimePercent.Checked := True ;
+        edDecayTimeThreshold.Value := FH.DecayTimePercentage ;
+        edDecayTimeThreshold.Units := '%' ;
+        end ;
+
      edPeakAvg.Value := FH.NumPointsAveragedAtPeak ;
      cbPeakMode.ItemIndex := FH.PeakMode ;
      cbRateOfRiseMode.ItemIndex := Min(Max(FH.RateOfRiseMode,0),cbRateOfRiseMode.Items.Count-1);
@@ -520,125 +548,8 @@ begin
 
      Caption := Main.UpdateCaption( FH, 'Waveform Measurements ' ) ;
 
-     // Clear variable names string list
-     VarList.Clear ;
-
-     { Create waveform analysis record }
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := ' ' ;
-     CreateVariable(  vRecord, 'Record',VarUnits, 1. ) ;
-
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := ' ' ;
-     CreateVariable( vGroup, 'Group', VarUnits, 1. ) ;
-
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := 's' ;
-     CreateVariable( vTime, 'Time', VarUnits, 1. ) ;
-
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := Channel[ch].ADCUnits ;
-     CreateVariable(vAverage,'Average',VarUnits,1. ) ;
-
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := Channel[ch].ADCUnits + '.'
-                                                    + Settings.TUnits ;
-     CreateVariable(vArea,'Area',VarUnits,Settings.TScale ) ;
-
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := Channel[ch].ADCUnits + '.'
-                                                    + Settings.TUnits ;
-     CreateVariable(vAbsArea,'Abs(Area)',VarUnits,Settings.TScale ) ;
-
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := Channel[ch].ADCUnits ;
-
-     { Type of peak analysis required }
-
-     if cbPeakMode.ItemIndex = NegativePeaks then CreateVariable( vPeak,'Peak(-)',VarUnits,1. )
-     else if cbPeakMode.ItemIndex = PositivePeaks then CreateVariable( vPeak,'Peak(+)',VarUnits,1. )
-     else if cbPeakMode.ItemIndex = PeakPeaks then CreateVariable( vPeak,'Peak-Peak',VarUnits,1. )
-     else CreateVariable( vPeak,'Peak(a)',VarUnits,1. ) ;
-
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := Channel[ch].ADCUnits + '^2' ;
-     CreateVariable(vVariance,'Variance',VarUnits, 1. ) ;
-
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := Settings.TUnits ;
-     CreateVariable(vRiseTime,'Rise Time',VarUnits, Settings.TScale ) ;
-
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := Channel[ch].ADCUnits +
-                                                     '/' + Settings.TUnits ;
-     CreateVariable( vRateofRise,'Rate of Rise',VarUnits,
-                                                       1./Settings.TScale ) ;
-
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := Settings.TUnits ;
-     CreateVariable(vLatency,'Latency',VarUnits, Settings.TScale ) ;
-
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := Settings.TUnits ;
-     CreateVariable( vtDecay,
-                     format('T.%d%%',[Round(edDecayTimePercentage.Value)]),
-                     VarUnits, Settings.TScale ) ;
-
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := Settings.TUnits ;
-     CreateVariable(vT90,'T.90%',VarUnits, Settings.TScale ) ;
-
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := 's' ;
-     CreateVariable(vInterval,'Interval',VarUnits, 1. ) ;
-
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := Channel[ch].ADCUnits ;
-     CreateVariable(vBaseline,'Baseline',VarUnits, 1. ) ;
-
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := 'mS' ;
-     CreateVariable(vConductance,'Conductance',VarUnits, 1. ) ;
-
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := Channel[ch].ADCUnits ;
-     CreateVariable( vQuantile,
-                     format('%.1f%% Quantile',[edQuantilePercentage.Value]),
-                     VarUnits, 1.0 ) ;
-
-        { Set up captions of variables to be summarised }
-        SetCheckBoxCaption( ckVariable0, 0 ) ;
-        SetCheckBoxCaption( ckVariable1, 1 ) ;
-        SetCheckBoxCaption( ckVariable2, 2 ) ;
-        SetCheckBoxCaption( ckVariable3, 3 ) ;
-        SetCheckBoxCaption( ckVariable4, 4 ) ;
-        SetCheckBoxCaption( ckVariable5, 5 ) ;
-        SetCheckBoxCaption( ckVariable6, 6 ) ;
-        SetCheckBoxCaption( ckVariable7, 7 ) ;
-        SetCheckBoxCaption( ckVariable8, 8 ) ;
-        SetCheckBoxCaption( ckVariable9, 9 ) ;
-        SetCheckBoxCaption( ckVariable10, 10 ) ;
-        SetCheckBoxCaption( ckVariable11, 11 ) ;
-        SetCheckBoxCaption( ckVariable12, 12 ) ;
-        SetCheckBoxCaption( ckVariable13, 13 ) ;
-        SetCheckBoxCaption( ckVariable14, 14 ) ;
-        SetCheckBoxCaption( ckVariable15, 15 ) ;
-        SetCheckBoxCaption( ckVariable16, 16 ) ;
-
-        { Set up captions of TabVars to be summarised }
-        SetCheckBoxCaption( ckTabVar0, 0 ) ;
-        SetCheckBoxCaption( ckTabVar1, 1 ) ;
-        SetCheckBoxCaption( ckTabVar2, 2 ) ;
-        SetCheckBoxCaption( ckTabVar3, 3 ) ;
-        SetCheckBoxCaption( ckTabVar4, 4 ) ;
-        SetCheckBoxCaption( ckTabVar5, 5 ) ;
-        SetCheckBoxCaption( ckTabVar6, 6 ) ;
-        SetCheckBoxCaption( ckTabVar7, 7 ) ;
-        SetCheckBoxCaption( ckTabVar8, 8 ) ;
-        SetCheckBoxCaption( ckTabVar9, 9 ) ;
-        SetCheckBoxCaption( ckTabVar10, 10 ) ;
-        SetCheckBoxCaption( ckTabVar11, 11 ) ;
-        SetCheckBoxCaption( ckTabVar12, 12 ) ;
-        SetCheckBoxCaption( ckTabVar13, 13 ) ;
-        SetCheckBoxCaption( ckTabVar14, 14 ) ;
-        SetCheckBoxCaption( ckTabVar15, 15 ) ;
-        SetCheckBoxCaption( ckTabVar16, 16 ) ;
-
-     { Create variable name list for X/Y plot }
-     cbXVariable.items := VarList  ;
-     if cbXVariable.ItemIndex < 0  then cbXVariable.ItemIndex := 0 ;
-     cbYVariable.items := VarList  ;
-     if cbYVariable.ItemIndex < 0  then cbYVariable.ItemIndex := 0 ;
-     cbCondIVar.items := VarList  ;
-     if cbCondIVar.ItemIndex < 0  then cbCondIVar.ItemIndex := vAverage ;
-     cbCondVVar.items := VarList  ;
-     if cbCondVVar.ItemIndex < 0  then cbCondVVar.ItemIndex := vAverage ;
-
-     cbHistVariable.items := VarList  ;
-     if cbHistVariable.ItemIndex < 0  then cbHistVariable.ItemIndex := 0 ;
+     // Update names of measurement variables
+     UpdateVariableNames ;
 
      edRecRange.LoLimit := 1 ;
      edRecRange.LoValue := 1 ;
@@ -652,37 +563,60 @@ begin
      edPlotRecType.Text := 'ALL' ;
 
      { Set up display channels }
-     scDisplay.MaxADCValue := RawFH.MaxADCValue ;
-     scDisplay.MinADCValue := RawFH.MinADCValue ;
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.MaxADCValue := FH.MaxADCValue ;
+     scDisplay.MinADCValue := FH.MinADCValue ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
 
      scDisplay.MaxPoints := FH.NumSamples ;
      scDisplay.NumPoints := scDisplay.MaxPoints ;
      scDisplay.NumChannels := FH.NumChannels ;
 
-     scDisplay.xMax := Min(Round(Channel[0].xMax),FH.NumSamples-1)  ;
-     scDisplay.xMin := Min(Round(Channel[0].xMin),scDisplay.xMax) ;
-     if scDisplay.xMin = scDisplay.xMax then begin
+     scDisplay.xMax := Min(Round(WCPFile.Channel[0].xMax),FH.NumSamples-1)  ;
+     scDisplay.xMin := Min(Round(WCPFile.Channel[0].xMin),scDisplay.xMax) ;
+     if scDisplay.xMin = scDisplay.xMax then
+           begin
            scDisplay.xMin := 0 ;
            scDisplay.xMax := FH.NumSamples-1 ;
            end ;
 
      { Set channel information }
-     for ch := 0 to FH.NumChannels-1 do begin
-            scDisplay.ChanUnits[ch] := Channel[ch].ADCUnits ;
-            scDisplay.ChanName[ch] := Channel[ch].ADCName ;
-            scDisplay.ChanScale[ch] := Channel[ch].ADCScale ;
-            scDisplay.ChanUnits[ch] := Channel[ch].ADCUnits ;
-            scDisplay.ChanZero[ch] := Channel[ch].ADCZero ;
-            scDisplay.ChanOffsets[ch] := Channel[ch].ChannelOffset ;
-            scDisplay.yMin[ch] := Channel[ch].yMin ;
-            scDisplay.yMax[ch] := Channel[ch].yMax ;
-            scDisplay.ChanVisible[ch] := Channel[ch].InUse ;
+     for ch := 0 to FH.NumChannels-1 do
+            begin
+            scDisplay.ChanUnits[ch] := WCPFile.Channel[ch].ADCUnits ;
+            scDisplay.ChanName[ch] := WCPFile.Channel[ch].ADCName ;
+            scDisplay.ChanScale[ch] := WCPFile.Channel[ch].ADCScale ;
+            scDisplay.ChanUnits[ch] := WCPFile.Channel[ch].ADCUnits ;
+            scDisplay.ChanZero[ch] := WCPFile.Channel[ch].ADCZero ;
+            scDisplay.ChanOffsets[ch] := WCPFile.Channel[ch].ChannelOffset ;
+            scDisplay.yMin[ch] := WCPFile.Channel[ch].yMin ;
+            scDisplay.yMax[ch] := WCPFile.Channel[ch].yMax ;
+            scDisplay.ChanVisible[ch] := WCPFile.Channel[ch].InUse ;
             scDisplay.ChanColor[ch] := clBlue ;
             end ;
 
-     scDisplay.TScale := FH.dt*Settings.TScale ;
-     scDisplay.TUnits := Settings.TUnits ;
+     scDisplay.TScale := FH.dt*WCPFile.Settings.TScale ;
+     scDisplay.TUnits := WCPFile.Settings.TUnits ;
+
+     { Update channel selector boxes }
+     cbXChannel.items := WCPFile.ChannelNames ;
+     if cbXChannel.ItemIndex < 0 then cbXChannel.ItemIndex := 0 ;
+     cbYChannel.items := WCPFile.ChannelNames ;
+     if cbYChannel.ItemIndex < 0 then cbYChannel.ItemIndex := 0 ;
+     cbYChannel.items := WCPFile.ChannelNames ;
+     if cbYChannel.ItemIndex < 0 then cbYChannel.ItemIndex := 0 ;
+     cbCondIChan.Items := WCPFile.ChannelNames ;
+     if cbCondIChan.ItemIndex < 0 then cbCondIChan.ItemIndex := 0 ;
+     cbCondVChan.Items := WCPFile.ChannelNames ;
+     if cbCondVChan.ItemIndex < 0 then cbCondVChan.ItemIndex := Max(1,FH.NumChannels-1) ;
+
+     cbHistChannel.items := WCPFile.ChannelNames ;
+     if cbHistChannel.ItemIndex < 0 then cbHistChannel.ItemIndex := 0 ;
+     { Set up Summary channel selector box }
+     cbSummaryChannel.items := WCPFile.ChannelNames ;
+     if cbSummaryChannel.ItemIndex < 0 then cbSummaryChannel.ItemIndex := 0 ;
+
+     cbTableChannel.items := WCPFile.ChannelNames ;
+     if cbTableChannel.ItemIndex < 0 then cbTableChannel.ItemIndex := 0 ;
 
      if ADC <> Nil then FreeMem( ADC ) ;
      GetMem( ADC, FH.NumChannels*FH.NumSamples*2 ) ;
@@ -726,47 +660,10 @@ begin
 
      scDisplay.ClearHorizontalCursors ;
      for ch := 0 to FH.NumChannels-1 do begin
-               scDisplay.AddHorizontalCursor(ch,Settings.Colors.Cursors,True,'z' ) ;
-               scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
+               scDisplay.AddHorizontalCursor(ch,WCPFile.Settings.Colors.Cursors,True,'z' ) ;
+               scDisplay.HorizontalCursors[ch] := WCPFile.Channel[ch].ADCZero ;
                end ;
 
-     { Update channel selector boxes }
-     cbXChannel.items := ChannelNames ;
-     if cbXChannel.ItemIndex < 0 then cbXChannel.ItemIndex := 0 ;
-     cbYChannel.items := ChannelNames ;
-     if cbYChannel.ItemIndex < 0 then cbYChannel.ItemIndex := 0 ;
-     cbYChannel.items := ChannelNames ;
-     if cbYChannel.ItemIndex < 0 then cbYChannel.ItemIndex := 0 ;
-     cbCondIChan.Items := ChannelNames ;
-     if cbCondIChan.ItemIndex < 0 then cbCondIChan.ItemIndex := 0 ;
-     cbCondVChan.Items := ChannelNames ;
-     if cbCondVChan.ItemIndex < 0 then cbCondVChan.ItemIndex := Max(1,FH.NumChannels-1) ;
-
-     cbHistChannel.items := ChannelNames ;
-     if cbHistChannel.ItemIndex < 0 then cbHistChannel.ItemIndex := 0 ;
-     { Set up Summary channel selector box }
-     cbSummaryChannel.items := ChannelNames ;
-     if cbSummaryChannel.ItemIndex < 0 then cbSummaryChannel.ItemIndex := 0 ;
-
-     cbTableChannel.items := ChannelNames ;
-     if cbTableChannel.ItemIndex < 0 then cbTableChannel.ItemIndex := 0 ;
-
-
-     sgResults.RowCount := LastMeasureVariable + 2 ;
-     sgResults.ColCount := FH.NumChannels + 1 ;
-
-     { Variable name column }
-     for v := 0 to cbXVariable.Items.Count-1 do begin
-            sgResults.Cells[0,v+1] := cbXVariable.Items[v] ;
-            sgResults.ColWidths[0] := Max(
-                                      sgResults.Canvas.TextWidth(cbXVariable.Items[v] + '   '),
-                                      sgResults.ColWidths[0] ) ;
-            end ;
-
-     { Channel name row }
-     for Ch := 0 to FH.NumChannels-1 do begin
-            sgResults.Cells[Ch+1,0] := Channel[Ch].ADCName ;
-            end ;
 
      { Initialise peak mode combo box }
      if cbPeakMode.ItemIndex < 0 then cbPeakMode.ItemIndex := 0 ;
@@ -782,9 +679,159 @@ begin
      SetStoreMode( Main.mnStoreTraces.Checked ) ;
 
      // Update record range (also triggers display of first record
-     UpdateScrollBar( sbRecordNum, FH.RecordNum, 1, fH.NumRecords ) ;
+     WCPFile.UpdateScrollBar( sbRecordNum, FH.RecordNum, 1, fH.NumRecords ) ;
 
      end ;
+
+
+procedure TMeasureFrm.UpdateVariableNames ;
+// -------------------------------------
+// Update names of measurement variables
+// -------------------------------------
+var
+   ch,v : Integer ;
+   VarUnits : Array[0..MaxChannels-1] of String ;
+   s : string ;
+begin
+
+   // Clear variable names string list
+     VarList.Clear ;
+
+     { Create waveform analysis record }
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := ' ' ;
+     CreateVariable(  vRecord, 'Record',VarUnits, 1. ) ;
+
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := ' ' ;
+     CreateVariable( vGroup, 'Group', VarUnits, 1. ) ;
+
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := 's' ;
+     CreateVariable( vTime, 'Time', VarUnits, 1. ) ;
+
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := WCPFile.Channel[ch].ADCUnits ;
+     CreateVariable(vAverage,'Average',VarUnits,1. ) ;
+
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := WCPFile.Channel[ch].ADCUnits + '.'
+                                                    + WCPFile.Settings.TUnits ;
+     CreateVariable(vArea,'Area',VarUnits,WCPFile.Settings.TScale ) ;
+
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := WCPFile.Channel[ch].ADCUnits + '.'
+                                                    + WCPFile.Settings.TUnits ;
+     CreateVariable(vAbsArea,'Abs(Area)',VarUnits,WCPFile.Settings.TScale ) ;
+
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := WCPFile.Channel[ch].ADCUnits ;
+
+     { Type of peak analysis required }
+
+     if cbPeakMode.ItemIndex = NegativePeaks then CreateVariable( vPeak,'Peak(-)',VarUnits,1. )
+     else if cbPeakMode.ItemIndex = PositivePeaks then CreateVariable( vPeak,'Peak(+)',VarUnits,1. )
+     else if cbPeakMode.ItemIndex = PeakPeaks then CreateVariable( vPeak,'Peak-Peak',VarUnits,1. )
+     else CreateVariable( vPeak,'Peak(a)',VarUnits,1. ) ;
+
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := WCPFile.Channel[ch].ADCUnits + '^2' ;
+     CreateVariable(vVariance,'Variance',VarUnits, 1. ) ;
+
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := WCPFile.Settings.TUnits ;
+     CreateVariable(vRiseTime,'Rise Time',VarUnits, WCPFile.Settings.TScale ) ;
+
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := WCPFile.Channel[ch].ADCUnits + '/' + WCPFile.Settings.TUnits ;
+     CreateVariable( vRateofRise,'Rate of Rise',VarUnits,1./WCPFile.Settings.TScale ) ;
+
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := WCPFile.Settings.TUnits ;
+     CreateVariable(vLatency,'Latency',VarUnits, WCPFile.Settings.TScale ) ;
+
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := WCPFile.Settings.TUnits ;
+     if FH.DecayTimeToLevel then s := ''
+                            else s := '%' ;
+     CreateVariable( vtDecay,
+                     format('T.%d%s',[Round(edDecayTimeThreshold.Value),s]),
+                     VarUnits, WCPFile.Settings.TScale ) ;
+
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := WCPFile.Settings.TUnits ;
+     CreateVariable(vT90,'T.90%',VarUnits, WCPFile.Settings.TScale ) ;
+
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := 's' ;
+     CreateVariable(vInterval,'Interval',VarUnits, 1. ) ;
+
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := WCPFile.Channel[ch].ADCUnits ;
+     CreateVariable(vBaseline,'Baseline',VarUnits, 1. ) ;
+
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := 'mS' ;
+     CreateVariable(vConductance,'Conductance',VarUnits, 1. ) ;
+
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := WCPFile.Channel[ch].ADCUnits ;
+     CreateVariable( vQuantile,
+                     format('%.1f%% Quantile',[edQuantilePercentage.Value]),
+                     VarUnits, 1.0 ) ;
+
+     { Set up captions of variables to be summarised }
+     SetCheckBoxCaption( ckVariable0, 0 ) ;
+     SetCheckBoxCaption( ckVariable1, 1 ) ;
+     SetCheckBoxCaption( ckVariable2, 2 ) ;
+     SetCheckBoxCaption( ckVariable3, 3 ) ;
+     SetCheckBoxCaption( ckVariable4, 4 ) ;
+     SetCheckBoxCaption( ckVariable5, 5 ) ;
+     SetCheckBoxCaption( ckVariable6, 6 ) ;
+     SetCheckBoxCaption( ckVariable7, 7 ) ;
+     SetCheckBoxCaption( ckVariable8, 8 ) ;
+     SetCheckBoxCaption( ckVariable9, 9 ) ;
+     SetCheckBoxCaption( ckVariable10, 10 ) ;
+     SetCheckBoxCaption( ckVariable11, 11 ) ;
+     SetCheckBoxCaption( ckVariable12, 12 ) ;
+     SetCheckBoxCaption( ckVariable13, 13 ) ;
+     SetCheckBoxCaption( ckVariable14, 14 ) ;
+     SetCheckBoxCaption( ckVariable15, 15 ) ;
+     SetCheckBoxCaption( ckVariable16, 16 ) ;
+
+     { Set up captions of TabVars to be summarised }
+     SetCheckBoxCaption( ckTabVar0, 0 ) ;
+     SetCheckBoxCaption( ckTabVar1, 1 ) ;
+     SetCheckBoxCaption( ckTabVar2, 2 ) ;
+     SetCheckBoxCaption( ckTabVar3, 3 ) ;
+     SetCheckBoxCaption( ckTabVar4, 4 ) ;
+     SetCheckBoxCaption( ckTabVar5, 5 ) ;
+     SetCheckBoxCaption( ckTabVar6, 6 ) ;
+     SetCheckBoxCaption( ckTabVar7, 7 ) ;
+     SetCheckBoxCaption( ckTabVar8, 8 ) ;
+     SetCheckBoxCaption( ckTabVar9, 9 ) ;
+     SetCheckBoxCaption( ckTabVar10, 10 ) ;
+     SetCheckBoxCaption( ckTabVar11, 11 ) ;
+     SetCheckBoxCaption( ckTabVar12, 12 ) ;
+     SetCheckBoxCaption( ckTabVar13, 13 ) ;
+     SetCheckBoxCaption( ckTabVar14, 14 ) ;
+     SetCheckBoxCaption( ckTabVar15, 15 ) ;
+     SetCheckBoxCaption( ckTabVar16, 16 ) ;
+
+     { Create variable name list for X/Y plot }
+     cbXVariable.items := VarList  ;
+     if cbXVariable.ItemIndex < 0  then cbXVariable.ItemIndex := 0 ;
+     cbYVariable.items := VarList  ;
+     if cbYVariable.ItemIndex < 0  then cbYVariable.ItemIndex := 0 ;
+     cbCondIVar.items := VarList  ;
+     if cbCondIVar.ItemIndex < 0  then cbCondIVar.ItemIndex := vAverage ;
+     cbCondVVar.items := VarList  ;
+     if cbCondVVar.ItemIndex < 0  then cbCondVVar.ItemIndex := vAverage ;
+     cbHistVariable.items := VarList  ;
+     if cbHistVariable.ItemIndex < 0  then cbHistVariable.ItemIndex := 0 ;
+
+     sgResults.RowCount := LastMeasureVariable + 2 ;
+     sgResults.ColCount := FH.NumChannels + 1 ;
+
+     { Variable name column }
+     for v := 0 to cbXVariable.Items.Count-1 do
+         begin
+            sgResults.Cells[0,v+1] := cbXVariable.Items[v] ;
+            sgResults.ColWidths[0] := Max(
+                                      sgResults.Canvas.TextWidth(cbXVariable.Items[v] + '   '),
+                                      sgResults.ColWidths[0] ) ;
+            end ;
+
+     { Channel name row }
+     for Ch := 0 to FH.NumChannels-1 do
+         begin
+         sgResults.Cells[Ch+1,0] := WCPFile.Channel[Ch].ADCName ;
+         end ;
+
+end;
 
 
 procedure TMeasureFrm.DisplayRecord ;
@@ -806,20 +853,20 @@ begin
      scDisplay.RecordNumber := fH.CurrentRecord ;
 
      { Read record data from file }
-     GetRecord( fH, rH, fH.RecordNum, ADC^ ) ;
+     WCPFile.GetRecord( fH, rH, fH.RecordNum, ADC^ ) ;
 
      for ch := 0 to FH.NumChannels-1 do begin
          // Zero level
-         scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
+         scDisplay.HorizontalCursors[ch] := WCPFile.Channel[ch].ADCZero ;
          // Start of area from which zero level was computed (-1 indicates fixed zero level)
-         scDisplay.ChanZeroAt[ch] := Channel[ch].ADCZeroAt ;
+         scDisplay.ChanZeroAt[ch] := WCPFile.Channel[ch].ADCZeroAt ;
          // Signal scaling factor
-         scDisplay.ChanScale[ch] := Channel[ch].ADCScale ;
+         scDisplay.ChanScale[ch] := WCPFile.Channel[ch].ADCScale ;
          end ;
      // No. of samples in zero level area
      scDisplay.ChanZeroAvg := FH.NumZeroAvg ;
 
-     scDisplay.TScale := RH.dt*Settings.TScale ;
+     scDisplay.TScale := RH.dt*WCPFile.Settings.TScale ;
      scDisplay.SetDataBuf( ADC ) ;
 
      { Show whether record has been rejected by operator }
@@ -831,7 +878,7 @@ begin
 
      { Display waveform measurements for this record }
      if RH.AnalysisAvailable then begin
-        for Ch := 0 to FH.NumChannels-1 do if Channel[Ch].InUse then begin
+        for Ch := 0 to FH.NumChannels-1 do if WCPFile.Channel[Ch].InUse then begin
             ColWidth := 0 ;
             for v := 0 to cbXVariable.Items.Count-1 do begin
                 jVar := ch*MaxAnalysisVariables + Integer(VarList.objects[v]) ;
@@ -853,12 +900,12 @@ procedure TMeasureFrm.ChangeDisplayGrid ;
 var
     ch : Integer ;
 begin
-     scDisplay.MaxADCValue := RawFH.MaxADCValue ;
-     scDisplay.MinADCValue := RawFH.MinADCValue ;
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.MaxADCValue := FH.MaxADCValue ;
+     scDisplay.MinADCValue := FH.MinADCValue ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
 
      for ch := 0 to scDisplay.NumChannels-1 do begin
-         scDisplay.ChanVisible[ch] := Channel[ch].InUse ;
+         scDisplay.ChanVisible[ch] := WCPFile.Channel[ch].InUse ;
          end ;
 
      DisplayRecord ;
@@ -872,8 +919,8 @@ procedure  TMeasureFrm.ZoomOut ;
   Set minimum display magnification
   --------------------------------- }
 begin
-     scDisplay.MaxADCValue := RawFH.MaxADCValue ;
-     scDisplay.MinADCValue := RawFH.MinADCValue ;
+     scDisplay.MaxADCValue := FH.MaxADCValue ;
+     scDisplay.MinADCValue := FH.MinADCValue ;
      scDisplay.ZoomOut ;
      end ;
 
@@ -927,17 +974,25 @@ begin
      FH.RiseTimeHi := edRiseTime.HiValue ;
      FH.RateOfRiseMode := cbRateofRiseMode.ItemIndex ;
      FH.LatencyPercentage := edLatencyPercentage.Value ;
-     FH.DecayTimePercentage := edDecayTimePercentage.Value ;
+
+     FH.DecayTimeToLevel := rbDecayTimeToLevel.Checked ;
+     if FH.DecayTimeToLevel then FH.DecayTimeLevel := edDecayTimeThreshold.Value
+                            else FH.DecayTimePercentage := edDecayTimeThreshold.Value ;
 
      for ch := 0 to FH.NumChannels-1 do
          begin
-        iStart[ch] := Min( Round(scDisplay.VerticalCursors[Cursors.C0[ch]]),
+         iStart[ch] := Min( Round(scDisplay.VerticalCursors[Cursors.C0[ch]]),
+                                              Round(scDisplay.VerticalCursors[Cursors.C1[ch]]) ) ;
+         iEnd[ch] :=   Max( Round(scDisplay.VerticalCursors[Cursors.C0[ch]]),
                                              Round(scDisplay.VerticalCursors[Cursors.C1[ch]]) ) ;
-        iEnd[ch] :=   Max( Round(scDisplay.VerticalCursors[Cursors.C0[ch]]),
-                                            Round(scDisplay.VerticalCursors[Cursors.C1[ch]]) ) ;
                 { Zero time cursor }
-        iTimeZero[ch] := Round(scDisplay.VerticalCursors[Cursors.t0]) ;
-        end ;
+         iTimeZero[ch] := Round(scDisplay.VerticalCursors[Cursors.t0]) ;
+         end ;
+
+     WCPFile.SaveHeader( FH ) ;
+
+     // Update names of variables
+     UpdateVariableNames ;
 
      { Set flags to warn other functions that data has changed }
      NewSummaryNeeded := True ;
@@ -951,7 +1006,8 @@ begin
                                                 iStart,
                                                 iEnd,
                                                 iTimeZero,
-                                                edLatencyPercentage.Value ) ;
+                                                edLatencyPercentage.Value,
+                                                FH ) ;
 
      end;
 
@@ -997,7 +1053,7 @@ begin
 
      { Create X and Y axes labels }
      plPlot.xAxisLabel := '' ;
-     if xVar > vTime then plPlot.xAxisLabel := Channel[xCh].ADCName + ' ';
+     if xVar > vTime then plPlot.xAxisLabel := WCPFile.Channel[xCh].ADCName + ' ';
      plPlot.xAxisLabel := plPlot.xAxisLabel + VarName[xVar]
                           + ' ' + Units[xCh*MaxAnalysisVariables+xVar] ;
 
@@ -1011,7 +1067,7 @@ begin
         end ;
 
      if (yVar > vTime) then begin
-        plPlot.yAxisLabel := Channel[yCh].ADCName + ' ' ;
+        plPlot.yAxisLabel := WCPFile.Channel[yCh].ADCName + ' ' ;
         plPlot.yAxisLabel := plPlot.yAxisLabel + VarName[yVar]
                              + ' ' + Units[yCh*MaxAnalysisVariables+yVar] ;
         end ;
@@ -1023,7 +1079,7 @@ begin
      EndAtRec := Round(edPlotRange.HiValue ) ;
      for Rec := StartAtRec to EndAtRec do begin
          { Read record analysis block from file }
-         GetRecordHeaderOnly( fH, rH, Rec ) ;
+         WCPFile.GetRecordHeaderOnly( fH, rH, Rec ) ;
          { Add to plot if selected and valid }
          if UseRecord(rH,cbTypeToBeAnalysed.text) then begin
             x := rH.Value[XCh*MaxAnalysisVariables+XVar]*UnitsScale[XCh*MaxAnalysisVariables+XVar] ;
@@ -1032,7 +1088,7 @@ begin
                OK := CalculateConductance(y) ;
                if OK then plPlot.AddPoint(0, x, y ) ;
                // Save conductance value to record variables
-               PutRecordHeaderOnly( fH, rH, Rec ) ;
+               WCPFile.PutRecordHeaderOnly( fH, rH, Rec ) ;
                end
             else begin
                // All other variables
@@ -1182,7 +1238,7 @@ begin
      Screen.Cursor := crHourglass ;
      for Rec := RecStart to RecEnd do begin
             { Read record analysis block from file }
-            GetRecordHeaderOnly( fH, rH, Rec ) ;
+            WCPFile.GetRecordHeaderOnly( fH, rH, Rec ) ;
             if UseRecord( rH, cbTypeToBeAnalysed.text ) then begin
                x := rH.Value[ VarCh*MaxAnalysisVariables+VarVar  ]
                     * UnitsScale[VarCh*MaxAnalysisVariables+VarVar] ;
@@ -1207,7 +1263,7 @@ begin
 
      { Create X and Y axes labels }
      plHist.xAxisLabel := '' ;
-     if VarVar > vTime then plHist.xAxisLabel := Channel[VarCh].ADCName + ' ';
+     if VarVar > vTime then plHist.xAxisLabel := WCPFile.Channel[VarCh].ADCName + ' ';
      plHist.xAxisLabel := plHist.xAxisLabel + VarList[VarVar]
                           + ' ' + Units[VarCh*MaxAnalysisVariables+VarVar] ;
 
@@ -1299,7 +1355,7 @@ begin
      for Rec :=RecStart to RecEnd do begin
 
          { Get record header containing analysis results }
-         GetRecordHeaderOnly( fH, rH, Rec ) ;
+         WCPFile.GetRecordHeaderOnly( fH, rH, Rec ) ;
 
          if Rec = RecStart then begin
             { Initialise Min/Max if this is first record }
@@ -1347,7 +1403,7 @@ begin
 
      { Re-read the analysis blocks to get residual deviations from mean }
      for Rec := RecStart to RecEnd do begin
-         GetRecordHeaderOnly( fH, rH, Rec ) ;
+         WCPFile.GetRecordHeaderOnly( fH, rH, Rec ) ;
          if UseRecord( rH, cbTypeToBeAnalysed.text ) then begin
             for iVar := 0 to LastMeasureVariable do begin
                 for ch := 0 to fH.NumChannels-1 do begin
@@ -1552,7 +1608,7 @@ begin
                vRecord,vGroup : Table.cells[Col,1] := '' ;
                vTime : Table.cells[Col,1] := '(' + Units[jVar] + ')'
                else begin
-                  Table.cells[Col,1] := ChannelNames[TableChans[Col]] +
+                  Table.cells[Col,1] := WCPFile.ChannelNames[TableChans[Col]] +
                                         ' (' + Units[jVar] + ')' ;
                   end ;
                end ;
@@ -1564,7 +1620,7 @@ begin
      EndAt := Round(edPlotRange.HiValue) ;
      for Rec := StartAt to EndAt do begin
          { Read analysis data from record }
-         GetRecordHeaderOnly( fH, rH, Rec ) ;
+         WCPFile.GetRecordHeaderOnly( fH, rH, Rec ) ;
          { Only use ACCEPTED records of appropriate type }
          if UseRecord( rH, cbTypeToBeAnalysed.text ) then begin
             { Fill row with selected variables }
@@ -1594,7 +1650,7 @@ procedure TMeasureFrm.ckBadRecordClick(Sender: TObject);
 begin
      if ckBadRecord.checked then RH.Status := 'REJECTED'
                             else RH.Status := 'ACCEPTED' ;
-     PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+     WCPFile.PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
      end;
 
 
@@ -1604,7 +1660,7 @@ procedure TMeasureFrm.cbRecordTypeChange(Sender: TObject);
   ----------------------------}
 begin
      RH.RecType := cbRecordType.text ;
-     PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+     WCPFile.PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
      end;
 
 
@@ -1700,7 +1756,7 @@ begin
      VarName[iNum] := VName ;
      VarList.AddObject( VarName[iNum], TObject(iNum) ) ;
 
-     for ch := 0 to RawFH.NumChannels-1 do begin
+     for ch := 0 to FH.NumChannels-1 do begin
          iVar := ch*MaxAnalysisVariables + iNum ;
          Units[iVar] := VUnits[ch] ;
          UnitsScale[iVar] := VScale ;
@@ -1747,7 +1803,7 @@ begin
                      $46 : cbRecordType.ItemIndex := cbRecordType.Items.IndexOf('FAIL') ;
                      end ;
                   RH.RecType := cbRecordType.text ;
-                  PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+                  WCPFile.PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
                   end ;
                end ;
           $52 : begin
@@ -1755,7 +1811,7 @@ begin
                   ckBadRecord.Checked := not ckBadRecord.Checked ;
                   If ckBadRecord.Checked then RH.Status := 'REJECTED'
                                          else RH.Status := 'ACCEPTED' ;
-                  PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+                  WCPFile.PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
                   end;
                end ;
           end ;
@@ -1977,8 +2033,8 @@ procedure TMeasureFrm.CopyDataToClipboard ;
 begin
      if Page.ActivePage = XYPlotTab then plPlot.CopyDataToClipboard
      else if Page.ActivePage = HistogramTab then plHist.CopyDataToClipboard
-     else if Page.ActivePage = SummaryTab then CopyStringGrid(Summary)
-     else if Page.ActivePage = TablesTab then CopyStringGrid(Table);
+     else if Page.ActivePage = SummaryTab then Main.CopyStringGrid(Summary)
+     else if Page.ActivePage = TablesTab then Main.CopyStringGrid(Table);
      end ;
 
 
@@ -2042,7 +2098,7 @@ begin
        PrintTableFrm.Title :=  'Waveform Measurements Summary: ' ;
        PrintTableFrm.ShowModal ;
        if PrintTableFrm.ModalResult = mrOK then
-          WriteToLogFile( 'Waveform measurements summary table printed' ) ;
+          WCPFile.WriteToLogFile( 'Waveform measurements summary table printed' ) ;
        end
 
      else if Page.ActivePage = TablesTab then begin
@@ -2050,11 +2106,29 @@ begin
        PrintTableFrm.Title :=  'Waveform Measurements: ' ;
        PrintTableFrm.ShowModal ;
        if PrintTableFrm.ModalResult = mrOK then
-          WriteToLogFile( 'Waveform measurements results table printed' ) ;
+          WCPFile.WriteToLogFile( 'Waveform measurements results table printed' ) ;
        end
 
      end ;
 
+
+procedure TMeasureFrm.rbDecayTimeToLevelClick(Sender: TObject);
+// ----------------------------------------
+// T.x% decay time to fixed amplitude level
+// ----------------------------------------
+begin
+     edDecayTimeThreshold.Value := FH.DecayTimeLevel ;
+     edDecayTimeThreshold.Units := '' ;
+end;
+
+procedure TMeasureFrm.rbDecayTimePercentClick(Sender: TObject);
+// -------------------------------------
+// T.x% decay time to % of pesk selected
+// -------------------------------------
+begin
+     edDecayTimeThreshold.Value := FH.DecayTimePercentage ;
+     edDecayTimeThreshold.Units := '%' ;
+end;
 
 procedure TMeasureFrm.CopyImageToClipboard ;
 { -----------------------------------------------------
@@ -2101,37 +2175,28 @@ begin
      if (Button = mbRight) and (scDisplay.ActiveHorizontalCursor >=0) then begin
         ZeroFrm.EnableFromRecord := True ;     
         ZeroFrm.Chan := scDisplay.ActiveHorizontalCursor ;
-        ZeroFrm.Level := Channel[ZeroFrm.Chan].ADCZero ;
-        ZeroFrm.ChanName := Channel[ZeroFrm.Chan].ADCName ;
         ZeroFrm.NewZeroAt := Round(scDisplay.ScreenCoordToX( ZeroFrm.Chan, X )) ;
-        ZeroFrm.OldZeroAt := Channel[ZeroFrm.Chan].ADCZeroAt ;
         ZeroFrm. NumSamplesPerRecord := scDisplay.NumPoints ;
-        ZeroFrm.NumZeroAveraged := FH.NumZeroAvg ;
-        ZeroFrm.MaxValue := FH.MaxADCValue ;
         ZeroFrm.Left := Self.Left + Main.Left + 10 + scDisplay.Left + X;
         ZeroFrm.Top := Self.Top + Main.Top + 10 + scDisplay.Top + Y ;
         ZeroFrm.ShowModal ;
-        Channel[ZeroFrm.Chan].ADCZero := ZeroFrm.Level ;
-        Channel[ZeroFrm.Chan].ADCZeroAt := ZeroFrm.NewZeroAt ;
-        FH.NumZeroAvg := ZeroFrm.NumZeroAveraged ;
-        SaveHeader( FH ) ;
         if ZeroFrm.ModalResult = mrOK then DisplayRecord ;
         end
      else begin
         // Update zero baseline cursor
         if scDisplay.ActiveHorizontalCursor >= 0 then begin
-           if Channel[scDisplay.ActiveHorizontalCursor].ADCZeroAt < 0 then begin
+           if WCPFile.Channel[scDisplay.ActiveHorizontalCursor].ADCZeroAt < 0 then begin
               // Fixed baseline level (update zero level to new position)
-              Channel[scDisplay.ActiveHorizontalCursor].ADCZero := Round(
+              WCPFile.Channel[scDisplay.ActiveHorizontalCursor].ADCZero := Round(
               scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor]) ;
               end
            else begin
               // Baseline level computed from record (return to computed level)
               scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor] :=
-              Channel[scDisplay.ActiveHorizontalCursor].ADCZero ;
+              WCPFile.Channel[scDisplay.ActiveHorizontalCursor].ADCZero ;
               scDisplay.Invalidate ;
               end ;
-           SaveHeader( FH ) ;
+           WCPFile.SaveHeader( FH ) ;
            end ;
         end ;
 
@@ -2151,18 +2216,18 @@ begin
 
         { Time zero }
         { Update channel descriptors with any changes to display }
-        for ch := 0 to scDisplay.NumChannels-1 do if Channel[ch].InUse then begin
-            Channel[Ch].yMin := scDisplay.YMin[Ch] ;
-            Channel[Ch].yMax := scDisplay.YMax[Ch] ;
-            Channel[ch].InUse := scDisplay.ChanVisible[ch] ;
+        for ch := 0 to scDisplay.NumChannels-1 do if WCPFile.Channel[ch].InUse then begin
+            WCPFile.Channel[Ch].yMin := scDisplay.YMin[Ch] ;
+            WCPFile.Channel[Ch].yMax := scDisplay.YMax[Ch] ;
+            WCPFile.Channel[ch].InUse := scDisplay.ChanVisible[ch] ;
             { Get signal baseline cursor }
-            if Settings.FixedZeroLevels or (Channel[ch].ADCZeroAt >= 0) then begin
-               if scDisplay.HorizontalCursors[ch] <> Channel[ch].ADCZero then begin
-                  scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
+            if WCPFile.Settings.FixedZeroLevels or (WCPFile.Channel[ch].ADCZeroAt >= 0) then begin
+               if scDisplay.HorizontalCursors[ch] <> WCPFile.Channel[ch].ADCZero then begin
+                  scDisplay.HorizontalCursors[ch] := WCPFile.Channel[ch].ADCZero ;
                   end ;
                end
             else begin
-               Channel[ch].ADCZero := Round(scDisplay.HorizontalCursors[ch]) ;
+               WCPFile.Channel[ch].ADCZero := Round(scDisplay.HorizontalCursors[ch]) ;
                end ;
 
             end ;
@@ -2178,7 +2243,7 @@ procedure TMeasureFrm.cbRateofRiseModeChange(Sender: TObject);
   Change differentiation mode for rate of rise variable
   ----------------------------------------------------- }
 begin
-     Settings.DifferentiationMode := cbRateofRiseMode.ItemIndex ;
+     WCPFile.Settings.DifferentiationMode := cbRateofRiseMode.ItemIndex ;
      end;
 
 
@@ -2207,7 +2272,7 @@ begin
 
         { Select type of equation to be fitted }
         MathFunc.Setup( TEqnType(cbHistEquation.Items.Objects[cbHistEquation.ItemIndex]),
-                        Channel[cbHistChannel.ItemIndex].ADCUnits,
+                        WCPFile.Channel[cbHistChannel.ItemIndex].ADCUnits,
                         plHist.yAxisLabel)  ;
         if MathFunc.Equation = None then OK := False ;
 
@@ -2412,7 +2477,7 @@ begin
      nData := 0 ;
      for Rec := RecStart to RecEnd do begin
          { Read record analysis block from file }
-         GetRecordHeaderOnly( fH, rH, Rec ) ;
+         WCPFile.GetRecordHeaderOnly( fH, rH, Rec ) ;
          if UseRecord( rH, cbTypeToBeAnalysed.text ) then begin
             jVar := VarCh*MaxAnalysisVariables + VarVar ;
             x^[nData] := rH.Value[jVar]*UnitsScale[jVar] ;
@@ -2524,7 +2589,7 @@ begin
         NumMatches := 0 ;
         for Rec := StartAtRec to EndAtRec do begin
             { Read record analysis block from file }
-            GetRecordHeaderOnly( fH, rH, Rec ) ;
+            WCPFile.GetRecordHeaderOnly( fH, rH, Rec ) ;
             jVar := YCh*MaxAnalysisVariables + YVar ;
             { Set record ACCEPTED/REJECTED according to criteria }
             y := rH.Value[jVar]*UnitsScale[jVar] ;
@@ -2553,7 +2618,7 @@ begin
                end ;
 
             { Write analysis block }
-            PutRecordHeaderOnly( fH, rH, Rec ) ;
+            WCPFile.PutRecordHeaderOnly( fH, rH, Rec ) ;
 
             { Update progress }
             Main.StatusBar.SimpleText := format(
@@ -2569,14 +2634,14 @@ begin
         [NumMatches,EndAtRec-StartAtRec+1]) ;
 
         { Log change to log file }
-        if not AllRecords then WriteToLogFile (
+        if not AllRecords then WCPFile.WriteToLogFile (
                                Format('Records filtered %s = %.3g <= %s (%s) <= %.3g',
                                [Status,
                                FilterFrm.LowerLimit,
                                VarList[YVar],
-                               ChannelNames[YCh],
+                               WCPFile.ChannelNames[YCh],
                                FilterFrm.UpperLimit] ))
-        else WriteToLogFile (Format('All Records = %s',[Status])) ;
+        else WCPFile.WriteToLogFile (Format('All Records = %s',[Status])) ;
 
         { Update plot }
         bNewXYPlot.Click ;
@@ -2739,19 +2804,6 @@ begin
      end;
 
 
-procedure TMeasureFrm.edDecayTimePercentageKeyPress(Sender: TObject; var Key: Char);
-// ----------------------------------
-// T.x% decay time end-point changed
-// ----------------------------------
-begin
-     // Call NewFile procedure to update T.x% variable name
-     if Key = #13 then begin
-        FH.DecayTimePercentage := edDecayTimePercentage.Value ;
-        SaveHeader(FH) ;
-        KeepCursors := True ;
-        NewFile ;
-        end ;
-     end ;
 
 
 procedure TMeasureFrm.bGetCursorsClick(Sender: TObject);
@@ -2878,12 +2930,12 @@ begin
      { Present user with standard Save File dialog box }
      SaveDialog.options := [ofOverwritePrompt,ofHideReadOnly,ofPathMustExist] ;
      SaveDialog.DefaultExt := '.txt' ;
-     SaveDialog.FileName := ChangeFileExt( RawFH.FileName, '.txt' ) ;
+     SaveDialog.FileName := ChangeFileExt( FH.FileName, '.txt' ) ;
      SaveDialog.Filter := ' Text Files (*.txt)|*.txt' ;
      SaveDialog.Title := 'Save Table' ;
-     if Settings.DataDirectory <> '' then begin
-        SetCurrentDir( Settings.DataDirectory ) ;
-        SaveDialog.InitialDir := Settings.DataDirectory ;
+     if WCPFile.Settings.DataDirectory <> '' then begin
+        SetCurrentDir( WCPFile.Settings.DataDirectory ) ;
+        SaveDialog.InitialDir := WCPFile.Settings.DataDirectory ;
         end;
      if not SaveDialog.execute then Exit ;
 
@@ -2959,7 +3011,7 @@ begin
     Cursors.T0 := scDisplay.AddVerticalCursor(AllChannels,clGreen,'t=0') ;
     scDisplay.VerticalCursors[Cursors.T0] := T0CursorPosition ;
 
-    Settings.LockChannelCursors := ckLockChannelCursors.Checked ;
+    WCPFile.Settings.LockChannelCursors := ckLockChannelCursors.Checked ;
 
     end;
 
@@ -2967,7 +3019,7 @@ procedure TMeasureFrm.FormActivate(Sender: TObject);
 begin
      // Ensure display channels visibility is updated
      ChangeDisplayGrid ;
-     ckFixedZeroLevels.Checked := Settings.FixedZeroLevels ;
+     ckFixedZeroLevels.Checked := WCPFile.Settings.FixedZeroLevels ;
      end;
 
 procedure TMeasureFrm.cbYVariableChange(Sender: TObject);
@@ -3004,7 +3056,7 @@ procedure TMeasureFrm.ckFixedZeroLevelsClick(Sender: TObject);
 // Enable/Disable fixed zero levels
 // --------------------------------
 begin
-     Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
+     WCPFile.Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
      end;
 
 procedure TMeasureFrm.SetStoreMode(

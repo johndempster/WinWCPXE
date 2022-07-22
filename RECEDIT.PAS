@@ -28,14 +28,15 @@ unit Recedit;
   18.11.15 .. scDisplay.HorizontalCursor() now defined for each channel to fix repeated display update
               problem when multiple channels in file. TCursors.Base removed
   12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
+  26.05.22 .. ZeroFrm now settings Channel record zero level settings directly
   ========================================================== }
 interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, StdCtrls, ExtCtrls, global, fileio, plotlib, shared,
+  Forms, Dialogs, StdCtrls, ExtCtrls,
   Grids,Zero, maths, ScopeDisplay, ValEdit, RangeEdit, ComCtrls,
-  ValidatedEdit, CursorLabel, math, seslabio  ;
+  ValidatedEdit, CursorLabel, math, seslabio, WCPFIleUnit  ;
 
 type
   TEditFrm = class(TForm)
@@ -113,6 +114,7 @@ type
   private
     { Private declarations }
     BackUpFileName : String ;
+    FH : TFileHeader ;
     BackupFH : TFileHeader ;
     procedure InitialiseDisplay ;
     procedure DisplayRecord ;
@@ -162,10 +164,10 @@ begin
      Height := Main.StatusBar.Top - Top -10 ;
      Width := Main.ClientWidth - Left - 20 ;
 
-     cbRecordType.items := RecordTypes ;
+     cbRecordType.items := WCPFile.RecordTypes ;
      cbRecordType.items.delete(0) ; {Remove 'ALL' item}
 
-     cbChannel.items := ChannelNames ;
+     cbChannel.items := WCPFile.ChannelNames ;
      cbChannel.ItemIndex := 0 ;
 
      XShift := 1 ;
@@ -182,14 +184,18 @@ procedure TEditFrm.NewFile ;
   Update controls/display to account for change of data file
   ---------------------------------------------------------}
 var
-    Rec : Integer ;
+    Rec,np : Integer ;
 begin
 
+     FH := WCPFile.FH ;
+     WCPFile.GetHeader( FH ) ;
+
      // Reallocate A/D sample buffer
+     np := FH.NumSamples*FH.NumChannels ;
      if ADC <> Nil then FreeMem(ADC) ;
-     GetMem( ADC, Max(FH.NumSamples*FH.NumChannels*2,1024) ) ;
+     GetMem( ADC, Max(np*2,1024) ) ;
      if Buf <> Nil then FreeMem(Buf) ;
-     GetMem( Buf, Max(FH.NumSamples*FH.NumChannels*2,1024) ) ;
+     GetMem( Buf, Max(np*2,1024) ) ;
 
      BackUpFileName := FH.FileName + '.bak' ;
 
@@ -200,19 +206,19 @@ begin
            BackupFH.FileName := BackupFileName ;
            BackupFH.FileHandle := FileCreate( BackupFH.FileName ) ;
            for Rec := 1 to FH.NumRecords do begin
-               GetRecord( FH, RH, Rec, ADC^ ) ;
-               PutRecord( BackupFH, RH, Rec, ADC^ ) ;
+               WCPFile.GetRecord( FH, RH, Rec, ADC^ ) ;
+               WCPFile.PutRecord( BackupFH, RH, Rec, ADC^ ) ;
                end ;
-           SaveHeader( BackupFH ) ;
-           FileCloseSafe( BackupFH.FileHandle ) ;
+           WCPFile.SaveHeader( BackupFH ) ;
+           WCPFile.FileCloseSafe( BackupFH.FileHandle ) ;
         end;
         SaveRecord := False ;
 
         FH.RecordNum := 1 ;
-        UpdateScrollBar( sbRecordNum, FH.RecordNum, 1, fH.NumRecords ) ;
+        WCPFile.UpdateScrollBar( sbRecordNum, FH.RecordNum, 1, fH.NumRecords ) ;
 
-        edRegion.Scale := Settings.TScale ;
-        edRegion.Units := Settings.TUnits ;
+        edRegion.Scale := WCPFile.Settings.TScale ;
+        edRegion.Units := WCPFile.Settings.TUnits ;
 
         edRecRange.LoLimit := 1 ;
         edRecRange.LoValue := 1 ;
@@ -238,7 +244,7 @@ begin
      { Set up scope display }
      scDisplay.MaxADCValue := FH.MaxADCValue ;
      scDisplay.MinADCValue := FH.MinADCValue ;
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
      scDisplay.DisableChannelVisibilityButton := True ;
 
      scDisplay.MaxPoints := FH.NumSamples ;
@@ -246,12 +252,12 @@ begin
      scDisplay.NumChannels := FH.NumChannels ;
      { Set channel information }
      for ch := 0 to FH.NumChannels-1 do begin
-         scDisplay.ChanOffsets[ch] := Channel[ch].ChannelOffset ;
-         scDisplay.ChanUnits[ch] := Channel[Ch].ADCUnits ;
-         scDisplay.ChanName[ch] := Channel[Ch].ADCName ;
-         scDisplay.ChanScale[ch] := Channel[ch].ADCScale ;
-         scDisplay.yMin[ch] := Channel[Ch].yMin ;
-         scDisplay.yMax[ch] := Channel[Ch].yMax ;
+         scDisplay.ChanOffsets[ch] := WCPFile.Channel[ch].ChannelOffset ;
+         scDisplay.ChanUnits[ch] := WCPFile.Channel[Ch].ADCUnits ;
+         scDisplay.ChanName[ch] := WCPFile.Channel[Ch].ADCName ;
+         scDisplay.ChanScale[ch] := WCPFile.Channel[ch].ADCScale ;
+         scDisplay.yMin[ch] := WCPFile.Channel[Ch].yMin ;
+         scDisplay.yMax[ch] := WCPFile.Channel[Ch].yMax ;
          if (ch = cbChannel.ItemIndex) then scDisplay.ChanVisible[ch] := True
                                        else scDisplay.ChanVisible[ch] := False ;
          end ;
@@ -259,19 +265,19 @@ begin
      scDisplay.xMin := 0 ;
      scDisplay.xMax := FH.NumSamples - 1 ;
      scDisplay.xOffset := 0 ;
-     scDisplay.TScale := RawFH.dt*Settings.TScale ;
-     scDisplay.TUnits := Settings.TUnits ;
+     scDisplay.TScale := FH.dt*WCPFile.Settings.TScale ;
+     scDisplay.TUnits := WCPFile.Settings.TUnits ;
 
      scDisplay.ClearHorizontalCursors ;
      for ch := 0 to FH.NumChannels-1 do begin
-         scDisplay.AddHorizontalCursor(ch,Settings.Colors.Cursors,True,'z') ;
-         scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
+         scDisplay.AddHorizontalCursor(ch,WCPFile.Settings.Colors.Cursors,True,'z') ;
+         scDisplay.HorizontalCursors[ch] := WCPFile.Channel[ch].ADCZero ;
          end;
 
      scDisplay.ClearVerticalCursors ;
      { Readout cursor position }
-     Cursors.Read := scDisplay.AddVerticalCursor(cbChannel.ItemIndex,Settings.Colors.Cursors,'?t?y') ;
-     scDisplay.VerticalCursors[Cursors.Read] := RawFH.NumSamples div 2 ;
+     Cursors.Read := scDisplay.AddVerticalCursor(cbChannel.ItemIndex,WCPFile.Settings.Colors.Cursors,'?t?y') ;
+     scDisplay.VerticalCursors[Cursors.Read] := FH.NumSamples div 2 ;
 
      { Region selection cursors }
      Cursors.C0 := scDisplay.AddVerticalCursor(cbChannel.ItemIndex,clOlive,'') ;
@@ -279,9 +285,9 @@ begin
      scDisplay.LinkVerticalCursors(Cursors.C0,Cursors.C1);
 
      scDisplay.VerticalCursors[Cursors.C0] := 1 ;
-     scDisplay.VerticalCursors[Cursors.C1] := RawFH.NumSamples - 2 ;
+     scDisplay.VerticalCursors[Cursors.C1] := FH.NumSamples - 2 ;
 
-     edSetValue.Units := Channel[cbChannel.ItemIndex].ADCUnits ;
+     edSetValue.Units := WCPFile.Channel[cbChannel.ItemIndex].ADCUnits ;
 
      end ;
 
@@ -298,7 +304,7 @@ begin
 
         if SaveRecord then begin
             RH.ADCVoltageRange[cbChannel.ItemIndex] := edADCVoltageRange.Value ;
-            PutRecord( fH, RH, fH.RecordNum, Buf^ ) ;
+            WCPFile.PutRecord( fH, RH, fH.RecordNum, Buf^ ) ;
             SaveRecord := False ;
             end ;
 
@@ -306,14 +312,14 @@ begin
         fH.CurrentRecord := SbRecordNum.position ;
 
         { Read record data from file and extract channel to be edited }
-        GetRecord( fH, RH, fH.RecordNum, ADC^ ) ;
+        WCPFile.GetRecord( fH, RH, fH.RecordNum, ADC^ ) ;
 
         scDisplay.SetDataBuf( ADC ) ;
 
         // Set zero level cursor
         for ch := 0 to FH.NumChannels-1 do begin
-            scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
-            scDisplay.ChanZeroAt[ch] := Channel[ch].ADCZeroAt ;
+            scDisplay.HorizontalCursors[ch] := WCPFile.Channel[ch].ADCZero ;
+            scDisplay.ChanZeroAt[ch] := WCPFile.Channel[ch].ADCZeroAt ;
             end;
         scDisplay.ChanZeroAvg := FH.NumZeroAvg ;
 
@@ -332,11 +338,11 @@ begin
         edSamplingInterval.Value := RH.dt ;
 
         { Set signal shift/scaling steps }
-        edXShift.Scale := RH.dt*Settings.TScale ;
-        edXShift.Units := Settings.TUnits ;
+        edXShift.Scale := RH.dt*WCPFile.Settings.TScale ;
+        edXShift.Units := WCPFile.Settings.TUnits ;
         edXShift.Value := XShift ;
-        edYShift.Scale := Channel[cbChannel.ItemIndex].ADCScale ;
-        edYShift.Units := Channel[cbChannel.ItemIndex].ADCUnits ;
+        edYShift.Scale := WCPFile.Channel[cbChannel.ItemIndex].ADCScale ;
+        edYShift.Units := WCPFile.Channel[cbChannel.ItemIndex].ADCUnits ;
         edYShift.Value := YShift ;
 
         end ;
@@ -393,12 +399,12 @@ begin
      for Rec := RecStart to RecEnd do begin
 
          { Read record data from file }
-         GetRecord( fH, RH, Rec, ADC^ ) ;
+         WCPFile.GetRecord( fH, RH, Rec, ADC^ ) ;
 
          { Shift all channels in signal record }
          EndOfData := FH.NumSamples - 1 ;
          for ch := 0 to FH.NumChannels-1 do begin
-             ChOffset := Channel[ch].ChannelOffset ;
+             ChOffset := WCPFile.Channel[ch].ChannelOffset ;
              for iTo := 0 to FH.NumSamples-1 do begin
                  iFrom := Min(Max(iTo - ShiftBy,0),EndOfData) ;
                  jFrom := iFrom*FH.NumChannels + ChOffset ;
@@ -407,7 +413,7 @@ begin
                  end ;
              end ;
          { Save record back to file }
-         PutRecord( fH, RH, Rec, Buf^ ) ;
+         WCPFile.PutRecord( fH, RH, Rec, Buf^ ) ;
 
          // Report progress
          Main.StatusBar.SimpleText := format(
@@ -436,16 +442,16 @@ begin
 
      for Rec := RecStart to RecEnd do begin
          { Read record data from file }
-         GetRecord( fH, RH, Rec, ADC^ ) ;
+         WCPFile.GetRecord( fH, RH, Rec, ADC^ ) ;
 
          { Shift the channel selected for editing up/down }
-         j := Channel[cbChannel.ItemIndex].ChannelOffset ;
+         j := WCPFile.Channel[cbChannel.ItemIndex].ChannelOffset ;
          for i := 0 to FH.NumSamples-1 do begin
              ADC^[j] := ADC^[j] + ShiftBy ;
              j := j + FH.NumChannels ;
              end ;
          { Save record back to file }
-         PutRecord( fH, RH, Rec, ADC^ ) ;
+         WCPFile.PutRecord( fH, RH, Rec, ADC^ ) ;
 
          // Report progress
          Main.StatusBar.SimpleText := format(
@@ -472,18 +478,18 @@ begin
      GetRecordRange( RecStart, RecEnd ) ;
 
      for Rec := RecStart to RecEnd do begin
-         GetRecord( fH, RH, Rec, ADC^ ) ;
+         WCPFile.GetRecord( fH, RH, Rec, ADC^ ) ;
 
          { Shift the channel selected for editing up/down }
-         j := Channel[cbChannel.ItemIndex].ChannelOffset ;
+         j := WCPFile.Channel[cbChannel.ItemIndex].ChannelOffset ;
          for i := 0 to FH.NumSamples-1 do begin
-             ADC^[j] := Round( (ADC^[j] - Channel[cbChannel.ItemIndex].ADCZero)*ScaleBy )
-                        + Channel[cbChannel.ItemIndex].ADCZero  ;
+             ADC^[j] := Round( (ADC^[j] - WCPFile.Channel[cbChannel.ItemIndex].ADCZero)*ScaleBy )
+                        + WCPFile.Channel[cbChannel.ItemIndex].ADCZero  ;
              j := j + FH.NumChannels ;
              end ;
 
          { Save record back to file }
-         PutRecord( fH, RH, Rec, ADC^ ) ;
+         WCPFile.PutRecord( fH, RH, Rec, ADC^ ) ;
 
          // Report progress
          Main.StatusBar.SimpleText := format(
@@ -512,21 +518,21 @@ begin
      for Rec := RecStart to RecEnd do begin
 
          // Load record from file
-         GetRecord( fH, RH, Rec, ADC^ ) ;
+         WCPFile.GetRecord( fH, RH, Rec, ADC^ ) ;
 
          // A/D value to be set
-         iValue := Round(edSetValue.Value/Channel[cbChannel.ItemIndex].ADCScale)
-                   + Channel[cbChannel.ItemIndex].ADCZero ;
+         iValue := Round(edSetValue.Value/WCPFile.Channel[cbChannel.ItemIndex].ADCScale)
+                   + WCPFile.Channel[cbChannel.ItemIndex].ADCZero ;
 
          { Shift the channel selected for editing up/down }
          for i := Round(scDisplay.VerticalCursors[Cursors.C0]) to
                   Round(scDisplay.VerticalCursors[Cursors.C1]) do begin
-             j := (i*FH.NumChannels) + Channel[cbChannel.ItemIndex].ChannelOffset ;
+             j := (i*FH.NumChannels) + WCPFile.Channel[cbChannel.ItemIndex].ChannelOffset ;
              ADC^[j] := iValue ;
              end ;
 
          // Save record back to file
-         PutRecord( fH, RH, Rec, ADC^ ) ;
+         WCPFile.PutRecord( fH, RH, Rec, ADC^ ) ;
 
          // Report progress
          Main.StatusBar.SimpleText := format(
@@ -610,11 +616,11 @@ begin
         BackupFH.FileName := BackupFileName ;
         BackupFH.FileHandle := FileOpen( BackupFH.FileName, fmOpenRead ) ;
         for Rec := 1 to FH.NumRecords do begin
-            GetRecord( BackupFH, RH, Rec, ADC^ ) ;
-            PutRecord( FH, RH, Rec, ADC^ ) ;
+            WCPFile.GetRecord( BackupFH, RH, Rec, ADC^ ) ;
+            WCPFile.PutRecord( FH, RH, Rec, ADC^ ) ;
             end ;
-        SaveHeader( FH ) ;
-        FileCloseSafe( BackupFH.FileHandle ) ;
+        WCPFile.SaveHeader( FH ) ;
+        WCPFile.FileCloseSafe( BackupFH.FileHandle ) ;
         end ;
      DisplayRecord ;
      end;
@@ -658,7 +664,7 @@ begin
                      $46 : cbRecordType.ItemIndex := cbRecordType.Items.IndexOf('FAIL') ;
                      end ;
                   RH.RecType := cbRecordType.text ;
-                  PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+                  WCPFile.PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
                   end ;
                end ;
           $52 : begin
@@ -666,7 +672,7 @@ begin
                   ckBadRecord.Checked := not ckBadRecord.Checked ;
                   If ckBadRecord.Checked then RH.Status := 'REJECTED'
                                          else RH.Status := 'ACCEPTED' ;
-                  PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+                  WCPFile.PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
                   end;
                end ;
           end ;
@@ -689,16 +695,16 @@ begin
      edRegion.HiValue := scDisplay.VerticalCursors[Cursors.C1]*RH.dt ;
 
      { Update channel descriptors with any changes to display }
-     for ch := 0 to scDisplay.NumChannels-1 do if Channel[ch].InUse then begin
-         Channel[Ch].yMin := scDisplay.YMin[Ch] ;
-         Channel[Ch].yMax := scDisplay.YMax[Ch] ;
+     for ch := 0 to scDisplay.NumChannels-1 do if WCPFile.Channel[ch].InUse then begin
+         WCPFile.Channel[Ch].yMin := scDisplay.YMin[Ch] ;
+         WCPFile.Channel[Ch].yMax := scDisplay.YMax[Ch] ;
          // Fix baseline if required
-         if Settings.FixedZeroLevels or (Channel[ch].ADCZeroAt >= 0) then begin
-            if scDisplay.HorizontalCursors[ch] <> Channel[ch].ADCZero then begin
-               scDisplay.HorizontalCursors[ch] := Channel[ch].ADCZero ;
+         if WCPFile.Settings.FixedZeroLevels or (WCPFile.Channel[ch].ADCZeroAt >= 0) then begin
+            if scDisplay.HorizontalCursors[ch] <> WCPFile.Channel[ch].ADCZero then begin
+               scDisplay.HorizontalCursors[ch] := WCPFile.Channel[ch].ADCZero ;
                end ;
             end
-         else Channel[ch].ADCZero := Round(scDisplay.HorizontalCursors[ch]) ;
+         else WCPFile.Channel[ch].ADCZero := Round(scDisplay.HorizontalCursors[ch]) ;
          
          end ;
 
@@ -753,7 +759,7 @@ procedure TEditFrm.ChangeDisplayGrid ;
 begin
      scDisplay.MaxADCValue := FH.MaxADCValue ;
      scDisplay.MinADCValue := FH.MinADCValue ;
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
      scDisplay.Invalidate ;
      end ;
 
@@ -787,37 +793,28 @@ begin
      if (Button = mbRight) and (scDisplay.ActiveHorizontalCursor >=0) then begin
         ZeroFrm.EnableFromRecord := True ;     
         ZeroFrm.Chan := scDisplay.ActiveHorizontalCursor ;
-        ZeroFrm.Level := Channel[ZeroFrm.Chan].ADCZero ;
-        ZeroFrm.ChanName := Channel[ZeroFrm.Chan].ADCName ;
         ZeroFrm.NewZeroAt := Round(scDisplay.ScreenCoordToX( ZeroFrm.Chan, X )) ;
-        ZeroFrm.OldZeroAt := Channel[ZeroFrm.Chan].ADCZeroAt ;
         ZeroFrm. NumSamplesPerRecord := scDisplay.NumPoints ;
-        ZeroFrm.NumZeroAveraged := FH.NumZeroAvg ;
-        ZeroFrm.MaxValue := FH.MaxADCValue ;
         ZeroFrm.Left := Self.Left + Main.Left + 10 + scDisplay.Left + X;
         ZeroFrm.Top := Self.Top + Main.Top + 10 + scDisplay.Top + Y ;
         ZeroFrm.ShowModal ;
-        Channel[ZeroFrm.Chan].ADCZero := ZeroFrm.Level ;
-        Channel[ZeroFrm.Chan].ADCZeroAt := ZeroFrm.NewZeroAt ;
-        FH.NumZeroAvg := ZeroFrm.NumZeroAveraged ;
-        SaveHeader( FH ) ;
         if ZeroFrm.ModalResult = mrOK then DisplayRecord ;
         end
      else begin
         // Update zero baseline cursor
         if scDisplay.ActiveHorizontalCursor >= 0 then begin
-           if Channel[cbChannel.ItemIndex].ADCZeroAt < 0 then begin
+           if WCPFile.Channel[cbChannel.ItemIndex].ADCZeroAt < 0 then begin
               // Fixed baseline level (update zero level to new position)
-              Channel[cbChannel.ItemIndex].ADCZero :=Round(
+              WCPFile.Channel[cbChannel.ItemIndex].ADCZero :=Round(
               scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor]) ;
               end
            else begin
               // Baseline level computed from record (return to computed level)
               scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor] :=
-              Channel[cbChannel.ItemIndex].ADCZero ;
+              WCPFile.Channel[cbChannel.ItemIndex].ADCZero ;
 
               end ;
-           SaveHeader( FH ) ;
+           WCPFile.SaveHeader( FH ) ;
            scDisplay.Invalidate ;
            end ;
 
@@ -846,7 +843,7 @@ procedure TEditFrm.ckBadRecordClick(Sender: TObject);
 begin
      if ckBadRecord.checked then RH.Status := 'REJECTED'
                             else RH.Status := 'ACCEPTED' ;
-     PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+     WCPFile.PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
      end;
 
 
@@ -856,7 +853,7 @@ procedure TEditFrm.cbRecordTypeChange(Sender: TObject);
   ----------------------------}
 begin
      RH.RecType := cbRecordType.text ;
-     PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+     WCPFile.PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
      end;
 
 
@@ -867,7 +864,7 @@ procedure TEditFrm.edGroupKeyPress(Sender: TObject; var Key: Char);
 begin
      if Key = #13 then begin
         RH.Number := Round( Edgroup.Value ) ;
-        PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+        WCPFile.PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
         end ;
      end;
 
@@ -880,13 +877,13 @@ procedure TEditFrm.edADCVoltageRangeKeyPress(Sender: TObject;
 begin
      if Key = #13 then begin
         RH.ADCVoltageRange[cbChannel.ItemIndex] := edADCVoltageRange.Value ;
-        PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
+        WCPFile.PutRecordHeaderOnly( fH, RH, fH.RecordNum ) ;
         end ;
      end ;
 
 procedure TEditFrm.FormActivate(Sender: TObject);
 begin
-    ckFixedZeroLevels.Checked := Settings.FixedZeroLevels ;
+    ckFixedZeroLevels.Checked := WCPFile.Settings.FixedZeroLevels ;
     end;
 
 procedure TEditFrm.ZeroLevelGrpClick(Sender: TObject);
@@ -894,7 +891,7 @@ procedure TEditFrm.ZeroLevelGrpClick(Sender: TObject);
 // Enable/Disable fixed zero levels
 // --------------------------------
 begin
-     Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
+     WCPFile.Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
      end;
 
 procedure TEditFrm.ckFixedZeroLevelsClick(Sender: TObject);
@@ -902,7 +899,7 @@ procedure TEditFrm.ckFixedZeroLevelsClick(Sender: TObject);
 // Enable/Disable fixed zero levels
 // --------------------------------
 begin
-     Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
+     WCPFile.Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
      end;
 
 end.

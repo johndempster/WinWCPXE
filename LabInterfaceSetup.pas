@@ -17,7 +17,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, global, math, seslabio ;
+  Dialogs, StdCtrls, ExtCtrls, math, seslabio ;
 
 type
   TLabInterfaceSetupFrm = class(TForm)

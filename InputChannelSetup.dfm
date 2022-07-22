@@ -55,6 +55,13 @@ object InputChannelSetupFrm: TInputChannelSetupFrm
         ScrollBars = ssVertical
         TabOrder = 0
         OnKeyPress = ChannelTableKeyPress
+        ColWidths = (
+          44
+          44
+          44
+          44
+          44
+          44)
         RowHeights = (
           18
           18
@@ -231,6 +238,10 @@ object InputChannelSetupFrm: TInputChannelSetupFrm
     object AmplifiersPage: TTabSheet
       Caption = ' Amplifiers'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object AmplifiersTab: TTabControl
         Left = 0
         Top = 0

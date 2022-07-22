@@ -114,9 +114,9 @@ unit Sealtest;
 interface
 
 uses WinTypes, WinProcs, Classes, Graphics, Forms, Controls, Buttons,
-  StdCtrls, ExtCtrls, global, shared, SysUtils, Spin,
+  StdCtrls, ExtCtrls, SysUtils, Spin,
   math, maths, dialogs,
-  ValEdit, ScopeDisplay, SESLabIO, ComCtrls, ValidatedEdit, FileIO,ampmodule, strutils ;
+  ValEdit, ScopeDisplay, SESLabIO, ComCtrls, ValidatedEdit, ampmodule, strutils, WCPFileUnit ;
 
 const
     Idle = 0 ;
@@ -361,7 +361,7 @@ implementation
 
 {$R *.DFM}
 
-uses Mdiform, mmsystem , Rec, TritonPanelUnit, EPC9PanelUnit;
+uses Mdiform, mmsystem , Rec, TritonPanelUnit, EPC9PanelUnit ;
 
 const
      //NumDACChannels = 2 ;
@@ -457,23 +457,23 @@ begin
      for ch := 0 to NumTestChannels-1 do begin
          Main.SESLabIO.ADCChannelZero[ch] := 0 ;
          { Create horizontal cursors }
-         scDisplay.AddHorizontalCursor(ch,Settings.Colors.Cursors,True,'z') ;
+         scDisplay.AddHorizontalCursor(ch,WCPFile.Settings.Colors.Cursors,True,'z') ;
          scDisplay.yMax[ch] := Main.SESLabIO.ADCMaxValue ;
          scDisplay.yMin[ch] := Main.SESLabIO.ADCMinValue ;
          end ;
 
      // Ensure no. of cell parameter averages is valid
-     Settings.SealTest.NumAverages := Min(Max(Settings.SealTest.NumAverages,1),MaxAverage) ;
-     edNumAverages.Value := Settings.SealTest.NumAverages ;
+     WCPFile.Settings.SealTest.NumAverages := Min(Max(WCPFile.Settings.SealTest.NumAverages,1),MaxAverage) ;
+     edNumAverages.Value := WCPFile.Settings.SealTest.NumAverages ;
 
      // Gaccess calculation mode
-     rbGaFromPeak.Checked := Settings.SealTest.GaFromPeak ;
-     rbGaFromExp.Checked := not Settings.SealTest.GaFromPeak ;
+     rbGaFromPeak.Checked := WCPFile.Settings.SealTest.GaFromPeak ;
+     rbGaFromExp.Checked := not WCPFile.Settings.SealTest.GaFromPeak ;
 
      scDisplay.xMin := 0 ;
      scDisplay.xMax := NumTestSamples-1  ;
 
-     scDisplay.TUnits := Settings.TUnits ;
+     scDisplay.TUnits := WCPFile.Settings.TUnits ;
 
      // Show available output channels
      ckPulseToAO0.Visible := False ;
@@ -492,23 +492,23 @@ begin
      SetClampMode ;
 
      { Test pulse amplitude & width }
-     edPulseHeight1.Value := Settings.SealTest.PulseHeight1 ;
-     edPulseHeight2.Value := Settings.SealTest.PulseHeight2 ;
-     edPulseHeight3.Value := Settings.SealTest.PulseHeight3 ;
-     edPulseWidth.Value := Settings.SealTest.PulseWidth ;
+     edPulseHeight1.Value := WCPFile.Settings.SealTest.PulseHeight1 ;
+     edPulseHeight2.Value := WCPFile.Settings.SealTest.PulseHeight2 ;
+     edPulseHeight3.Value := WCPFile.Settings.SealTest.PulseHeight3 ;
+     edPulseWidth.Value := WCPFile.Settings.SealTest.PulseWidth ;
 
      { Update holding potential text boxes }
 
 
-     edHoldingVoltage1.Value := Settings.SealTest.HoldingVoltage1 ;
-     edHoldingVoltage2.Value := Settings.SealTest.HoldingVoltage2 ;
-     edHoldingVoltage3.Value := Settings.SealTest.HoldingVoltage3 ;
+     edHoldingVoltage1.Value := WCPFile.Settings.SealTest.HoldingVoltage1 ;
+     edHoldingVoltage2.Value := WCPFile.Settings.SealTest.HoldingVoltage2 ;
+     edHoldingVoltage3.Value := WCPFile.Settings.SealTest.HoldingVoltage3 ;
 
-     edZapAmplitude.Value := Settings.SealTest.ZapAmplitude ;
-     edZapDuration.Value := Settings.SealTest.ZapDuration ;
+     edZapAmplitude.Value := WCPFile.Settings.SealTest.ZapAmplitude ;
+     edZapDuration.Value := WCPFile.Settings.SealTest.ZapDuration ;
 
      { Select test pulse to use }
-     case Settings.SealTest.Use of
+     case WCPFile.Settings.SealTest.Use of
           2 : rbUseHoldingVoltage2.checked := True ;
           3 : rbUseHoldingVoltage3.checked := True ;
           else rbUseHoldingVoltage1.checked := True ;
@@ -644,9 +644,9 @@ begin
                    { Start recording sweep(s) }
 
                    if cbCurrentChannel.ItemIndex >= 0 then
-                      Settings.SealTest.CurrentChannel := cbCurrentChannel.ItemIndex ;
+                      WCPFile.Settings.SealTest.CurrentChannel := cbCurrentChannel.ItemIndex ;
                    if cbVoltageChannel.ItemIndex >= 0 then
-                      Settings.SealTest.VoltageChannel := cbVoltageChannel.ItemIndex ;
+                      WCPFile.Settings.SealTest.VoltageChannel := cbVoltageChannel.ItemIndex ;
 
                    // Save old channel units
                    for ch := 0 to NumTestChannels-1 do
@@ -828,18 +828,18 @@ begin
 
     // Use current default holding potential for selected AO channel
     TestDAC := Min(Max(TestDAC,0),Main.SESLabIO.DACNumChannels-1) ;
-    case Settings.SealTest.Use of
+    case WCPFile.Settings.SealTest.Use of
           2 : begin
-             Settings.SealTest.HoldingVoltage2 :=  Main.SESLabIO.DACHoldingVoltage[TestDAC] ;
-             edHoldingVoltage2.Value := Settings.SealTest.HoldingVoltage2 ;
+             WCPFile.Settings.SealTest.HoldingVoltage2 :=  Main.SESLabIO.DACHoldingVoltage[TestDAC] ;
+             edHoldingVoltage2.Value := WCPFile.Settings.SealTest.HoldingVoltage2 ;
               end ;
           3 : begin
-              Settings.SealTest.HoldingVoltage3 :=  Main.SESLabIO.DACHoldingVoltage[TestDAC] ;
-              edHoldingVoltage3.Value := Settings.SealTest.HoldingVoltage3 ;
+              WCPFile.Settings.SealTest.HoldingVoltage3 :=  Main.SESLabIO.DACHoldingVoltage[TestDAC] ;
+              edHoldingVoltage3.Value := WCPFile.Settings.SealTest.HoldingVoltage3 ;
               end ;
           else begin
-              Settings.SealTest.HoldingVoltage1 :=  Main.SESLabIO.DACHoldingVoltage[TestDAC] ;
-              edHoldingVoltage1.Value := Settings.SealTest.HoldingVoltage1 ;
+              WCPFile.Settings.SealTest.HoldingVoltage1 :=  Main.SESLabIO.DACHoldingVoltage[TestDAC] ;
+              edHoldingVoltage1.Value := WCPFile.Settings.SealTest.HoldingVoltage1 ;
               end ;
           end ;
 
@@ -978,24 +978,24 @@ var
 begin
 
      { Select test pulse to use }
-     case Settings.SealTest.Use of
+     case WCPFile.Settings.SealTest.Use of
           2 : begin
-              Main.SESLabIO.DACHoldingVoltage[TestDAC] := Settings.SealTest.HoldingVoltage2 ;
-              Settings.SealTest.PulseHeight := Settings.SealTest.PulseHeight2 ;
+              Main.SESLabIO.DACHoldingVoltage[TestDAC] := WCPFile.Settings.SealTest.HoldingVoltage2 ;
+              WCPFile.Settings.SealTest.PulseHeight := WCPFile.Settings.SealTest.PulseHeight2 ;
               end ;
           3 : begin
-              Main.SESLabIO.DACHoldingVoltage[TestDAC] := Settings.SealTest.HoldingVoltage3 ;
-              Settings.SealTest.PulseHeight := Settings.SealTest.PulseHeight3 ;
+              Main.SESLabIO.DACHoldingVoltage[TestDAC] := WCPFile.Settings.SealTest.HoldingVoltage3 ;
+              WCPFile.Settings.SealTest.PulseHeight := WCPFile.Settings.SealTest.PulseHeight3 ;
               end ;
           else begin
-              Main.SESLabIO.DACHoldingVoltage[TestDAC] := Settings.SealTest.HoldingVoltage1 ;
-              Settings.SealTest.PulseHeight := Settings.SealTest.PulseHeight1 ;
+              Main.SESLabIO.DACHoldingVoltage[TestDAC] := WCPFile.Settings.SealTest.HoldingVoltage1 ;
+              WCPFile.Settings.SealTest.PulseHeight := WCPFile.Settings.SealTest.PulseHeight1 ;
               end ;
           end ;
 
      if not bZap.Enabled then
         begin
-        Settings.SealTest.PulseHeight := edZapAmplitude.Value ;
+        WCPFile.Settings.SealTest.PulseHeight := edZapAmplitude.Value ;
         end;
 
      { D/A channel voltage -> bits scaling factors }
@@ -1005,7 +1005,7 @@ begin
          end ;
 
      { Test pulse duration and recording sweep length }
-     TestPulse.Duration := Settings.SealTest.PulseWidth ;
+     TestPulse.Duration := WCPFile.Settings.SealTest.PulseWidth ;
 
      if not bZap.Enabled then
         begin
@@ -1047,7 +1047,7 @@ begin
                       Round(DACScale[ch]*Main.SESLabIO.DACHoldingVoltage[ch]))) ;
          // Test level
          iOnLevel :=  Max(Main.SESLabIO.DACMinValue,Min(Main.SESLabIO.DACMaxValue,
-                      Round(DACScale[ch]*(Main.SESLabIO.DACHoldingVoltage[ch] + Settings.SealTest.PulseHeight)))) ;
+                      Round(DACScale[ch]*(Main.SESLabIO.DACHoldingVoltage[ch] + WCPFile.Settings.SealTest.PulseHeight)))) ;
 
          // Create DAC waveform buffer
          j := ch ;
@@ -1451,7 +1451,7 @@ procedure TSealTestFrm.edHoldingVoltage1KeyPress(Sender: TObject; var Key: Char)
   ------------------------------------}
 begin
      if key = #13 then begin
-         Settings.SealTest.HoldingVoltage1 := edHoldingVoltage1.Value ;
+         WCPFile.Settings.SealTest.HoldingVoltage1 := edHoldingVoltage1.Value ;
         NewTestPulse := True ;
         end ;
 
@@ -1464,7 +1464,7 @@ procedure TSealTestFrm.edHoldingVoltage2KeyPress(Sender: TObject; var Key: Char)
   ------------------------------------}
 begin
      if key = #13 then begin
-        Settings.SealTest.HoldingVoltage2 := edHoldingVoltage2.Value ;
+        WCPFile.Settings.SealTest.HoldingVoltage2 := edHoldingVoltage2.Value ;
         NewTestPulse := True ;
         end ;
 
@@ -1478,7 +1478,7 @@ procedure TSealTestFrm.EdHoldingVoltage3KeyPress(Sender: TObject;
   ------------------------------------}
 begin
      if key = #13 then begin
-        Settings.SealTest.HoldingVoltage3 := edHoldingVoltage3.Value ;
+        WCPFile.Settings.SealTest.HoldingVoltage3 := edHoldingVoltage3.Value ;
         NewTestPulse := True ;
         end ;
      end ;
@@ -1490,9 +1490,9 @@ procedure TSealTestFrm.rbUseHoldingVoltage1Click(Sender: TObject);
   ---------------------------------}
 begin
      { Set holding voltage and pulse height to group #1 }
-     Settings.SealTest.Use := 1 ;
-     Settings.SealTest.HoldingVoltage1 := edHoldingVoltage1.Value ;
-     Settings.SealTest.PulseHeight1 := edPulseHeight1.Value ;
+     WCPFile.Settings.SealTest.Use := 1 ;
+     WCPFile.Settings.SealTest.HoldingVoltage1 := edHoldingVoltage1.Value ;
+     WCPFile.Settings.SealTest.PulseHeight1 := edPulseHeight1.Value ;
      NewTestPulse := True ;
      end;
 
@@ -1503,9 +1503,9 @@ procedure TSealTestFrm.rbUseHoldingVoltage2Click(Sender: TObject);
   ---------------------------------}
 begin
      { Set holding voltage and pulse height to group #2 }
-     Settings.SealTest.Use := 2 ;
-     Settings.SealTest.HoldingVoltage2 := edHoldingVoltage2.Value ;
-     Settings.SealTest.PulseHeight2 := edPulseHeight2.Value ;
+     WCPFile.Settings.SealTest.Use := 2 ;
+     WCPFile.Settings.SealTest.HoldingVoltage2 := edHoldingVoltage2.Value ;
+     WCPFile.Settings.SealTest.PulseHeight2 := edPulseHeight2.Value ;
      NewTestPulse := True ;
      end;
 
@@ -1517,9 +1517,9 @@ procedure TSealTestFrm.rbUseHoldingVoltage3Click(Sender: TObject);
   ---------------------------------}
 begin
      { Set holding voltage and pulse height to group #3 }
-     Settings.SealTest.Use := 3 ;
-     Settings.SealTest.HoldingVoltage3 := edHoldingVoltage3.Value ;
-     Settings.SealTest.PulseHeight3 :=edPulseHeight3.Value ;
+     WCPFile.Settings.SealTest.Use := 3 ;
+     WCPFile.Settings.SealTest.HoldingVoltage3 := edHoldingVoltage3.Value ;
+     WCPFile.Settings.SealTest.PulseHeight3 :=edPulseHeight3.Value ;
      NewTestPulse := True ;
      end;
 
@@ -1531,7 +1531,7 @@ procedure TSealTestFrm.edPulseHeight1KeyPress(Sender: TObject;
   -------------------------------}
 begin
      if key = #13 then begin
-        Settings.SealTest.PulseHeight1 := edPulseHeight1.Value ;
+        WCPFile.Settings.SealTest.PulseHeight1 := edPulseHeight1.Value ;
         NewTestPulse := True ;
         end ;
      end;
@@ -1544,7 +1544,7 @@ procedure TSealTestFrm.edPulseheight2KeyPress(Sender: TObject;
     -----------------------------}
 begin
      if key = #13 then begin
-        Settings.SealTest.PulseHeight2 := edPulseHeight2.Value ;
+        WCPFile.Settings.SealTest.PulseHeight2 := edPulseHeight2.Value ;
         NewTestPulse := True ;
         end ;
      end;
@@ -1556,7 +1556,7 @@ procedure TSealTestFrm.edPulseWidthKeyPress(Sender: TObject; var Key: Char);
   ----------------------------}
 begin
      if key = #13 then begin
-        Settings.SealTest.PulseWidth := edPulseWidth.Value ;
+        WCPFile.Settings.SealTest.PulseWidth := edPulseWidth.Value ;
         { Note. Force a re-start of D/A waveform so that D/A cycle
           time is updated }
         if Main.SESLabIO.DACActive then Main.SESLabIO.DACStop ;
@@ -1678,7 +1678,7 @@ begin
      scDisplay.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
      scDisplay.MinADCValue := Main.SESLabIO.ADCMinValue ;
 
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
 
      // Update visible channels
      for ch := 0 to scDisplay.NumChannels-1 do begin
@@ -1729,15 +1729,15 @@ procedure TSealTestFrm.bSaveToLogClick(Sender: TObject);
 begin
 
      if CellParametersPage.ActivePage = CellTab then begin
-        WriteToLogFile( format( 'Gaccess= %.5g %s',
+        WCPFile.WriteToLogFile( format( 'Gaccess= %.5g %s',
                      [edGAccess.Value*edGAccess.Scale,edGAccess.Units])) ;
-        WriteToLogFile( format( 'Gmembrane= %.5g %s',
+        WCPFile.WriteToLogFile( format( 'Gmembrane= %.5g %s',
                      [edGMembrane.Value*edGMembrane.Scale,edGMembrane.Units])) ;
-        WriteToLogFile( format( 'Cmembrane= %.5g %s',
+        WCPFile.WriteToLogFile( format( 'Cmembrane= %.5g %s',
                      [edCMembrane.Value*edCMembrane.Scale,edCMembrane.Units])) ;
         end
      else begin
-        WriteToLogFile( format( 'Pipette Resistance= %.5g %s',
+        WCPFile.WriteToLogFile( format( 'Pipette Resistance= %.5g %s',
                      [edResistance.Value*edResistance.Scale,edResistance.Units])) ;
         end ;
      end;
@@ -1765,7 +1765,7 @@ procedure TSealTestFrm.rbGaFromPeakClick(Sender: TObject);
 // Select Ga calculated from capacity current peak mode
 // ----------------------------------------------------
 begin
-     Settings.SealTest.GaFromPeak := True ;
+     WCPFile.Settings.SealTest.GaFromPeak := True ;
      NewTestPulse := True ;
      end;
 
@@ -1774,7 +1774,7 @@ procedure TSealTestFrm.rbGaFromExpClick(Sender: TObject);
 // Select Ga calculated from exponential amplitude mode
 // ----------------------------------------------------
 begin
-     Settings.SealTest.GaFromPeak := False ;
+     WCPFile.Settings.SealTest.GaFromPeak := False ;
      NewTestPulse := True ;
      end;
 
@@ -1790,18 +1790,18 @@ begin
     case i of
         1 : begin
             edPulseHeight1.Value := Value ;
-            Settings.SealTest.PulseHeight1 := Value ;
+            WCPFile.Settings.SealTest.PulseHeight1 := Value ;
            if rbUseHoldingVoltage1.checked then begin
-              Settings.SealTest.PulseHeight := edPulseHeight1.Value ;
+              WCPFile.Settings.SealTest.PulseHeight := edPulseHeight1.Value ;
               NewTestPulse := True ;
               end ;
            end ;
 
         2 : begin
             edPulseHeight2.Value := Value ;
-            Settings.SealTest.PulseHeight2 := Value ;
+            WCPFile.Settings.SealTest.PulseHeight2 := Value ;
            if rbUseHoldingVoltage2.checked then begin
-              Settings.SealTest.PulseHeight := edPulseHeight2.Value ;
+              WCPFile.Settings.SealTest.PulseHeight := edPulseHeight2.Value ;
               NewTestPulse := True ;
               end ;
             end ;
@@ -1830,7 +1830,7 @@ begin
     case i of
         1 : begin
             edHoldingVoltage1.Value := Value ;
-            Settings.SealTest.HoldingVoltage1 := Value ;
+            WCPFile.Settings.SealTest.HoldingVoltage1 := Value ;
             if rbUseHoldingVoltage1.checked then begin
                Main.SESLabIO.DACHoldingVoltage[TestDAC] := edHoldingVoltage1.Value ;
                NewTestPulse := True ;
@@ -1839,7 +1839,7 @@ begin
 
         2 : begin
             edHoldingVoltage2.Value := Value ;
-            Settings.SealTest.HoldingVoltage2 := Value ;
+            WCPFile.Settings.SealTest.HoldingVoltage2 := Value ;
             if rbUseHoldingVoltage1.checked then begin
                Main.SESLabIO.DACHoldingVoltage[TestDAC] := edHoldingVoltage2.Value ;
                NewTestPulse := True ;
@@ -1847,7 +1847,7 @@ begin
             end ;
         3 : begin
             edHoldingVoltage3.Value := Value ;
-            Settings.SealTest.HoldingVoltage3 := Value ;
+            WCPFile.Settings.SealTest.HoldingVoltage3 := Value ;
             if rbUseHoldingVoltage1.checked then begin
                Main.SESLabIO.DACHoldingVoltage[TestDAC] := edHoldingVoltage3.Value ;
                NewTestPulse := True ;
@@ -1877,7 +1877,7 @@ procedure TSealTestFrm.SetTestPulseWidth( Value : Single ) ;
 // --------------------
 begin
      edPulseWidth.Value := Value ;
-     Settings.SealTest.PulseWidth :=  Value ;
+     WCPFile.Settings.SealTest.PulseWidth :=  Value ;
 
      end ;
 
@@ -1909,7 +1909,7 @@ function  TSealTestFrm.GetTestPulseNumber : Integer ;
 // Get test pulse number
 // --------------------
 begin
-     Result := Settings.SealTest.Use ;
+     Result := WCPFile.Settings.SealTest.Use ;
      end ;
 
 
@@ -1918,8 +1918,8 @@ procedure TSealTestFrm.SetSmoothingFactor( Value : Single ) ;
 // Set cell parameter smoothing factor
 // -----------------------------------
 begin
-     Settings.SealTest.NumAverages := Min(Max(Round(Value),1),MaxAverage) ;
-     edNumAverages.Value := Settings.SealTest.NumAverages ;
+     WCPFile.Settings.SealTest.NumAverages := Min(Max(Round(Value),1),MaxAverage) ;
+     edNumAverages.Value := WCPFile.Settings.SealTest.NumAverages ;
      end ;
 
 
@@ -1928,7 +1928,7 @@ function  TSealTestFrm.GetSmoothingFactor : Single ;
 // Get cell parameter smoothing factor
 // -----------------------------------
 begin
-     Result := Settings.SealTest.NumAverages ;
+     Result := WCPFile.Settings.SealTest.NumAverages ;
      end ;
 
 
@@ -1947,9 +1947,9 @@ procedure TSealTestFrm.edPulseheight3KeyPress(Sender: TObject;
     -----------------------------}
 begin
      if key = #13 then begin
-        Settings.SealTest.PulseHeight3 := edPulseHeight3.Value ;
+        WCPFile.Settings.SealTest.PulseHeight3 := edPulseHeight3.Value ;
         if rbUseHoldingVoltage3.checked then begin
-           Settings.SealTest.PulseHeight := edPulseHeight3.Value ;
+           WCPFile.Settings.SealTest.PulseHeight := edPulseHeight3.Value ;
            end ;
         NewTestPulse := True ;
         end ;
@@ -2008,7 +2008,7 @@ procedure TSealTestFrm.edNumAveragesKeyPress(Sender: TObject;
   var Key: Char);
 begin
     if Key = #13 then begin
-       Settings.SealTest.NumAverages := Round(edNumAverages.Value)
+       WCPFile.Settings.SealTest.NumAverages := Round(edNumAverages.Value)
        end ;
      end;
 
@@ -2032,7 +2032,7 @@ procedure TSealTestFrm.edZapAmplitudeKeyPress(Sender: TObject; var Key: Char);
 // ---------------------
 begin
      if key = #13 then begin
-        Settings.SealTest.ZapAmplitude := edZapAmplitude.Value ;
+        WCPFile.Settings.SealTest.ZapAmplitude := edZapAmplitude.Value ;
         end ;
      end;
 
@@ -2042,7 +2042,7 @@ procedure TSealTestFrm.edZapDurationKeyPress(Sender: TObject; var Key: Char);
 // ---------------------
 begin
      if key = #13 then begin
-        Settings.SealTest.ZapDuration := edZapDuration.Value ;
+        WCPFile.Settings.SealTest.ZapDuration := edZapDuration.Value ;
         end ;
      end;
 

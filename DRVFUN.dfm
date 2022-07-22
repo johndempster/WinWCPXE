@@ -62,6 +62,7 @@ object DrvFunFrm: TDrvFunFrm
     MaxADCValue = 2047
     MinADCValue = -2048
     NumBytesPerSample = 2
+    FloatingPointSamples = False
     FixZeroLevels = False
     DisplaySelected = False
     FontSize = 8
@@ -142,6 +143,10 @@ object DrvFunFrm: TDrvFunFrm
       DefaultRowHeight = 16
       ScrollBars = ssVertical
       TabOrder = 1
+      ColWidths = (
+        64
+        64
+        64)
       RowHeights = (
         16
         16

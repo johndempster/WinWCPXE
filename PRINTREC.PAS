@@ -11,7 +11,7 @@ unit PrintRec;
 interface
 
 uses WinTypes, WinProcs, Classes, Graphics, Forms, Controls, Buttons,
-  StdCtrls, ExtCtrls,Printers,Global,Shared, Grids, SysUtils, Spin, fileio,
+  StdCtrls, ExtCtrls,Printers, Grids, SysUtils, Spin,
   ValEdit,  ScopeDisplay, ValidatedEdit, Dialogs ;
 
 type
@@ -74,7 +74,7 @@ var
 implementation
 
 {$R *.DFM}
-uses MDIform, maths ;
+uses MDIform, maths , WCPFIleUnit;
 
 procedure TPrintRecFrm.FormShow(Sender: TObject);
 { --------------------------------
@@ -112,49 +112,49 @@ begin
      CalibrationBarTable.colwidths[1] := Canvas.TextWidth('XXXXXXXXX') ;
 
      CalibrationBarTable.options := [goEditing,goHorzLine,goVertLine] ;
-     CalibrationBarTable.RowCount := fH.NumChannels + 1 ;
+     CalibrationBarTable.RowCount := WCPFile.fH.NumChannels + 1 ;
      CalibrationBarTable.cells[0,0] := 'Time ';
 
      { Adjust number of rows to number of enabled channels }
       n := 1 ;
-      for ch := 0 to fH.NumChannels-1 do if Channel[ch].InUse then Inc(n) ;
+      for ch := 0 to WCPFile.fH.NumChannels-1 do if WCPFile.Channel[ch].InUse then Inc(n) ;
       CalibrationBarTable.RowCount := n ;
 
       { Update text box settings }
-      edLeftMargin.Value := Settings.Plot.LeftMargin ;
-      edRightMargin.Value := Settings.Plot.RightMargin ;
-      edTopMargin.Value := Settings.Plot.TopMargin ;
-      edBottomMargin.Value := Settings.Plot.BottomMargin ;
-      edWidth.Value := Settings.Plot.MetafileWidth ;
-      edHeight.Value := Settings.Plot.MetafileHeight ;
-      edFontSize.Value := Settings.Plot.FontSize ;
-      edLineThickness.Value := Settings.Plot.LineThickness ;
-      cbFontName.itemindex := cbFontName.items.indexof(Settings.Plot.FontName) ;
+      edLeftMargin.Value := WCPFile.Settings.Plot.LeftMargin ;
+      edRightMargin.Value := WCPFile.Settings.Plot.RightMargin ;
+      edTopMargin.Value := WCPFile.Settings.Plot.TopMargin ;
+      edBottomMargin.Value := WCPFile.Settings.Plot.BottomMargin ;
+      edWidth.Value := WCPFile.Settings.Plot.MetafileWidth ;
+      edHeight.Value := WCPFile.Settings.Plot.MetafileHeight ;
+      edFontSize.Value := WCPFile.Settings.Plot.FontSize ;
+      edLineThickness.Value := WCPFile.Settings.Plot.LineThickness ;
+      cbFontName.itemindex := cbFontName.items.indexof(WCPFile.Settings.Plot.FontName) ;
       if cbFontName.itemindex < 0 then  cbFontName.itemindex := 0 ;
-      ckShowLabels.checked := Settings.ShowLabels ;
-      ckShowZeroLevels.checked := Settings.ShowZeroLevels ;
-      ckUseColor.checked := Settings.Plot.UseColor ;
+      ckShowLabels.checked := WCPFile.Settings.ShowLabels ;
+      ckShowZeroLevels.checked := WCPFile.Settings.ShowZeroLevels ;
+      ckUseColor.checked := WCPFile.Settings.Plot.UseColor ;
 
-      if Settings.TimeBarValue <= 0.0 then begin
-        Settings.TimeBarValue := (DisplayObj.xMax -
+      if WCPFile.Settings.TimeBarValue <= 0.0 then begin
+        WCPFile.Settings.TimeBarValue := (DisplayObj.xMax -
                                  DisplayObj.xMin)*
                                  DisplayObj.TScale*0.1 ;
         end ;
 
       CalibrationBarTable.cells[1,0] := Format( '%.4g %s',
-                                       [Settings.TimeBarValue,
-                                        Settings.TUnits])  ;
+                                       [WCPFile.Settings.TimeBarValue,
+                                        WCPFile.Settings.TUnits])  ;
 
       { Channel calibration bars }
       Row := 1 ;
-      for ch := 0 to fH.NumChannels-1 do if Channel[ch].InUse then begin
-         if Channel[ch].ADCCalibrationValue = 0.0 then
-            Channel[ch].ADCCalibrationValue := (Channel[ch].yMax - Channel[ch].yMin)
-                                             *Channel[ch].ADCScale*0.1 ;
-         CalibrationBarTable.cells[0,Row] := Channel[ch].ADCName ;
+      for ch := 0 to WCPFile.fH.NumChannels-1 do if WCPFile.Channel[ch].InUse then begin
+         if WCPFile.Channel[ch].ADCCalibrationValue = 0.0 then
+            WCPFile.Channel[ch].ADCCalibrationValue := (WCPFile.Channel[ch].yMax - WCPFile.Channel[ch].yMin)
+                                             *WCPFile.Channel[ch].ADCScale*0.1 ;
+         CalibrationBarTable.cells[0,Row] := WCPFile.Channel[ch].ADCName ;
          CalibrationBarTable.cells[1,Row] := Format( '%.4g %s',
-                                              [Settings.BarValue[ch],
-                                               Channel[ch].ADCUnits]) ;
+                                              [WCPFile.Settings.BarValue[ch],
+                                               WCPFile.Channel[ch].ADCUnits]) ;
          Inc(Row) ;
          end ;
 
@@ -173,50 +173,50 @@ var
 begin
 
       { Update settings from text boxes }
-      Settings.Plot.LeftMargin := edLeftMargin.Value ;
-      Settings.Plot.RightMargin := edRightMargin.Value ;
-      Settings.Plot.TopMargin := edTopMargin.Value ;
-      Settings.Plot.BottomMargin := edBottomMargin.Value ;
-      Settings.Plot.MetafileWidth := Round(edWidth.Value) ;
-      Settings.Plot.MetafileHeight := Round(edHeight.Value) ;
-      Settings.Plot.FontSize := Round(edFontSize.Value) ;
-      Settings.Plot.LineThickness := Round(edLineThickness.Value) ;
-      Settings.Plot.FontName :=  cbFontName.text ;
+      WCPFile.Settings.Plot.LeftMargin := edLeftMargin.Value ;
+      WCPFile.Settings.Plot.RightMargin := edRightMargin.Value ;
+      WCPFile.Settings.Plot.TopMargin := edTopMargin.Value ;
+      WCPFile.Settings.Plot.BottomMargin := edBottomMargin.Value ;
+      WCPFile.Settings.Plot.MetafileWidth := Round(edWidth.Value) ;
+      WCPFile.Settings.Plot.MetafileHeight := Round(edHeight.Value) ;
+      WCPFile.Settings.Plot.FontSize := Round(edFontSize.Value) ;
+      WCPFile.Settings.Plot.LineThickness := Round(edLineThickness.Value) ;
+      WCPFile.Settings.Plot.FontName :=  cbFontName.text ;
 
-      Settings.ShowLabels := ckShowLabels.checked ;
-      Settings.ShowZeroLevels := ckShowZeroLevels.checked ;
-      Settings.Plot.UseColor := ckUseColor.checked ;
+      WCPFile.Settings.ShowLabels := ckShowLabels.checked ;
+      WCPFile.Settings.ShowZeroLevels := ckShowZeroLevels.checked ;
+      WCPFile.Settings.Plot.UseColor := ckUseColor.checked ;
 
       { Time calibration }
-      Settings.TimeBarValue := ExtractFloat(CalibrationBarTable.cells[1,0], 1. ) ;
+      WCPFile.Settings.TimeBarValue := ExtractFloat(CalibrationBarTable.cells[1,0], 1. ) ;
 
       { Channel calibration bars }
       Row := 1 ;
-      for ch := 0 to fH.NumChannels-1 do if Channel[ch].InUse then begin
-         Channel[ch].ADCCalibrationValue := ExtractFloat(
+      for ch := 0 to WCPFile.fH.NumChannels-1 do if WCPFile.Channel[ch].InUse then begin
+         WCPFile.Channel[ch].ADCCalibrationValue := ExtractFloat(
                                   CalibrationBarTable.Cells[1,Row],10. ) ;
-         Settings.BarValue[ch] := Channel[ch].ADCCalibrationValue ;
+         WCPFile.Settings.BarValue[ch] := WCPFile.Channel[ch].ADCCalibrationValue ;
 
          Inc(Row) ;
          end ;
 
       { Copy data into display object }
-      DisplayObj.PrinterLeftMargin := Round(Settings.Plot.LeftMargin) ;
-      DisplayObj.PrinterRightMargin := Round(Settings.Plot.RightMargin) ;
-      DisplayObj.PrinterTopMargin := Round(Settings.Plot.TopMargin) ;
-      DisplayObj.PrinterBottomMargin := Round(Settings.Plot.BottomMargin) ;
-      DisplayObj.PrinterFontName := Settings.Plot.FontName ;
-      DisplayObj.PrinterFontSize := Settings.Plot.FontSize ;
-      DisplayObj.PrinterPenWidth := Settings.Plot.LineThickness ;
-      DisplayObj.MetafileWidth := Settings.Plot.MetaFileWidth ;
-      DisplayObj.MetafileHeight := Settings.Plot.MetaFileHeight ;
-      DisplayObj.PrinterShowZeroLevels := Settings.ShowZeroLevels ;
-      DisplayObj.PrinterShowLabels := Settings.ShowLabels ;
-      DisplayObj.PrinterDisableColor := not Settings.Plot.UseColor ;
+      DisplayObj.PrinterLeftMargin := Round(WCPFile.Settings.Plot.LeftMargin) ;
+      DisplayObj.PrinterRightMargin := Round(WCPFile.Settings.Plot.RightMargin) ;
+      DisplayObj.PrinterTopMargin := Round(WCPFile.Settings.Plot.TopMargin) ;
+      DisplayObj.PrinterBottomMargin := Round(WCPFile.Settings.Plot.BottomMargin) ;
+      DisplayObj.PrinterFontName := WCPFile.Settings.Plot.FontName ;
+      DisplayObj.PrinterFontSize := WCPFile.Settings.Plot.FontSize ;
+      DisplayObj.PrinterPenWidth := WCPFile.Settings.Plot.LineThickness ;
+      DisplayObj.MetafileWidth := WCPFile.Settings.Plot.MetaFileWidth ;
+      DisplayObj.MetafileHeight := WCPFile.Settings.Plot.MetaFileHeight ;
+      DisplayObj.PrinterShowZeroLevels := WCPFile.Settings.ShowZeroLevels ;
+      DisplayObj.PrinterShowLabels := WCPFile.Settings.ShowLabels ;
+      DisplayObj.PrinterDisableColor := not WCPFile.Settings.Plot.UseColor ;
 
       for ch := 0 to DisplayObj.NumChannels-1 do
-          DisplayObj.ChanCalBar[ch] := Channel[ch].ADCCalibrationValue ;
-      DisplayObj.TCalBar := Settings.TimeBarValue /
+          DisplayObj.ChanCalBar[ch] := WCPFile.Channel[ch].ADCCalibrationValue ;
+      DisplayObj.TCalBar := WCPFile.Settings.TimeBarValue /
                                            DisplayObj.TScale ;
 
      end ;
@@ -233,15 +233,15 @@ begin
          { Time calibration bar }
          Value := ExtractFloat( CalibrationBarTable.cells[1,0], 1. ) ;
          CalibrationBarTable.cells[1,0] := Format( '%.4g %s',
-                                       [Value,Settings.TUnits])  ;
+                                       [Value,WCPFile.Settings.TUnits])  ;
 
          { Channel calibration bars }
          Row := 1 ;
-         for ch := 0 to fH.NumChannels-1 do if Channel[ch].InUse then begin
+         for ch := 0 to WCPFile.fH.NumChannels-1 do if WCPFile.Channel[ch].InUse then begin
              Value := ExtractFloat(CalibrationBarTable.Cells[1,Row],10. ) ;
-             CalibrationBarTable.cells[0,Row] := Channel[ch].ADCName ;
+             CalibrationBarTable.cells[0,Row] := WCPFile.Channel[ch].ADCName ;
              CalibrationBarTable.cells[1,Row] := Format( '%.4g %s',
-                                                 [Value,Channel[ch].ADCUnits]) ;
+                                                 [Value,WCPFile.Channel[ch].ADCUnits]) ;
              Inc(Row) ;
              end ;
          end ;
@@ -257,23 +257,23 @@ var
      ch,Row : Integer ;
 begin
 
-      Settings.TimeBarValue := (DisplayObj.xMax -
+      WCPFile.Settings.TimeBarValue := (DisplayObj.xMax -
                                 DisplayObj.xMin)*
                                 DisplayObj.TScale*0.1 ;
 
       CalibrationBarTable.cells[1,0] := Format( '%.4g %s',
-                                       [Settings.TimeBarValue,
-                                        Settings.TUnits])  ;
+                                       [WCPFile.Settings.TimeBarValue,
+                                        WCPFile.Settings.TUnits])  ;
 
       Row := 1 ;
-      for ch := 0 to fH.NumChannels-1 do if Channel[ch].InUse then begin
-          Channel[ch].ADCCalibrationValue := (Channel[ch].yMax - Channel[ch].yMin)
-                                             *Channel[ch].ADCScale*0.1 ;
-          Settings.BarValue[ch] := Channel[ch].ADCCalibrationValue ;
-          CalibrationBarTable.cells[0,Row] := Channel[ch].ADCName ;
+      for ch := 0 to WCPFile.fH.NumChannels-1 do if WCPFile.Channel[ch].InUse then begin
+          WCPFile.Channel[ch].ADCCalibrationValue := (WCPFile.Channel[ch].yMax - WCPFile.Channel[ch].yMin)
+                                             *WCPFile.Channel[ch].ADCScale*0.1 ;
+          WCPFile.Settings.BarValue[ch] := WCPFile.Channel[ch].ADCCalibrationValue ;
+          CalibrationBarTable.cells[0,Row] := WCPFile.Channel[ch].ADCName ;
           CalibrationBarTable.cells[1,Row] := Format( '%.4g %s',
-                                              [Settings.BarValue[ch],
-                                               Channel[ch].ADCUnits]) ;
+                                              [WCPFile.Settings.BarValue[ch],
+                                               WCPFile.Channel[ch].ADCUnits]) ;
          Inc(Row) ;
          end ;
 end;

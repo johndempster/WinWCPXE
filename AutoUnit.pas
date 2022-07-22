@@ -97,7 +97,7 @@ type
 
 implementation
 
-uses ComServ, mdiform, global, fileio, rec, SealTest, TritonPanelUnit ;
+uses ComServ, mdiform, rec, SealTest, TritonPanelUnit, WCPFileUnit ;
 
 procedure TAUTO.NewFile(FileName: OleVariant);
 // ----------------------
@@ -105,7 +105,7 @@ procedure TAUTO.NewFile(FileName: OleVariant);
 // ----------------------
 begin
 
-     Main.CreateNewDataFile( FileName ) ;
+     WCPFile.CreateNewDataFile( FileName ) ;
 
      end;
 
@@ -124,10 +124,10 @@ procedure TAUTO.OpenFile(FileName: OleVariant);
 // Open a .WCP data file
 // ---------------------
 begin
-     Main.LoadDataFiles(FileName);
+     WCPFile.LoadDataFiles(FileName);
      end;
 
-     
+
 function TAUTO.Get_Cm: OleVariant;
 // ---------------------------
 // Read cell membrane capacity
@@ -195,11 +195,11 @@ var
 begin
 
      if Main.FormExists('SealTestFrm') then
-        Settings.SealTest.PulseHeight1 := SealTestFrm.TestPulseAmplitude[1] ;
+        WCPFile.Settings.SealTest.PulseHeight1 := SealTestFrm.TestPulseAmplitude[1] ;
 
      VScale := Amplifier.CommandScaleFactor[0] ;
      if VScale = 0.0 then VScale := 1.0 ;
-     Result := Settings.SealTest.PulseHeight1*VScale ;
+     Result := WCPFile.Settings.SealTest.PulseHeight1*VScale ;
 
     end ;
 
@@ -212,7 +212,7 @@ var
     i : Integer ;
 begin
 
-     Result := Settings.SealTest.PulseWidth ;
+     Result := WCPFile.Settings.SealTest.PulseWidth ;
      for i := 0 to Main.MDIChildCount-1 do
          if Main.MDIChildren[i].Name = 'SealTestFrm' then
             Result := TSealTestFrm(Main.MDIChildren[i]).TestPulseWidth ;
@@ -235,12 +235,12 @@ begin
 
      if Amplifier.CommandScaleFactor[0] <> 0.0 then VScale := 1.0/Amplifier.CommandScaleFactor[0]
                                                else VScale := 1.0 ;
-     Settings.SealTest.PulseHeight1 := Value*VScale ;
+     WCPFile.Settings.SealTest.PulseHeight1 := Value*VScale ;
 
-     Settings.SealTest.Use := 1 ;
+     WCPFile.Settings.SealTest.Use := 1 ;
      if Main.FormExists('SealTestFrm') then begin
         SealTestFrm.TestPulseNumber := 1 ;
-        SealTestFrm.TestPulseAmplitude[1] := Settings.SealTest.PulseHeight1 ;
+        SealTestFrm.TestPulseAmplitude[1] := WCPFile.Settings.SealTest.PulseHeight1 ;
         end ;
 
      end;
@@ -254,10 +254,10 @@ var
     i : Integer ;
 begin
 
-     Settings.SealTest.PulseWidth := Value ;
+     WCPFile.Settings.SealTest.PulseWidth := Value ;
      for i := 0 to Main.MDIChildCount-1 do
          if Main.MDIChildren[i].Name = 'SealTestFrm' then
-            TSealTestFrm(Main.MDIChildren[i]).TestPulseWidth := Settings.SealTest.PulseWidth ;
+            TSealTestFrm(Main.MDIChildren[i]).TestPulseWidth := WCPFile.Settings.SealTest.PulseWidth ;
 
      end;
 
@@ -285,11 +285,11 @@ var
 begin
 
      if Main.FormExists('SealTestFrm') then
-        Settings.SealTest.HoldingVoltage1 := SealTestFrm.HoldingVoltage[1] ;
+        WCPFile.Settings.SealTest.HoldingVoltage1 := SealTestFrm.HoldingVoltage[1] ;
 
      VScale := Amplifier.CommandScaleFactor[0] ;
      if VScale = 0.0 then VScale := 1.0 ;
-     Result := Settings.SealTest.HoldingVoltage1*VScale ;
+     Result := WCPFile.Settings.SealTest.HoldingVoltage1*VScale ;
 
     end ;
 
@@ -304,12 +304,12 @@ begin
 
      if Amplifier.CommandScaleFactor[0] <> 0.0 then VScale := 1.0/Amplifier.CommandScaleFactor[0]
                                                else VScale := 1.0 ;
-     Settings.SealTest.HoldingVoltage1 := Value*VScale ;
+     WCPFile.Settings.SealTest.HoldingVoltage1 := Value*VScale ;
 
-     Settings.SealTest.Use := 1 ;
+     WCPFile.Settings.SealTest.Use := 1 ;
      if Main.FormExists('SealTestFrm') then begin
         SealTestFrm.TestPulseNumber := 1 ;
-        SealTestFrm.HoldingVoltage[1] := Settings.SealTest.HoldingVoltage1 ;
+        SealTestFrm.HoldingVoltage[1] := WCPFile.Settings.SealTest.HoldingVoltage1 ;
         end ;
 
      end;
@@ -319,7 +319,7 @@ function TAUTO.Get_StimulusProtocol: OleVariant;
 // Return current selected stimulus protocol
 // -----------------------------------------
 begin
-     Result := AnsiReplaceText(ExtractFileName(Settings.VProgramFileName),'.vpr', '' ) ;
+     Result := AnsiReplaceText(ExtractFileName(WCPFile.Settings.VProgramFileName),'.vpr', '' ) ;
      end;
 
 
@@ -329,7 +329,7 @@ function TAUTO.Get_TriggerMode: OleVariant;
 // F=Free run, E=external, P=pulse, D=Event detect
 // -----------------------------------------------
 begin
-     case Settings.RecordingMode of
+     case WCPFile.Settings.RecordingMode of
         rmProtocol : Result := 'P' ;
         rmFreeRun : Result := 'F' ;
         rmExtTrig : Result := 'E' ;
@@ -343,7 +343,7 @@ procedure TAUTO.Set_StimulusProtocol(Value: OleVariant);
 // Set stimulus protocol
 // ---------------------
 begin
-     Settings.VProgramFileName := Settings.VProtDirectory + Value + '.vpr' ;
+     WCPFile.Settings.VProgramFileName := WCPFile.Settings.VProtDirectory + Value + '.vpr' ;
      if Main.FormExists('RecordFrm') then RecordFrm.StimulusProtocol := Value ;
      end;
 
@@ -354,12 +354,12 @@ procedure TAUTO.Set_TriggerMode(Value: OleVariant);
 // ----------------------
 begin
        ;
-     if UpperCase(Value) = 'P' then Settings.RecordingMode := rmProtocol
-     else if UpperCase(Value) = 'F' then Settings.RecordingMode := rmFreeRun
-     else if UpperCase(Value) = 'E' then Settings.RecordingMode := rmExtTrig
-     else Settings.RecordingMode := rmDetect ;
+     if UpperCase(Value) = 'P' then WCPFile.Settings.RecordingMode := rmProtocol
+     else if UpperCase(Value) = 'F' then WCPFile.Settings.RecordingMode := rmFreeRun
+     else if UpperCase(Value) = 'E' then WCPFile.Settings.RecordingMode := rmExtTrig
+     else WCPFile.Settings.RecordingMode := rmDetect ;
 
-     if Main.FormExists('RecordFrm') then RecordFrm.RecordingMode := Settings.RecordingMode ;
+     if Main.FormExists('RecordFrm') then RecordFrm.RecordingMode := WCPFile.Settings.RecordingMode ;
 
      end;
 
@@ -420,7 +420,7 @@ function TAUTO.Get_NumChannelsPerRecord: Integer;
 // Get no. of A/D input channels per record
 // ----------------------------------------
 begin
-    Result := FH.NumChannels ;
+    Result := WCPFile.FH.NumChannels ;
     end;
 
 
@@ -429,7 +429,7 @@ function TAUTO.Get_NumRecordsInFile: Integer;
 // Return number of channels in record
 // -----------------------------------
 begin
-    Result := FH.NumRecords ;
+    Result := WCPFile.FH.NumRecords ;
     end;
 
 
@@ -438,7 +438,7 @@ function TAUTO.Get_NumSamplesPerChannel: Integer;
 // Return number of A/D samples per channel
 // -----------------------------------
 begin
-    Result := FH.NumSamples ;
+    Result := WCPFile.FH.NumSamples ;
     end;
 
 
@@ -453,19 +453,19 @@ var
     RH : TRecHeader ;
 begin
 
-     if (RecordNum < 1) or (RecordNum > FH.NumRecords) or
-        (ChannelNum < 0) or (ChannelNum >= FH.NumChannels) or
-        (SampleNum < 0) or (SampleNum >= FH.NumSamples) then begin
+     if (RecordNum < 1) or (RecordNum > WCPFile.FH.NumRecords) or
+        (ChannelNum < 0) or (ChannelNum >= WCPFile.FH.NumChannels) or
+        (SampleNum < 0) or (SampleNum >= WCPFile.FH.NumSamples) then begin
         Value := 0.0 ;
         Exit ;
         end ;
 
      // Read record from file
-     GetRecord( fH, RH, RecordNum, ADC ) ;
+     WCPFile.GetRecord( WCPFile.fH, RH, RecordNum, ADC ) ;
 
      // Read and scale sample
-     i := SampleNum*FH.NumChannels + Channel[ChannelNum].ChannelOffset ;
-     Value := Channel[ChannelNum].ADCScale*( ADC[i] - Channel[ChannelNum].ADCZero) ;
+     i := SampleNum*WCPFile.FH.NumChannels + WCPFile.Channel[ChannelNum].ChannelOffset ;
+     Value := WCPFile.Channel[ChannelNum].ADCScale*( ADC[i] - WCPFile.Channel[ChannelNum].ADCZero) ;
 
      end;
 
@@ -475,7 +475,7 @@ procedure TAUTO.Set_NumChannelsPerRecord(Value: Integer);
 // Set number of a/d channels to be acquired
 // -----------------------------------------
 begin
-     Settings.NumChannels := Round(Value) ;
+     WCPFile.Settings.NumChannels := Round(Value) ;
      end;
 
 
@@ -484,7 +484,7 @@ procedure TAUTO.Set_NumRecordsInFile(Value: Integer);
 // Set number of sweeps to be acquired
 // -----------------------------------------
 begin
-     Settings.NumRecordsRequired := Round(Value) ;
+     WCPFile.Settings.NumRecordsRequired := Round(Value) ;
      end;
 
 
@@ -493,7 +493,7 @@ procedure TAUTO.Set_NumSamplesPerChannel(Value: Integer);
 // Set number of samples/channel to be acquired
 // -----------------------------------------
 begin
-     Settings.NumSamples := Max(Round(Value) div 256,1)*256 ;
+     WCPFile.Settings.NumSamples := Max(Round(Value) div 256,1)*256 ;
      end;
 
 
@@ -789,7 +789,7 @@ function TAUTO.Get_SealTestNumAverages: OleVariant;
 // Get seal test cell parameters no. of averages
 // ---------------------------------------------
 begin
-     Result := Settings.SealTest.NumAverages ;
+     Result := WCPFile.Settings.SealTest.NumAverages ;
 end;
 
 procedure TAUTO.Set_SealTestNumAverages(Value: OleVariant);
@@ -797,7 +797,7 @@ procedure TAUTO.Set_SealTestNumAverages(Value: OleVariant);
 // Set seal test cell parameters no. of averages
 // ---------------------------------------------
 begin
-     Settings.SealTest.NumAverages := Max(Round(Value),1) ;
+     WCPFile.Settings.SealTest.NumAverages := Max(Round(Value),1) ;
      end;
 
 
@@ -806,8 +806,8 @@ function TAUTO.Get_SealTestGaFromPeak: Integer;
 // Get seal test G access calculation mode
 // ---------------------------------------------
 begin
-     if Settings.SealTest.GaFromPeak then Result := 1
-                                     else Result := 0 ;
+     if WCPFile.Settings.SealTest.GaFromPeak then Result := 1
+                                             else Result := 0 ;
 end;
 
 procedure TAUTO.Set_SealTestGaFromPeak(Value: Integer);
@@ -815,8 +815,8 @@ procedure TAUTO.Set_SealTestGaFromPeak(Value: Integer);
 // Set seal test G access calculation mode
 // ---------------------------------------------
 begin
-    if Value <> 0 then Settings.SealTest.GaFromPeak := True
-                  else  Settings.SealTest.GaFromPeak := False ;
+    if Value <> 0 then WCPFile.Settings.SealTest.GaFromPeak := True
+                  else  WCPFile.Settings.SealTest.GaFromPeak := False ;
 end;
 
 initialization

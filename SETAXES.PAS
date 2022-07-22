@@ -7,7 +7,7 @@ unit Setaxes;
 interface
 
 uses WinTypes, WinProcs, Classes, Graphics, Forms, Controls, Buttons,
-  StdCtrls, Spin, Global, sysutils, shared, plotlib, ExtCtrls, Dialogs,
+  StdCtrls, Spin, sysutils, ExtCtrls, Dialogs,
   ValEdit, XYPlotDisplay, ValidatedEdit ;
 
 type

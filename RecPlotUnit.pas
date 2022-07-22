@@ -26,8 +26,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, XMultiYPlot, ValidatedEdit, global, math, mmsystem,
-  ExtCtrls, fileio, RangeEdit, strutils ;
+  Dialogs, StdCtrls, XMultiYPlot, ValidatedEdit, math, mmsystem,
+  ExtCtrls, RangeEdit, strutils ;
 
 const
     NumCursorSets = 2 ;
@@ -145,7 +145,7 @@ var
 
 implementation
 
-uses MDIForm, Printgra, StimModule;
+uses MDIForm, Printgra, StimModule, WCPFIleUnit;
 
 {$R *.dfm}
 
@@ -224,8 +224,8 @@ var
 begin
 
     // Exclude LEAK records if Ignore
-    Settings.RecPlot.IgnoreLeakRecords := ckIgnoreLEAKRecords.Checked ;
-    if Settings.RecPlot.IgnoreLeakRecords and ContainsText(RecordType,'Leak') then Exit ;
+    WCPFile.Settings.RecPlot.IgnoreLeakRecords := ckIgnoreLEAKRecords.Checked ;
+    if WCPFile.Settings.RecPlot.IgnoreLeakRecords and ContainsText(RecordType,'Leak') then Exit ;
 
     nAvg := Round( edNumAveraged.Value ) ;
 
@@ -419,22 +419,22 @@ begin
     // Add variable column titles to log file
     if PlotsChanged then begin
        s := #9 + 'Record' + #9 + 'Time (s)';
-       for iPlot := 0 to Settings.RecPlot.NumPlots-1 do begin
-           s := s + #9 + Settings.RecPlot.Plot[iPlot].YLabel ;
+       for iPlot := 0 to WCPFile.Settings.RecPlot.NumPlots-1 do begin
+           s := s + #9 + WCPFile.Settings.RecPlot.Plot[iPlot].YLabel ;
            end ;
-       WriteToLogFile(s) ;
+       WCPFile.WriteToLogFile(s) ;
        PlotsChanged := False ;
        end ;
 
-    for iP := 0 to Settings.RecPlot.NumPlots-1 do
-        if (Settings.RecPlot.Plot[iP].StimProtocol = StimProtocolInUse) or
-           (Settings.RecPlot.Plot[iP].StimProtocol = '') then begin
+    for iP := 0 to WCPFile.Settings.RecPlot.NumPlots-1 do
+        if (WCPFile.Settings.RecPlot.Plot[iP].StimProtocol = StimProtocolInUse) or
+           (WCPFile.Settings.RecPlot.Plot[iP].StimProtocol = '') then begin
 
-        plPlot.PlotNum := Settings.RecPlot.Plot[iP].PlotNum ;
-        iChan := Settings.RecPlot.Plot[iP].ChanNum ;
-        CursorSet := Settings.RecPlot.Plot[iP].CursorSet ;
+        plPlot.PlotNum := WCPFile.Settings.RecPlot.Plot[iP].PlotNum ;
+        iChan := WCPFile.Settings.RecPlot.Plot[iP].ChanNum ;
+        CursorSet := WCPFile.Settings.RecPlot.Plot[iP].CursorSet ;
 
-        case Settings.RecPlot.Plot[iP].VarNum of
+        case WCPFile.Settings.RecPlot.Plot[iP].VarNum of
 
            // Average
            vAverage : begin
@@ -443,7 +443,7 @@ begin
 
            // Peak
            vPeak : begin
-              case Settings.RecPlot.Plot[iP].Polarity of
+              case WCPFile.Settings.RecPlot.Plot[iP].Polarity of
                  PosPolarity : y := yMax[iChan,CursorSet] ;
                  NegPolarity : y := yMin[iChan,CursorSet] ;
                 else begin
@@ -457,7 +457,7 @@ begin
 
            // Rise time
            vTRise : begin
-              case Settings.RecPlot.Plot[iP].Polarity of
+              case WCPFile.Settings.RecPlot.Plot[iP].Polarity of
                  PosPolarity : y := yMaxTRise[iChan,CursorSet] ;
                  NegPolarity : y := yMinTRise[iChan,CursorSet] ;
                 else begin
@@ -471,7 +471,7 @@ begin
 
            // Rate of rise
            vRateOfRise : begin
-              case Settings.RecPlot.Plot[iP].RateofRiseSmoothing of
+              case WCPFile.Settings.RecPlot.Plot[iP].RateofRiseSmoothing of
                  ForwardDifference : begin
                     YPos := yMaxRateOfRiseFD[iChan,CursorSet] ;
                     YNeg := yMinRateOfRiseFD[iChan,CursorSet] ;
@@ -486,7 +486,7 @@ begin
                     end ;
                  end ;
 
-              case Settings.RecPlot.Plot[iP].Polarity of
+              case WCPFile.Settings.RecPlot.Plot[iP].Polarity of
                   PosPolarity : y := YPos ;
                   NegPolarity : y := YNeg ;
                   AbsPolarity : begin
@@ -499,7 +499,7 @@ begin
            vSlope : y := ySlope[iChan,CursorSet] ;
 
            vRisingSlope : begin
-              case Settings.RecPlot.Plot[iP].Polarity of
+              case WCPFile.Settings.RecPlot.Plot[iP].Polarity of
                  PosPolarity : y := yMaxRisingSlope[iChan,CursorSet] ;
                  NegPolarity : y := yMinRisingSlope[iChan,CursorSet] ;
                  else
@@ -526,7 +526,7 @@ begin
            end ;
 
         t := (TimeGetTime - TZero)*0.001 ;
-        plPlot.AddPoint( Settings.RecPlot.Plot[iP].LineNum, t, y ) ;
+        plPlot.AddPoint( WCPFile.Settings.RecPlot.Plot[iP].LineNum, t, y ) ;
 
         // Add record number and time at beginning of line
         if iP = 0 then s := format('%s%d%s%.5g',[#9,RecordNum,#9,t] ) ;
@@ -540,7 +540,7 @@ begin
     plPlot.VerticalCursors[0] := t ;
 
     // Display results in log file
-    if Length(s) > 8 then WriteToLogFile(s) ;
+    if Length(s) > 8 then WCPFile.WriteToLogFile(s) ;
 
 
     end ;
@@ -665,7 +665,7 @@ begin
     for i := iStart to iEnd do begin
         Diff := 0.0 ;
         for j := jLow to jHigh do begin
-            k := Min(Max(i+j,0),fH.NumSamples-1) *
+            k := Min(Max(i+j,0),WCPFile.fH.NumSamples-1) *
                  Main.SESLabIO.ADCNumChannels + Main.SESLabIO.ADCChannelOffset[iChan] ;
             Diff := Diff + A[j]*ADC[k] ;
             end ;
@@ -818,7 +818,7 @@ begin
 
      mePlotList.Clear ;
 
-     ckIgnoreLEAKRecords.Checked := Settings.RecPlot.IgnoreLeakRecords ;
+     ckIgnoreLEAKRecords.Checked := WCPFile.Settings.RecPlot.IgnoreLeakRecords ;
 
      plPlot.AddVerticalCursor( clGreen, '?r' ) ;
 
@@ -884,32 +884,32 @@ var
 begin
      { Add new Y Axis to plot }
 
-     if Settings.RecPlot.NumPlots >= MaxOnLinePlots then Exit ;
+     if WCPFile.Settings.RecPlot.NumPlots >= MaxOnLinePlots then Exit ;
 
-     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].PlotNum := plPlot.CreatePlot ;
-     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].Polarity := cbPolarity.ItemIndex ;
-     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].RateofRiseSmoothing := cbRateofRiseSmooth.ItemIndex ;
-     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].StimProtocol := cbPulseProgram.Text ;
-     if Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].StimProtocol = ' ' then
-        Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].StimProtocol := '' ;
+     WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].PlotNum := plPlot.CreatePlot ;
+     WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].Polarity := cbPolarity.ItemIndex ;
+     WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].RateofRiseSmoothing := cbRateofRiseSmooth.ItemIndex ;
+     WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].StimProtocol := cbPulseProgram.Text ;
+     if WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].StimProtocol = ' ' then
+        WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].StimProtocol := '' ;
 
      // Ensure there is enough space allocated for line
      plPlot.MaxPointsPerLine := 100000 ;
 
      // Add`new line to plot
-     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].LineNum := plPlot.CreateLine( clBlue, msOpenSquare,psSolid, '' ) ;
+     WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].LineNum := plPlot.CreateLine( clBlue, msOpenSquare,psSolid, '' ) ;
 
-     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].VarNum := Integer( cbPlotVar.Items.Objects[cbPlotVar.ItemIndex] ) ;
-     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].ChanNum := cbPlotChan.ItemIndex ;
-     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].CursorSet := cbCursorSet.ItemIndex ;
+     WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].VarNum := Integer( cbPlotVar.Items.Objects[cbPlotVar.ItemIndex] ) ;
+     WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].ChanNum := cbPlotChan.ItemIndex ;
+     WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].CursorSet := cbCursorSet.ItemIndex ;
 
      plPlot.XAxisLabel := 's' ;
      plPlot.YAxisLabel := cbPlotVar.Text  ;
 
      // Add polarity (if required)
-     case Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].VarNum of
+     case WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].VarNum of
         vPeak,vTRise,vRateofRise,vRisingSlope : begin
-           case Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].Polarity of
+           case WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].Polarity of
                 PosPolarity : plPlot.YAxisLabel := plPlot.YAxisLabel + '(+)' ;
                 NegPolarity : plPlot.YAxisLabel := plPlot.YAxisLabel +  '(-)' ;
                 else plPlot.YAxisLabel := plPlot.YAxisLabel + '(a)' ;
@@ -918,9 +918,9 @@ begin
         end ;
 
      // Smoothing
-     case Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].VarNum of
+     case WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].VarNum of
         vRateofRise : begin
-          case Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].RateofRiseSmoothing of
+          case WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].RateofRiseSmoothing of
             0 : plPlot.YAxisLabel := plPlot.YAxisLabel + '(1)' ;
             1 : plPlot.YAxisLabel := plPlot.YAxisLabel + '(5)' ;
             else plPlot.YAxisLabel := plPlot.YAxisLabel + '(7)' ;
@@ -932,24 +932,24 @@ begin
      plPlot.YAxisLabel := plPlot.YAxisLabel + ' ' + cbPlotChan.Text ;
 
      // Add cursor set
-     if (Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].VarNum <> vC1) and
-        (Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].VarNum <> vc2) and
-        (Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].VarNum <> vC3) and
-        (Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].VarNum <> vC4) then begin
+     if (WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].VarNum <> vC1) and
+        (WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].VarNum <> vc2) and
+        (WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].VarNum <> vC3) and
+        (WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].VarNum <> vC4) then begin
         plPlot.YAxisLabel := plPlot.YAxisLabel + ' ' + format(' (%d-%d)',
-                             [2*Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].CursorSet+1,
-                             2*Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].CursorSet+2]) ;
+                             [2*WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].CursorSet+1,
+                             2*WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].CursorSet+2]) ;
         end ;
 
      // Update list of variables displayed
-     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].ListEntry := plPlot.YAxisLabel ;
-     mePlotList.Lines.Add(Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].ListEntry) ;
-     if Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].StimProtocol <> '' then
-        mePlotList.Lines.Add('from ' + Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].StimProtocol) ;
+     WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].ListEntry := plPlot.YAxisLabel ;
+     mePlotList.Lines.Add(WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].ListEntry) ;
+     if WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].StimProtocol <> '' then
+        mePlotList.Lines.Add('from ' + WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].StimProtocol) ;
 
      // Add units
-     YUnits := Main.SESLabIO.ADCChannelUnits[Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].ChanNum] ;
-     case Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].VarNum of
+     YUnits := Main.SESLabIO.ADCChannelUnits[WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].ChanNum] ;
+     case WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].VarNum of
 
         vPeak : begin
             plPlot.YAxisLabel := plPlot.YAxisLabel + ' (' + YUnits + ')' ;
@@ -967,7 +967,7 @@ begin
             plPlot.YAxisLabel := plPlot.YAxisLabel + ' (' + YUnits + ')' ;
             end ;
         end ;
-     Settings.RecPlot.Plot[Settings.RecPlot.NumPlots].YLabel := plPlot.YAxisLabel ;
+     WCPFile.Settings.RecPlot.Plot[WCPFile.Settings.RecPlot.NumPlots].YLabel := plPlot.YAxisLabel ;
 
 
      { Plot graph of currently selected variables }
@@ -976,7 +976,7 @@ begin
 
      plPlot.Invalidate ;
 
-     Inc(Settings.RecPlot.NumPlots) ;
+     Inc(WCPFile.Settings.RecPlot.NumPlots) ;
 
      PlotsChanged := True ;
 
@@ -1009,7 +1009,7 @@ begin
      plPlot.ClearAllPlots ;
      mePlotList.Clear ;
      ResetTimeZero := True ;
-     Settings.RecPlot.NumPlots := 0 ;
+     WCPFile.Settings.RecPlot.NumPlots := 0 ;
      end;
 
 
@@ -1030,16 +1030,16 @@ begin
      plPlot.MaxPointsPerLine := 100000 ;
      plPlot.XAxisLabel := 's' ;
 
-     for iPlot := 0 to Settings.RecPlot.NumPlots-1 do begin
+     for iPlot := 0 to WCPFile.Settings.RecPlot.NumPlots-1 do begin
 
-        Settings.RecPlot.Plot[iPlot].PlotNum := plPlot.CreatePlot ;
+        WCPFile.Settings.RecPlot.Plot[iPlot].PlotNum := plPlot.CreatePlot ;
 
          // Add`new line to plot
-        Settings.RecPlot.Plot[iPlot].LineNum := plPlot.CreateLine( clBlue, msOpenSquare,psSolid, '' ) ;
+        WCPFile.Settings.RecPlot.Plot[iPlot].LineNum := plPlot.CreateLine( clBlue, msOpenSquare,psSolid, '' ) ;
 
-        plPlot.YAxisLabel := Settings.RecPlot.Plot[iPlot].YLabel ;
+        plPlot.YAxisLabel := WCPFile.Settings.RecPlot.Plot[iPlot].YLabel ;
 
-        mePlotList.Lines.Add(Settings.RecPlot.Plot[iPlot].ListEntry) ;
+        mePlotList.Lines.Add(WCPFile.Settings.RecPlot.Plot[iPlot].ListEntry) ;
 
         { Plot graph of currently selected variables }
         plPlot.xAxisAutoRange := True ;
@@ -1067,8 +1067,8 @@ procedure TRecPlotFrm.Print ;
   ------------------------------ }
 begin
         plPlot.ClearPrinterTitle ;
-        plPlot.AddPrinterTitleLine( ' File : ' + FH.FileName ) ;
-        plPlot.AddPrinterTitleLine( ' ' + FH.IdentLine ) ;
+        plPlot.AddPrinterTitleLine( ' File : ' + WCPFile.FH.FileName ) ;
+        plPlot.AddPrinterTitleLine( ' ' + WCPFile.FH.IdentLine ) ;
         plPlot.Print ;
      end ;
 
@@ -1095,7 +1095,7 @@ procedure TRecPlotFrm.ckIgnoreLeakRecordsClick(Sender: TObject);
 // Ignore LEAK records option changed
 // ----------------------------------
 begin
-    Settings.RecPlot.IgnoreLeakRecords := ckIgnoreLEAKRecords.Checked ;
+    WCPFile.Settings.RecPlot.IgnoreLeakRecords := ckIgnoreLEAKRecords.Checked ;
     end;
 
 procedure TRecPlotFrm.bCopyToClipboardClick(Sender: TObject);

@@ -8,7 +8,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ValidatedEdit, grids, global, printers ;
+  Dialogs, StdCtrls, ValidatedEdit, grids, printers ;
 
 type
   TPrintTableFrm = class(TForm)
@@ -49,6 +49,8 @@ implementation
 
 {$R *.dfm}
 
+uses WCPFIleUnit;
+
 
 
 procedure TPrintTableFrm.FormShow(Sender: TObject);
@@ -61,14 +63,14 @@ begin
      edPrinterName.Text := GetCurrentPrinterName ;
 
      // Margins
-     edTopMargin.Value := Settings.Plot.TopMargin ;
-     edBottomMargin.Value := Settings.Plot.BottomMargin ;
-     edLeftMargin.Value := Settings.Plot.LeftMargin ;
+     edTopMargin.Value := WCPFile.Settings.Plot.TopMargin ;
+     edBottomMargin.Value := WCPFile.Settings.Plot.BottomMargin ;
+     edLeftMargin.Value := WCPFile.Settings.Plot.LeftMargin ;
 
      { Fill Fonts list with typefaces available to printer }
      cbFontName.items := printer.fonts ;
-     edFontSize.Value := Settings.Plot.FontSize ;
-     cbFontName.itemindex := cbFontName.items.indexof(Settings.Plot.FontName) ;
+     edFontSize.Value := WCPFile.Settings.Plot.FontSize ;
+     cbFontName.itemindex := cbFontName.items.indexof(WCPFile.Settings.Plot.FontName) ;
      if cbFontName.itemindex < 0 then  cbFontName.itemindex := 0 ;
 
      end;
@@ -89,25 +91,25 @@ begin
 
      Screen.Cursor := crHourglass ;
 
-     Settings.Plot.TopMargin := edTopMargin.Value ;
-     Settings.Plot.BottomMargin := edBottomMargin.Value ;
-     Settings.Plot.LeftMargin:= edLeftMargin.Value  ;
-     Settings.Plot.FontName := cbFontName.text ;
-     Settings.Plot.FontSize := Round(edFontSize.Value) ;
+     WCPFile.Settings.Plot.TopMargin := edTopMargin.Value ;
+     WCPFile.Settings.Plot.BottomMargin := edBottomMargin.Value ;
+     WCPFile.Settings.Plot.LeftMargin:= edLeftMargin.Value  ;
+     WCPFile.Settings.Plot.FontName := cbFontName.text ;
+     WCPFile.Settings.Plot.FontSize := Round(edFontSize.Value) ;
 
      Printer.BeginDoc ;
 
      { Set print font and size }
-     Printer.Canvas.Font.Name := Settings.Plot.FontName ;
-     Printer.Canvas.font.Size := Settings.Plot.FontSize ;
+     Printer.Canvas.Font.Name := WCPFile.Settings.Plot.FontName ;
+     Printer.Canvas.font.Size := WCPFile.Settings.Plot.FontSize ;
 
      mmToPixels := Printer.Canvas.Font.PixelsPerInch/25.4 ;
 
      CharWidth := Printer.canvas.TextWidth('X') ;
      CharHeight := Printer.canvas.TextHeight('X') ;
-     PageTop := Round(Settings.Plot.TopMargin*mmToPixels) ;
-     PageBottom := printer.PageHeight - Round(Settings.Plot.BottomMargin*mmToPixels) ;
-     PageLeft := Round(Settings.Plot.LeftMargin*mmToPixels) ;
+     PageTop := Round(WCPFile.Settings.Plot.TopMargin*mmToPixels) ;
+     PageBottom := printer.PageHeight - Round(WCPFile.Settings.Plot.BottomMargin*mmToPixels) ;
+     PageLeft := Round(WCPFile.Settings.Plot.LeftMargin*mmToPixels) ;
 
      { Calculate column widths of table}
      for col := 0 to Table.ColCount-1 do begin
@@ -150,14 +152,14 @@ begin
             Line := Line + ColHeight ;
 
             printer.canvas.textout(PageLeft,Line,
-                                      'File ... ' + fH.FileName) ;
+                                      'File ... ' + WCPFile.fH.FileName) ;
             Line := Line + ColHeight ;
 
             printer.canvas.textout(PageLeft,Line,
-                                      'Created: ' + fH.CreationTime) ;
+                                      'Created: ' + WCPFile.fH.CreationTime) ;
             Line := Line + ColHeight ;
 
-            printer.canvas.textout(PageLeft,Line, fH.IdentLine) ;
+            printer.canvas.textout(PageLeft,Line, WCPFile.fH.IdentLine) ;
             Line := Line + ColHeight*2 ;
             end ;
 

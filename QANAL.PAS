@@ -16,8 +16,8 @@ interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, StdCtrls, Global, Fileio, shared, printers, plotlib,
-  ValEdit, RangeEdit, ValidatedEdit, seslabio, math ;
+  Forms, Dialogs, StdCtrls, printers,
+  ValEdit, RangeEdit, ValidatedEdit, seslabio, math, WCPFIleUnit ;
 
 type
   TQuantFrm = class(TForm)
@@ -75,7 +75,8 @@ var
 
 implementation
 {$R *.DFM}
-uses MDIForm,measure ;
+
+uses MDIForm,measure,maths ;
 
 
 procedure TQuantFrm.FormShow(Sender: TObject);
@@ -85,27 +86,27 @@ procedure TQuantFrm.FormShow(Sender: TObject);
 begin
 
      { Type of record containing evoked signals }
-     cbEvokedType.items := RecordTypes ;
-     cbEvokedType.itemIndex := cbEvokedType.items.IndexOf(Settings.QuantalAnalysis.EvokedType) ;
+     cbEvokedType.items := WCPFile.RecordTypes ;
+     cbEvokedType.itemIndex := cbEvokedType.items.IndexOf(WCPFile.Settings.QuantalAnalysis.EvokedType) ;
 
      { Type of record containing spontaneous miniature signals }
-     cbMiniType.items := RecordTypes ;
-     cbMiniType.itemIndex := cbMiniType.items.IndexOf(Settings.QuantalAnalysis.MiniType) ;
+     cbMiniType.items := WCPFile.RecordTypes ;
+     cbMiniType.itemIndex := cbMiniType.items.IndexOf(WCPFile.Settings.QuantalAnalysis.MiniType) ;
 
      // Current/potential analysis flag
-     rbPotentials.Checked := Settings.QuantalAnalysis.Potentials ;
+     rbPotentials.Checked := WCPFile.Settings.QuantalAnalysis.Potentials ;
 
-     edRecRange.HiLimit := fH.NumRecords ;
-     edRecRange.HiValue := fH.NumRecords ;
+     edRecRange.HiLimit := WCPFile.fH.NumRecords ;
+     edRecRange.HiValue := WCPFile.fH.NumRecords ;
      edRecRange.LoLimit := 1 ;
      edRecRange.LoValue := 1 ;
 
-     cbChannel.items := ChannelNames ;
+     cbChannel.items := WCPFile.ChannelNames ;
      if cbChannel.ItemIndex < 0 then cbChannel.ItemIndex := 0 ;
 
      { Set units for manual entry of mini amplitude/st. dev. }
-     edMiniAmplitude.Units := Channel[cbChannel.ItemIndex].ADCUnits ;
-     edMiniStDev.Units := Channel[cbChannel.ItemIndex].ADCUnits ;
+     edMiniAmplitude.Units := WCPFile.Channel[cbChannel.ItemIndex].ADCUnits ;
+     edMiniStDev.Units := WCPFile.Channel[cbChannel.ItemIndex].ADCUnits ;
 
      ClientWidth := ModeGrp.Left + ModeGrp.Width + 5 ;
      ClientHeight := ModeGrp.Top + ModeGrp.Height + 5 ;
@@ -153,7 +154,7 @@ begin
      if rbAllRecords.Checked then
         begin
         RecStart := 1 ;
-        RecEnd := FH.NumRecords ;
+        RecEnd := WCPFIle.FH.NumRecords ;
         end
      else
         begin
@@ -162,7 +163,7 @@ begin
         end ;
 
      UseCh := cbChannel.ItemIndex ;
-     Units := Channel[UseCh].ADCUnits ;
+     Units := WCPFile.Channel[UseCh].ADCUnits ;
      mmResults.Clear ;
      mmResults.Lines.Add('Quantal Analysis') ;
 
@@ -183,14 +184,14 @@ begin
      CorrectionFactor := edCorrectionFactor.Value ;
 
      // Assign array to hold corrected EPC peak
-     GetMem( Peak, FH.NumRecords*Sizeof(Single));
+     GetMem( Peak, WCPFIle.FH.NumRecords*Sizeof(Single));
 
      NumInvalid := 0 ;
      for Rec := RecStart to RecEnd do
          begin
 
          { Read record analysis block from file }
-         GetRecordHeaderOnly( fH, RH, Rec ) ;
+         WCPFile.GetRecordHeaderOnly( WCPFIle.fH, RH, Rec ) ;
 
          // Get peak value
          Peak[Rec] := RH.Value[UseCh*MaxAnalysisVariables+vPeak] ;
@@ -237,7 +238,7 @@ begin
          begin
 
          { Read record analysis block from file }
-         GetRecordHeaderOnly( fH, RH, Rec ) ;
+         WCPFIle.GetRecordHeaderOnly( WCPFIle.fH, RH, Rec ) ;
 
          { Add evoked residual to S.D. summation }
          if UseRecord( RH, cbEvokedType.text ) then
@@ -392,7 +393,7 @@ begin
         mmResults.Lines.add( 'NOTE! Peaks need to be measured using Waveform Measurements before quantal analysis.' ) ;
 
      { Copy results to log file }
-     for i := 1 to mmResults.Lines.Count do WriteToLogFileNoDate( mmResults.Lines[i] ) ;
+     for i := 1 to mmResults.Lines.Count do WCPFile.WriteToLogFileNoDate( mmResults.Lines[i] ) ;
 
      Main.mnPrint.Enabled := True ;
 
@@ -400,9 +401,9 @@ begin
      FreeMem(Peak) ;
 
      // Save settings
-     Settings.QuantalAnalysis.EvokedType := cbEvokedType.Text ;
-     Settings.QuantalAnalysis.MiniType := cbMiniType.Text ;
-     Settings.QuantalAnalysis.Potentials := rbPotentials.Checked ;
+     WCPFile.Settings.QuantalAnalysis.EvokedType := cbEvokedType.Text ;
+     WCPFile.Settings.QuantalAnalysis.MiniType := cbMiniType.Text ;
+     WCPFile.Settings.QuantalAnalysis.Potentials := rbPotentials.Checked ;
 
      end;
 
@@ -470,7 +471,7 @@ begin
      Screen.Cursor := crHourglass ;
 
      { Set print font and size }
-     Printer.Canvas.font.name := Settings.Plot.FontName ;
+     Printer.Canvas.font.name := WCPFile.Settings.Plot.FontName ;
      FontScale := PrinterPointsToPixels(10) ;
      Printer.Canvas.font.Height := FontScale ;
 
@@ -486,9 +487,9 @@ begin
        ===========}
 
      Line := PageTop ;
-     printer.canvas.textout(PageLeft,Line, 'File ... ' + fH.FileName ) ;
+     printer.canvas.textout(PageLeft,Line, 'File ... ' + WCPFIle.fH.FileName ) ;
      Line := Line + CharHeight ;
-     printer.canvas.textout(PageLeft,Line, fH.IdentLine) ;
+     printer.canvas.textout(PageLeft,Line, WCPFIle.fH.IdentLine) ;
      Line := Line + CharHeight*2 ;
 
      for Row := 0 to mmResults.Lines.Count-1 do begin
@@ -519,8 +520,8 @@ begin
 
 procedure TQuantFrm.cbChannelChange(Sender: TObject);
 begin
-     edMiniAmplitude.Units := Channel[cbChannel.ItemIndex].ADCUnits ;
-     edMiniStDev.Units := Channel[cbChannel.ItemIndex].ADCUnits ;
+     edMiniAmplitude.Units := WCPFile.Channel[cbChannel.ItemIndex].ADCUnits ;
+     edMiniStDev.Units := WCPFile.Channel[cbChannel.ItemIndex].ADCUnits ;
      end;
 
 end.

@@ -45,7 +45,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ValidatedEdit, TritonUnit, global, math, ExtCtrls,
+  Dialogs, StdCtrls, ValidatedEdit, TritonUnit, math, ExtCtrls,
   ComCtrls, xmldoc, xmlintf, strutils, ActiveX ;
 
 const
@@ -467,7 +467,7 @@ var
 
 implementation
 
-uses MDIForm, Sealtest, REC;
+uses MDIForm, Sealtest, REC, WCPFIleUnit;
 
 {$R *.dfm}
 
@@ -1111,19 +1111,19 @@ begin
 
      Screen.Cursor := crHourGlass ;
 
-     // Get auto compensation holding and test pulse amplitudes and duration from current seal test settings
+     // Get auto compensation holding and test pulse amplitudes and duration from current seal test WCPFile.Settings
 
-//     TStep := Min(Max(Settings.SealTest.PulseWidth, 0.01 ), 0.1 ) ;
+//     TStep := Min(Max(WCPFile.Settings.SealTest.PulseWidth, 0.01 ), 0.1 ) ;
 //     THold := TStep ;
-     case Settings.SealTest.Use of
+     case WCPFile.Settings.SealTest.Use of
           3 : begin
-              VHold :=  Settings.SealTest.HoldingVoltage3 ;
+              VHold :=  WCPFile.Settings.SealTest.HoldingVoltage3 ;
               end ;
           2 : begin
-              VHold :=  Settings.SealTest.HoldingVoltage2 ;
+              VHold :=  WCPFile.Settings.SealTest.HoldingVoltage2 ;
               end ;
           else begin
-              VHold :=  Settings.SealTest.HoldingVoltage1 ;
+              VHold :=  WCPFile.Settings.SealTest.HoldingVoltage1 ;
               end ;
           end;
 
@@ -1149,7 +1149,7 @@ begin
                                            TStep
                                             ) ;
 
-     // Update settings
+     // Update WCPFile.Settings
      for ch := 0 to Main.SESLabIO.TritonNumChannels-1 do
         begin
         Main.SESLABIO.TritonGetReg(TECELLA_REG_CFAST,ch,Value,FCFAST[ch],Units,Enabled) ;
@@ -1183,14 +1183,14 @@ begin
 
 procedure TTritonPanelFrm.bUpdateAllChannelsClick(Sender: TObject);
 // --------------------------------------------------
-// Make all channel settings same as selected channel
+// Make all channel WCPFile.Settings same as selected channel
 // --------------------------------------------------
 var
     ch : Integer ;
     Freq : Single ;
 begin
 
-     // Update settings in Triton
+     // Update WCPFile.Settings in Triton
      for ch := 0 to Main.SESLabIO.TritonNumChannels-1 do begin
 
          // Source
@@ -1353,19 +1353,19 @@ begin
      // Apply compensation                                                                                         edVHold.Value := CompensationVHold ;
      CompensationCoeff := edCompensationCoeff.Value ;
 
-     // Get auto compensation holding and test pulse amplitudes and duration from current seal test settings
+     // Get auto compensation holding and test pulse amplitudes and duration from current seal test WCPFile.Settings
 
-     TStep := Min(Max(Settings.SealTest.PulseWidth, 0.01 ), 0.1 ) ;
+     TStep := Min(Max(WCPFile.Settings.SealTest.PulseWidth, 0.01 ), 0.1 ) ;
      THold := TStep ;
-     case Settings.SealTest.Use of
+     case WCPFile.Settings.SealTest.Use of
           3 : begin
-              VHold :=  Settings.SealTest.HoldingVoltage3 ;
+              VHold :=  WCPFile.Settings.SealTest.HoldingVoltage3 ;
               end ;
           2 : begin
-              VHold :=  Settings.SealTest.HoldingVoltage2 ;
+              VHold :=  WCPFile.Settings.SealTest.HoldingVoltage2 ;
               end ;
           else begin
-              VHold :=  Settings.SealTest.HoldingVoltage1 ;
+              VHold :=  WCPFile.Settings.SealTest.HoldingVoltage1 ;
               end ;
           end;
 
@@ -1388,7 +1388,7 @@ begin
                                            TStep
                                             ) ;
 
-     // Update settings
+     // Update WCPFile.Settings
      for ch := 0 to Main.SESLabIO.TritonNumChannels-1 do begin
         Main.SESLABIO.TritonGetreg(TECELLA_REG_CSLOW_A,ch,Value,CSLOW_A[ch],Units,
                                        CSLOW_AEnabled[ch]) ;
@@ -1432,17 +1432,17 @@ begin
 
      Screen.Cursor := crHourGlass ;
 
-     // Get auto compensation holding and test pulse amplitudes and duration from current seal test settings
+     // Get auto compensation holding and test pulse amplitudes and duration from current seal test WCPFile.Settings
 
-     case Settings.SealTest.Use of
+     case WCPFile.Settings.SealTest.Use of
           3 : begin
-              VHold :=  Settings.SealTest.HoldingVoltage3 ;
+              VHold :=  WCPFile.Settings.SealTest.HoldingVoltage3 ;
               end ;
           2 : begin
-              VHold :=  Settings.SealTest.HoldingVoltage2 ;
+              VHold :=  WCPFile.Settings.SealTest.HoldingVoltage2 ;
               end ;
           else begin
-              VHold :=  Settings.SealTest.HoldingVoltage1 ;
+              VHold :=  WCPFile.Settings.SealTest.HoldingVoltage1 ;
               end ;
           end;
 
@@ -1484,7 +1484,7 @@ begin
      // Apply compensation
      Main.SESLabIO.TritonJPAutoZero ;
 
-     // Update settings
+     // Update WCPFile.Settings
      for ch := 0 to Main.SESLabIO.TritonNumChannels-1 do begin
         Main.SESLABIO.TritonGetreg(TECELLA_REG_JP,ch,Value,CHANOFF[ch],Units,
                                        CHANOFFEnabled[ch]   ) ;
@@ -1522,19 +1522,19 @@ begin
 
      Screen.Cursor := crHourGlass ;
 
-     // Get auto compensation holding and test pulse amplitudes and duration from current seal test settings
+     // Get auto compensation holding and test pulse amplitudes and duration from current seal test WCPFile.Settings
 
-     TStep := Min(Max(Settings.SealTest.PulseWidth, 0.01 ), 0.1 ) ;
+     TStep := Min(Max(WCPFile.Settings.SealTest.PulseWidth, 0.01 ), 0.1 ) ;
      THold := TStep ;
-     case Settings.SealTest.Use of
+     case WCPFile.Settings.SealTest.Use of
           3 : begin
-              VHold :=  Settings.SealTest.HoldingVoltage3 ;
+              VHold :=  WCPFile.Settings.SealTest.HoldingVoltage3 ;
               end ;
           2 : begin
-              VHold :=  Settings.SealTest.HoldingVoltage2 ;
+              VHold :=  WCPFile.Settings.SealTest.HoldingVoltage2 ;
               end ;
           else begin
-              VHold :=  Settings.SealTest.HoldingVoltage1 ;
+              VHold :=  WCPFile.Settings.SealTest.HoldingVoltage1 ;
               end ;
           end;
 
@@ -1560,7 +1560,7 @@ begin
                                            TStep
                                             ) ;
 
-     // Update settings
+     // Update WCPFile.Settings
      for ch := 0 to Main.SESLabIO.TritonNumChannels-1 do begin
         Main.SESLABIO.TritonGetreg(TECELLA_REG_LEAK,ch,Value,LEAK[ch],Units,
                                        LEAKEnabled[ch]) ;
@@ -1959,7 +1959,7 @@ procedure TTritonPanelFrm.SaveToXMLFile(
            FileName : String
            ) ;
 // -------------------------------------------
-// Save tecella amplifier settings to XML file
+// Save tecella amplifier WCPFile.Settings to XML file
 // -------------------------------------------
 begin
     CoInitialize(Nil) ;
@@ -1972,7 +1972,7 @@ procedure TTritonPanelFrm.SaveToXMLFile1(
            FileName : String
            ) ;
 // -------------------------------------------
-// Save tecella amplifier settings to XML file (internal)
+// Save tecella amplifier WCPFile.Settings to XML file (internal)
 // -------------------------------------------
 var
    iNode,ProtNode : IXMLNode;
@@ -2001,7 +2001,7 @@ begin
     XMLDoc.ChildNodes.Clear ;
 
     // Add record name
-    ProtNode := XMLDoc.AddChild( 'TECELLASETTINGS' ) ;
+    ProtNode := XMLDoc.AddChild( 'TECELLAWCPFile.Settings' ) ;
 
     AddElementFloat( ProtNode, 'ZAPAMPLITUDE', ZapAmplitude ) ;
     AddElementFloat( ProtNode, 'ZAPDURATION', ZapDuration ) ;
@@ -2071,7 +2071,7 @@ procedure TTritonPanelFrm.LoadFromXMLFile(
           FileName : String                    // XML protocol file
           ) ;
 // ----------------------------------
-// Load settings from XML file
+// Load WCPFile.Settings from XML file
 // ----------------------------------
 begin
     CoInitialize(Nil) ;
@@ -2085,7 +2085,7 @@ procedure TTritonPanelFrm.LoadFromXMLFile1(
           FileName : String                    // XML protocol file
           ) ;
 // ----------------------------------
-// Load settings from XML file  (internal)
+// Load WCPFile.Settings from XML file  (internal)
 // ----------------------------------
 var
    iNode,ProtNode : IXMLNode;
@@ -2208,7 +2208,7 @@ begin
        { Correct for use of comma/period as decimal separator }
        s := ChildNode.Text ;
        { Correct for use of comma/period as decimal separator }
-       {$IF CompilerVersion > 7.0} dsep := formatsettings.DECIMALSEPARATOR ;
+       {$IF CompilerVersion > 7.0} dsep := formatSettings.DECIMALSEPARATOR ;
        {$ELSE} dsep := DECIMALSEPARATOR ;
        {$IFEND}
        if dsep = '.' then s := ANSIReplaceText(s ,',',dsep);
@@ -2390,7 +2390,7 @@ var
     i : Integer ;
 begin
 
-     // Default Tecella amplifier settings
+     // Default Tecella amplifier WCPFile.Settings
 
      for i := 0 to Main.SESLabIO.TritonNumChannels-1 do begin
          FSource[i] := 0 ;
@@ -2433,15 +2433,15 @@ begin
      CompensationVStep := 0.01 ;
      CompensationTStep := 0.02 ;
 
-     // Load settings from XML file
-     SettingsFileName := Main.SettingsDirectory + 'tecella settings.xml' ;
+     // Load WCPFile.Settings from XML file
+     SettingsFileName := WCPFile.SettingsDirectory + 'tecella WCPFile.Settings.xml' ;
      if FileExists( SettingsFileName ) then LoadFromXMLFile( SettingsFileName ) ;
 
      end;
 
 procedure TTritonPanelFrm.FormDestroy(Sender: TObject);
 // ------------------------------------
-// Save settings when form is destroyed
+// Save WCPFile.Settings when form is destroyed
 // ------------------------------------
 begin
 

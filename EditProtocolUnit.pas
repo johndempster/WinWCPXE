@@ -47,7 +47,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Grids, ValidatedEdit, ComCtrls, math, stimmodule, maths, strutils,
-  xmldom, XMLIntf, msxmldom, XMLDoc, global, shared, SESLabIO, Outline,
+  xmldom, XMLIntf, msxmldom, XMLDoc, SESLabIO, Outline,
   DirOutln, FileCtrl, Types, UITYpes ;
 
 const
@@ -486,7 +486,7 @@ var
 
 implementation
 
-uses MDIForm, Rec, DirectorySelectUnit, Sealtest;
+uses MDIForm, Rec, DirectorySelectUnit, Sealtest, WCPFIleUnit;
 
 {$R *.dfm}
 
@@ -886,15 +886,15 @@ begin
      StimulusParametersTableChanged := False ;
      DisableUpdates := False ;
 
-     if (Settings.VProgramFileName = '') or
-        ANSIContainsText(Settings.VProgramFileName,'\ .') or
-        (not FileExists(Settings.VProgramFileName)) then begin
+     if (WCPFile.Settings.VProgramFileName = '') or
+        ANSIContainsText(WCPFile.Settings.VProgramFileName,'\ .') or
+        (not FileExists(WCPFile.Settings.VProgramFileName)) then begin
         // Create empty protocol
         bNew.Click ;
         end
      else begin
         // Load currently selected protocol
-        FileName := Settings.VProgramFileName ;
+        FileName := WCPFile.Settings.VProgramFileName ;
         Caption := 'Protocol: ' + FileName ;
         LoadProtocolFromXMLFile( FileName ) ;
         end ;
@@ -1557,7 +1557,7 @@ begin
     // Get list of parameters for this waveform element
     GetParameterList( iStimElement, ParList ) ;
 
-    // Initialise settings if this is a new protocol
+    // Initialise WCPFile.Settings if this is a new protocol
     if  (Prot.Stimulus[iStimElement].Parameters[spStartAmplitude].Value = 0.0) and
         (Prot.Stimulus[iStimElement].Parameters[spStartAmplitudeInc].Value = 0.0) and
         (Prot.Stimulus[iStimElement].Parameters[spNumPoints].Value = 0.0) and
@@ -2536,7 +2536,7 @@ begin
     if Prot.NextProtocolFileName <> '' then
         cbNextProtocol.ItemIndex := Max(0,
                                     cbNextProtocol.Items.IndexOf(
-                                    ExtractFileNameOnly(Prot.NextProtocolFileName)))
+                                    WCPFile.ExtractFileNameOnly(Prot.NextProtocolFileName)))
      else cbNextProtocol.ItemIndex := 0 ;
 
     if Prot.RecordDuration >= (Prot.StimulusPeriod - 0.15) then
@@ -2596,7 +2596,7 @@ begin
 
      // Linked protocol
      if cbNextProtocol.ItemIndex > 0 then begin
-        Prot.NextProtocolFileName := Settings.VProtDirectory + cbNextProtocol.Text + '.xml' ;
+        Prot.NextProtocolFileName := WCPFile.Settings.VProtDirectory + cbNextProtocol.Text + '.xml' ;
         end
      else Prot.NextProtocolFileName := '' ;
 
@@ -2661,7 +2661,7 @@ begin
 
 procedure TEditProtocolFrm.PageChange(Sender: TObject);
 // ---------------------------
-// Settings table page changed
+// WCPFile.Settings table page changed
 // ---------------------------
 begin
      if RecordingParametersTableChanged then UpdateRecordingTableParameters ;
@@ -2850,7 +2850,7 @@ begin
     Result := FileName ;
 
     // Select this protocol for use (if none already selected)
-    if Settings.VProgramFileName = '' then Settings.VProgramFileName := FileName ;
+    if WCPFile.Settings.VProgramFileName = '' then WCPFile.Settings.VProgramFileName := FileName ;
 
     end ;
 
@@ -2904,8 +2904,8 @@ procedure TEditProtocolFrm.SaveProtocol ;
 begin
 
      SaveDialog.options := [ofOverwritePrompt,ofHideReadOnly,ofPathMustExist] ;
-     SaveDialog.InitialDir := Settings.VProtDirectory ;
-     SetCurrentDir(Settings.VProtDirectory) ;
+     SaveDialog.InitialDir := WCPFile.Settings.VProtDirectory ;
+     SetCurrentDir(WCPFile.Settings.VProtDirectory) ;
      SaveDialog.Title := 'Save Stimulus Protocol' ;
      SaveDialog.FileName := '*.xml' ;
 
@@ -2931,14 +2931,14 @@ begin
 
      OpenDialog.options := [ofOverwritePrompt,ofHideReadOnly,ofPathMustExist] ;
      OpenDialog.FileName := '*.xml' ;
-     OpenDialog.InitialDir := Settings.VProtDirectory ;
+     OpenDialog.InitialDir := WCPFile.Settings.VProtDirectory ;
      OpenDialog.Title := 'Load Stimulus Protocol' ;
      if OpenDialog.execute then begin
         FileName := OpenDialog.FileName ;
         Caption := 'Protocol: ' + FileName ;
         LoadProtocolFromXMLFile( FileName ) ;
         // Select this protocol for use (if none already selected)
-        if Settings.VProgramFileName = '' then Settings.VProgramFileName := FileName ;
+        if WCPFile.Settings.VProgramFileName = '' then WCPFile.Settings.VProgramFileName := FileName ;
         end ;
 
      end ;
@@ -2997,7 +2997,7 @@ procedure TEditProtocolFrm.bSetStimFolderClick(Sender: TObject);
 //  Set voltage protocol file folder
 // -----------------------------
 begin
-    DirectorySelectFrm.Directory := Settings.VProtDirectory ;
+    DirectorySelectFrm.Directory := WCPFile.Settings.VProtDirectory ;
     DirectorySelectFrm.Left := Main.Left +
                                EditProtocolFrm.Left +
                                bSetStimFolder.Left +
@@ -3009,7 +3009,7 @@ begin
 
     DirectorySelectFrm.ShowModal ;
     if DirectorySelectFrm.ModalResult = mrOK then begin
-       Settings.VProtDirectory := DirectorySelectFrm.Directory ;
+       WCPFile.Settings.VProtDirectory := DirectorySelectFrm.Directory ;
         // Populate Next Protocol list
         Stimulator.CreateProtocolList( cbNextProtocol ) ;
        end ;
@@ -3025,8 +3025,8 @@ begin
 
      OpenWaveDialog.options := [ofOverwritePrompt,ofHideReadOnly,ofPathMustExist] ;
      OpenWaveDialog.FileName := '*.txt' ;
-     OpenWaveDialog.InitialDir := Settings.VProtDirectory ;
-     SetCurrentDir(Settings.VProtDirectory);
+     OpenWaveDialog.InitialDir := WCPFile.Settings.VProtDirectory ;
+     SetCurrentDir(WCPFile.Settings.VProtDirectory);
      OpenWaveDialog.Title := 'Load user-defined waveform' ;
 
      if OpenWaveDialog.execute then begin
@@ -3045,9 +3045,9 @@ var
     i : Integer ;
 begin
     // Initialise file dialog boxes
-    OpenDialog.InitialDir := Settings.VProtDirectory ;
-    OpenWaveDialog.InitialDir := Settings.VProtDirectory ;
-    SaveDialog.InitialDir := Settings.VProtDirectory ;
+    OpenDialog.InitialDir := WCPFile.Settings.VProtDirectory ;
+    OpenWaveDialog.InitialDir := WCPFile.Settings.VProtDirectory ;
+    SaveDialog.InitialDir := WCPFile.Settings.VProtDirectory ;
 
     // Initialise waveform buffer to empty
     for i := 0 to High(Prot.Stimulus) do begin

@@ -136,9 +136,9 @@ interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, StdCtrls, ExtCtrls, Shared, FileIO,
-  maths, math, ValEdit, ScopeDisplay, Global, SESLabIO, mmsystem, ValidatedEdit,
-  ComCtrls, strutils, UITypes ;
+  Forms, Dialogs, StdCtrls, ExtCtrls,
+  maths, math, ValEdit, ScopeDisplay, SESLabIO, mmsystem, ValidatedEdit,
+  ComCtrls, strutils, UITypes, WCPFIleUnit ;
 
 const
      rmProtocol = 0 ;
@@ -430,7 +430,7 @@ implementation
 {$R *.DFM}
 
 uses MDiform, AmpModule, StimModule , RecPlotUnit, Sealtest,
-  TritonPanelUnit, DirectorySelectUnit, Replay, Zero, DCLAMPUnit;
+  TritonPanelUnit, DirectorySelectUnit, Replay, Zero, DCLAMPUnit ;
 
 procedure TRecordFrm.FormShow(Sender: TObject);
 { ------------------------------------
@@ -446,7 +446,7 @@ begin
      Height := Main.StatusBar.Top - Top - 10 ;
      Width := Main.ClientWidth - Left - 20 ;
 
-     if RawFH.FileHandle >= 0 then Caption := 'Record ' + RawFH.FileName
+     if WCPFile.RawFH.FileHandle >= 0 then Caption := 'Record ' + WCPFile.RawFH.FileName
                               else Caption := 'Record No File' ;
 
      { Make sure event timer is off }
@@ -494,11 +494,11 @@ begin
      { Set size of window }
      ClientHeight := TimerGrp.Top + TimerGrp.Height + 5 ;
      //ClientWidth := scDisplay.Width  + 5 ;
-     edIdent.text := RawFH.IdentLine ;
+     edIdent.text := WCPFile.RawFH.IdentLine ;
      RH.dt := Main.SESLabIO.ADCSamplingInterval ;
      DigActive := False ;
      EraseScreen := False ;
-     ckNewFileOnRecord.Checked := Settings.OpenNewFileOnRecord ;
+     ckNewFileOnRecord.Checked := WCPFile.Settings.OpenNewFileOnRecord ;
 
      { Fill combo box with list of available command voltage programs }
      UpdateStimulusProtocolList ;
@@ -509,16 +509,16 @@ begin
      cbRecordingMode.Items.Add('Free run') ;
      cbRecordingMode.Items.Add('Ext. triggered') ;
      cbRecordingMode.Items.Add('Detect events') ;
-     cbRecordingMode.ItemIndex := Settings.RecordingMode ;
+     cbRecordingMode.ItemIndex := WCPFile.Settings.RecordingMode ;
      SetRecordingMode( cbRecordingMode.ItemIndex ) ;
 
      // Set external trigger polarity
-     Main.SESLabIO.ADCExternalTriggerActiveHigh := Settings.ExternalTriggerActiveHigh ;
+     Main.SESLabIO.ADCExternalTriggerActiveHigh := WCPFile.Settings.ExternalTriggerActiveHigh ;
      rbExtTriggerHigh.Checked := Main.SESLabIO.ADCExternalTriggerActiveHigh ;
 
      { Set event detector }
-     edDetectionThreshold.Value := Settings.EventDetector.Threshold ;
-     edPreTrigger.Value := Settings.EventDetector.PreTrigger ;
+     edDetectionThreshold.Value := WCPFile.Settings.EventDetector.Threshold ;
+     edPreTrigger.Value := WCPFile.Settings.EventDetector.PreTrigger ;
 
      OldStepCounter := -1 ;
 
@@ -533,10 +533,10 @@ begin
          if Amplifier.AmplifierType[i] = amCED1902 then Amplifier.SetCED1902 ;
          end ;
 
-     edNumRecords.Value := Settings.NumRecordsRequired ;
-     edRecordDuration.Value := Settings.RecordDuration ;
-     edNumSamples.Value := Settings.NumSamples ;
-     edNumChannels.Value := Settings.NumChannels ;
+     edNumRecords.Value := WCPFile.Settings.NumRecordsRequired ;
+     edRecordDuration.Value := WCPFile.Settings.RecordDuration ;
+     edNumSamples.Value := WCPFile.Settings.NumSamples ;
+     edNumChannels.Value := WCPFile.Settings.NumChannels ;
      UpdateSamplingInterval ;
 
      edStatus.font.color := clBlack ;
@@ -596,25 +596,25 @@ begin
      { Fill combo box with list of available command voltage programs }
      Stimulator.CreateProtocolList( cbPulseProgram ) ;
 
-     if (Settings.VProgramFileName = '') or
-        ANSIContainsText(Settings.VProgramFileName,'\ .') then begin
+     if (WCPFile.Settings.VProgramFileName = '') or
+        ANSIContainsText(WCPFile.Settings.VProgramFileName,'\ .') then begin
         cbPulseProgram.ItemIndex := 0 ;
         end
      else begin
         cbPulseProgram.ItemIndex := cbPulseProgram.Items.IndexOf(
-                                    ExtractFileNameOnly(Settings.VProgramFileName))
+                                    WCPFile.ExtractFileNameOnly(WCPFile.Settings.VProgramFileName))
         end ;
 
      // Update list of protocol lists
      CreateProtocolListList( cbProtocolList ) ;
-     if (Settings.ProtocolListFileName = '') or
-        ANSIContainsText(Settings.ProtocolListFileName,'\ .') then begin
+     if (WCPFile.Settings.ProtocolListFileName = '') or
+        ANSIContainsText(WCPFile.Settings.ProtocolListFileName,'\ .') then begin
         cbProtocolList.ItemIndex := 0 ;
         meProtocolList.Clear ;
         end
      else begin
         cbProtocolList.ItemIndex := cbProtocolList.Items.IndexOf(
-                                    ExtractFileNameOnly(Settings.ProtocolListFileName)) ;
+                                    WCPFile.ExtractFileNameOnly(WCPFile.Settings.ProtocolListFileName)) ;
         LoadProtocolList ;
         end ;
 
@@ -641,10 +641,10 @@ begin
         end
      else begin
         // All other recording modes
-        Main.SESLabIO.ADCNumChannels := Settings.NumChannels ;
-        Main.SESLabIO.ADCNumSamples := Settings.NumSamples ;
-        Main.SESLabIO.ADCSamplingInterval := Settings.RecordDuration / Settings.NumSamples ;
-        Settings.RecordDuration := Main.SESLabIO.ADCSamplingInterval*Main.SESLabIO.ADCNumSamples ;
+        Main.SESLabIO.ADCNumChannels := WCPFile.Settings.NumChannels ;
+        Main.SESLabIO.ADCNumSamples := WCPFile.Settings.NumSamples ;
+        Main.SESLabIO.ADCSamplingInterval := WCPFile.Settings.RecordDuration / WCPFile.Settings.NumSamples ;
+        WCPFile.Settings.RecordDuration := Main.SESLabIO.ADCSamplingInterval*Main.SESLabIO.ADCNumSamples ;
         end ;
 
      // Determine of buffer size has changed
@@ -657,7 +657,7 @@ begin
      cbDetectChannel.Clear ;
      for ch := 0 to Main.SESLabIO.ADCNumChannels-1 do
          cbDetectChannel.items.Add(format('Ch.%d %s',[ch,Main.SESLabIO.ADCChannelName[ch]])) ;
-     cbDetectChannel.ItemIndex := IntLimitTo(Settings.EventDetector.Channel,
+     cbDetectChannel.ItemIndex := IntLimitTo(WCPFile.Settings.EventDetector.Channel,
                                   0,Main.SESLabIO.ADCNumChannels-1) ;
 
      { Set up the number of channels/points in the 'scope display }
@@ -665,7 +665,7 @@ begin
      scDisplay.ChanZeroAvg := Main.SESLabIO.ADCChannelNumZero ;
      scDisplay.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
      scDisplay.MinADCValue := Main.SESLabIO.ADCMinValue ;
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
 
      scDisplay.MaxPoints := Main.SESLabIO.ADCNumSamples ;
      scDisplay.xMin := 0 ;
@@ -685,15 +685,15 @@ begin
      { Create a set of zero level cursors }
      scDisplay.ClearHorizontalCursors ;
      for ch := 0 to scDisplay.NumChannels-1 do begin
-         scDisplay.AddHorizontalCursor(ch,Settings.Colors.Cursors,True,'z' ) ;
+         scDisplay.AddHorizontalCursor(ch,WCPFile.Settings.Colors.Cursors,True,'z' ) ;
          scDisplay.HorizontalCursors[ch] := Main.SESLabIO.ADCChannelZero[ch] ;
-         Channel[ch].ADCZeroAt := Main.SESLabIO.ADCChannelZeroAt[ch] ;
-         Channel[ch].ADCZero := Main.SESLabIO.ADCChannelZero[ch] ;
+         WCPFile.Channel[ch].ADCZeroAt := Main.SESLabIO.ADCChannelZeroAt[ch] ;
+         WCPFile.Channel[ch].ADCZero := Main.SESLabIO.ADCChannelZero[ch] ;
          scDisplay.ChanZeroAt[ch] := Main.SESLabIO.ADCChannelZeroAt[ch] ;
          end ;
 
-     scDisplay.TScale := Main.SESLabIO.ADCSamplingInterval*Settings.TScale ;
-     scDisplay.TUnits := Settings.TUnits ;
+     scDisplay.TScale := Main.SESLabIO.ADCSamplingInterval*WCPFile.Settings.TScale ;
+     scDisplay.TUnits := WCPFile.Settings.TUnits ;
 
      SetStoreMode(Main.mnStoreTraces.Checked) ;
 
@@ -713,15 +713,15 @@ begin
      cbDetectChannel.Clear ;
      for ch := 0 to Main.SESLabIO.ADCNumChannels-1 do
          cbDetectChannel.items.Add(format('Ch.%d %s',[ch,Main.SESLabIO.ADCChannelName[ch]])) ;
-     cbDetectChannel.ItemIndex := IntLimitTo(Settings.EventDetector.Channel,
+     cbDetectChannel.ItemIndex := IntLimitTo(WCPFile.Settings.EventDetector.Channel,
                                   0,Main.SESLabIO.ADCNumChannels-1) ;
 
      if not bOpenOLAWindow.Enabled then begin
-        scDisplay.VerticalCursors[C0Cursor] := Round(Settings.RecPlot.Cursor0*scDisplay.MaxPoints) ;
-        scDisplay.VerticalCursors[C1Cursor] := Round(Settings.RecPlot.Cursor1*scDisplay.MaxPoints) ;
-        scDisplay.VerticalCursors[C2Cursor] := Round(Settings.RecPlot.Cursor2*scDisplay.MaxPoints) ;
-        scDisplay.VerticalCursors[C3Cursor] := Round(Settings.RecPlot.Cursor3*scDisplay.MaxPoints) ;
-        scDisplay.VerticalCursors[C4Cursor] := Round(Settings.RecPlot.Cursor4*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C0Cursor] := Round(WCPFile.Settings.RecPlot.Cursor0*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C1Cursor] := Round(WCPFile.Settings.RecPlot.Cursor1*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C2Cursor] := Round(WCPFile.Settings.RecPlot.Cursor2*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C3Cursor] := Round(WCPFile.Settings.RecPlot.Cursor3*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C4Cursor] := Round(WCPFile.Settings.RecPlot.Cursor4*scDisplay.MaxPoints) ;
         end ;
 
      end ;
@@ -730,7 +730,7 @@ begin
 function TRecordFrm.UpdateVProgramFileName( NewName : String ) : String ;
 begin
 
-    Result := Settings.VProtDirectory + NewName + '.xml' ;
+    Result := WCPFile.Settings.VProtDirectory + NewName + '.xml' ;
     if ANSIContainsText(Result,'\.') or
        ANSIContainsText(Result,'\ .') then Result := '' ;
     end ;
@@ -801,16 +801,16 @@ begin
                if (NextBlock >= (2*Main.SESLabIO.ADCNumChannels)) and NewSweep then begin
                    // Get time of start of sweep
                    RH.Time := GetTickCount*mStoSecs ;
-                   if RawFH.NumRecords <= 0 then begin
-                      RawFH.RecordingStartTime := Main.DateToStr(Now) ;
-                      RawFH.RecordingStartTimeSecs := RH.Time ;
+                   if WCPFile.RawFH.NumRecords <= 0 then begin
+                      WCPFile.RawFH.RecordingStartTime := Main.DateToStr(Now) ;
+                      WCPFile.RawFH.RecordingStartTimeSecs := RH.Time ;
                       end;
 
                    { Erase display once sweep has started (if required) }
                    scDisplay.SetDataBuf( ADCDisplay ) ;
                    scDisplay.NumPoints := 0 ;
 
-//                   scDisplay.TScale := Main.SESLabIO.ADCSamplingInterval*Settings.TScale ;
+//                   scDisplay.TScale := Main.SESLabIO.ADCSamplingInterval*WCPFile.Settings.TScale ;
 //                   1.3.17 Removed because it was changing display scaling slightly between
 //                   and during sweeps with some lab. interfaces
 
@@ -883,7 +883,7 @@ begin
                   else begin
                      { Other modes }
                      Inc(NumRecordsDone) ;
-                     if (NumRecordsDone >= Settings.NumRecordsRequired) then StopADCandDAC
+                     if (NumRecordsDone >= WCPFile.Settings.NumRecordsRequired) then StopADCandDAC
                                                                         else StartSweep ; ;
                      end ;
                   end ;
@@ -897,7 +897,7 @@ begin
 
               if (edNumRecords.text = '')
                  and (cbRecordingMode.ItemIndex <> rmProtocol ) then
-                 edNumRecords.text := IntToStr( Settings.NumRecordsRequired ) ;
+                 edNumRecords.text := IntToStr( WCPFile.Settings.NumRecordsRequired ) ;
 
               // Update channel scaling factors in case amplifier gain has changed
               UpdateChannelSettings ;
@@ -943,7 +943,7 @@ begin
            Inc(StatusCounter) ;
            if (StatusCounter >= 10) and (Main.SesLabIO.TimerPeriod >= 0.0) then begin
               edStatus.text := format( 'Rec %d %s (Next stim. %.1f/%.1fs)',
-                                      [RawFH.NumRecords,
+                                      [WCPFile.RawFH.NumRecords,
                                        Stimulator.ProtocolStatus,
                                        Main.SesLabIO.TimerTime,Main.SesLabIO.TimerPeriod ]) ;
               StatusCounter := 0 ;
@@ -970,7 +970,7 @@ begin
         // Detect events mode
         rmDetect : begin
           InitialiseEventDetector ;
-          RawFH.NumSamples := Settings.NumSamples ;
+          WCPFile.RawFH.NumSamples := WCPFile.Settings.NumSamples ;
           end ;
 
         // Pulse generation mode
@@ -988,7 +988,7 @@ begin
           // Removed 15.6.12
           Main.SESLabIO.ADCCircularBuffer := False ;
           EndofBuf := (Main.SESLabIO.ADCNumSamples*Main.SESLabIO.ADCNumChannels) - 1;
-          RawFH.NumSamples := Main.SESLabIO.ADCNumSamples ;
+          WCPFile.RawFH.NumSamples := Main.SESLabIO.ADCNumSamples ;
           Main.SESLabIO.ADCStart ;
           end ;
 
@@ -998,12 +998,12 @@ begin
           if Main.SESLabIO.ADCActive then Main.SESLabIO.ADCStop ;
           Main.SESLabIO.ADCTriggerMode := tmExtTrigger ;
           Main.SESLabIO.ADCExternalTriggerActiveHigh := rbExtTriggerHigh.checked ;
-          Main.SESLabIO.ADCNumChannels := Settings.NumChannels ;
-          Main.SESLabIO.ADCNumSamples := Settings.NumSamples ;
-          Main.SESLabIO.ADCSamplingInterval := Settings.RecordDuration / Settings.NumSamples ;
+          Main.SESLabIO.ADCNumChannels := WCPFile.Settings.NumChannels ;
+          Main.SESLabIO.ADCNumSamples := WCPFile.Settings.NumSamples ;
+          Main.SESLabIO.ADCSamplingInterval := WCPFile.Settings.RecordDuration / WCPFile.Settings.NumSamples ;
           Main.SESLabIO.ADCCircularBuffer := False ;
           EndofBuf := (Main.SESLabIO.ADCNumSamples*Main.SESLabIO.ADCNumChannels) - 1;
-          RawFH.NumSamples := Main.SESLabIO.ADCNumSamples ;
+          WCPFile.RawFH.NumSamples := Main.SESLabIO.ADCNumSamples ;
           Main.SESLabIO.ADCStart ;
           end ;
 
@@ -1012,13 +1012,13 @@ begin
           Main.SESLabIO.GetADCBuffer( ADC ) ;
           if Main.SESLabIO.ADCActive then Main.SESLabIO.ADCStop ;
           Main.SESLabIO.ADCTriggerMode := tmFreeRun ;
-          Main.SESLabIO.ADCNumChannels := Settings.NumChannels ;
-          Main.SESLabIO.ADCNumSamples := Settings.NumSamples ;
-          Main.SESLabIO.ADCSamplingInterval := Settings.RecordDuration / Settings.NumSamples ;
-          RawFH.NumSamples := Main.SESLabIO.ADCNumSamples ;
+          Main.SESLabIO.ADCNumChannels := WCPFile.Settings.NumChannels ;
+          Main.SESLabIO.ADCNumSamples := WCPFile.Settings.NumSamples ;
+          Main.SESLabIO.ADCSamplingInterval := WCPFile.Settings.RecordDuration / WCPFile.Settings.NumSamples ;
+          WCPFile.RawFH.NumSamples := Main.SESLabIO.ADCNumSamples ;
           Main.SESLabIO.ADCCircularBuffer := False ;
           EndofBuf := (Main.SESLabIO.ADCNumSamples*Main.SESLabIO.ADCNumChannels) - 1;
-          RawFH.NumSamples := Main.SESLabIO.ADCNumSamples ;
+          WCPFile.RawFH.NumSamples := Main.SESLabIO.ADCNumSamples ;
           Main.SESLabIO.ADCStart ;
           end ;
 
@@ -1033,45 +1033,45 @@ begin
 
      // Update file header information
 
-     RawFH.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
-     RawFH.MinADCValue := -RawFH.MaxADCValue -1 ;
+     WCPFile.RawFH.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
+     WCPFile.RawFH.MinADCValue := -WCPFile.RawFH.MaxADCValue -1 ;
 
-     RawFH.NumChannels := Main.SESLabIO.ADCNumChannels ;
-     RawFH.NumSamplesPerRecord := RawFH.NumSamples*RawFH.NumChannels ;
-     RawFH.NumDataBytesPerRecord := RawFH.NumSamplesPerRecord*2 ;
-     RawFH.NumBytesPerRecord := RawFH.NumDataBytesPerRecord + NumAnalysisBytesPerRecord(RawFH.NumChannels) ;
-     RawFH.NumBytesInHeader := NumBytesInFileHeader(RawFH.NumChannels) ;
-     RawFH.ADCVoltageRange := Main.SESLabIO.ADCVoltageRange ;
-     RawfH.dt := Main.SESLabIO.ADCSamplingInterval ;
-     scDisplay.TScale := Main.SESLabIO.ADCSamplingInterval*Settings.TScale ;
+     WCPFile.RawFH.NumChannels := Main.SESLabIO.ADCNumChannels ;
+     WCPFile.RawFH.NumSamplesPerRecord := WCPFile.RawFH.NumSamples*WCPFile.RawFH.NumChannels ;
+     WCPFile.RawFH.NumDataBytesPerRecord := WCPFile.RawFH.NumSamplesPerRecord*2 ;
+     WCPFile.RawFH.NumBytesPerRecord := WCPFile.RawFH.NumDataBytesPerRecord + WCPFile.NumAnalysisBytesPerRecord(WCPFile.RawFH.NumChannels) ;
+     WCPFile.RawFH.NumBytesInHeader := WCPFile.NumBytesInFileHeader(WCPFile.RawFH.NumChannels) ;
+     WCPFile.RawFH.ADCVoltageRange := Main.SESLabIO.ADCVoltageRange ;
+     WCPFile.RawfH.dt := Main.SESLabIO.ADCSamplingInterval ;
+     scDisplay.TScale := Main.SESLabIO.ADCSamplingInterval*WCPFile.Settings.TScale ;
 
      // Update file channel settings with recording settings
      for ch := 0 to Main.SESLabIO.ADCNumChannels-1 do begin
-        Channel[ch].ADCName := Main.SESLabIO.ADCChannelName[ch] ;
-        Channel[ch].ChannelOffset := Main.SESLabIO.ADCChannelOffset[ch] ;
-        Channel[ch].ADCUnits := Main.SESLabIO.ADCChannelUnits[ch] ;
-        Channel[ch].ADCCalibrationFactor := Main.SESLabIO.ADCChannelVoltsPerUnit[ch] ;
-        Channel[ch].ADCAmplifierGain := Main.SESLabIO.ADCChannelGain[ch] ;
-        Channel[ch].ADCZero := Main.SESLabIO.ADCChannelZero[ch] ;
-        Channel[ch].InUse := Main.SESLabIO.ADCChannelVisible[ch] ;
-        Channel[ch].yMin := Main.SESLabIO.ADCChannelYMin[ch] ;
-        Channel[ch].yMax := Main.SESLabIO.ADCChannelYMax[ch] ;
+        WCPFile.Channel[ch].ADCName := Main.SESLabIO.ADCChannelName[ch] ;
+        WCPFile.Channel[ch].ChannelOffset := Main.SESLabIO.ADCChannelOffset[ch] ;
+        WCPFile.Channel[ch].ADCUnits := Main.SESLabIO.ADCChannelUnits[ch] ;
+        WCPFile.Channel[ch].ADCCalibrationFactor := Main.SESLabIO.ADCChannelVoltsPerUnit[ch] ;
+        WCPFile.Channel[ch].ADCAmplifierGain := Main.SESLabIO.ADCChannelGain[ch] ;
+        WCPFile.Channel[ch].ADCZero := Main.SESLabIO.ADCChannelZero[ch] ;
+        WCPFile.Channel[ch].InUse := Main.SESLabIO.ADCChannelVisible[ch] ;
+        WCPFile.Channel[ch].yMin := Main.SESLabIO.ADCChannelYMin[ch] ;
+        WCPFile.Channel[ch].yMax := Main.SESLabIO.ADCChannelYMax[ch] ;
         end ;
 
      if not bOpenOLAWindow.Enabled then begin
-        scDisplay.VerticalCursors[C0Cursor] := Round(Settings.RecPlot.Cursor0*scDisplay.MaxPoints) ;
-        scDisplay.VerticalCursors[C1Cursor] := Round(Settings.RecPlot.Cursor1*scDisplay.MaxPoints) ;
-        scDisplay.VerticalCursors[C2Cursor] := Round(Settings.RecPlot.Cursor2*scDisplay.MaxPoints) ;
-        scDisplay.VerticalCursors[C3Cursor] := Round(Settings.RecPlot.Cursor3*scDisplay.MaxPoints) ;
-        scDisplay.VerticalCursors[C4Cursor] := Round(Settings.RecPlot.Cursor4*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C0Cursor] := Round(WCPFile.Settings.RecPlot.Cursor0*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C1Cursor] := Round(WCPFile.Settings.RecPlot.Cursor1*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C2Cursor] := Round(WCPFile.Settings.RecPlot.Cursor2*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C3Cursor] := Round(WCPFile.Settings.RecPlot.Cursor3*scDisplay.MaxPoints) ;
+        scDisplay.VerticalCursors[C4Cursor] := Round(WCPFile.Settings.RecPlot.Cursor4*scDisplay.MaxPoints) ;
         end ;
 
      { Start voltage/digital output program (if needed) }
      if cbRecordingMode.ItemIndex = rmProtocol then StartVoltageProgram
      else begin
          edStatus.text := format( 'Rec %d ( %d/%d ) ',
-                          [RawFH.NumRecords,
-                           NumRecordsDone,Settings.NumRecordsRequired] ) ;
+                          [WCPFile.RawFH.NumRecords,
+                           NumRecordsDone,WCPFile.Settings.NumRecordsRequired] ) ;
          Main.StatusBar.Panels[0].Text :=  edStatus.Text ;
          Main.SESLabIO.StimulusStartFlag := False ;
          end ;
@@ -1119,10 +1119,10 @@ begin
      if State <> Idle then begin
         edStatus.font.color := clBlack ;
         edStatus.text := format( 'Stopped %d records in file',
-                                [RawFH.NumRecords] ) ;
+                                [WCPFile.RawFH.NumRecords] ) ;
         Main.StatusBar.Panels[0].Text :=  edStatus.Text ;
 
-        WriteToLogFile( format('Stopped (%d records)',[RawFH.NumRecords])) ;
+        WCPFile.WriteToLogFile( format('Stopped (%d records)',[WCPFile.RawFH.NumRecords])) ;
 
         State := Idle ;
         bRecord.enabled := True ;
@@ -1130,13 +1130,13 @@ begin
         RecordParametersPanel.Enabled := True ;
         Main.SetMenus ;
 
-        if RawFH.NumRecords > 0 then Main.mnShowRaw.enabled := True ;
-        RawFH.IdentLine := edIdent.text ;
+        if WCPFile.RawFH.NumRecords > 0 then Main.mnShowRaw.enabled := True ;
+        WCPFile.RawFH.IdentLine := edIdent.text ;
 
         { Save header block }
-        SaveHeader( RawfH ) ;
+        WCPFile.SaveHeader( WCPFile.RawfH ) ;
         { Set file header in use to raw file header }
-        FH := RawFH ;
+        WCPFile.FH := WCPFile.RawFH ;
 
         // Restore pulse program selected when recording started
         if cbPulseProgram.ItemIndex < cbPulseProgram.Items.Count then
@@ -1163,9 +1163,9 @@ begin
         { Set up continuous sampling into a circulating buffer, ensuring
           that it is a multiple of the no. of channels
           Note that buffer size may vary with different lab. interfaces }
-//        Det.EndofBuf := Min( Settings.NumSamples*Settings.NumChannels*4,
+//        Det.EndofBuf := Min( WCPFile.Settings.NumSamples*WCPFile.Settings.NumChannels*4,
 //                             Main.SESLabIO.ADCBufferLimit)  ;
-        Det.EndofBuf := ((Main.SESLabIO.ADCBufferLimit div Settings.NumChannels)*Settings.NumChannels) - 1 ;
+        Det.EndofBuf := ((Main.SESLabIO.ADCBufferLimit div WCPFile.Settings.NumChannels)*WCPFile.Settings.NumChannels) - 1 ;
         if  ADCDetected = Nil then FreeMem(ADCDetected) ;
         GetMem(ADCDetected, (Det.EndofBuf+1)*2 ) ;
         ADC := ADCDetected ;
@@ -1173,14 +1173,14 @@ begin
         GetMem(ADCCopy, (Det.EndofBuf+1)*2 ) ;
 
         { Set channel counter }
-        Det.LastChan := Settings.NumChannels - 1 ;
+        Det.LastChan := WCPFile.Settings.NumChannels - 1 ;
         Det.Chan := 0 ;
         Det.ChanSelected := Main.SESLabIO.ADCChannelOffset[cbDetectChannel.ItemIndex] ;
 
         { Set event detection threshold and polarity }
-        Settings.EventDetector.Threshold := edDetectionThreshold.Value ;
+        WCPFile.Settings.EventDetector.Threshold := edDetectionThreshold.Value ;
         Det.Threshold := Round( 2.0*Main.SESLabIO.ADCMaxValue
-                                *Settings.EventDetector.Threshold ) ;
+                                *WCPFile.Settings.EventDetector.Threshold ) ;
         if Det.Threshold >= 0 then begin
            Det.Polarity := 1 ;
            { Note ... baseline set to maximum value to prevent
@@ -1196,16 +1196,16 @@ begin
         { Initialise sample pointer }
         Det.Pointer := 0 ;
         { Number of pre-trigger points }
-        Settings.EventDetector.PreTrigger := edPreTrigger.Value ;
-        Det.PreTriggerPoints :=  Round ( Settings.NumSamples*Settings.EventDetector.PreTrigger
-                                         *Settings.NumChannels ) ;
+        WCPFile.Settings.EventDetector.PreTrigger := edPreTrigger.Value ;
+        Det.PreTriggerPoints :=  Round ( WCPFile.Settings.NumSamples*WCPFile.Settings.EventDetector.PreTrigger
+                                         *WCPFile.Settings.NumChannels ) ;
 
         { Start continous sampling into circular buffer }
 
         //if  Main.SESLabIO.ADCActive then Main.SESLabIO.ADCStop ;
-        Main.SESLabIO.ADCNumChannels := Settings.NumChannels ;
-        Main.SESLabIO.ADCNumSamples := (Det.EndofBuf+1) div Settings.NumChannels ;
-        Main.SESLabIO.ADCSamplingInterval := Settings.RecordDuration / Settings.NumSamples ;
+        Main.SESLabIO.ADCNumChannels := WCPFile.Settings.NumChannels ;
+        Main.SESLabIO.ADCNumSamples := (Det.EndofBuf+1) div WCPFile.Settings.NumChannels ;
+        Main.SESLabIO.ADCSamplingInterval := WCPFile.Settings.RecordDuration / WCPFile.Settings.NumSamples ;
         Main.SESLabIO.ADCTriggerMode := tmFreeRun ;
         Main.SESLabIO.ADCCircularBuffer := True ;
         Main.SESLabIO.ADCStart ;
@@ -1213,7 +1213,7 @@ begin
 
      { Initialise O/P buffer with empty flag }
      j := 0 ;
-     for i := 1 to (Settings.NumChannels*Settings.NumSamples) div 2 do begin
+     for i := 1 to (WCPFile.Settings.NumChannels*WCPFile.Settings.NumSamples) div 2 do begin
          ADCDetected^[j] := EmptyFlag ;
          Inc(j) ;
          ADCDetected^[j] := -EmptyFlag ;
@@ -1264,13 +1264,13 @@ begin
                  { Get segment of buffer to be extracted }
                  Det.StartAt := Det.Pointer - Det.PreTriggerPoints ;
                  if Det.StartAt < 0 then Det.StartAt := Det.StartAt + (Det.EndofBuf+1) ;
-                 Det.StartAt := (Det.StartAt div Settings.NumChannels)*Settings.NumChannels ;
-                 Det.EndAt := Det.StartAt + Settings.NumSamples*Settings.NumChannels -1 ;
+                 Det.StartAt := (Det.StartAt div WCPFile.Settings.NumChannels)*WCPFile.Settings.NumChannels ;
+                 Det.EndAt := Det.StartAt + WCPFile.Settings.NumSamples*WCPFile.Settings.NumChannels -1 ;
                  if Det.EndAt > Det.EndofBuf then Det.EndAt := Det.EndAt - (Det.EndofBuf+1) ;
                  { Time of detection }
                  Det.TimeDetected := Det.BufferCycles ;
                  Det.TimeDetected := Main.SESLabIO.ADCSamplingInterval *((Det.TimeDetected*(Det.EndOfBuf+1)
-                                     + Det.Pointer ) / Settings.NumChannels) ;
+                                     + Det.Pointer ) / WCPFile.Settings.NumChannels) ;
                  end ;
               end ;
            end
@@ -1279,7 +1279,7 @@ begin
                                 then transfer the samples to ADC buffer }
            if Det.Pointer = Det.EndAt then begin
                j := Det.StartAt ;
-               for i := 0 to (Settings.NumSamples*Settings.NumChannels)-1 do begin
+               for i := 0 to (WCPFile.Settings.NumSamples*WCPFile.Settings.NumChannels)-1 do begin
                    ADCDetected^[i] := ADCCopy^[j] ;
                    Inc(j) ;
                    if j > Det.EndOfBuf then j := 0 ;
@@ -1337,7 +1337,7 @@ begin
      if Stimulator.LeakRecord then begin
         // Create leak waveform
         edStatus.text := format( 'Rec %d %s',
-                                 [RawFH.NumRecords,
+                                 [WCPFile.RawFH.NumRecords,
                                  Stimulator.ProtocolStatus ]) ;
         NumAOChannels :=  Min( Stimulator.Prot.NumAOChannels,
                                Main.SESLabIO.DACMaxChannels ) ;
@@ -1351,7 +1351,7 @@ begin
       else begin
         // Create TEST voltage program waveform
         edStatus.text := format( 'Rec %d %s',
-                                 [RawFH.NumRecords,
+                                 [WCPFile.RawFH.NumRecords,
                                  Stimulator.ProtocolStatus ]) ;
         NumAOChannels :=  Min( Stimulator.Prot.NumAOChannels,
                                Main.SESLabIO.DACMaxChannels ) ;
@@ -1405,7 +1405,7 @@ begin
         Main.SESLabIO.DACHoldingVoltage[ch] := Main.SESLabIO.DACHoldingVoltage[ch] ;
     Main.SESLabIO.DIGHoldingLevel := Main.SESLabIO.DIGHoldingLevel ;
 
-    Main.SESLabIO.ADCNumSamples := Settings.NumSamples ;
+    Main.SESLabIO.ADCNumSamples := WCPFile.Settings.NumSamples ;
     MainMenus( Enable ) ;
     end ;
 
@@ -1434,7 +1434,7 @@ begin
 
 
      if i < EndofBuf then begin
-        iStart := ((i - Settings.NumChannels) div Main.SESLabIO.ADCNumChannels)*Main.SESLabIO.ADCNumChannels ;
+        iStart := ((i - WCPFile.Settings.NumChannels) div Main.SESLabIO.ADCNumChannels)*Main.SESLabIO.ADCNumChannels ;
         iStart := Max(iStart,0) ;
         for i := iStart to EndOfBuf do
             ADC^[i] := ADC^[iStart + (i mod Main.SESLabIO.ADCNumChannels)] ;
@@ -1482,18 +1482,18 @@ begin
             RH.ADCVoltageRange[ch] := Main.SESLabIO.ADCVoltageRange /
                                       Main.SESLabIO.ADCChannelGain[ch] ;
 
-        RawfH.NumRecords := RawfH.NumRecords + 1 ;
-        RawFH.CurrentRecord := RawFH.NumRecords ;
+        WCPFile.RawfH.NumRecords := WCPFile.RawfH.NumRecords + 1 ;
+        WCPFile.RawFH.CurrentRecord := WCPFile.RawFH.NumRecords ;
         rH.Status := 'ACCEPTED' ;
         if cbRecordingMode.itemIndex = rmProtocol then rH.Number := GroupNumber
-                                                  else rH.Number := RawfH.NumRecords ;
+                                                  else rH.Number := WCPFile.RawfH.NumRecords ;
         rH.dt := Main.SESLabIO.ADCSamplingInterval ;
 
         { Update time that record was collected }
         if cbRecordingMode.itemIndex = rmDetect then rH.Time := Det.TimeDetected ;
 
         { Make time relative to the first record acquired }
-        rH.Time := rH.Time - RawFH.RecordingStartTimeSecs ;
+        rH.Time := rH.Time - WCPFile.RawFH.RecordingStartTimeSecs ;
 
         // If dynamic clamp in use, add conductance to record ident field.
         if Main.FormExists('DCLAMPFrm') then begin
@@ -1509,7 +1509,7 @@ begin
         rH.AnalysisAvailable := false ;
         rH.EqnType := None ;
 
-        PutRecord( RawfH, rH, RawfH.NumRecords, ADC^ ) ;
+        WCPFile.PutRecord( WCPFile.RawfH, rH, WCPFile.RawfH.NumRecords, ADC^ ) ;
 
         // Calculate zero levels
         for ch := 0 to  Main.SESLabIO.ADCNumChannels-1 do begin
@@ -1525,14 +1525,14 @@ begin
                   end;
                Main.SESLabIO.ADCChannelZero[ch] := Round( ZeroSum / (i1-i0+1) );
                scDisplay.HorizontalCursors[ch] := Main.SESLabIO.ADCChannelZero[ch] ;
-               Channel[ch].ADCZero := Main.SESLabIO.ADCChannelZero[ch] ;
+               WCPFile.Channel[ch].ADCZero := Main.SESLabIO.ADCChannelZero[ch] ;
                end ;
             end ;
 
         rH.Ident := '' ;
 
         if (not ckSaveRecords.checked) then begin
-              RawfH.NumRecords := RawfH.NumRecords - 1 ;
+              WCPFile.RawfH.NumRecords := WCPFile.RawfH.NumRecords - 1 ;
               edStatus.text := 'Records not saved!' ;
               Main.StatusBar.Panels[0].Text :=  edStatus.Text ;
               end ;
@@ -1545,12 +1545,12 @@ begin
                                   Round(scDisplay.VerticalCursors[C3Cursor]),
                                   Round(scDisplay.VerticalCursors[C4Cursor]),
                                   cbPulseProgram.Text,
-                                  RawfH.NumRecords,
+                                  WCPFile.RawfH.NumRecords,
                                   RH.RecType ) ;
            end ;
 
         // Update file header
-        SaveHeader( RawfH ) ;
+        WCPFile.SaveHeader( WCPFile.RawfH ) ;
 
         // Update replay form if it is open
         if Main.FormExists('ReplayFrm') then begin
@@ -1679,7 +1679,7 @@ begin
 
      MainMenus( Disable ) ;
 
-     WriteToLogFile( 'Recording Started ' ) ;
+     WCPFile.WriteToLogFile( 'Recording Started ' ) ;
 
      // Update channel scaling factors in case amplifier gain has changed
      UpdateChannelSettings ;
@@ -1692,17 +1692,17 @@ begin
      { Set number of recording sweeps to be collected }
      UpdateSamplingInterval ; // Ensure sampling interval is in supported range
 
-     Settings.NumRecordsRequired := Round(edNumRecords.Value) ;
-     Settings.NumChannels := Round(edNumChannels.Value) ;
-     Settings.RecordDuration := edRecordDuration.Value ;
-     Settings.NumSamples := Round(edNumSamples.Value) ;
+     WCPFile.Settings.NumRecordsRequired := Round(edNumRecords.Value) ;
+     WCPFile.Settings.NumChannels := Round(edNumChannels.Value) ;
+     WCPFile.Settings.RecordDuration := edRecordDuration.Value ;
+     WCPFile.Settings.NumSamples := Round(edNumSamples.Value) ;
 
-     EndAtRecord := RawFH.NumRecords + Settings.NumRecordsRequired ;
+     EndAtRecord := WCPFile.RawFH.NumRecords + WCPFile.Settings.NumRecordsRequired ;
      NumRecordsDone := 0 ;
 
      { Get last group number used }
-     if RawFH.NumRecords > 0 then begin
-        GetRecordHeaderOnly( RawfH, rH, RawfH.NumRecords ) ;
+     if WCPFile.RawFH.NumRecords > 0 then begin
+        WCPFile.GetRecordHeaderOnly( WCPFile.RawfH, rH, WCPFile.RawfH.NumRecords ) ;
         GroupNumber := Round(rH.Number) + 1
         end
      else begin
@@ -1776,12 +1776,12 @@ begin
        if ProtocolCount < 1 then begin
           // Load initial protocol from list
           ProtocolFileName := cbPulseProgram.Text ;
-          Settings.VProgramFileName := UpdateVProgramFileName(ProtocolFileName) ;
+          WCPFile.Settings.VProgramFileName := UpdateVProgramFileName(ProtocolFileName) ;
           end
        else begin
           // Load linked protocol (if it exists)
           ProtocolCount := 0 ;
-          ProtocolFileName := ExtractFileNameOnly(Stimulator.Prot.NextProtocolFileName) ;
+          ProtocolFileName := WCPFile.ExtractFileNameOnly(Stimulator.Prot.NextProtocolFileName) ;
           if FileExists(UpdateVProgramFileName(ProtocolFileName)) then begin
              if Main.SESLabIO.DACActive then Main.SESLabIO.DACStop ;
              end
@@ -1804,7 +1804,7 @@ begin
 
     if FileExists( ProtocolFileName ) then begin
        Stimulator.LoadProtocol(ProtocolFileName) ;
-       WriteToLogFile( 'Stimulus Protocol: ' + ProtocolFileName ) ;
+       WCPFile.WriteToLogFile( 'Stimulus Protocol: ' + ProtocolFileName ) ;
        Result := True ;
        end
     else Exit ;
@@ -1827,20 +1827,20 @@ begin
 
      Result := True ;
 
-     if RawFH.FileHandle <= 0 then begin
+     if WCPFile.RawFH.FileHandle <= 0 then begin
         // Create a new file if none open
-        Main.CreateNewDataFile( Main.CreateIndexedFileName( RawFH.FileName )) ;
+        WCPFile.CreateNewDataFile( WCPFile.CreateIndexedFileName( WCPFile.RawFH.FileName )) ;
         end ;
 
      if ckNewFileOnRecord.Checked then begin
         // Create a new file (with stimulus protocol/sequence no. appended)
         // ----------------------------------------------------------------
         if cbRecordingMode.ItemIndex = rmProtocol then
-           StimName := ExtractFileNameOnly(Stimulator.FileName) + '.'
+           StimName := WCPFile.ExtractFileNameOnly(Stimulator.FileName) + '.'
         else StimName := '' ;
 
         // Extract stem of file name
-        Stem := ANSIReplaceText( RawFH.FileName, '.wcp', '.' ) ;
+        Stem := ANSIReplaceText( WCPFile.RawFH.FileName, '.wcp', '.' ) ;
         n := Pos( '.', Stem ) ;
         if n > 0 then Stem := LeftStr(Stem,n) ;
 
@@ -1851,13 +1851,13 @@ begin
            until not FileExists(NewFileName) ;
 
         // Delete existing data file if it is empty
-        if (RawFH.NumRecords = 0) and (RawFH.FileHandle >= 0) then begin
-           FileClose( RawFH.FileHandle ) ;
-           RawFH.FileHandle := -1 ;
-           DeleteFile( PChar(RawFH.FileName) ) ;
+        if (WCPFile.RawFH.NumRecords = 0) and (WCPFile.RawFH.FileHandle >= 0) then begin
+           FileClose( WCPFile.RawFH.FileHandle ) ;
+           WCPFile.RawFH.FileHandle := -1 ;
+           DeleteFile( PChar(WCPFile.RawFH.FileName) ) ;
            end ;
 
-        Main.CreateNewDataFile( NewFileName ) ;
+        WCPFile.CreateNewDataFile( NewFileName ) ;
 
         end
      else begin
@@ -1865,20 +1865,20 @@ begin
         // --------------------------------------------------
         NewFileNeeded := False ;
 
-        if RawFH.NumChannels <> Main.SESLabIO.ADCNumChannels then NewFileNeeded := True ;
-        if RawFH.NumSamples <> Main.SESLabIO.ADCNumSamples then NewFileNeeded := True ;
+        if WCPFile.RawFH.NumChannels <> Main.SESLabIO.ADCNumChannels then NewFileNeeded := True ;
+        if WCPFile.RawFH.NumSamples <> Main.SESLabIO.ADCNumSamples then NewFileNeeded := True ;
         for ch := 0 to Main.SESLabIO.ADCNumChannels-1 do begin
-            if Channel[ch].ADCName <> Main.SESLabIO.ADCChannelName[ch] then NewFileNeeded := True ;
-            if Channel[ch].ADCUnits <> Main.SESLabIO.ADCChannelUnits[ch] then NewFileNeeded := True ;
-            if (Abs(Channel[ch].ADCCalibrationFactor/Main.SESLabIO.ADCChannelVoltsPerUnit[ch])-1.0)
+            if WCPFile.Channel[ch].ADCName <> Main.SESLabIO.ADCChannelName[ch] then NewFileNeeded := True ;
+            if WCPFile.Channel[ch].ADCUnits <> Main.SESLabIO.ADCChannelUnits[ch] then NewFileNeeded := True ;
+            if (Abs(WCPFile.Channel[ch].ADCCalibrationFactor/Main.SESLabIO.ADCChannelVoltsPerUnit[ch])-1.0)
                > 1.0E-4 then NewFileNeeded := True ;
             end ;
-        if RawFH.NumRecords <= 0 then NewFileNeeded := False ;
+        if WCPFile.RawFH.NumRecords <= 0 then NewFileNeeded := False ;
 
         if NewFileNeeded then begin
 
            // Extract stem of file name
-           Stem := ANSIReplaceText( RawFH.FileName, '.wcp', '.' ) ;
+           Stem := ANSIReplaceText( WCPFile.RawFH.FileName, '.wcp', '.' ) ;
            n := Pos( '.', Stem ) ;
            if n > 0 then Stem := LeftStr(Stem,n) ;
 
@@ -1887,7 +1887,7 @@ begin
               NewFileName := Stem + format('%d.wcp',[n]) ;
               Inc(n) ;
               until not FileExists(NewFileName) ;
-           Main.CreateNewDataFile( NewFileName ) ;
+           WCPFile.CreateNewDataFile( NewFileName ) ;
            end ;
         end ;
 
@@ -1947,14 +1947,14 @@ begin
      { Update voltage program file name stored in 'settings' when
        program combo box is changed }
      if cbPulseProgram.ItemIndex > 0 then begin
-        Settings.VProgramFileName := UpdateVProgramFileName(cbPulseProgram.text) ;
-        if FileExists( Settings.VProgramFileName ) then begin
-           Stimulator.LoadProtocol(Settings.VProgramFileName) ;
+        WCPFile.Settings.VProgramFileName := UpdateVProgramFileName(cbPulseProgram.text) ;
+        if FileExists( WCPFile.Settings.VProgramFileName ) then begin
+           Stimulator.LoadProtocol(WCPFile.Settings.VProgramFileName) ;
            // Update display with new settings
            UpdateDisplay(true) ;
            end ;
         end
-     else Settings.VProgramFileName := '' ;
+     else WCPFile.Settings.VProgramFileName := '' ;
 
      end;
 
@@ -2024,11 +2024,11 @@ begin
 procedure TRecordFrm.edIdentKeyPress(Sender: TObject; var Key: Char);
 begin
      { Update ident line if it is changed }
-     RawFH.IdentLine := edIdent.text ;
+     WCPFile.RawFH.IdentLine := edIdent.text ;
      { Only save to file if recording is not in progress }
      if bRecord.Enabled then begin
-        SaveHeader(RawFH) ;
-        if key = chr(13) then WriteToLogFile( RawFH.IdentLine ) ;
+        WCPFile.SaveHeader(WCPFile.RawFH) ;
+        if key = chr(13) then WCPFile.WriteToLogFile( WCPFile.RawFH.IdentLine ) ;
         end ;
      end;
 
@@ -2080,11 +2080,11 @@ procedure TRecordFrm.bFindCursorsClick(Sender: TObject);
 // Move on-line analysis cursors to default locations on display
 // -------------------------------------------------------------
 begin
-    Settings.RecPlot.Cursor0 := 0.01 ;
-    Settings.RecPlot.Cursor1 := 0.05 ;
-    Settings.RecPlot.Cursor2 := 0.8 ;
-    Settings.RecPlot.Cursor3 := 0.9 ;
-    Settings.RecPlot.Cursor4 := 0.95 ;
+    WCPFile.Settings.RecPlot.Cursor0 := 0.01 ;
+    WCPFile.Settings.RecPlot.Cursor1 := 0.05 ;
+    WCPFile.Settings.RecPlot.Cursor2 := 0.8 ;
+    WCPFile.Settings.RecPlot.Cursor3 := 0.9 ;
+    WCPFile.Settings.RecPlot.Cursor4 := 0.95 ;
     if Main.FormExists( 'RecPlotFrm' ) then AddOLAWCursors ;
 
     end;
@@ -2095,7 +2095,7 @@ procedure TRecordFrm.edPreTriggerKeyPress(Sender: TObject; var Key: Char);
   Get event detection pre-trigger %
   ---------------------------------- }
 begin
-     if key = chr(13) then Settings.EventDetector.PreTrigger := edPreTrigger.Value ;
+     if key = chr(13) then WCPFile.Settings.EventDetector.PreTrigger := edPreTrigger.Value ;
      end ;
 
 
@@ -2105,7 +2105,7 @@ procedure TRecordFrm.EdDetectionThresholdKeyPress(Sender: TObject;
   Get event detection threshold level
   -----------------------------------}
 begin
-     if key = chr(13) then Settings.EventDetector.Threshold := edDetectionThreshold.Value ;
+     if key = chr(13) then WCPFile.Settings.EventDetector.Threshold := edDetectionThreshold.Value ;
      end ;
 
 
@@ -2125,8 +2125,8 @@ procedure TRecordFrm.cbDetectChannelChange(Sender: TObject);
   Store change to event detector channel
   -------------------------------------- }
 begin
-     Settings.EventDetector.Channel := IntLimitTo(cbDetectChannel.ItemIndex,
-                                       0,Settings.NumChannels-1) ;
+     WCPFile.Settings.EventDetector.Channel := IntLimitTo(cbDetectChannel.ItemIndex,
+                                       0,WCPFile.Settings.NumChannels-1) ;
      end;
 
 
@@ -2159,24 +2159,24 @@ begin
          Main.SESLabIO.ADCChannelYMax[ch] := scDisplay.YMax[Ch] ;
          Main.SESLabIO.ADCChannelVisible[ch] := scDisplay.ChanVisible[ch] ;
 
-         if Settings.FixedZeroLevels or (Main.SESLabIO.ADCChannelZeroAt[ch] >= 0) then begin
+         if WCPFile.Settings.FixedZeroLevels or (Main.SESLabIO.ADCChannelZeroAt[ch] >= 0) then begin
             if scDisplay.HorizontalCursors[ch] <> Main.SESLabIO.ADCChannelZero[ch] then begin
                scDisplay.HorizontalCursors[ch] := Main.SESLabIO.ADCChannelZero[ch] ;
                end ;
             end
          else Main.SESLabIO.ADCChannelZero[ch] := Round(scDisplay.HorizontalCursors[ch]) ;
          scDisplay.ChanZeroAt[ch] := Main.SESLabIO.ADCChannelZeroAt[ch] ;
-         Channel[ch].ADCZeroAt := Main.SESLabIO.ADCChannelZeroAt[ch] ;
-         Channel[ch].ADCZero := Main.SESLabIO.ADCChannelZero[ch] ;
+         WCPFile.Channel[ch].ADCZeroAt := Main.SESLabIO.ADCChannelZeroAt[ch] ;
+         WCPFile.Channel[ch].ADCZero := Main.SESLabIO.ADCChannelZero[ch] ;
          end ;
 
      // Readout cursors
      if not bOpenOLAWindow.Enabled then begin
-        Settings.RecPlot.Cursor0 := scDisplay.VerticalCursors[C0Cursor]/scDisplay.MaxPoints ;
-        Settings.RecPlot.Cursor1 := scDisplay.VerticalCursors[C1Cursor]/scDisplay.MaxPoints ;
-        Settings.RecPlot.Cursor2 := scDisplay.VerticalCursors[C2Cursor]/scDisplay.MaxPoints ;
-        Settings.RecPlot.Cursor3 := scDisplay.VerticalCursors[C3Cursor]/scDisplay.MaxPoints ;
-        Settings.RecPlot.Cursor4 := scDisplay.VerticalCursors[C4Cursor]/scDisplay.MaxPoints ;
+        WCPFile.Settings.RecPlot.Cursor0 := scDisplay.VerticalCursors[C0Cursor]/scDisplay.MaxPoints ;
+        WCPFile.Settings.RecPlot.Cursor1 := scDisplay.VerticalCursors[C1Cursor]/scDisplay.MaxPoints ;
+        WCPFile.Settings.RecPlot.Cursor2 := scDisplay.VerticalCursors[C2Cursor]/scDisplay.MaxPoints ;
+        WCPFile.Settings.RecPlot.Cursor3 := scDisplay.VerticalCursors[C3Cursor]/scDisplay.MaxPoints ;
+        WCPFile.Settings.RecPlot.Cursor4 := scDisplay.VerticalCursors[C4Cursor]/scDisplay.MaxPoints ;
         end ;
 
      end;
@@ -2191,7 +2191,7 @@ var
 begin
      scDisplay.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
      scDisplay.MinADCValue := Main.SESLabIO.ADCMinValue ;
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
 
      for ch := 0 to scDisplay.NumChannels-1 do begin
          scDisplay.ChanVisible[ch] := Main.SESLabIO.ADCChannelVisible[ch] ; ;
@@ -2244,8 +2244,8 @@ procedure TRecordFrm.rbExtTriggerHighClick(Sender: TObject);
 // ----------------------------------------
 begin
 
-     Settings.ExternalTriggerActiveHigh := rbExtTriggerHigh.Checked ;
-     Main.SESLabIO.ADCExternalTriggerActiveHigh := Settings.ExternalTriggerActiveHigh ;
+     WCPFile.Settings.ExternalTriggerActiveHigh := rbExtTriggerHigh.Checked ;
+     Main.SESLabIO.ADCExternalTriggerActiveHigh := WCPFile.Settings.ExternalTriggerActiveHigh ;
      rbExtTriggerHigh.Checked := Main.SESLabIO.ADCExternalTriggerActiveHigh ;
 
      end;
@@ -2255,21 +2255,21 @@ procedure TRecordFrm.rbExttriggerLowClick(Sender: TObject);
 // Ext. Trigger Active Low option selected
 // ----------------------------------------
 begin
-     Settings.ExternalTriggerActiveHigh := rbExtTriggerHigh.Checked ;
-     Main.SESLabIO.ADCExternalTriggerActiveHigh := Settings.ExternalTriggerActiveHigh ;
+     WCPFile.Settings.ExternalTriggerActiveHigh := rbExtTriggerHigh.Checked ;
+     Main.SESLabIO.ADCExternalTriggerActiveHigh := WCPFile.Settings.ExternalTriggerActiveHigh ;
      rbExtTriggerHigh.Checked := Main.SESLabIO.ADCExternalTriggerActiveHigh ;
      end;
 
 
 procedure TRecordFrm.ckFixedZeroLevelsClick(Sender: TObject);
 begin
-     Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
+     WCPFile.Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
      end;
 
 
 procedure TRecordFrm.ckNewFileOnRecordClick(Sender: TObject);
 begin
-    Settings.OpenNewFileOnRecord := ckNewFileOnRecord.Checked ;
+    WCPFile.Settings.OpenNewFileOnRecord := ckNewFileOnRecord.Checked ;
     end;
 
 procedure TRecordFrm.edAmplifierGain0KeyPress(Sender: TObject;
@@ -2346,11 +2346,11 @@ begin
     idx := cbPulseProgram.Items.IndexOf(Value) ;
     if (idx > 0) and (idx < cbPulseProgram.Items.Count) then begin
        cbPulseProgram.ItemIndex := idx ;
-       Settings.VProgramFileName := UpdateVProgramFileName(cbPulseProgram.text) ;
+       WCPFile.Settings.VProgramFileName := UpdateVProgramFileName(cbPulseProgram.text) ;
        end
     else begin
        cbPulseProgram.ItemIndex := 0 ;
-       Settings.VProgramFileName := '' ;
+       WCPFile.Settings.VProgramFileName := '' ;
        end ;
 
     end ;
@@ -2379,7 +2379,7 @@ begin
 
      // Ensure display channels visibility is updated
      ChangeDisplayGrid ;
-     ckFixedZeroLevels.Checked := Settings.FixedZeroLevels ;
+     ckFixedZeroLevels.Checked := WCPFile.Settings.FixedZeroLevels ;
 
      // Stop seal test recording form if it is open
      if Main.FormExists( 'SealTestFrm') then SealTestFrm.StopADCandDAC ;
@@ -2426,25 +2426,25 @@ begin
      scDisplay.ClearVerticalCursors ;
 
      C0Cursor := scDisplay.AddVerticalCursor(-1,clOlive,'0') ;
-     if Settings.RecPlot.Cursor0 < 0 then Settings.RecPlot.Cursor0 := 1/scDisplay.MaxPoints ;
-     scDisplay.VerticalCursors[C0Cursor] := Round(Settings.RecPlot.Cursor0*scDisplay.MaxPoints) ;
+     if WCPFile.Settings.RecPlot.Cursor0 < 0 then WCPFile.Settings.RecPlot.Cursor0 := 1/scDisplay.MaxPoints ;
+     scDisplay.VerticalCursors[C0Cursor] := Round(WCPFile.Settings.RecPlot.Cursor0*scDisplay.MaxPoints) ;
 
      C1Cursor := scDisplay.AddVerticalCursor(-1,clGreen,'1') ;
-     if Settings.RecPlot.Cursor1 < 0 then Settings.RecPlot.Cursor1 := 0.05 ;
-     scDisplay.VerticalCursors[C1Cursor] := Round(Settings.RecPlot.Cursor1*scDisplay.MaxPoints) ;
+     if WCPFile.Settings.RecPlot.Cursor1 < 0 then WCPFile.Settings.RecPlot.Cursor1 := 0.05 ;
+     scDisplay.VerticalCursors[C1Cursor] := Round(WCPFile.Settings.RecPlot.Cursor1*scDisplay.MaxPoints) ;
 
      C2Cursor := scDisplay.AddVerticalCursor(-1,clGreen,'2') ;
-     if Settings.RecPlot.Cursor2 < 0 then Settings.RecPlot.Cursor2 := 0.8 ;
-     scDisplay.VerticalCursors[C2Cursor] := Round(Settings.RecPlot.Cursor2*scDisplay.MaxPoints) ;
+     if WCPFile.Settings.RecPlot.Cursor2 < 0 then WCPFile.Settings.RecPlot.Cursor2 := 0.8 ;
+     scDisplay.VerticalCursors[C2Cursor] := Round(WCPFile.Settings.RecPlot.Cursor2*scDisplay.MaxPoints) ;
      scDisplay.LinkVerticalCursors(C1Cursor,C2Cursor) ;
 
      C3Cursor := scDisplay.AddVerticalCursor(-1,clGreen,'3') ;
-     if Settings.RecPlot.Cursor3 < 0 then Settings.RecPlot.Cursor3 := 0.9 ;
-     scDisplay.VerticalCursors[C3Cursor] := Round(Settings.RecPlot.Cursor3*scDisplay.MaxPoints) ;
+     if WCPFile.Settings.RecPlot.Cursor3 < 0 then WCPFile.Settings.RecPlot.Cursor3 := 0.9 ;
+     scDisplay.VerticalCursors[C3Cursor] := Round(WCPFile.Settings.RecPlot.Cursor3*scDisplay.MaxPoints) ;
 
      C4Cursor := scDisplay.AddVerticalCursor(-1,clGreen,'4') ;
-     if Settings.RecPlot.Cursor4 < 0 then Settings.RecPlot.Cursor4 := 0.95 ;
-     scDisplay.VerticalCursors[C4Cursor] := Round(Settings.RecPlot.Cursor4*scDisplay.MaxPoints) ;
+     if WCPFile.Settings.RecPlot.Cursor4 < 0 then WCPFile.Settings.RecPlot.Cursor4 := 0.95 ;
+     scDisplay.VerticalCursors[C4Cursor] := Round(WCPFile.Settings.RecPlot.Cursor4*scDisplay.MaxPoints) ;
      scDisplay.LinkVerticalCursors(C3Cursor,C4Cursor) ;
 
      scDisplay.Invalidate ;
@@ -2476,7 +2476,7 @@ procedure TRecordFrm.bSetStimFolderClick(Sender: TObject);
 //  Set voltage protocol file folder
 // -----------------------------
 begin
-    DirectorySelectFrm.Directory := Settings.VProtDirectory ;
+    DirectorySelectFrm.Directory := WCPFile.Settings.VProtDirectory ;
     DirectorySelectFrm.Left := Main.Left +
                                RecordFrm.Left +
                                bSetStimFolder.Left +
@@ -2487,7 +2487,7 @@ begin
 
     DirectorySelectFrm.ShowModal ;
     if DirectorySelectFrm.ModalResult = mrOK then begin
-       Settings.VProtDirectory := DirectorySelectFrm.Directory ;
+       WCPFile.Settings.VProtDirectory := DirectorySelectFrm.Directory ;
        UpdateStimulusProtocolList ;
        end ;
      end ;
@@ -2516,7 +2516,7 @@ begin
      if (Main.SESLabIO.LabInterfaceType = Triton) and
         (cbRecordingMode.ItemIndex = rmDetect) then cbRecordingMode.ItemIndex := rmProtocol ;
 
-     Settings.RecordingMode := cbRecordingMode.ItemIndex ;
+     WCPFile.Settings.RecordingMode := cbRecordingMode.ItemIndex ;
 
      case cbRecordingMode.ItemIndex of
         rmProtocol : Begin
@@ -2525,9 +2525,9 @@ begin
             panSingleProtocol.Visible := rbSingleProtocol.Checked ;
             panProtocolList.Visible := rbProtocolList.Checked ;
             LoadProtocolList ;
-            Settings.VProgramFileName := UpdateVProgramFileName(cbPulseProgram.text) ;
-            if FileExists( Settings.VProgramFileName ) then
-               Stimulator.LoadProtocol(Settings.VProgramFileName) ;
+            WCPFile.Settings.VProgramFileName := UpdateVProgramFileName(cbPulseProgram.text) ;
+            if FileExists( WCPFile.Settings.VProgramFileName ) then
+               Stimulator.LoadProtocol(WCPFile.Settings.VProgramFileName) ;
             end ;
         rmFreeRun : Begin
             RecordParametersPanel.Visible := True ;
@@ -2589,22 +2589,22 @@ begin
      // No. channels
      Main.SESLabIO.ADCNumChannels := Round(edNumChannels.Value) ;
      edNumChannels.Value := Main.SESLabIO.ADCNumChannels ;
-     Settings.NumChannels := Main.SESLabIO.ADCNumChannels ;
+     WCPFile.Settings.NumChannels := Main.SESLabIO.ADCNumChannels ;
 
      // No. samples / channel (must be multipe of 256)
      Main.SESLabIO.ADCNumSamples := Round(edNumSamples.Value) ;
      Main.SESLabIO.ADCNumSamples := Max(Main.SESLabIO.ADCNumSamples div 256,1)*256 ;
      edNumSamples.Value := Main.SESLabIO.ADCNumSamples ;
-     Settings.NumSamples := Main.SESLabIO.ADCNumSamples ;
+     WCPFile.Settings.NumSamples := Main.SESLabIO.ADCNumSamples ;
 
      // Compute sampling interval from record duration
-     Main.SESLabIO.ADCSamplingInterval := edRecordDuration.Value / Settings.NumSamples ;
+     Main.SESLabIO.ADCSamplingInterval := edRecordDuration.Value / WCPFile.Settings.NumSamples ;
 
      // Get validated interval back from interface
      edSamplingInterval.Value := Main.SESLabIO.ADCSamplingInterval ;
 
-     edRecordDuration.Value := edSamplingInterval.Value*Settings.NumSamples ;
-     Settings.RecordDuration := edRecordDuration.Value ;
+     edRecordDuration.Value := edSamplingInterval.Value*WCPFile.Settings.NumSamples ;
+     WCPFile.Settings.RecordDuration := edRecordDuration.Value ;
 
      end ;
 
@@ -2628,7 +2628,7 @@ procedure TRecordFrm.edNumRecordsKeyPress(Sender: TObject; var Key: Char);
 // ----------------------------
 begin
      if Key = #13 then begin
-        Settings.NumRecordsRequired := Round(edNumRecords.Value) ;
+        WCPFile.Settings.NumRecordsRequired := Round(edNumRecords.Value) ;
         end ;
      end;
 
@@ -2643,16 +2643,16 @@ begin
         begin
         Main.SESLabIO.ADCNumChannels := Round(edNumChannels.Value) ;
         edNumChannels.Value := Main.SESLabIO.ADCNumChannels ;
-        Settings.NumChannels := Main.SESLabIO.ADCNumChannels ;
+        WCPFile.Settings.NumChannels := Main.SESLabIO.ADCNumChannels ;
         // No. samples / channel
         Main.SESLabIO.ADCNumSamples := Round(edNumSamples.Value) ;
         edNumSamples.Value := Main.SESLabIO.ADCNumSamples ;
-        Settings.NumSamples := Main.SESLabIO.ADCNumSamples ;
+        WCPFile.Settings.NumSamples := Main.SESLabIO.ADCNumSamples ;
         // Ensure valid sampling interval
         Main.SESLabIO.ADCSamplingInterval := edSamplingInterval.Value ;
         edSamplingInterval.Value := Main.SESLabIO.ADCSamplingInterval ;
         edRecordDuration.Value := edSamplingInterval.Value*edNumSamples.Value ;
-        Settings.RecordDuration := edRecordDuration.Value ;
+        WCPFile.Settings.RecordDuration := edRecordDuration.Value ;
         UpdateDisplay(true) ;
         end ;
      end;
@@ -2688,14 +2688,14 @@ begin
      repeat
         { Find file }
         if First then
-           FileFound := FindFirst( Settings.VProtDirectory + '*.lst',
+           FileFound := FindFirst( WCPFile.Settings.VProtDirectory + '*.lst',
                                    faAnyFile,
                                    SearchRec )
         else
            FileFound := FindNext( SearchRec ) ;
 
         { Add file name (no extension or path) to list }
-        if FileFound = 0 then cbList.items.Add(ExtractFileNameOnly(SearchRec.Name))
+        if FileFound = 0 then cbList.items.Add(WCPFile.ExtractFileNameOnly(SearchRec.Name))
                         else FindClose(SearchRec.FindHandle) ;
         First := False ;
         Until FileFound <> 0 ;
@@ -2716,29 +2716,29 @@ begin
 
      if (cbProtocolList.ItemIndex <= 0) or (cbProtocolList.Items.Count <= 0) then begin
         meProtocolList.Clear ;
-        Settings.ProtocolListFileName := '' ;
+        WCPFile.Settings.ProtocolListFileName := '' ;
         Exit ;
         end ;
 
-     Settings.ProtocolListFileName := cbProtocolList.Items[cbProtocolList.ItemIndex] ;
-     if (Settings.ProtocolListFileName = '') or
-        (Settings.ProtocolListFileName = ' ') then begin
+     WCPFile.Settings.ProtocolListFileName := cbProtocolList.Items[cbProtocolList.ItemIndex] ;
+     if (WCPFile.Settings.ProtocolListFileName = '') or
+        (WCPFile.Settings.ProtocolListFileName = ' ') then begin
         meProtocolList.Clear ;
-        Settings.ProtocolListFileName := '' ;
+        WCPFile.Settings.ProtocolListFileName := '' ;
         Exit ;
         end ;
 
-     Settings.ProtocolListFileName := Settings.VProtDirectory +
-                                      ExtractFileName(ChangeFileExt(Settings.ProtocolListFileName,'.lst')) ;
+     WCPFile.Settings.ProtocolListFileName := WCPFile.Settings.VProtDirectory +
+                                      ExtractFileName(ChangeFileExt(WCPFile.Settings.ProtocolListFileName,'.lst')) ;
 
-     if not FileExists(Settings.ProtocolListFileName) then begin
+     if not FileExists(WCPFile.Settings.ProtocolListFileName) then begin
         meProtocolList.Clear ;
-        Settings.ProtocolListFileName := '' ;
+        WCPFile.Settings.ProtocolListFileName := '' ;
         Exit ;
         end ;
 
      // Open text input file
-     AssignFile(F, Settings.ProtocolListFileName);
+     AssignFile(F, WCPFile.Settings.ProtocolListFileName);
      Reset(F);
 
      meProtocolList.Lines.Clear ;
@@ -2771,7 +2771,7 @@ begin
         Exit ;
         end ;
 
-     FileName := Settings.VProtDirectory + ExtractFileName(ChangeFileExt(FileName,'.lst')) ;
+     FileName := WCPFile.Settings.VProtDirectory + ExtractFileName(ChangeFileExt(FileName,'.lst')) ;
 
      // Open text file for output
      AssignFile(F, FileName);
@@ -2804,8 +2804,8 @@ procedure TRecordFrm.bAddProtocolToListClick(Sender: TObject);
 begin
      OpenDialog.options := [ofOverwritePrompt,ofHideReadOnly,ofPathMustExist] ;
      OpenDialog.FileName := '*.xml' ;//ExtractFileName( SaveDialog.FileName ) ;
-     OpenDialog.InitialDir := Settings.VProtDirectory ;
-     SetCurrentDir(Settings.VProtDirectory);
+     OpenDialog.InitialDir := WCPFile.Settings.VProtDirectory ;
+     SetCurrentDir(WCPFile.Settings.VProtDirectory);
      OpenDialog.Title := 'Add Stimulus Protocol to List' ;
      if OpenDialog.execute then begin
         meProtocolList.Lines.Add('') ;
@@ -2825,7 +2825,7 @@ var
 begin
      FileName := cbProtocolList.Text ;
      if FileName = '' then Exit ;
-     FileName := Settings.VProtDirectory + ChangeFileExt(FileName,'.lst') ;
+     FileName := WCPFile.Settings.VProtDirectory + ChangeFileExt(FileName,'.lst') ;
      if FileExists(FileName) then begin
         DeleteFile(PChar(FileName)) ;
         cbProtocolList.ItemIndex := 0 ;
@@ -2845,7 +2845,7 @@ var
 begin
      FileName := edNewProtocolListName.Text ;
      if FileName = '' then Exit ;
-     FileName := Settings.VProtDirectory + ExtractFileName(ChangeFileExt(FileName,'.lst')) ;
+     FileName := WCPFile.Settings.VProtDirectory + ExtractFileName(ChangeFileExt(FileName,'.lst')) ;
 
      OK := True ;
      if FileExists(FileName) then begin
@@ -2939,7 +2939,7 @@ begin
         ZeroFrm.ShowModal ;
         Main.SESLabIO.ADCChannelZero[ZeroFrm.Chan] := ZeroFrm.Level ;
         Main.SESLabIO.ADCChannelZeroAt[ZeroFrm.Chan] := ZeroFrm.NewZeroAt ;
-        Channel[ZeroFrm.Chan].ADCZeroAt := ZeroFrm.NewZeroAt ;
+        WCPFile.Channel[ZeroFrm.Chan].ADCZeroAt := ZeroFrm.NewZeroAt ;
         Main.SESLabIO.ADCChannelNumZero := ZeroFrm.NumZeroAveraged ;
 
         scDisplay.HorizontalCursors[ZeroFrm.Chan] := Main.SESLabIO.ADCChannelZero[ZeroFrm.Chan] ;

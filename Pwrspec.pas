@@ -40,8 +40,8 @@ interface
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
   Forms, Dialogs, ExtCtrls, StdCtrls, Spin, TabNotBk, ClipBrd,
-  global, shared, maths, Grids, setfitpa, printers, fileio,
- ComCtrls, RangeEdit, ValEdit, ScopeDisplay, XYPlotDisplay, ValidatedEdit, math, seslabio ;
+  maths, Grids, setfitpa, printers,
+ ComCtrls, RangeEdit, ValEdit, ScopeDisplay, XYPlotDisplay, ValidatedEdit, math, seslabio, WCPFIleUnit;
 
 const
  //    MaxRecordSize = 8192 ;
@@ -195,6 +195,7 @@ type
     procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
+   FH : TFileHeader ;       // Internal copy of header of file being analysed
    ADC : PLongIntArray ;    { A/D sample data array }
    InBuf : PLongIntArray ;  { A/D sample data array }
    Avg : PLongIntArray ;    { Averaged A/D sample data array }
@@ -305,11 +306,11 @@ begin
      cbAlignMode.ItemIndex := 0 ;
 
      { Set record type list }
-     cbRecordType.items := RecordTypes ;
+     cbRecordType.items := WCPFile.RecordTypes ;
      cbRecordType.items.delete(0) ; {Remove 'ALL' item}
 
      { Set record type to be analysed list }
-     cbTypeToBeAnalysed.items := RecordTypes ;
+     cbTypeToBeAnalysed.items := WCPFile.RecordTypes ;
      if cbTypeToBeAnalysed.itemIndex < 0 then cbTypeToBeAnalysed.itemIndex := 0 ;
 
      { Initial axis variable selections for variance plot }
@@ -356,40 +357,43 @@ var
    Range : Single ;
 begin
 
-     if RawFH.Numrecords > 0 then begin
+     // Make copy of header of raw data file
+     FH := WCPFile.RawFH ;
+
+     if FH.Numrecords > 0 then begin
 
         if ADC = Nil then FreeMem( ADC ) ;
-        GetMem( ADC, RawFH.NumSamples*2*4 ) ;
+        GetMem( ADC, FH.NumSamples*2*4 ) ;
         if InBuf = Nil then FreeMem(InBuf) ;
-        GetMem(InBuf, RawFH.NumSamples*RawFH.NumChannels*4 ) ;
+        GetMem(InBuf, FH.NumSamples*FH.NumChannels*4 ) ;
         if Avg = Nil then FreeMem(Avg) ;
-        GetMem(Avg, RawFH.NumSamples*4 ) ;
+        GetMem(Avg, FH.NumSamples*4 ) ;
         if Sum = Nil then FreeMem(Sum) ;
-        GetMem(Sum, RawFH.NumSamples*4 ) ;
+        GetMem(Sum, FH.NumSamples*4 ) ;
         if VarBuf = Nil then FreeMem(VarBuf) ;
-        GetMem(VarBuf, RawFH.NumSamples*4 ) ;
+        GetMem(VarBuf, FH.NumSamples*4 ) ;
         if Mean = Nil then FreeMem(Mean) ;
-        GetMem(Mean, RawFH.NumSamples*4 ) ;
+        GetMem(Mean, FH.NumSamples*4 ) ;
 
         { Fill channel selection list }
         cbChannel.Clear ;
-        for ch := 0 to RawFH.NumChannels-1 do begin
-            cbChannel.items.add( format('Ch.%d %s',[ch,Channel[ch].ADCName]) ) ;
+        for ch := 0 to FH.NumChannels-1 do begin
+            cbChannel.items.add( format('Ch.%d %s',[ch,WCPFile.Channel[ch].ADCName]) ) ;
             end ;
 
         // Current channel selected for analysis
-        cbChannel.ItemIndex := Min(Max(RawFH.NSVChannel,0),RawFH.NumChannels-1) ;
+        cbChannel.ItemIndex := Min(Max(FH.NSVChannel,0),FH.NumChannels-1) ;
 
         // Set alignment mode
-        cbAlignMode.ItemIndex := Min(Max(RawFH.NSVAlignmentMode,0),2) ;
+        cbAlignMode.ItemIndex := Min(Max(FH.NSVAlignmentMode,0),2) ;
 
-        cbTypeToBeAnalysed.ItemIndex := Min(Max(RawFH.NSVType,0),
+        cbTypeToBeAnalysed.ItemIndex := Min(Max(FH.NSVType,0),
                                         cbTypeToBeAnalysed.Items.Count-1) ;
 
         edRecRange.LoValue := 1 ;
-        edRecRange.HiValue := RawFH.NumRecords ;
+        edRecRange.HiValue := FH.NumRecords ;
         edRecord.LoValue := 1 ;
-        edRecord.HiValue := RawFH.NumRecords ;
+        edRecord.HiValue := FH.NumRecords ;
 
         // Compute average record
         ComputeAverage ;
@@ -397,9 +401,9 @@ begin
         scDisplay.NumBytesPerSample := 4 ;
         scDisplay.MaxADCValue := FH.MaxADCValue ;
         scDisplay.MinADCValue := FH.MinADCValue ;
-        scDisplay.DisplayGrid := Settings.DisplayGrid ;
+        scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
 
-        scDisplay.MaxPoints := RawFH.NumSamples ;
+        scDisplay.MaxPoints := FH.NumSamples ;
         scDisplay.NumPoints := scDisplay.MaxPoints ;
         scDisplay.NumChannels := NumDisplayChannels ;
         scDisplay.xMin := 0 ;
@@ -407,12 +411,12 @@ begin
 
         { Set channel information }
         for ch := 0 to scDisplay.NumChannels-1 do begin
-            scDisplay.ChanUnits[ch] := Channel[cbChannel.ItemIndex].ADCUnits ;
-            scDisplay.ChanScale[ch] := Channel[cbChannel.ItemIndex].ADCScale ;
-            scDisplay.ChanUnits[ch] := Channel[cbChannel.ItemIndex].ADCUnits ;
+            scDisplay.ChanUnits[ch] := WCPFile.Channel[cbChannel.ItemIndex].ADCUnits ;
+            scDisplay.ChanScale[ch] := WCPFile.Channel[cbChannel.ItemIndex].ADCScale ;
+            scDisplay.ChanUnits[ch] := WCPFile.Channel[cbChannel.ItemIndex].ADCUnits ;
             if ch = ChData then begin
-               scDisplay.ChanName[ch] := Channel[cbChannel.ItemIndex].ADCName ;
-               scDisplay.ChanZero[ch] := Channel[cbChannel.ItemIndex].ADCZero ;
+               scDisplay.ChanName[ch] := WCPFile.Channel[cbChannel.ItemIndex].ADCName ;
+               scDisplay.ChanZero[ch] := WCPFile.Channel[cbChannel.ItemIndex].ADCZero ;
                end
             else begin
                scDisplay.ChanName[ch] := 'Res.' ;
@@ -422,48 +426,48 @@ begin
             scDisplay.ChanOffsets[ch] := ch ;
 
             // If the number of channels has changed, zoom out display
-            if OldNumChannels <> RawFH.NumChannels then begin
-               Channel[cbChannel.ItemIndex].yMin := scDisplay.MinADCValue ;
-               Channel[cbChannel.ItemIndex].yMax := scDisplay.MaxADCValue ;
+            if OldNumChannels <> FH.NumChannels then begin
+               WCPFile.Channel[cbChannel.ItemIndex].yMin := scDisplay.MinADCValue ;
+               WCPFile.Channel[cbChannel.ItemIndex].yMax := scDisplay.MaxADCValue ;
                end ;
 
-            scDisplay.yMin[ch] := Channel[cbChannel.ItemIndex].yMin ;
-            scDisplay.yMax[ch] := Channel[cbChannel.ItemIndex].yMax ;
+            scDisplay.yMin[ch] := WCPFile.Channel[cbChannel.ItemIndex].yMin ;
+            scDisplay.yMax[ch] := WCPFile.Channel[cbChannel.ItemIndex].yMax ;
             scDisplay.ChanVisible[ch] := True ;
             scDisplay.ChanColor[ch] := clBlue ;
             end ;
-        OldNumChannels := RawFH.NumChannels ;
+        OldNumChannels := FH.NumChannels ;
 
-        Range := Channel[cbChannel.ItemIndex].yMax - Channel[cbChannel.ItemIndex].yMin ;
+        Range := WCPFile.Channel[cbChannel.ItemIndex].yMax - WCPFile.Channel[cbChannel.ItemIndex].yMin ;
         scDisplay.yMin[chRes] := -0.5*Range ;
         scDisplay.yMax[chRes] := 0.5*Range ;
 
         { Create cursors for signal and residual channel displays }
         scDisplay.ClearHorizontalCursors ;
-        scDisplay.AddHorizontalCursor(ChData,Settings.Colors.Cursors,True,'z') ;
-        scDisplay.AddHorizontalCursor(ChRes,Settings.Colors.Cursors,True,'z') ;
+        scDisplay.AddHorizontalCursor(ChData,WCPFile.Settings.Colors.Cursors,True,'z') ;
+        scDisplay.AddHorizontalCursor(ChRes,WCPFile.Settings.Colors.Cursors,True,'z') ;
 
         // Ensure XYplot components have sufficient capacity
-        plVarPlot.MaxPointsPerLine := Max( RawFH.NumSamples,RawFH.NumRecords ) ;
-        plSpecPlot.MaxPointsPerLine := Max( RawFH.NumSamples,RawFH.NumRecords ) ;
+        plVarPlot.MaxPointsPerLine := Max( FH.NumSamples,FH.NumRecords ) ;
+        plSpecPlot.MaxPointsPerLine := Max( FH.NumSamples,FH.NumRecords ) ;
 
         // Set variance-mean plot selection cursors
-        RawFH.NSVAnalysisCursor0 := Min(Max(RawFH.NSVAnalysisCursor0,0),RawFH.NumSamples-2) ;
-        RawFH.NSVAnalysisCursor1 := Min(Max(RawFH.NSVAnalysisCursor1,0),RawFH.NumSamples-2) ;
-        if RawFH.NSVAnalysisCursor1 = RawFH.NSVAnalysisCursor0 then begin
-           RawFH.NSVAnalysisCursor0 := 0 ;
-           RawFH.NSVAnalysisCursor1 := RawFH.NumSamples-2 ;
+        FH.NSVAnalysisCursor0 := Min(Max(FH.NSVAnalysisCursor0,0),FH.NumSamples-2) ;
+        FH.NSVAnalysisCursor1 := Min(Max(FH.NSVAnalysisCursor1,0),FH.NumSamples-2) ;
+        if FH.NSVAnalysisCursor1 = FH.NSVAnalysisCursor0 then begin
+           FH.NSVAnalysisCursor0 := 0 ;
+           FH.NSVAnalysisCursor1 := FH.NumSamples-2 ;
            end ;
 
         scDisplay.ClearVerticalCursors ;
         DispCursors.C0 := scDisplay.AddVerticalCursor(AllChannels,clOlive,'a') ;
-        scDisplay.VerticalCursors[DispCursors.C0] := RawFH.NSVAnalysisCursor0 ;
+        scDisplay.VerticalCursors[DispCursors.C0] := FH.NSVAnalysisCursor0 ;
         DispCursors.C1 := scDisplay.AddVerticalCursor(AllChannels,clOlive,'a') ;
-        scDisplay.VerticalCursors[DispCursors.C1] := RawFH.NSVAnalysisCursor1 ;
+        scDisplay.VerticalCursors[DispCursors.C1] := FH.NSVAnalysisCursor1 ;
         scDisplay.LinkVerticalCursors(DispCursors.C0,DispCursors.C1);
 
         DispCursors.Read := scDisplay.AddVerticalCursor(AllChannels,clGreen,'?t?y') ;
-        scDisplay.VerticalCursors[DispCursors.Read] := RawFH.NumSamples div 2 ;
+        scDisplay.VerticalCursors[DispCursors.Read] := FH.NumSamples div 2 ;
 
         { Initialise variance plot display cursors }
         plVarPlot.ClearVerticalCursors ;
@@ -486,18 +490,18 @@ begin
 
         { No. of points for FFT used to compute spectrum }
         n := Round(edNumFFTPoints.LoLimit) ;
-        while (n < RawFH.NumSamples) and (n < Round(edNumFFTPoints.HiLimit)) do n := n*2 ;
+        while (n < FH.NumSamples) and (n < Round(edNumFFTPoints.HiLimit)) do n := n*2 ;
         edNumFFTPoints.Value := n ;
 
         // Update limits of record selection scroll bar
         sbRecord.Position := 1 ;
-        RawFH.RecordNum := sbRecord.Position ;
-        UpdateScrollBar( sbRecord, RawFH.RecordNum, 1, RawfH.NumRecords ) ;
+        FH.RecordNum := sbRecord.Position ;
+        WCPFile.UpdateScrollBar( sbRecord, FH.RecordNum, 1, FH.NumRecords ) ;
 
         // Display record
         DisplayRecord ;
 
-        OldNumChannels := RawFH.NumChannels ;
+        OldNumChannels := FH.NumChannels ;
 
         end
      else Close ;
@@ -544,13 +548,13 @@ begin
     { Update record number box }
     RecordNum := sbRecord.Position ;
     edRecord.LoValue := RecordNum ;
-    edRecord.HiValue := RawFH.NumRecords ;
+    edRecord.HiValue := FH.NumRecords ;
 
     { Read record data from file }
-    GetRecord32( RawFH, RH, RecordNum, InBuf^ ) ;
+    WCPFile.GetRecord32( FH, RH, RecordNum, InBuf^ ) ;
 
-    scDisplay.TScale := RH.dt*Settings.TScale ;
-    scDisplay.TUnits := Settings.TUnits ;
+    scDisplay.TScale := RH.dt*WCPFile.Settings.TScale ;
+    scDisplay.TUnits := WCPFile.Settings.TUnits ;
 
     { Show whether record has been rejected by operator }
     if RH.Status = 'ACCEPTED' then ckRejected.checked := False
@@ -561,11 +565,11 @@ begin
         cbRecordType.ItemIndex := cbRecordType.items.indexOf(RH.RecType);
 
     { Copy signal into display data channel }
-    iFrom := Channel[cbChannel.ItemIndex].ChannelOffset ;
+    iFrom := WCPFile.Channel[cbChannel.ItemIndex].ChannelOffset ;
     iTo := ChData ;
-    for i := 0 to RawFH.NumSamples-1 do begin
+    for i := 0 to FH.NumSamples-1 do begin
         ADC[iTo] := InBuf[iFrom] ;
-        iFrom := iFrom + RawFH.NumChannels ;
+        iFrom := iFrom + FH.NumChannels ;
         iTo := iTo + NumDisplayChannels ;
         end ;
 
@@ -573,32 +577,32 @@ begin
     SubtractScaledAverage( InBuf^, AvgScale, iShift ) ;
 
     { Copy residual into display data channel }
-    iFrom := Channel[cbChannel.ItemIndex].ChannelOffset ;
+    iFrom := WCPFile.Channel[cbChannel.ItemIndex].ChannelOffset ;
     iTo := ChRes ;
-    for i := 0 to RawFH.NumSamples-1 do begin
+    for i := 0 to FH.NumSamples-1 do begin
         ADC[iTo] := InBuf[iFrom] ;
-        iFrom := iFrom + RawFH.NumChannels ;
+        iFrom := iFrom + FH.NumChannels ;
         iTo := iTo + NumDisplayChannels ;
         end ;
 
     { Superimpose average on signal record  }
     scDisplay.ClearLines ;
     iLine := scDisplay.CreateLine( ChData, clRed, psSolid, 1 ) ;
-    yZero := Channel[cbChannel.ItemIndex].ADCZero ;
-    for i := 0 to RawFH.NumSamples-1 do begin
-        iFrom := Min(Max(i+iShift,0),RawFH.NumSamples-1) ;
+    yZero := WCPFile.Channel[cbChannel.ItemIndex].ADCZero ;
+    for i := 0 to FH.NumSamples-1 do begin
+        iFrom := Min(Max(i+iShift,0),FH.NumSamples-1) ;
         scDisplay.AddPointToLine( iLine, i, AvgScale*Avg[iFrom] + yZero ) ;
         end ;
 
     { Re-plot channels }
-    scDisplay.HorizontalCursors[ChData] := Channel[cbChannel.ItemIndex].ADCZero ;
+    scDisplay.HorizontalCursors[ChData] := WCPFile.Channel[cbChannel.ItemIndex].ADCZero ;
     scDisplay.HorizontalCursors[ChRes] := 0 ;
 
     { Make sure display scaling factor is same as for selected channel }
-    scDisplay.ChanScale[ChData] := Channel[cbChannel.ItemIndex].ADCScale ;
-    scDisplay.ChanZeroAt[ChData] := Channel[cbChannel.ItemIndex].ADCZeroAt ;
-    scDisplay.ChanScale[ChRes] := Channel[cbChannel.ItemIndex].ADCScale ;
-    scDisplay.ChanZeroAvg := RawFH.NumZeroAvg ;
+    scDisplay.ChanScale[ChData] := WCPFile.Channel[cbChannel.ItemIndex].ADCScale ;
+    scDisplay.ChanZeroAt[ChData] := WCPFile.Channel[cbChannel.ItemIndex].ADCZeroAt ;
+    scDisplay.ChanScale[ChRes] := WCPFile.Channel[cbChannel.ItemIndex].ADCScale ;
+    scDisplay.ChanZeroAvg := FH.NumZeroAvg ;
 
     scDisplay.SetDataBuf( ADC ) ;
 
@@ -618,7 +622,7 @@ begin
    { Determine range of records to be used in average }
    if rbAllRecords.Checked then begin
       Variance.StartAtRec := 1 ;
-      Variance.EndAtRec := RawFH.NumRecords ;
+      Variance.EndAtRec := FH.NumRecords ;
       end
    else begin
       Variance.StartAtRec := Round(edRecRange.LoValue) ;
@@ -628,25 +632,25 @@ begin
    Variance.Chan := cbChannel.ItemIndex ;
 
    { Initialise averaging array }
-   for i := 0 to RawFH.NumSamples-1 do Sum[i] := 0. ;
+   for i := 0 to FH.NumSamples-1 do Sum[i] := 0. ;
 
    { Average records }
    Variance.NumRecordsAveraged := 0 ;
    for Rec := Variance.StartAtRec to Variance.EndAtRec do begin
 
        { Read record data from file }
-       GetRecord32( RawfH, RH, Rec, InBuf^ ) ;
+       WCPFile.GetRecord32( FH, RH, Rec, InBuf^ ) ;
 
        { If record is of the right type and is ACCEPTED for use
          ... add it to average }
        if UseRecord( RH, cbTypeToBeAnalysed.text ) then begin
 
           { Relocate selected channel into single channel buffer }
-          yZero := Channel[cbChannel.ItemIndex].ADCZero ;
-          iFrom := Channel[cbChannel.ItemIndex].ChannelOffset ;
-          for i := 0 to RawFH.NumSamples-1 do begin
+          yZero := WCPFile.Channel[cbChannel.ItemIndex].ADCZero ;
+          iFrom := WCPFile.Channel[cbChannel.ItemIndex].ChannelOffset ;
+          for i := 0 to FH.NumSamples-1 do begin
               Avg[i] := InBuf[iFrom] - yZero ;
-              iFrom := iFrom + RawFH.NumChannels ;
+              iFrom := iFrom + FH.NumChannels ;
               end ;
 
           { Find mid-point of signal rising phase to use as alignment }
@@ -664,8 +668,8 @@ begin
              end ;
 
           { Add signal to average record }
-          for i := 0 to RawFH.NumSamples-1 do begin
-                 iFrom := Max( Min( i + Shift,RawFH.NumSamples-1 ),0 ) ;
+          for i := 0 to FH.NumSamples-1 do begin
+                 iFrom := Max( Min( i + Shift,FH.NumSamples-1 ),0 ) ;
                  Sum[i] := Sum[i] + Avg[iFrom] ;
                  end ;
 
@@ -675,7 +679,7 @@ begin
 
    { Calculate average }
    n := Max(Variance.NumRecordsAveraged,1) ;
-   for i := 0 to RawFH.NumSamples-1 do Avg[i] := Round(Sum[i]/n) ;
+   for i := 0 to FH.NumSamples-1 do Avg[i] := Round(Sum[i]/n) ;
 
    { Find peak amplitude of average }
    Variance.AvgPeak := FindPeak(Avg^,1,0,0,Variance.AvgPeakAt ) ;
@@ -699,7 +703,7 @@ var
 begin
 
      yPeak := 0 ;
-     for i := 0 to RawFH.NumSamples-1 do begin
+     for i := 0 to FH.NumSamples-1 do begin
          y := Buf[i*NumChannels + ChanOffset] - yZero ;
          if Abs(y) > yPeak then begin
             yPeak := Abs(y) ;
@@ -731,7 +735,7 @@ begin
      PeakPositiveAt := 0 ;
      PeakNegative := Main.SESLabIO.ADCMaxValue*2 ;
      PeakNegativeAt := 0 ;
-     for i := 0 to RawFH.NumSamples-1 do begin
+     for i := 0 to FH.NumSamples-1 do begin
          y := Buf[i*NumChannels + ChanOffset] - yZero ;
          { Positive peak }
          if y > PeakPositive then begin
@@ -789,7 +793,7 @@ procedure TPwrSpecFrm.FormClose(Sender: TObject; var Action: TCloseAction);
   -------------------------}
 begin
 
-     SaveHeader( RawFH ) ;
+     WCPFile.SaveHeader( FH ) ;
 
      Action := caFree ;
      end;
@@ -830,9 +834,9 @@ procedure TPwrSpecFrm.cbRecordTypeChange(Sender: TObject);
 var
    RH : TRecHeader ;
 begin
-     GetRecordHeaderOnly( FH, RH, sbRecord.Position ) ;
+     WCPFile.GetRecordHeaderOnly( FH, RH, sbRecord.Position ) ;
      RH.RecType := cbRecordType.text ;
-     PutRecordHeaderOnly( FH, RH, sbRecord.Position ) ;
+     WCPFile.PutRecordHeaderOnly( FH, RH, sbRecord.Position ) ;
      end;
 
 
@@ -843,10 +847,10 @@ procedure TPwrSpecFrm.ckRejectedClick(Sender: TObject);
 var
    RH : TRecHeader ;
 begin
-     GetRecordHeaderOnly( FH, RH, sbRecord.Position ) ;
+     WCPFile.GetRecordHeaderOnly( FH, RH, sbRecord.Position ) ;
      if ckRejected.checked then RH.Status := 'REJECTED'
                             else RH.Status := 'ACCEPTED' ;
-     PutRecordHeaderOnly( fH, RH, sbRecord.Position ) ;
+     WCPFile.PutRecordHeaderOnly( fH, RH, sbRecord.Position ) ;
      end;
 
 
@@ -877,7 +881,7 @@ begin
                    end ;
                 end ;
           VK_ADD : begin { + key }
-                if sbRecord.Position < RawFH.NumRecords then begin
+                if sbRecord.Position < FH.NumRecords then begin
                    sbRecord.Position := sbRecord.Position + 1 ;
                    DisplayRecord ;
                    end ;
@@ -912,7 +916,7 @@ begin
      { Determine range of records to be used in average }
      if rbAllRecords.Checked then begin
         Variance.StartAtRec := 1 ;
-        Variance.EndAtRec := RawFH.NumRecords ;
+        Variance.EndAtRec := FH.NumRecords ;
         end
      else begin
         Variance.StartAtRec := Round(edRecRange.LoValue) ;
@@ -920,7 +924,7 @@ begin
         end ;
 
      { Clear variance buffer }
-     for i := 0 to RawFH.NumSamples-1 do VarBuf[i] := 0.0 ;
+     for i := 0 to FH.NumSamples-1 do VarBuf[i] := 0.0 ;
 
      { Get range of samples to be plotted }
      Variance.StartSample := Min( Round(scDisplay.VerticalCursors[DispCursors.C0]),
@@ -936,7 +940,7 @@ begin
      for Rec := Variance.StartAtRec to Variance.EndAtRec do begin
 
          { Read record data from file }
-         GetRecord32( RawFH, RH, Rec, InBuf^ ) ;
+         WCPFile.GetRecord32( FH, RH, Rec, InBuf^ ) ;
 
          Main.StatusBar.SimpleText := format(
          'Non-stationary Variance: Plotting %d/%d',
@@ -951,7 +955,7 @@ begin
            { Add this residual difference to variance buffer }
            //yZero := Channel[cbChannel.ItemIndex].ADCZero ;
            for i := Variance.StartSample to Variance.EndSample do begin
-               j := i*RawFH.NumChannels + Channel[cbChannel.ItemIndex].ChannelOffset ;
+               j := i*FH.NumChannels + WCPFile.Channel[cbChannel.ItemIndex].ChannelOffset ;
                y := InBuf[j] ;
                VarBuf[i] := VarBuf[i] + y*y ;
                end ;
@@ -965,7 +969,7 @@ begin
 
      { Calculate average variance }
      NumRecords := Max(NumRecords,1) ;
-     YScale := Channel[cbChannel.ItemIndex].ADCScale ;
+     YScale := WCPFile.Channel[cbChannel.ItemIndex].ADCScale ;
      for i := Variance.StartSample to Variance.EndSample do begin
          VarBuf[i] := (VarBuf[i]/NumRecords)*YScale*YScale ;
          end ;
@@ -976,7 +980,7 @@ begin
          end ;
 
      { Plot graph of currently selected variables }
-     plVarPlot.MaxPointsPerLine := RawFH.NumSamples ;
+     plVarPlot.MaxPointsPerLine := FH.NumSamples ;
      plVarPlot.xAxisAutoRange := True ;
      plVarPlot.yAxisAutoRange := True ;
 
@@ -1030,27 +1034,27 @@ begin
         end
      else begin
         iShift := Variance.AvgAlignedAt -
-                  FindMidPointOfRise(Buf,RawFH.NumChannels,
-                  Channel[cbChannel.ItemIndex].ChannelOffset,
-                  Channel[cbChannel.ItemIndex].ADCZero) ;
+                  FindMidPointOfRise(Buf,FH.NumChannels,
+                  WCPFile.Channel[cbChannel.ItemIndex].ChannelOffset,
+                  WCPFile.Channel[cbChannel.ItemIndex].ADCZero) ;
         end ;
 
      if rbScaleToPeak.Checked and (Variance.AvgPeak <> 0.0) then
-       { AvgScale := FindPeak(Buf,RawFH.NumChannels,
+       { AvgScale := FindPeak(Buf,FH.NumChannels,
                              Channel[cbChannel.ItemIndex].ChannelOffset,
                              Channel[cbChannel.ItemIndex].ADCZero,
                              PeakAt)/Variance.AvgPeak}
-         AvgScale := (Buf[(Variance.AvgPeakAt-iShift)*RawFH.NumChannels
-                       + Channel[cbChannel.ItemIndex].ChannelOffset]
-                       - Channel[cbChannel.ItemIndex].ADCZero)/Variance.AvgPeak
+         AvgScale := (Buf[(Variance.AvgPeakAt-iShift)*FH.NumChannels
+                       + WCPFile.Channel[cbChannel.ItemIndex].ChannelOffset]
+                       - WCPFile.Channel[cbChannel.ItemIndex].ADCZero)/Variance.AvgPeak
      else AvgScale := 1.0 ;
 
 
     { Subtract average to get residuals }
-    yZero := Channel[cbChannel.ItemIndex].ADCZero ;
-    for i := 0 to RawFH.NumSamples-1 do begin
-        iFrom := Min(Max(i+iShift,0),RawFH.NumSamples-1) ;
-        j := i*RawFH.NumChannels + Channel[cbChannel.ItemIndex].ChannelOffset ;
+    yZero := WCPFile.Channel[cbChannel.ItemIndex].ADCZero ;
+    for i := 0 to FH.NumSamples-1 do begin
+        iFrom := Min(Max(i+iShift,0),FH.NumSamples-1) ;
+        j := i*FH.NumChannels + WCPFile.Channel[cbChannel.ItemIndex].ChannelOffset ;
         Buf[j] := Round(Buf[j] - yZero - (AvgScale*Avg[iFrom])) ;
         end ;
     end ;
@@ -1066,7 +1070,7 @@ function TPwrSpecFrm.GetVariable(
 begin
      case ItemIndex of
           vSample : Result := iSample ;
-          vTime : Result := (iSample-Variance.StartSample)*RawFH.dt*Settings.TScale ;
+          vTime : Result := (iSample-Variance.StartSample)*FH.dt*WCPFile.Settings.TScale ;
           { Signal mean level }
           vAvg : Result := Mean[iSample] ;
           { Standard Deviation of signal }
@@ -1085,10 +1089,10 @@ function TPwrSpecFrm.GetVariableUnits( ItemIndex : Integer ) : string ;
 begin
      case ItemIndex of
           vSample : Result := '' ;
-          vTime : Result := Settings.TUnits ;
-          vAvg : Result := Channel[Variance.Chan].ADCUnits ;
-          vStDev : Result := Channel[Variance.Chan].ADCUnits ;
-          vVariance : Result := Channel[Variance.Chan].ADCUnits + '^2' ;
+          vTime : Result := WCPFile.Settings.TUnits ;
+          vAvg : Result := WCPFile.Channel[Variance.Chan].ADCUnits ;
+          vStDev : Result := WCPFile.Channel[Variance.Chan].ADCUnits ;
+          vVariance : Result := WCPFile.Channel[Variance.Chan].ADCUnits + '^2' ;
           else Result := '' ;
           end ;
      end ;
@@ -1284,7 +1288,7 @@ begin
     plSpecPlot.xAxisAutoRange := True ;
     plSpecPlot.yAxisAutoRange := True ;
     plSpecPlot.xAxisLabel := 'Hz' ;
-    plSpecPlot.yAxisLabel := Channel[cbChannel.ItemIndex].ADCUnits + '^2' ;
+    plSpecPlot.yAxisLabel := WCPFile.Channel[cbChannel.ItemIndex].ADCUnits + '^2' ;
 
     { Plot main spectrum }
     plSpecPlot.CreateLine( SpecDataLine, clBlue, msOpenSquare, psClear ) ;
@@ -1324,7 +1328,7 @@ begin
      { Determine range of records to be used in average }
      if rbAllRecords.Checked then begin
         StartAt := 1 ;
-        EndAt := RawFH.NumRecords ;
+        EndAt := FH.NumRecords ;
         end
      else begin
         StartAt := Round(edRecRange.LoValue) ;
@@ -1346,7 +1350,7 @@ begin
         while n < Round(edNumFFTPoints.Value) do n := n*2 ;
         edNumFFTPoints.Value := n ;
         npFFT := n div 2 ;
-        dFreq := 0.5 / (npFFT*RawFH.dt) ;
+        dFreq := 0.5 / (npFFT*FH.dt) ;
         for i := 0 to npFFT do begin
             Spectrum.Power[i] := 0.0 ;
             Spectrum.Frequency[i] := (i+1)*dFreq ;
@@ -1361,7 +1365,7 @@ begin
         for Rec := StartAt to EndAt do begin
 
             { Read record data from file }
-            GetRecord32( RawFH, RH, Rec, InBuf^ ) ;
+            WCPFile.GetRecord32( FH, RH, Rec, InBuf^ ) ;
 
             if UseRecord( RH, cbTypeToBeAnalysed.text ) then begin
 
@@ -1371,11 +1375,11 @@ begin
                for i := 1 to npFFT*2 do FFT^[i] := 0 ;
 
                { Add this residual difference to Variance buffer }
-               yZero := Channel[cbChannel.ItemIndex].ADCZero ;
-               YScale := Channel[cbChannel.ItemIndex].ADCScale ;
-               cOffset := Channel[cbChannel.ItemIndex].ChannelOffset ;
-               for i := 1 to RawFH.NumSamples do begin
-                   iFrom := (i-1)*RawFH.NumChannels + cOffset ;
+               yZero := WCPFile.Channel[cbChannel.ItemIndex].ADCZero ;
+               YScale := WCPFile.Channel[cbChannel.ItemIndex].ADCScale ;
+               cOffset := WCPFile.Channel[cbChannel.ItemIndex].ChannelOffset ;
+               for i := 1 to FH.NumSamples do begin
+                   iFrom := (i-1)*FH.NumChannels + cOffset ;
                    FFT^[i] := (InBuf[iFrom] - yZero - Avg[i-1]*AvgScale)*YScale ;
                    end ;
                Inc(Spectrum.NumAveraged) ;
@@ -1416,7 +1420,7 @@ begin
         { Average spectral time periods }
         if Spectrum.NumAveraged > 0 then begin
            Denom := (Spectrum.NumAveraged*Spectrum.RecordSize*VarianceCorrection)
-                    /(2.0*RawFH.DT) ;
+                    /(2.0*FH.DT) ;
            for i := 0 to Spectrum.NumPoints-1 do begin
                Spectrum.Power[i] := Spectrum.Power[i] / Denom ;
                end ;
@@ -1439,7 +1443,7 @@ begin
 
            erSpecResults.Lines.Add( format(' Total Variance = %.4g %s^2',
                                     [PowerSpectrum.Variance,
-                                     Channel[cbChannel.ItemIndex].ADCUnits]) ) ;
+                                     WCPFile.Channel[cbChannel.ItemIndex].ADCUnits]) ) ;
 
            Main.StatusBar.SimpleText := format(
            'Non-stationary Variance: Power Spectrum computed from records %d-%d',
@@ -1718,7 +1722,7 @@ begin
      { Select type of equation to be fitted }
      SpecFunc.Setup( TEqnType(cbSpecEquation.Items.Objects[cbSpecEquation.ItemIndex]),
                      'Hz',
-                     Channel[cbChannel.ItemIndex].ADCUnits)  ;
+                     WCPFile.Channel[cbChannel.ItemIndex].ADCUnits)  ;
      if SpecFunc.Equation = None then Exit ;
 
      { Get range of points to be fitted }
@@ -1820,7 +1824,7 @@ begin
          { Residual standard deviation }
          Results.Add( format(' Residual S.D. = %.4g %s',
                                   [SpecFunc.ResidualSD,
-                                   Channel[cbChannel.ItemIndex].ADCUnits] ) ) ;
+                                   WCPFile.Channel[cbChannel.ItemIndex].ADCUnits] ) ) ;
          { Statistical degrees of freedom }
          Results.Add( format(' Degrees of freedom = %d ',
                                   [SpecFunc.DegreesOfFreedom]) ) ;
@@ -1895,8 +1899,8 @@ begin
        if PrintGraphFrm.ModalResult = mrOK then begin
           { Add title information to plot }
           plVarPlot.ClearPrinterTitle ;
-          plVarPlot.AddPrinterTitleLine( 'File ... ' + RawFH.FileName ) ;
-          plVarPlot.AddPrinterTitleLine( RawFH.IdentLine ) ;
+          plVarPlot.AddPrinterTitleLine( 'File ... ' + FH.FileName ) ;
+          plVarPlot.AddPrinterTitleLine( FH.IdentLine ) ;
           for i := 0 to Results.Count-1 do
               plVarPlot.AddPrinterTitleLine( Results[i] ) ;
           { Plot graph to printer }
@@ -1912,8 +1916,8 @@ begin
        if PrintGraphFrm.ModalResult = mrOK then begin
           { Add title information to plot }
           plSpecPlot.ClearPrinterTitle ;
-          plSpecPlot.AddPrinterTitleLine( 'File ... ' + RawFH.FileName ) ;
-          plSpecPlot.AddPrinterTitleLine( RawFH.IdentLine ) ;
+          plSpecPlot.AddPrinterTitleLine( 'File ... ' + FH.FileName ) ;
+          plSpecPlot.AddPrinterTitleLine( FH.IdentLine ) ;
           for i := 0 to erSpecResults.Lines.Count-1 do
               plSpecPlot.AddPrinterTitleLine( erSpecResults.Lines[i] ) ;
           { Plot graph to printer }
@@ -1928,8 +1932,8 @@ begin
         PrintRecFrm.ShowModal ;
         if PrintRecFrm.ModalResult = mrOK then begin
            scDisplay.ClearPrinterTitle ;
-           scDisplay.AddPrinterTitleLine( 'File : ' + RawFH.FileName ) ;
-           scDisplay.AddPrinterTitleLine( RawFH.IdentLine ) ;
+           scDisplay.AddPrinterTitleLine( 'File : ' + FH.FileName ) ;
+           scDisplay.AddPrinterTitleLine( FH.IdentLine ) ;
            scDisplay.Print ;
            end ;
         end ;
@@ -1986,7 +1990,7 @@ begin
         { Determine range of records to be used in average }
         if rbAllRecords.Checked then begin
            Variance.StartAtRec := 1 ;
-           Variance.EndAtRec := RawFH.NumRecords ;
+           Variance.EndAtRec := FH.NumRecords ;
            end
         else begin
            Variance.StartAtRec := Round(edRecRange.LoValue) ;
@@ -2051,7 +2055,7 @@ begin
 
 procedure TPwrSpecFrm.FormActivate(Sender: TObject);
 begin
-     ckFixedZeroLevels.Checked := Settings.FixedZeroLevels ;
+     ckFixedZeroLevels.Checked := WCPFile.Settings.FixedZeroLevels ;
      SetMenus ;
      DisplayRecord ;
      end;
@@ -2071,8 +2075,8 @@ procedure  TPwrSpecFrm.ZoomOut ;
   Set minimum display magnification
   --------------------------------- }
 begin
-     scDisplay.MaxADCValue := RawFH.MaxADCValue ;
-     scDisplay.MinADCValue := RawFH.MinADCValue ;
+     scDisplay.MaxADCValue := FH.MaxADCValue ;
+     scDisplay.MinADCValue := FH.MinADCValue ;
      scDisplay.ZoomOut ;
      end ;
 
@@ -2114,25 +2118,25 @@ begin
         TScopeDisplay(Sender).CursorChangeInProgress := True ;
 
         { Update vertical display magnification so that changes are retained }
-        Channel[cbChannel.ItemIndex].yMin := scDisplay.YMin[ChData] ;
-        Channel[cbChannel.ItemIndex].yMax := scDisplay.YMax[ChData] ;
+        WCPFile.Channel[cbChannel.ItemIndex].yMin := scDisplay.YMin[ChData] ;
+        WCPFile.Channel[cbChannel.ItemIndex].yMax := scDisplay.YMax[ChData] ;
 
         Range := scDisplay.YMax[chData] - scDisplay.YMin[chData] ;
         scDisplay.yMin[chRes] := -0.5*Range ;
         scDisplay.yMax[chRes] := 0.5*Range ;
 
         { Get signal baseline cursor }
-        if Settings.FixedZeroLevels or (Channel[ChData].ADCZeroAt >= 0) then begin
-           if scDisplay.HorizontalCursors[ChData] <> Channel[ChData].ADCZero then begin
-              scDisplay.HorizontalCursors[ChData] := Channel[ChData].ADCZero ;
+        if WCPFile.Settings.FixedZeroLevels or (WCPFile.Channel[ChData].ADCZeroAt >= 0) then begin
+           if scDisplay.HorizontalCursors[ChData] <> WCPFile.Channel[ChData].ADCZero then begin
+              scDisplay.HorizontalCursors[ChData] := WCPFile.Channel[ChData].ADCZero ;
               end ;
            end
-        else Channel[ChData].ADCZero := Round(scDisplay.HorizontalCursors[ChData]) ;
+        else WCPFile.Channel[ChData].ADCZero := Round(scDisplay.HorizontalCursors[ChData]) ;
 
         // Save analysis cursor settings
-        RawFH.NSVAnalysisCursor0 := Round(scDisplay.VerticalCursors[DispCursors.C0]) ;
-        RawFH.NSVAnalysisCursor1 := Round(scDisplay.VerticalCursors[DispCursors.C1]) ;
-        SaveHeader( RawFH ) ;
+        FH.NSVAnalysisCursor0 := Round(scDisplay.VerticalCursors[DispCursors.C0]) ;
+        FH.NSVAnalysisCursor1 := Round(scDisplay.VerticalCursors[DispCursors.C1]) ;
+        WCPFile.SaveHeader( FH ) ;
 
         TScopeDisplay(Sender).CursorChangeInProgress := False ;
         end ;
@@ -2145,17 +2149,17 @@ procedure TPwrSpecFrm.ChangeDisplayGrid ;
   Update grid pattern on oscilloscope display
   -------------------------------------------- }
 begin
-     scDisplay.MaxADCValue  := RawFH.MaxADCValue ;
-     scDisplay.MinADCValue  := RawFH.MinADCValue ;
-     scDisplay.DisplayGrid := Settings.DisplayGrid ;
+     scDisplay.MaxADCValue  := FH.MaxADCValue ;
+     scDisplay.MinADCValue  := FH.MinADCValue ;
+     scDisplay.DisplayGrid := WCPFile.Settings.DisplayGrid ;
 
      scDisplay.Invalidate ;
      end ;
 
 procedure TPwrSpecFrm.cbAlignModeChange(Sender: TObject);
 begin
-     RawFH.NSVAlignmentMode := cbAlignMode.ItemIndex ;
-     SaveHeader( RawFH ) ;
+     FH.NSVAlignmentMode := cbAlignMode.ItemIndex ;
+     WCPFile.SaveHeader( FH ) ;
      ComputeAverage ;
      DisplayRecord ;
      end;
@@ -2165,8 +2169,8 @@ procedure TPwrSpecFrm.rbScaleToPeakClick(Sender: TObject);
 // Select scale peak current option
 // --------------------------------
 begin
-     RawFH.NSVScaleToPeak := True ;
-     SaveHeader( RawFH ) ;
+     FH.NSVScaleToPeak := True ;
+     WCPFile.SaveHeader( FH ) ;
      DisplayRecord ;
      end;
 
@@ -2176,8 +2180,8 @@ procedure TPwrSpecFrm.rbNoScaleClick(Sender: TObject);
 // Deselect scale peak current option
 // ----------------------------------
 begin
-     RawFH.NSVScaleToPeak := False ;
-     SaveHeader( RawFH ) ;
+     FH.NSVScaleToPeak := False ;
+     WCPFile.SaveHeader( FH ) ;
      DisplayRecord ;
      end;
 
@@ -2187,8 +2191,8 @@ procedure TPwrSpecFrm.cbChannelChange(Sender: TObject);
 // Select channel for variance analysis
 // ------------------------------------
 begin
-     RawFH.NSVChannel := cbChannel.ItemIndex ;
-     SaveHeader( RawFH ) ;
+     FH.NSVChannel := cbChannel.ItemIndex ;
+     WCPFile.SaveHeader( FH ) ;
      ComputeAverage ;
      DisplayRecord ;
      end;
@@ -2201,24 +2205,24 @@ procedure TPwrSpecFrm.scDisplayMouseUp(Sender: TObject;
   --------------------------- }
 begin
      if (Button = mbRight) and (scDisplay.ActiveHorizontalCursor =0) then begin
-        Channel[cbChannel.ItemIndex].ADCZero := Round(scDisplay.HorizontalCursors[0]) ;
+        WCPFile.Channel[cbChannel.ItemIndex].ADCZero := Round(scDisplay.HorizontalCursors[0]) ;
         ZeroFrm.EnableFromRecord := True ;
         ZeroFrm.Chan := cbChannel.ItemIndex ;
-        ZeroFrm.Level := Channel[ZeroFrm.Chan].ADCZero ;
-        ZeroFrm.ChanName := Channel[ZeroFrm.Chan].ADCName ;
+        ZeroFrm.Level := WCPFile.Channel[ZeroFrm.Chan].ADCZero ;
+        ZeroFrm.ChanName := WCPFile.Channel[ZeroFrm.Chan].ADCName ;
         ZeroFrm.NewZeroAt := Round(scDisplay.ScreenCoordToX( ZeroFrm.Chan, X )) ;
-        ZeroFrm.OldZeroAt := Channel[ZeroFrm.Chan].ADCZeroAt ;
+        ZeroFrm.OldZeroAt := WCPFile.Channel[ZeroFrm.Chan].ADCZeroAt ;
         ZeroFrm. NumSamplesPerRecord := scDisplay.NumPoints ;
         ZeroFrm.NumZeroAveraged := FH.NumZeroAvg ;
         ZeroFrm.MaxValue := FH.MaxADCValue ;
         ZeroFrm.Left := Self.Left + Main.Left + 10 + scDisplay.Left + X;
         ZeroFrm.Top := Self.Top + Main.Top + 10 + scDisplay.Top + Y ;
         ZeroFrm.ShowModal ;
-        Channel[ZeroFrm.Chan].ADCZero := ZeroFrm.Level ;
-        Channel[ZeroFrm.Chan].ADCZeroAt := ZeroFrm.NewZeroAt ;
+        WCPFile.Channel[ZeroFrm.Chan].ADCZero := ZeroFrm.Level ;
+        WCPFile.Channel[ZeroFrm.Chan].ADCZeroAt := ZeroFrm.NewZeroAt ;
         FH.NumZeroAvg := ZeroFrm.NumZeroAveraged ;
-        SaveHeader( FH ) ;
-        scDisplay.HorizontalCursors[ZeroFrm.Chan] := Channel[ZeroFrm.Chan].ADCZero ;
+        WCPFile.SaveHeader( FH ) ;
+        scDisplay.HorizontalCursors[ZeroFrm.Chan] := WCPFile.Channel[ZeroFrm.Chan].ADCZero ;
         { Force new calculation of average }
         Variance.StartAtRec := 0 ;
         Variance.EndAtRec := 0 ;
@@ -2228,18 +2232,18 @@ begin
      else begin
         // Update zero baseline cursor
         if scDisplay.ActiveHorizontalCursor >= 0 then begin
-           if Channel[cbChannel.ItemIndex].ADCZeroAt < 0 then begin
+           if WCPFile.Channel[cbChannel.ItemIndex].ADCZeroAt < 0 then begin
               // Fixed baseline level (update zero level to new position)
-              Channel[cbChannel.ItemIndex].ADCZero := Round(
+              WCPFile.Channel[cbChannel.ItemIndex].ADCZero := Round(
               scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor]) ;
               end
            else begin
               // Baseline level computed from record (return to computed level)
               scDisplay.HorizontalCursors[scDisplay.ActiveHorizontalCursor] :=
-              Channel[cbChannel.ItemIndex].ADCZero ;
+              WCPFile.Channel[cbChannel.ItemIndex].ADCZero ;
               scDisplay.Invalidate ;
               end ;
-           SaveHeader( RawFH ) ;
+           WCPFile.SaveHeader( FH ) ;
            end ;
         end ;
      end ;
@@ -2260,8 +2264,8 @@ procedure TPwrSpecFrm.cbTypeToBeAnalysedChange(Sender: TObject);
 begin
      Variance.StartAtRec := 0 ;
      Variance.EndAtRec := 0 ;
-     RawFH.NSVType := cbTypeToBeAnalysed.ItemIndex ;
-     SaveHeader( RawFH ) ;
+     FH.NSVType := cbTypeToBeAnalysed.ItemIndex ;
+     WCPFile.SaveHeader( FH ) ;
      DisplayRecord ;
      end;
 
@@ -2295,26 +2299,26 @@ begin
      { Determine range of records to be used in average }
      if rbAllRecords.Checked then begin
         iStartRec := 1 ;
-        iEndRec := RawFH.NumRecords ;
+        iEndRec := FH.NumRecords ;
         end
      else begin
         iStartRec := Round(edRecRange.LoValue) ;
         iEndRec := Round(edRecRange.HiValue) ;
         end ;
 
-     iBaseStart := Min(Max(Channel[cbChannel.ItemIndex].ADCZeroAt,0),
-                          RawFH.NumSamples-RawFH.NumZeroAvg) ;
-     iBaseEnd := Min(Max(iBaseStart + RawFH.NumZeroAvg -1,0),
-                        RawFH.NumSamples-1) ;
-     ChanOffset := Channel[cbChannel.ItemIndex].ChannelOffset ;
-     ChanScale := Channel[cbChannel.ItemIndex].ADCScale ;
+     iBaseStart := Min(Max(WCPFile.Channel[cbChannel.ItemIndex].ADCZeroAt,0),
+                          FH.NumSamples-FH.NumZeroAvg) ;
+     iBaseEnd := Min(Max(iBaseStart + FH.NumZeroAvg -1,0),
+                        FH.NumSamples-1) ;
+     ChanOffset := WCPFile.Channel[cbChannel.ItemIndex].ChannelOffset ;
+     ChanScale := WCPFile.Channel[cbChannel.ItemIndex].ADCScale ;
      NumAvg := iBaseEnd - iBaseStart + 1 ;
      nRecords := 0 ;
      SumVariance := 0.0 ;
      for iRec := iStartRec to iEndRec do begin
 
         { Read record data from file }
-        GetRecord32( RawFH, RH, iRec, InBuf^ ) ;
+        WCPFile.GetRecord32( FH, RH, iRec, InBuf^ ) ;
 
         { Show whether record has been rejected by operator }
         if RH.Status <> 'ACCEPTED' then break ;
@@ -2323,14 +2327,14 @@ begin
         { Calculate baseline variance }
         Avg := 0.0 ;
         for i := iBaseStart to iBaseEnd do begin
-            j := i*RawFH.NumChannels + ChanOffset ;
+            j := i*FH.NumChannels + ChanOffset ;
             Avg := Avg + InBuf[j] ;
             end ;
         Avg := Avg / NumAvg ;
 
         SumSq := 0.0 ;
         for i := iBaseStart to iBaseEnd do begin
-            j := i*RawFH.NumChannels + ChanOffset ;
+            j := i*FH.NumChannels + ChanOffset ;
             R := (InBuf[j] - Avg)*ChanScale ;
             SumSq := SumSq + R*R ;
             end ;
@@ -2344,14 +2348,14 @@ begin
      if nRecords > 0 then begin
         edBaselineVariance.Text := format('%.4g %s^2',
                            [SumVariance/nRecords,
-                            Channel[cbChannel.ItemIndex].ADCUnits]) ;
+                            WCPFile.Channel[cbChannel.ItemIndex].ADCUnits]) ;
         end ;
 
      end;
 
 procedure TPwrSpecFrm.ckFixedZeroLevelsClick(Sender: TObject);
 begin
-     Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
+     WCPFile.Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
      end;
 
 end.

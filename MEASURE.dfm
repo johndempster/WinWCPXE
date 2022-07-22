@@ -2,7 +2,7 @@ object MeasureFrm: TMeasureFrm
   Left = 829
   Top = 41
   Caption = 'Waveform Analysis '
-  ClientHeight = 771
+  ClientHeight = 797
   ClientWidth = 784
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
@@ -29,8 +29,8 @@ object MeasureFrm: TMeasureFrm
     Left = 8
     Top = 8
     Width = 639
-    Height = 735
-    ActivePage = AnalysisTab
+    Height = 769
+    ActivePage = HistogramTab
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -12
@@ -41,6 +41,10 @@ object MeasureFrm: TMeasureFrm
     OnChange = PageChange
     object AnalysisTab: TTabSheet
       Caption = 'Analysis'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object scDisplay: TScopeDisplay
         Left = 148
         Top = 6
@@ -159,10 +163,10 @@ object MeasureFrm: TMeasureFrm
         end
       end
       object AnalysisGrp: TGroupBox
-        Left = 4
-        Top = 116
+        Left = 3
+        Top = 118
         Width = 135
-        Height = 586
+        Height = 618
         Caption = ' Analyse '
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
@@ -307,6 +311,7 @@ object MeasureFrm: TMeasureFrm
             Hint = 'No. of points to be averaged  at signal peak amplitude'
             OnKeyPress = edPeakAvgKeyPress
             AutoSize = False
+            ShowHint = True
             Text = ' 0 '
             Scale = 1.000000000000000000
             NumberFormat = '%.0f'
@@ -403,8 +408,8 @@ object MeasureFrm: TMeasureFrm
           Left = 8
           Top = 457
           Width = 121
-          Height = 45
-          Caption = ' T.x% decay time '
+          Height = 70
+          Caption = ' T.x decay time '
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clBlack
           Font.Height = -12
@@ -412,27 +417,12 @@ object MeasureFrm: TMeasureFrm
           Font.Style = []
           ParentFont = False
           TabOrder = 7
-          object Label1: TLabel
-            Left = 33
-            Top = 16
-            Width = 16
-            Height = 15
-            Alignment = taRightJustify
-            Caption = 'x%'
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clBlack
-            Font.Height = -12
-            Font.Name = 'Arial'
-            Font.Style = []
-            ParentFont = False
-          end
-          object edDecayTimePercentage: TValidatedEdit
-            Left = 56
-            Top = 16
-            Width = 57
+          object edDecayTimeThreshold: TValidatedEdit
+            Left = 8
+            Top = 42
+            Width = 104
             Height = 20
-            Hint = 'Wave decay time end-point (% fall from peak amplitude'
-            OnKeyPress = edDecayTimePercentageKeyPress
+            Hint = 'Waveform decay time end-point (% peak or absolute level)'
             AutoSize = False
             ShowHint = True
             Text = ' 1.0 %'
@@ -440,13 +430,39 @@ object MeasureFrm: TMeasureFrm
             Scale = 1.000000000000000000
             Units = '%'
             NumberFormat = '%.1f'
-            LoLimit = 1.000000000000000000
-            HiLimit = 90.000000000000000000
+            LoLimit = -1.000000015047466E30
+            HiLimit = 1.000000015047466E30
+          end
+          object rbDecayTimePercent: TRadioButton
+            Left = 9
+            Top = 19
+            Width = 41
+            Height = 17
+            Hint = 'Calculate decay time from peak to % fall from peak'
+            Caption = '%'
+            Checked = True
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 1
+            TabStop = True
+            OnClick = rbDecayTimePercentClick
+          end
+          object rbDecayTimeToLevel: TRadioButton
+            Left = 56
+            Top = 19
+            Width = 49
+            Height = 17
+            Hint = 'Calculate decay time from peak to absolute signal level'
+            Caption = 'Level'
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 2
+            OnClick = rbDecayTimeToLevelClick
           end
         end
         object gpCursors: TGroupBox
           Left = 8
-          Top = 508
+          Top = 540
           Width = 121
           Height = 63
           Caption = ' Cursors '
@@ -517,7 +533,6 @@ object MeasureFrm: TMeasureFrm
             Width = 57
             Height = 20
             Hint = '% Quantile to calculate (0% = Min. 100% = Max.)'
-            OnKeyPress = edDecayTimePercentageKeyPress
             AutoSize = False
             ShowHint = True
             Text = ' 99.0 %'
@@ -537,8 +552,8 @@ object MeasureFrm: TMeasureFrm
           Caption = ' Latency '
           TabOrder = 10
           object Label14: TLabel
-            Left = 22
-            Top = 16
+            Left = 8
+            Top = 18
             Width = 30
             Height = 30
             Alignment = taRightJustify
@@ -552,12 +567,11 @@ object MeasureFrm: TMeasureFrm
             WordWrap = True
           end
           object edLatencyPercentage: TValidatedEdit
-            Left = 60
-            Top = 16
-            Width = 50
+            Left = 52
+            Top = 17
+            Width = 66
             Height = 20
             Hint = ' %  of waveform peak used to measure latency'
-            OnKeyPress = edDecayTimePercentageKeyPress
             AutoSize = False
             ShowHint = True
             Text = ' 50.0 %'
@@ -574,7 +588,7 @@ object MeasureFrm: TMeasureFrm
         Left = 148
         Top = 320
         Width = 465
-        Height = 201
+        Height = 249
         Caption = ' Results '
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
@@ -587,7 +601,7 @@ object MeasureFrm: TMeasureFrm
           Left = 8
           Top = 16
           Width = 449
-          Height = 177
+          Height = 230
           ColCount = 7
           DefaultColWidth = 80
           DefaultRowHeight = 16
@@ -2091,7 +2105,7 @@ object MeasureFrm: TMeasureFrm
     end
   end
   object SaveDialog: TSaveDialog
-    Left = 168
-    Top = 560
+    Left = 160
+    Top = 720
   end
 end

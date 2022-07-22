@@ -29,6 +29,10 @@ object DCLAMPFrm: TDCLAMPFrm
     OnChange = PageChange
     object ControlsTab: TTabSheet
       Caption = 'Controls '
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object GroupBox1: TGroupBox
         Left = 3
         Top = 0
@@ -98,6 +102,9 @@ object DCLAMPFrm: TDCLAMPFrm
             ShowHint = True
             TabOrder = 1
             OnKeyPress = sgStepsKeyPress
+            ColWidths = (
+              64
+              64)
             RowHeights = (
               20
               20
@@ -1085,6 +1092,10 @@ object DCLAMPFrm: TDCLAMPFrm
     object GraphsTab: TTabSheet
       Caption = 'Graphs'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object plPlot: TXYPlotDisplay
         Left = 8
         Top = 40

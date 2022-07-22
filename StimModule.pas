@@ -69,7 +69,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  stdctrls, maths, global, winprocs, math, fileio, seslabio,
+  stdctrls, maths, winprocs, math, seslabio,
   xmldoc, xmlintf, extctrls, strutils, ActiveX ;
 
 const
@@ -529,7 +529,7 @@ var
 
 implementation
 
-uses Mdiform, shared , AmpModule, Rec, Sealtest;
+uses Mdiform, AmpModule, Rec, Sealtest, WCPFIleUnit;
 
 {$R *.DFM}
 
@@ -580,7 +580,7 @@ begin
         NumDACPoints := Main.SESLabIO.DACBufferLimit div 2 ;
         Main.StatusBar.SimpleText :=
         ' WARNING! D/A buffer overflow! Stimulus waveform may be truncated. '  ;
-        WriteToLogFile( Main.StatusBar.SimpleText ) ;
+        WCPFile.WriteToLogFile( Main.StatusBar.SimpleText ) ;
         end ;
 
      { Create a digital D/A waveform from protocol list }
@@ -607,9 +607,9 @@ begin
              end ;
          end ;
 
-     { Set default digital output buffer bit settings}
+     { Set default digital output buffer bit WCPFile.Settings}
      Bit := 1 ;
-     DigWord := Settings.DigitalPort.Value ;
+     DigWord := WCPFile.Settings.DigitalPort.Value ;
      for i := 0 to Prot.NumDOChannels-1 do
          begin
          DigWord := DigWord and (not Bit) ;
@@ -1665,14 +1665,14 @@ begin
      repeat
         { Find file }
         if First then
-           FileFound := FindFirst( Settings.VProtDirectory + '*.xml',
+           FileFound := FindFirst( WCPFile.Settings.VProtDirectory + '*.xml',
                                    faAnyFile,
                                    SearchRec )
         else
            FileFound := FindNext( SearchRec ) ;
 
         { Add file name (no extension or path) to list }
-        if FileFound = 0 then cbList.items.Add(ExtractFileNameOnly(SearchRec.Name))
+        if FileFound = 0 then cbList.items.Add(WCPFile.ExtractFileNameOnly(SearchRec.Name))
                         else FindClose(SearchRec.FindHandle) ;
         First := False ;
         Until FileFound <> 0 ;
@@ -1704,7 +1704,7 @@ begin
      repeat
         { Find file }
         if First then
-           FileFound := FindFirst( Settings.VProtDirectory + '*.vpr',
+           FileFound := FindFirst( WCPFile.Settings.VProtDirectory + '*.vpr',
                                    faAnyFile,
                                    SearchRec )
         else FileFound := FindNext( SearchRec ) ;
@@ -1717,7 +1717,7 @@ begin
            begin
 
            // Load VPR Protocol
-           VPRFileName := Settings.VProtDirectory + SearchRec.Name ;
+           VPRFileName := WCPFile.Settings.VProtDirectory + SearchRec.Name ;
 
            if LoadVPRProgram(VPRProg,VPRFileName,ExtVBuf) then
               begin
@@ -1882,7 +1882,7 @@ begin
               Main.StatusBar.SimpleText := format('Converting %s to %s',
                                         [ExtractFileName(VPRFileName),
                                          ExtractFileName(XMLFileName)]) ;
-              WriteToLogFile( format('Stimulus protocol %s converted to %s',
+              WCPFile.WriteToLogFile( format('Stimulus protocol %s converted to %s',
                                         [ExtractFileName(VPRFileName),
                                          ExtractFileName(XMLFileName)])) ;
               SaveProtocolToXMLFile( Prot^, XMLFileName) ;
@@ -1890,7 +1890,7 @@ begin
            else begin
               Main.StatusBar.SimpleText := format('Stimulus protocol %s file damaged (not converted)',
                                         [ExtractFileName(VPRFileName)]) ;
-              WriteToLogFile( Main.StatusBar.SimpleText ) ;
+              WCPFile.WriteToLogFile( Main.StatusBar.SimpleText ) ;
               end ;
 
            Application.ProcessMessages ;
@@ -2422,7 +2422,7 @@ begin
            // Get file name of .dat file
            WaveFileName := ExtractFileName(Prot.Stimulus[iElement].Parameters[spFileName].Text) ;
            WaveFileName := ChangeFileExt( WaveFileName, '.dat' ) ;
-           WaveFileName := Settings.VProtDirectory + WaveFileName ;
+           WaveFileName := WCPFile.Settings.VProtDirectory + WaveFileName ;
 
            OK := True ;
            // Check for blank file name
@@ -2475,7 +2475,7 @@ begin
      if not FileExists(FileName) then Exit ;
 
      // Create binary output file
-     BinFileName := Settings.VProtDirectory +
+     BinFileName := WCPFile.Settings.VProtDirectory +
                     ChangeFileExt(ExtractFileName(FileName),'.DAT') ;
 
      // Open text input file
@@ -2559,7 +2559,7 @@ begin
         end ;
 
      // Exit if unable to find file
-     FileName := Settings.VProtDirectory + ChangeFileExt( ExtractFileName(FileName), '.dat' ) ;
+     FileName := WCPFile.Settings.VProtDirectory + ChangeFileExt( ExtractFileName(FileName), '.dat' ) ;
      if not FileExists(FileName) then begin
         ShowMessage('Stimulus Protocol: Unable to load ' + FileName ) ;
         Prot.Stimulus[iStimElement].NumPointsInBuf := 0 ;
@@ -2618,7 +2618,7 @@ begin
      if Prot.Stimulus[iStimElement].Buf = Nil then Exit ;
 
      // Create DAT file
-     FileName := Settings.VProtDirectory + ChangeFileExt(ExtractFileName(
+     FileName := WCPFile.Settings.VProtDirectory + ChangeFileExt(ExtractFileName(
                  Prot.Stimulus[iStimElement].Parameters[spFileName].Text),'.DAT') ;
      FileHandle := FileCreate( FileName ) ;
      if FileHandle < 0 then begin
@@ -2818,7 +2818,7 @@ begin
        { Correct for use of comma/period as decimal separator }
        s := ChildNode.Text ;
       { Correct for use of comma/period as decimal separator }
-      {$IF CompilerVersion > 7.0} dsep := formatsettings.DECIMALSEPARATOR ;
+      {$IF CompilerVersion > 7.0} dsep := formatSettings.DECIMALSEPARATOR ;
       {$ELSE} dsep := DECIMALSEPARATOR ;
       {$IFEND}
       if dsep = '.' then s := ANSIReplaceText(s ,',',dsep);

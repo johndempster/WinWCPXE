@@ -80,9 +80,9 @@ object Main: TMain
         Caption = '&Append Data File..'
         OnClick = mnAppendClick
       end
-      object InspectLogFile: TMenuItem
+      object mnInspectLogFile: TMenuItem
         Caption = 'Inspect Log File'
-        OnClick = InspectLogFileClick
+        OnClick = mnInspectLogFileClick
       end
       object mnExit: TMenuItem
         Caption = 'E&xit'

@@ -8,7 +8,7 @@ interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, StdCtrls, Global, FileIo ;
+  Forms, Dialogs, StdCtrls ;
 
 type
   TLogFrm = class(TForm)
@@ -36,7 +36,7 @@ var
 implementation
 
 {$R *.DFM}
-uses MdiForm ;
+uses MdiForm , WCPFIleUnit;
 
 
 procedure TLogFrm.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -47,25 +47,24 @@ begin
 
 procedure TLogFrm.FormActivate(Sender: TObject);
 begin
-     Caption := 'Log File ' + Main.LogFileName ;
-     CloseLogFile ;
-     mmText.Lines.LoadFromFile( Main.LogFileName ) ;
-     OpenLogFile ;
+     Caption := 'Log File ' + WCPFile.LogFileName ;
+     WCPFile.CloseLogFile ;
+     mmText.Lines.LoadFromFile( WCPFile.LogFileName ) ;
+     WCPFile.OpenLogFile ;
      end;
 
 
 procedure TLogFrm.FormDeactivate(Sender: TObject);
 begin
-     CloseLogFile ;
-     mmText.Lines.SaveToFile( Main.LogFileName ) ;
-     OpenLogFile ;
+     WCPFile.CloseLogFile ;
+     mmText.Lines.SaveToFile( WCPFile.LogFileName ) ;
+     WCPFile.OpenLogFile ;
      end;
 
 
 procedure TLogFrm.FormCreate(Sender: TObject);
 begin
      { Disable "Inspect Log File" option of "File" menu}
-     Main.InspectLogFile.enabled := false ;
      Resize ;
      end;
 
@@ -103,15 +102,15 @@ var
 begin
 
     // Add note to log file
-    for i := 0 to meAdd.Lines.Count-1 do WriteToLogFile( meAdd.Lines[i] ) ;
+    for i := 0 to meAdd.Lines.Count-1 do WCPFile.WriteToLogFile( meAdd.Lines[i] ) ;
 
     // CLear note
     meAdd.Lines.Clear ;
 
     // Update log file display
-    CloseLogFile ;
-    mmText.Lines.LoadFromFile( Main.LogFileName ) ;
-    OpenLogFile ;
+    WCPFile.CloseLogFile ;
+    mmText.Lines.LoadFromFile( WCPFile.LogFileName ) ;
+    WCPFile.OpenLogFile ;
 
     end;
 

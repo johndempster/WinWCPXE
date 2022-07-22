@@ -771,18 +771,20 @@ unit MDIForm;
    V5.6.8 21.02.22 Debug log for Digidata 1440 added
    V5.6.9 09.03.22 Waveform Measurements: Latency measurement now correctly calculated
    V5.7.0 23.05.22 Ext Trigger and Ext Stimulus Trigger now works with Tecella Pico 2 patch clamp
-
+   V5.7.1 22.07.22 CopyStringGrid moved from shared to TMain.
+                   Shared,global,plotlib units removed and methods redistributed to WCPFileUnit,Maths,Main
+                   MeasureFrm: Option added to measure decay from peak to fixed signal level
             =======================================================================}
 
 interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, Menus, Global, FileIo, Shared, Replay,
+  Forms, Dialogs, Menus, Replay,
   Measure, Average, PrintRec, Rec, CurvFit, SimSyn,SimHH, SealTest,
   LeakSub, About, RecEdit,Log, QAnal, DrvFun, defset,
   SESLabIO, ced1902u, ComCtrls, ADCDataFile, strutils, math, StdCtrls,FileCtrl,
-  UITypes, Vcl.HtmlHelpViewer, shlobj, ioutils ;
+  UITypes, Vcl.HtmlHelpViewer, shlobj, ioutils, WCPFIleUnit, VCL.Grids,ClipBrd ;
 
 type
   TMain = class(TForm)
@@ -798,7 +800,7 @@ type
     mnExport: TMenuItem;
     mnInterleave: TMenuItem;
     mnAppend: TMenuItem;
-    InspectLogFile: TMenuItem;
+    mnInspectLogFile: TMenuItem;
     mnExit: TMenuItem;
     mnRecentFileSeparator: TMenuItem;
     mnRecentFile0: TMenuItem;
@@ -875,7 +877,7 @@ type
     procedure mnInterleaveClick(Sender: TObject);
     procedure mnAppendClick(Sender: TObject);
     procedure mnPrintClick(Sender: TObject);
-    procedure InspectLogFileClick(Sender: TObject);
+    procedure mnInspectLogFileClick(Sender: TObject);
     procedure mnCopyDataClick(Sender: TObject);
     procedure mnCopyImageClick(Sender: TObject);
     procedure CopyRecordClick(Sender: TObject);
@@ -929,9 +931,6 @@ type
     procedure FormDestroy(Sender: TObject);
   private
 
-    procedure UpdateFileHeaderBlocks ;
-
-
     procedure SetRecentFileItem( MenuItem : TMenuItem ; FileName : string ) ;
     function ImportFromDataFile : Boolean ;
 
@@ -941,10 +940,6 @@ type
 
 
   public
-    { Public declarations }
-    SettingsDirectory : String ;  // Settings folder
-    SettingsFileName : String ;   // Settings file name
-    LogFileName : string ;        // Activity log file name
 
    // Cell parameters
    RSeal : Single ; // Seal Resistance (Ohms)
@@ -954,33 +949,23 @@ type
    Vm : Single ;    // Cell membrane voltage (V)
    Im : Single ;    // Cell membrane current (A)
 
-   procedure LoadDataFiles( FileName : string ) ;
+
    procedure NewFileUpdate ;
-   function CreateIndexedFileName( FileName : String ) : String ;
     procedure SetMenus ;
     procedure CloseFormsAndDataFile ;
-    procedure CloseAllDataFiles ;
-    function CreateNewDataFile(
-             FileName : String
-             ) : Boolean ;
-    function OpenAssociateFile( var FileHeader : TFileHeader ;
-                                const FileName : string ;
-                                const FileExtension : string ) : boolean ;
 
     procedure ShowChannel( Chan : Integer ; MenuItem : TMenuItem ) ;
     procedure UpdateMDIWindows ;
     function UpdateCaption( var FH : TFileHeader ; Title : string ) : string ;
-    procedure UpdateChannelScalingFactors(var RH : TRecHeader ) ;
     function FormExists( FormName : String ) : Boolean ;
 
     function ShowTritonPanel : Boolean ;
 
     procedure UpdateRecentFilesList ;
 
-    function GetSpecialFolder(const ASpecialFolderID: Integer): string;
     function DateToStr( DateTime : TDateTime ) : String ;
     function StrToDate( DateTime : String ) : TDateTime ;
-
+    procedure CopyStringGrid( Table : TStringGrid ) ;
     end;
 
 var
@@ -991,9 +976,9 @@ implementation
 {$R *.dfm}
 
 uses Pwrspec, SimMEPSC, AmpModule, maths , VP500Panel,
-  ImportASCIIUnit, ImportRawUnit , exportUnit, Convert , FilePropsUnit,
+  ImportASCIIUnit, ImportRawUnit , exportUnit, FilePropsUnit,
   RecPlotUnit, TritonPanelUnit , EditProtocolUnit, LabInterfaceSetup,
-  InputChannelSetup, EPC9PanelUnit , DCLAMPUnit;
+  InputChannelSetup, EPC9PanelUnit , DCLAMPUnit ;
 
 var
    WCPClipboardFileName : string ;
@@ -1020,304 +1005,15 @@ begin
       Width := Screen.Width - Left - 20 ;
       Height := Screen.Height - Top - 50 ;
 
-      ProgVersion := 'V5.7.0';
-      Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
+      WCPFile.ProgVersion := 'V5.7.1';
+      Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + WCPFile.ProgVersion ;
 
-      { Get directory which contains WinWCP program }
-      Settings.ProgDirectory := ExtractFilePath(ParamStr(0)) ;
-
-     // Create settings directory
-     SettingsDirectory := GetSpecialFolder(CSIDL_COMMON_DOCUMENTS) + '\WinWCP\';
-     if not SysUtils.DirectoryExists(SettingsDirectory) then begin
-        if SysUtils.ForceDirectories(SettingsDirectory) then
-           WriteToLogFile( 'Settings folder ' + SettingsDirectory + ' created.')
-        else WriteToLogFile( 'Unable to create settings folder' + SettingsDirectory) ;
-        end ;
-     SettingsFileName := SettingsDirectory + 'winwcp.ini' ;
-
-     { Open log file (contains log of program activity) }
-     OpenLogFile ;
-     WriteToLogFile( 'WinWCP Started' ) ;
-
-     // Stimulus protocols folder
-     Settings.VProtDirectory := GetSpecialFolder(CSIDL_COMMON_DOCUMENTS) + '\WinWCP\Vprot\';
-      if not SysUtils.DirectoryExists(Settings.VProtDirectory) then begin
-         if SysUtils.ForceDirectories(Settings.VProtDirectory) then
-            WriteToLogFile( 'Protocols folder ' + Settings.VProtDirectory + ' created.')
-         else WriteToLogFile( 'Unable to create protocols folder' + Settings.VProtDirectory) ;
-         end ;
-
-      // Create default data directory (in My Documents)
-      Settings.DataDirectory := GetSpecialFolder(CSIDL_PERSONAL) + '\WinWCP Data\';
-      if not SysUtils.DirectoryExists(Settings.DataDirectory) then begin
-         if SysUtils.ForceDirectories(Settings.DataDirectory) then
-            WriteToLogFile( 'Data folder ' + Settings.DataDirectory + ' created.')
-         else WriteToLogFile( 'Unable to create data folder' + Settings.DataDirectory) ;
-         end ;
-
-      Application.HelpFile := Settings.ProgDirectory + 'WinWCP.chm';
+      Application.HelpFile := WCPFile.Settings.ProgDirectory + 'WinWCP.chm';
 
       { Create clipboard file name for Copy/Insert of records }
       WCPClipboardFileName := TPath.GetTempPath + 'WCPClipboardFile.tmp' ;
       { Delete any existing clipboard files }
       if FileExists(WCPClipboardFileName) then DeleteFile (PChar(WCPClipboardFileName)) ;
-
-      { Create default set of record types }
-      RecordTypes := TStringList.Create ;
-      RecordTypes.Add( 'ALL' ) ;
-      RecordTypes.Add( 'EVOK' ) ;
-      RecordTypes.Add( 'MINI' ) ;
-      RecordTypes.Add( 'FAIL' ) ;
-      RecordTypes.Add( 'TEST' ) ;
-      RecordTypes.Add( 'LEAK' ) ;
-      RecordTypes.Add( 'TYP1' ) ;
-      RecordTypes.Add( 'TYP2' ) ;
-      RecordTypes.Add( 'TYP3' ) ;
-      RecordTypes.Add( 'TYP4' ) ;
-
-      { Create channel names list }
-      ChannelNames := TStringList.Create ;
-
-     { Default values for channels }
-
-     { Minimum/maximum of binary A/D and D/A data samples }
-     RawFH.MinADCValue := -2048 ;
-     RawFH.MaxADCValue := 2047 ;
-     MinDACValue := -2048 ;
-     MaxDACVAlue := 2047 ;
-
-     RawFH.CreationTime := '' ;
-     RawFH.NumChannels := 1 ;
-     RawFH.NumSamples := 512 ;
-     RawFH.NumAnalysisBytesPerRecord := 512 ;
-     RawFH.NumDataBytesPerRecord := RawFH.NumSamples*RawFH.NumChannels*2 ;
-     RawFH.NumBytesPerRecord := RawFH.NumDataBytesPerRecord
-                                + RawFH.NumAnalysisBytesPerRecord ;
-     RawFH.NumBytesInHeader := MaxBytesInFileHeader ;
-     RawFH.ADCVoltageRange := 5. ;
-     RawFH.NumZeroAvg := 20  ;
-     RawFH.dt := 0.001 ;
-     RawFH.Version := 8.0 ;
-     RawFH.ProgVersion := ProgVersion ;
-     RawFH.NumPointsAveragedAtPeak := 1 ;
-     RawFH.LatencyPercentage := 10.0 ;
-
-     for ch := 0 to WCPMaxChannels-1 do begin
-         Channel[ch].TimeZero := 1. ;
-         Channel[ch].ADCScale := 1. ;
-         Channel[ch].CursorIndex := 128 ;
-         Channel[ch].ZeroIndex := 0 ;
-         Channel[ch].Cursor0 := 0 ;
-         Channel[ch].Cursor1 := RawFH.NumSamples div 2 ;
-         { Zero levels fixed at hardware zero }
-         Channel[ch].ADCZero := 0 ;
-         Channel[ch].ADCZeroAt := -1 ;
-         Channel[ch].ADCCalibrationFactor := 0.001 ;
-         Channel[ch].ADCAmplifierGain := 1. ;
-         Channel[ch].ADCUnits := 'mV' ;
-         Channel[ch].ADCName := format('Ch.%d',[ch]);
-         Channel[ch].color:= clBlue ;
-         Channel[ch].xMin := 0. ;
-         Channel[ch].xMax := RawfH.NumSamples-1 ;
-         Channel[ch].yMin := RawfH.MinADCValue ;
-         Channel[ch].yMax := RawfH.MaxADCValue ;
-         Channel[ch].InUse := True ;
-         end ;
-
-     { Initialise to no laboratory interface }
-     Settings.LaboratoryInterface := 0 ;
-     Settings.DeviceNumber := 1 ;
-
-     Settings.NumChannels := 1 ;
-     Settings.NumSamples := 4096 ;
-     Settings.RecordDuration := 1.0 ;
-
-     Settings.RecordingMode := 0 ;
-     Settings.EventDetector.Channel := 0 ;
-     Settings.EventDetector.Threshold := 0.1 ;
-     Settings.EventDetector.PreTrigger := 0.1 ;
-     Settings.ExternalTriggerActiveHigh := False ;
-
-     Settings.AutoErase := True ;
-     Settings.DisplayGrid := True ;
-     Settings.ResetDisplayMagnification := True ;
-
-     mnDisplayGrid.Checked := Settings.DisplayGrid ;
-
-     Settings.Colors.Cursors := clBlue ;
-     Settings.Colors.Grid := clAqua ;
-     Settings.FixedZeroLevels := False ;
-
-     Settings.NumRecordsRequired := 1 ;
-     Settings.CutOffFrequency := 0. ;
-     { Minimum interval for updating D/A converters when
-       generating command voltage waveforms }
-     Settings.MinDACInterval := 0.0001 ;
-
-     Settings.TUnits := 'ms' ;
-     Settings.TScale := SecsToMs ;
-     Settings.TUnScale := MsToSecs ;
-
-     { Name of command voltage protocol file in current use }
-     Settings.VProgramFileName := '' ;
-     Settings.VProgramFileName := '' ;
-
-     { Divide factor that the patch/voltage clamp applies to its
-       command voltage input. The D/A output voltage is thus scaled up
-       by this factor }
-
-     Settings.DACInvertTriggerLevel := False ;
-     Settings.DigitalPort.Value := 0 ;
-     Settings.UpdateOutputs := True ;
-
-     { Default settings for seal test pulse }
-     Settings.SealTest.Use := 1 ;
-     Settings.SealTest.PulseHeight1 := 0.01 ;
-     Settings.SealTest.HoldingVoltage1 := 0. ;
-     Settings.SealTest.PulseHeight2 := 0.01 ;
-     Settings.SealTest.HoldingVoltage2 := 0. ;
-     Settings.SealTest.PulseHeight3 := 0.0 ;
-     Settings.SealTest.HoldingVoltage3 := 0. ;
-
-     Settings.SealTest.PulseWidth:= 0.03 ;
-     Settings.SealTest.CurrentChannel := 0 ;
-     Settings.SealTest.VoltageChannel := 1 ;
-     Settings.SealTest.AutoScale := True ;
-     Settings.SealTest.DisplayScale := 1 ;
-     Settings.SealTest.NumAverages := 1 ;
-
-     Settings.SealTest.ZapAmplitude := 0.2 ;
-     Settings.SealTest.ZapDuration := 0.1 ;
-     
-     { Set flag indicating this is the first sweep, to force an autoscale }
-     Settings.SealTest.FirstSweep := True ;
-
-     Settings.Plot.TopMargin := 25.0 ;
-     Settings.Plot.LeftMargin := 25.0 ;
-     Settings.Plot.BottomMargin := 5.0 ;
-     Settings.Plot.RightMargin := 25.0;
-     Settings.Plot.FontName := 'Arial' ;
-     Settings.Plot.FontSize := 12 ;
-     Settings.Plot.LineThickness := 2 ;
-     Settings.Plot.MarkerSize := 5 ;
-     Settings.Plot.ShowLines := True ;
-     Settings.Plot.ShowMarkers := True ;
-     Settings.Plot.MetafileWidth := 600 ;
-     Settings.Plot.MetafileHeight := 600 ;
-
-     { Bitmap size for images copied to clipboard }
-     Settings.BitmapWidth := 600 ;
-     Settings.BitmapHeight := 500 ;
-
-     // Voltage clamp simulation  settings
-     Settings.VClampSim.NumSteps := 16 ;
-     Settings.VClampSim.GMax :=20E-9 ;
-     Settings.VClampSim.GLeak := 1E-9 ;
-     Settings.VClampSim.GSeries := 200E-9 ;
-     Settings.VClampSim.Cm := 30E-12 ;
-     Settings.VClampSim.VRev := -100E-3 ;
-     Settings.VClampSim.VHold := -90E-3 ;
-     Settings.VClampSim.VStep := 10E-3 ;
-
-     { Activation gate (m) parameters }
-     Settings.VClampSim.m.VHalf := -1E-3 ;
-     Settings.VClampSim.m.VSlope := -11E-3 ;
-     Settings.VClampSim.m.TauMin := 1.5E-3 ;
-     Settings.VClampSim.m.TauMax := 3.5E-3 ;
-     Settings.VClampSim.m.TauVHalf := 0.0 ;
-     Settings.VClampSim.m.TauVslope := 30E-3 ;
-     Settings.VClampSim.m.P := 1 ;
-
-     { Inactivation gate (h) parameters }
-     Settings.VClampSim.UseInactivation := false ;
-
-     Settings.VClampSim.h.VHalf := -45E-3 ;
-     Settings.VClampSim.h.VSlope := 11.5E-3 ;
-     Settings.VClampSim.h.TauMin := 14E-3 ;
-     Settings.VClampSim.h.TauMax := 482.6E-3 ;
-     Settings.VClampSim.h.TauVHalf := -52.5E-3 ;
-     Settings.VClampSim.h.TauVslope := 15E-3 ;
-     Settings.VClampSim.h.P := 1. ;
-
-     // Synaptic current simulation settings
-     Settings.SynapseSim.NumRecords := 100 ;
-     Settings.SynapseSim.RecordDuration := 1E-1 ;
-     Settings.SynapseSim.TauRise := 2E-4 ;
-     Settings.SynapseSim.Tau1 := 1E-2 ;
-     Settings.SynapseSim.Latency := 0.0 ;
-     Settings.SynapseSim.Tau2 := 5E-2 ;
-     Settings.SynapseSim.A2Fraction := 0.1 ;
-     Settings.SynapseSim.QuantumAmplitude := 1.0 ;
-     Settings.SynapseSim.QuantumStDev := 0.0 ;
-     Settings.SynapseSim.n := 1.0 ;
-     Settings.SynapseSim.p := 1.0 ;
-     Settings.SynapseSim.NoiseRMS := 0.1 ;
-     Settings.SynapseSim.DisplayRange := 10.0 ;
-     Settings.SynapseSim.VRest := -90.0 ;
-     Settings.SynapseSim.DoubleExponentialDecay := False ;
-
-     // MEPSC simulation parameters
-     Settings.MEPSCSim.NumRecords := 100 ;
-     Settings.MEPSCSim.RecordDuration := 0.1 ;
-     Settings.MEPSCSim.UnitCurrent := 1.0 ;
-     Settings.MEPSCSim.TransmitterDecayTime := 100E-6 ;
-
-     Settings.MEPSCSim.BindingRate :=  2E5 ;
-     Settings.MEPSCSim.OpenRate := 1E4 ;
-     Settings.MEPSCSim.CloseRate :=  1E3 ;
-     Settings.MEPSCSim.UnbindRate :=  1E3 ;
-     Settings.MEPSCSim.BlockRate := 0.0 ;
-     Settings.MEPSCSim.UnBlockRate := 0.0 ;
-
-     Settings.MEPSCSim.NoiseRMS := 0. ;
-     Settings.MEPSCSim.LPFilter := 1000.0 ;
-     Settings.MEPSCSim.LPFilterInUse := False ;
-     Settings.MEPSCSim.Drift := 0.0 ;
-
-     { Time taken to write one sector to hard disk }
-     { Zero forces a write test to be made within wavgen module }
-     //Settings.SectorWriteTime := 0. ;
-
-     Settings.ProtocolListFileName := '' ;
-
-     Settings.FileNameIncludeDate := True ;  // Include date in auto-created file names
-     Settings.FileNamePrefix := '' ;          // Add prefix to name
-
-     { Settings for record hard copy plots }
-     Settings.TimeBarValue := -1. ;
-     for ch := 0 to WCPMaxChannels-1 do Settings.BarValue[ch] := -1. ;
-     Settings.ShowLabels := True ;
-     Settings.ShowZeroLevels := True ;
-
-     Settings.DifferentiationMode := 0 ;
-     Settings.LockChannelCursors := True ;
-
-     Settings.WavGenNoDisplay := False ; {Display waveform check box settings
-                                          for Waveform Generator }
-
-     // On-line analysis cursor positions
-     Settings.OpenNewFileOnRecord := False ;
-     Settings.RecPlot.Cursor0 := -1 ;
-     Settings.RecPlot.Cursor1 := -1 ;
-     Settings.RecPlot.Cursor2 := -1 ;
-     Settings.RecPlot.Cursor3 := -1 ;
-     Settings.RecPlot.Cursor4 := -1 ;
-
-     // Quantal analysis default settings
-     Settings.QuantalAnalysis.EvokedType := 'TEST' ;
-     Settings.QuantalAnalysis.MiniType := 'MINI' ;
-     Settings.QuantalAnalysis.Potentials := false ;
-
-     { Set the file names and handles for all header blocks to null }
-     RawFH.FileHandle := -1 ;
-     RawFH.FileName := '' ;
-     AvgFH.FileHandle := -1 ;
-     AvgFH.FileName := '' ;
-     LeakFH.FileHandle := -1 ;
-     LeakFH.FileName := '' ;
-     DrvFH.FileHandle := -1 ;
-     DrvFH.FileName := '' ;
-     RawFH.RecordingStartTime := '' ;
 
      RSeal := 1E9 ;
      Ga := 1E-8 ;
@@ -1332,31 +1028,21 @@ begin
 
      SetMenus ;
 
-     { Load initialization file to get name of last data file used }
-
-     if not Settings.NoINIFile then LoadInitializationFile( SettingsFileName ) ;
-
-     mnDisplayGrid.Checked := Settings.DisplayGrid ;
-     mnStoreTraces.Checked := not Settings.AutoErase ;
-
-     for ch := 0 to RawFH.NumChannels-1 do begin
-         Channel[ch].xMin := 0. ;
-         Channel[ch].xMax := RawfH.NumSamples-1 ;
-         Channel[ch].Cursor1 := RawFH.NumSamples div 2 ;
-         end ;
+     mnDisplayGrid.Checked := WCPFile.Settings.DisplayGrid ;
+     mnStoreTraces.Checked := not WCPFile.Settings.AutoErase ;
 
      { Enable Windows menu to show active MDI windows }
      WindowMenu := Windows ;
 
-     RawfH.MinADCValue := SESLabIO.ADCMinValue ;
-     RawFH.MaxADCValue := SESLabIO.ADCMaxValue ;
+     WCPFile.RawfH.MinADCValue := SESLabIO.ADCMinValue ;
+     WCPFile.RawFH.MaxADCValue := SESLabIO.ADCMaxValue ;
 
      { Add names of recently accessed data files to Files menu }
      mnRecentFileSeparator.Visible := False ;
-     SetRecentFileItem( mnRecentFile0, Settings.RecentFiles[0] ) ;
-     SetRecentFileItem( mnRecentFile1, Settings.RecentFiles[1] ) ;
-     SetRecentFileItem( mnRecentFile2, Settings.RecentFiles[2] ) ;
-     SetRecentFileItem( mnRecentFile3, Settings.RecentFiles[3] ) ;
+     SetRecentFileItem( mnRecentFile0, WCPFile.Settings.RecentFiles[0] ) ;
+     SetRecentFileItem( mnRecentFile1, WCPFile.Settings.RecentFiles[1] ) ;
+     SetRecentFileItem( mnRecentFile2, WCPFile.Settings.RecentFiles[2] ) ;
+     SetRecentFileItem( mnRecentFile3, WCPFile.Settings.RecentFiles[3] ) ;
 
      { Open a data file if one has been supplied in parameter string }
      FileName :=  '' ;
@@ -1367,17 +1053,17 @@ begin
 
      // Initialise channel display settings to minimum magnification
      for ch := 0 to WCPMaxChannels-1 do begin
-         Channel[ch].Cursor0 := 0 ;
-         Channel[ch].Cursor1 := RawFH.NumSamples div 2 ;
-         Channel[ch].xMin := 0. ;
-         Channel[ch].xMax := RawfH.NumSamples-1 ;
-         Channel[ch].yMin := SESLabIO.ADCMinValue ;
-         Channel[ch].yMax := SESLabIO.ADCMaxValue ;
+         WCPFile.Channel[ch].Cursor0 := 0 ;
+         WCPFile.Channel[ch].Cursor1 := WCPFile.RawFH.NumSamples div 2 ;
+         WCPFile.Channel[ch].xMin := 0. ;
+         WCPFile.Channel[ch].xMax := WCPFile.RawfH.NumSamples-1 ;
+         WCPFile.Channel[ch].yMin := SESLabIO.ADCMinValue ;
+         WCPFile.Channel[ch].yMax := SESLabIO.ADCMaxValue ;
          end ;
 
      if ANSIContainsText( ExtractFileExt(FileName),'.wcp') then begin
         if FileExists(FileName) then begin
-           if (FileGetAttr(FileName) AND faReadOnly) = 0 then LoadDataFiles(FileName)
+           if (FileGetAttr(FileName) AND faReadOnly) = 0 then WCPFile.LoadDataFiles(FileName)
            else ShowMessage( FileName + ' is READ-ONLY. Unable to open!') ;
 
            end ;
@@ -1411,9 +1097,9 @@ begin
 
      OpenDialog.options := [ofPathMustExist] ;
      OpenDialog.DefaultExt := 'WCP' ;
-     if Settings.DataDirectory <> '' then begin
-        SetCurrentDir(Settings.DataDirectory) ;
-        OpenDialog.InitialDir := Settings.DataDirectory ;
+     if WCPFile.Settings.DataDirectory <> '' then begin
+        SetCurrentDir(WCPFile.Settings.DataDirectory) ;
+        OpenDialog.InitialDir := WCPFile.Settings.DataDirectory ;
         end;
      OpenDialog.FileName := '' ;
 
@@ -1423,66 +1109,15 @@ begin
      if OpenDialog.execute then begin
         // Load selected file
         if (FileGetAttr(OpenDialog.FileName) AND faReadOnly) = 0 then begin
-            LoadDataFiles( OpenDialog.FileName ) ;
+            WCPFile.LoadDataFiles( OpenDialog.FileName ) ;
             // Update list of recently used files
             UpdateRecentFilesList ;
-            WriteToLogFile( 'Data file: ' + OpenDialog.FileName + ' open.' ) ;
+            WCPFile.WriteToLogFile( 'Data file: ' + OpenDialog.FileName + ' open.' ) ;
             end
          else ShowMessage( OpenDialog.FileName + ' is READ-ONLY. Unable to open!') ;
          end ;
 
      end;
-
-
-procedure TMain.LoadDataFiles( FileName : string ) ;
-{ -------------------------------------------------
-  Load .WCP and any associated .AVG,.SUB data files
-  -------------------------------------------------}
-var
-   ch : Integer ;
-begin
-
-     { Close existing data file(s) }
-     CloseAllDataFiles ;
-
-     { Open original 'raw' data file }
-     if not OpenAssociateFile(RawFH,FileName,'.wcp') then Exit ;
-
-     // Select raw for display
-     FH := RawFH ;
-
-     Main.Caption := 'WinWCP : ' + RawFH.FileName ;
-     { Save data directory }
-     Settings.DataDirectory := ExtractFilePath( RawFH.FileName ) ;
-
-     { Open averages file (if one exists)}
-     OpenAssociateFile(AvgFH,FileName,'.avg') ;
-
-     {Open a leak subtracted file (if one exists) }
-     OpenAssociateFile(LeakFH,FileName,'.sub') ;
-
-     { Open a driving function file (if one exists) }
-     OpenAssociateFile(DrvFH,FileName,'.dfn') ;
-
-     { Make sure all channels are visible }
-     for ch := 0 to RawFH.NumChannels-1 do Channel[ch].InUse := True ;
-
-     { Open view form if one doesn't exist }
-//     if (RawfH.NumRecords > 0) and not FormExists('ReplayFrm') then
-//        ReplayFrm := TReplayFrm.Create(Self) ;
-
-     { Inform all open forms that data file(s) have changed }
-     NewFileUpdate ;
-
-     { Set display magnification to minimum }
-     if fH.NumRecords > 0 then begin
-        //if OldNumSamples <> RawFH.NumSamples then mnZoomOut.Click ;
-        mnShowRaw.Click ;
-        end ;
-
-     SetMenus ;
-
-     end ;
 
 
 procedure TMain.ShowChannel(
@@ -1493,69 +1128,12 @@ procedure TMain.ShowChannel(
   Make Channel item in View menu visible
   -------------------------------------- }
 begin
-     if Chan < RawFH.NumChannels then begin
+     if Chan < WCPFile.RawFH.NumChannels then begin
         MenuItem.Visible := True ;
-        MenuItem.Checked := Channel[Chan].InUse ;
-        MenuItem.Caption := format(' Ch.%d %s',[Chan,Channel[Chan].ADCName]) ;
+        MenuItem.Checked := WCPFile.Channel[Chan].InUse ;
+        MenuItem.Caption := format(' Ch.%d %s',[Chan,WCPFile.Channel[Chan].ADCName]) ;
         end
      else  MenuItem.Visible := False ;
-     end ;
-
-
-function TMain.OpenAssociateFile(
-         var FileHeader : TFileHeader ;  { File header of this file }
-         const FileName : string ;       { Name of data file }
-         const FileExtension : string    { Extension to be added }
-         ) : boolean ;                   { =True if file opened succcessfully }
-{ -------------------------------------
-  Open an associated file (if it exists)
-  -------------------------------------}
-var
-   OK : Boolean ;
-begin
-
-     Result := False ;
-
-     { Close existing file }
-     FileCloseSafe( FileHeader.FileHandle ) ;
-
-     { Check that file exists }
-     FileHeader.FileName := ChangeFileExt( FileName, FileExtension ) ;
-     if not FileExists( FileHeader.FileName ) then Exit ;
-
-     { Open file }
-     FileHeader.FileHandle := FileOpen( FileHeader.FileName, fmOpenReadWrite or fmShareDenyWrite) ;
-     if FileHeader.FileHandle < 0 then Exit ;
-
-     { Load the data file details }
-     GetHeader( FileHeader ) ;
-
-     { If it is an old file format convert it to new format }
-
-     if (FileHeader.NumAnalysisBytesPerRecord < 1024 ) or
-        (FileHeader.NumBytesInHeader < 1024) then begin
-        // Convert pre WCP V6.2 to V9 format
-        FileCloseSafe( FileHeader.FileHandle ) ;
-        OK :=ConvertWCPPreV62toV9(FileHeader.FileName) ;
-        if OK then begin
-           FileHeader.FileHandle := FileOpen(FileHeader.FileName,fmOpenReadWrite or fmShareDenyWrite) ;
-           GetHeader( FileHeader ) ;
-           end
-        else Exit ;
-        end
-     else if FileHeader.Version < 9.0 then begin
-        // Convert WCP V6.2 - V8 to V9 format
-        FileCloseSafe( FileHeader.FileHandle ) ;
-        OK := ConvertWCPV8toV9(FileHeader.FileName) ;
-        if OK then begin
-           FileHeader.FileHandle := FileOpen(FileHeader.FileName,fmOpenReadWrite or fmShareDenyWrite) ;
-           GetHeader( FileHeader ) ;
-           end
-        else Exit ;
-        end ;
-
-     Result := True ;
-
      end ;
 
 
@@ -1673,10 +1251,10 @@ procedure TMain.mnShowRawClick(Sender: TObject);
   -------------------------------------}
 begin
 
-     if RawFH.NumRecords <= 0 then Exit ;
-     
-     fH := RawFH ;
-     GetHeader(fH) ;
+     if WCPFile.RawFH.NumRecords <= 0 then Exit ;
+
+     WCPFile.fH := WCPFile.RawFH ;
+     WCPFile.GetHeader(WCPFile.fH) ;
 
      mnShowRaw.checked := True ;
      mnShowAveraged.checked :=  False ;
@@ -1705,8 +1283,8 @@ procedure TMain.mnShowAveragedClick(Sender: TObject);
   Select averages record file for viewing
   ----------------------------------------}
 begin
-     fH := AvgFH ;
-     GetHeader( fH) ;
+     WCPFile.fH := WCPFile.AvgFH ;
+     WCPFile.GetHeader( WCPFile.fH ) ;
      mnShowAveraged.checked := True ;
      mnShowRaw.checked :=  False ;
      mnShowDrivingFunction.checked := False ;
@@ -1737,8 +1315,8 @@ procedure TMain.mnShowLeakSubtractedClick(Sender: TObject);
   Select leak subtracted record file for viewing
   ----------------------------------------------}
 begin
-     fH := LeakFH ;
-     GetHeader( fH) ;
+     WCPFile.fH := WCPFile.LeakFH ;
+     WCPFile.GetHeader( WCPFile.fH) ;
      mnShowAveraged.checked := False ;
      mnShowRaw.checked :=  False ;
      mnShowDrivingFunction.checked := False ;
@@ -1769,8 +1347,8 @@ procedure TMain.mnShowDrivingFunctionClick(Sender: TObject);
   Select driving function records file for viewing
   ----------------------------------------------}
 begin
-     fH := DrvFH ;
-     GetHeader( fH ) ;
+     WCPFile.fH := WCPFile.DrvFH ;
+     WCPFile.GetHeader( WCPFile.fH ) ;
      mnShowAveraged.checked := False ;
      mnShowRaw.checked :=  False ;
      mnShowLeakSubtracted.checked := False ;
@@ -1816,9 +1394,9 @@ begin
      mnShowRaw.visible := False ;
 
      { Close files }
-     CloseAllDataFiles ;
+     WCPFile.CloseAllDataFiles ;
 
-     Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + ProgVersion ;
+     Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + WCPFile.ProgVersion ;
      
      end ;
 
@@ -1888,21 +1466,39 @@ procedure TMain.mnNewClick(Sender: TObject);
 { - Menu Item --------
   Create new data file
   --------------------}
+var
+    i : integer ;
 begin
 
      { Present user with standard Save File dialog box }
      SaveDialog.options := [ofOverwritePrompt,ofHideReadOnly,ofPathMustExist] ;
      SaveDialog.DefaultExt := 'WCP' ;
-     SaveDialog.FileName := CreateIndexedFileName( RawFH.FileName ) ;
+     SaveDialog.FileName := WCPFile.CreateIndexedFileName( WCPFile.RawFH.FileName ) ;
      SaveDialog.Filter := ' WCP Files (*.WCP)|*.WCP' ;
      SaveDialog.Title := 'New Data File' ;
-     if Settings.DataDirectory <> '' then begin
-        SaveDialog.InitialDir := Settings.DataDirectory ;
-        SetCurrentDir(Settings.DataDirectory) ;
+     if WCPFile.Settings.DataDirectory <> '' then begin
+        SaveDialog.InitialDir := WCPFile.Settings.DataDirectory ;
+        SetCurrentDir(WCPFile.Settings.DataDirectory) ;
         end;
 
-     if SaveDialog.execute then begin
-        CreateNewDataFile( SaveDialog.FileName ) ;
+     if SaveDialog.execute then
+        begin
+
+        WCPFile.CreateNewDataFile( SaveDialog.FileName ) ;
+
+        mnShowRaw.checked := False ;
+        mnShowAveraged.checked := False ;
+        mnShowAveraged.visible := False ;
+        mnShowLeakSubtracted.checked := False ;
+        mnShowLeakSubtracted.Visible := False ;
+
+        for i := 0 to MDIChildCount-1 do
+            if MDIChildren[i].Name = 'RecordFrm' then
+            begin
+            RecordFrm.caption := 'Record ' + WCPFile.RawFH.FileName ;
+            RecordFrm.edStatus.Text := '' ;
+            end ;
+
         // Update list of recently used files
         UpdateRecentFilesList ;
         end ;
@@ -1955,7 +1551,7 @@ begin
      DeleteRejected.Enabled := False ;
 
      { Enable setup, recording and simulation ... if a data file is open }
-     if RawFH.FileHandle >= 0 then begin
+     if WCPFile.RawFH.FileHandle >= 0 then begin
            { Allow these functions when a data file is open }
 //           mnRecordToDisk.Enabled := True ;
            mnClose.Enabled := True ;
@@ -1971,7 +1567,7 @@ begin
                end ;
 
            { Enable these functions when file contains data records }
-           if RawFH.NumRecords > 0 then begin
+           if WCPFile.RawFH.NumRecords > 0 then begin
               Analysis.Enabled := True ;
               mnPrint.Enabled := True ;
               mnExport.Enabled := True ;
@@ -1982,15 +1578,15 @@ begin
               mnShowRaw.Visible := True ;
 
               { Enable display of averages (if they exist) }
-              if (AvgFH.FileHandle > 0) and (AvgFH.NumRecords > 0) then
+              if (WCPFile.AvgFH.FileHandle > 0) and (WCPFile.AvgFH.NumRecords > 0) then
                  mnShowAveraged.visible := True
               else mnShowAveraged.visible := False ;
               { Enable display of leak subtracted records (if they exist) }
-              if (LeakFH.FileHandle > 0) and (LeakFH.NumRecords > 0) then
+              if (WCPFile.LeakFH.FileHandle > 0) and (WCPFile.LeakFH.NumRecords > 0) then
                  mnShowLeakSubtracted.visible := True
               else mnShowLeakSubtracted.visible := False ;
               { Enable display of leak subtracted records (if they exist) }
-              if (DrvFH.FileHandle > 0) and (DrvFH.NumRecords > 0) then
+              if (WCPFile.DrvFH.FileHandle > 0) and (WCPFile.DrvFH.NumRecords > 0) then
                  mnShowDrivingFunction.visible := True
               else mnShowDrivingFunction.visible := False ;
               end ;
@@ -2147,18 +1743,18 @@ begin
 
      try
         { Get record to be copied to WCP clipboard file }
-        GetRecord(FH,RH,FH.RecordNum,ADC^) ;
+        WCPFile.GetRecord(WCPFile.FH,RH,WCPFile.FH.RecordNum,ADC^) ;
         { Copy current file header into clipboard header }
-        ClipFH := FH ;
+        ClipFH := WCPFile.FH ;
         { Open the clipboard file }
         ClipFH.FileName := WCPClipboardFileName ;
         ClipFH.FileHandle := FileCreate( ClipFH.FileName ) ;
         if ClipFH.FileHandle >= 0 then begin
            ClipFH.NumRecords := 1 ;
            { Save record to file }
-           PutRecord(ClipFH,RH,ClipFH.NumRecords,ADC^) ;
-           SaveHeader( ClipFH ) ;
-           FileCloseSafe( ClipFH.FileHandle ) ;
+           WCPFile.PutRecord(ClipFH,RH,ClipFH.NumRecords,ADC^) ;
+           WCPFile.SaveHeader( ClipFH ) ;
+           WCPFile.FileCloseSafe( ClipFH.FileHandle ) ;
            end ;
         SetMenus ;
      finally
@@ -2198,33 +1794,33 @@ begin
 
         if OK then begin
            { Get file header data }
-           GetHeader( ClipFH ) ;
+           WCPFile.GetHeader( ClipFH ) ;
 
            { If the currently open data file is empty
            transfer the file header from the clipboard file }
-           if FH.NumRecords = 0 then begin
-              TempName := FH.FileName ;
-              TempHandle := FH.FileHandle ;
-              FH := ClipFH ;
-              FH.FileName := TempName ;
-              FH.FileHandle := TempHandle ;
+           if WCPFile.FH.NumRecords = 0 then begin
+              TempName := WCPFile.FH.FileName ;
+              TempHandle := WCPFile.FH.FileHandle ;
+              WCPFile.FH := ClipFH ;
+              WCPFile.FH.FileName := TempName ;
+              WCPFile.FH.FileHandle := TempHandle ;
               end ;
 
            { Calculate scaling factors to account for differences in channel
            calibration factors }
-           GetHeader( FH ) ;
-           for ch := 0 to FH.NumChannels-1 do begin
-               Scale[ch] := Channel[ch].ADCCalibrationFactor ;
+           WCPFile.GetHeader( WCPFile.FH ) ;
+           for ch := 0 to WCPFile.FH.NumChannels-1 do begin
+               Scale[ch] := WCPFile.Channel[ch].ADCCalibrationFactor ;
                end ;
-           GetHeader (ClipFH) ;
-           for ch := 0 to FH.NumChannels-1 do begin
-               Scale[ch] := Scale[ch] / Channel[ch].ADCCalibrationFactor ;
+           WCPFile.GetHeader (ClipFH) ;
+           for ch := 0 to WCPFile.FH.NumChannels-1 do begin
+               Scale[ch] := Scale[ch] / WCPFile.Channel[ch].ADCCalibrationFactor ;
                end ;
-           GetHeader( FH ) ;
+           WCPFile.GetHeader( WCPFile.FH ) ;
 
            { Check if the record is compatible with current file }
-           if (FH.NumChannels <> ClipFH.NumChannels) or
-              (FH.NumSamples <> ClipFH.NumSamples) then begin
+           if (WCPFile.FH.NumChannels <> ClipFH.NumChannels) or
+              (WCPFile.FH.NumSamples <> ClipFH.NumSamples) then begin
               ShowMessage( ' Record not added. Size or no. channels incompatible' ) ;
               OK := False ;
               end ;
@@ -2234,44 +1830,44 @@ begin
         { Insert/append record from clip file }
 
         if OK then begin
-           Inc(FH.NumRecords) ;
+           Inc(WCPFile.FH.NumRecords) ;
 
            if Sender = InsertRecord then begin
               { *** Insert record at current position in file *** }
               { Move all records above the current position up by 1 }
-              for i := FH.NumRecords-1 downto FH.CurrentRecord do begin
-                  GetRecord(FH,RH,i,ADC^) ;
-                  PutRecord(FH,RH,i+1,ADC^) ;
+              for i := WCPFile.FH.NumRecords-1 downto WCPFile.FH.CurrentRecord do begin
+                  WCPFile.GetRecord(WCPFile.FH,RH,i,ADC^) ;
+                  WCPFile.PutRecord(WCPFile.FH,RH,i+1,ADC^) ;
                   end ;
-              if FH.NumRecords = 1 then FH.CurrentRecord := 1 ;
-              InsertAt := FH.CurrentRecord ;
+              if WCPFile.FH.NumRecords = 1 then WCPFile.FH.CurrentRecord := 1 ;
+              InsertAt := WCPFile.FH.CurrentRecord ;
               end
            else begin
               { *** Append to end of file *** }
-              InsertAt := FH.NumRecords
+              InsertAt := WCPFile.FH.NumRecords
               end ;
 
            { Get record from WCP clipboard file }
-           GetRecord(ClipFH,RH,1,ADC^) ;
+           WCPFile.GetRecord(ClipFH,RH,1,ADC^) ;
            { Close file }
-           FileCloseSafe( ClipFH.FileHandle ) ;
+           WCPFile.FileCloseSafe( ClipFH.FileHandle ) ;
 
            { Adjust for possible differences in channel calibration factors }
-           for ch := 0 to FH.NumChannels-1 do begin
+           for ch := 0 to WCPFile.FH.NumChannels-1 do begin
                RH.ADCVoltageRange[ch] := RH.ADCVoltageRange[ch]*Scale[ch] ;
                end ;
 
            { Copy record to file }
-           PutRecord(FH,RH,InsertAt,ADC^) ;
-           SaveHeader(FH) ;
+           WCPFile.PutRecord(WCPFile.FH,RH,InsertAt,ADC^) ;
+           WCPFile.SaveHeader(WCPFile.FH) ;
 
            { Ensure that appropriate file header is updated }
-           UpdateFileHeaderBlocks ;
+           WCPFile.UpdateFileHeaderBlocks ;
 
-           if (FH.NumRecords = 1) then begin
+           if (WCPFile.FH.NumRecords = 1) then begin
               { If this is the first record of a raw data file after New File
               enable menus and display the View window }
-              FH := RawFH ;
+              WCPFile.FH := WCPFile.RawFH ;
               SetMenus ;
               mnShowRaw.click ;
               end
@@ -2316,33 +1912,33 @@ begin
 
         if OK then begin
            { Get file header data }
-           GetHeader( ClipFH ) ;
+           WCPFile.GetHeader( ClipFH ) ;
 
            { If the currently open data file is empty
            transfer the file header from the clipboard file }
-           if FH.NumRecords = 0 then begin
-              TempName := FH.FileName ;
-              TempHandle := FH.FileHandle ;
-              FH := ClipFH ;
-              FH.FileName := TempName ;
-              FH.FileHandle := TempHandle ;
+           if WCPFile.FH.NumRecords = 0 then begin
+              TempName := WCPFile.FH.FileName ;
+              TempHandle := WCPFile.FH.FileHandle ;
+              WCPFile.FH := ClipFH ;
+              WCPFile.FH.FileName := TempName ;
+              WCPFile.FH.FileHandle := TempHandle ;
               end ;
 
            { Calculate scaling factors to account for differences in channel
            calibration factors }
-           GetHeader( FH ) ;
-           for ch := 0 to FH.NumChannels-1 do begin
-               Scale[ch] := Channel[ch].ADCCalibrationFactor ;
+           WCPFile.GetHeader( WCPFile.FH ) ;
+           for ch := 0 to WCPFile.FH.NumChannels-1 do begin
+               Scale[ch] := WCPFile.Channel[ch].ADCCalibrationFactor ;
                end ;
-           GetHeader (ClipFH) ;
-           for ch := 0 to FH.NumChannels-1 do begin
-               Scale[ch] := Scale[ch] / Channel[ch].ADCCalibrationFactor ;
+           WCPFile.GetHeader (ClipFH) ;
+           for ch := 0 to WCPFile.FH.NumChannels-1 do begin
+               Scale[ch] := Scale[ch] / WCPFile.Channel[ch].ADCCalibrationFactor ;
                end ;
-           GetHeader( FH ) ;
+           WCPFile.GetHeader( WCPFile.FH ) ;
 
            { Check if the record is compatible with current file }
-           if (FH.NumChannels <> ClipFH.NumChannels) or
-              (FH.NumSamples <> ClipFH.NumSamples) then begin
+           if (WCPFile.FH.NumChannels <> ClipFH.NumChannels) or
+              (WCPFile.FH.NumSamples <> ClipFH.NumSamples) then begin
               ShowMessage( ' Record not added. Size or no. channels incompatible' ) ;
               OK := False ;
               end ;
@@ -2351,44 +1947,44 @@ begin
         { Insert/append record from clip file }
 
         if OK then begin
-           Inc(FH.NumRecords) ;
+           Inc(WCPFile.FH.NumRecords) ;
 
            if Sender = InsertRecord then begin
               { *** Insert record at current position in file *** }
               { Move all records above the current position up by 1 }
-              for i := FH.NumRecords-1 downto FH.CurrentRecord do begin
-                  GetRecord(FH,RH,i,ADC^) ;
-                  PutRecord(FH,RH,i+1,ADC^) ;
+              for i := WCPFile.FH.NumRecords-1 downto WCPFile.FH.CurrentRecord do begin
+                  WCPFile.GetRecord(WCPFile.FH,RH,i,ADC^) ;
+                  WCPFile.PutRecord(WCPFile.FH,RH,i+1,ADC^) ;
                   end ;
-              if FH.NumRecords = 1 then FH.CurrentRecord := 1 ;
-              InsertAt := FH.CurrentRecord ;
+              if WCPFile.FH.NumRecords = 1 then WCPFile.FH.CurrentRecord := 1 ;
+              InsertAt := WCPFile.FH.CurrentRecord ;
               end
            else begin
               { *** Append to end of file *** }
-              InsertAt := FH.NumRecords
+              InsertAt := WCPFile.FH.NumRecords
               end ;
 
            { Get record from WCP clipboard file }
-           GetRecord(ClipFH,RH,1,ADC^) ;
+           WCPFile.GetRecord(ClipFH,RH,1,ADC^) ;
            { Close file }
-           FileCloseSafe( ClipFH.FileHandle ) ;
+           WCPFile.FileCloseSafe( ClipFH.FileHandle ) ;
 
            { Adjust for possible differences in channel calibration factors }
-           for ch := 0 to FH.NumChannels-1 do begin
+           for ch := 0 to WCPFile.FH.NumChannels-1 do begin
                RH.ADCVoltageRange[ch] := RH.ADCVoltageRange[ch]*Scale[ch] ;
                end ;
 
            { Copy record to file }
-           PutRecord(FH,RH,InsertAt,ADC^) ;
-           SaveHeader(FH) ;
+           WCPFile.PutRecord(WCPFile.FH,RH,InsertAt,ADC^) ;
+           WCPFile.SaveHeader(WCPFile.FH) ;
 
            { Ensure that appropriate file header is updated }
-           UpdateFileHeaderBlocks ;
+           WCPFIle.UpdateFileHeaderBlocks ;
 
-           if (FH.NumRecords = 1) then begin
+           if (WCPFile.FH.NumRecords = 1) then begin
               { If this is the first record of a raw data file after New File
               enable menus and display the View window }
-              FH := RawFH ;
+              WCPFile.FH := WCPFile.RawFH ;
               SetMenus ;
               mnShowRaw.click ;
               end
@@ -2407,70 +2003,15 @@ procedure TMain.DeleteRecordClick(Sender: TObject);
   Delete a signal record from the data file
   31/5/98 File header blocks updated when a record is deleted
   -----------------------------------------------------------}
-var
-   RH : TRecHeader ;
-   i,iDelete : Integer ;
-   TempFH : TFileHeader ;
-   ADC : ^TSmallIntArray ;
-   OK : Boolean ;
 begin
-    OK := True ;
-    New(ADC) ;
-
-    try
-       if MessageDlg( 'Delete record! Are you Sure? ', mtConfirmation,
-          [mbYes,mbNo], 0 ) = mrNo then OK := False ;
-
-       { Create temporary file }
-       if OK then begin
-          TempFH := FH ;
-          TempFH.FileName := ChangeFileExt( FH.FileName, '.tmp' ) ;
-          TempFH.FileHandle := FileCreate( TempFH.FileName ) ;
-          if TempFH.FileHandle < 0 then begin
-             ShowMessage( ' Unable to open ' + TempFH.FileName ) ;
-             OK := False ;
-             end ;
-          end ;
-
-       { Copy all records except the current one to the temp. file }
-       if OK then begin
-          TempFH.NumRecords := 0 ;
-          iDelete := FH.RecordNum ;
-          for i := 1 to FH.NumRecords do begin
-              GetRecord(FH,RH,i,ADC^) ;
-              if i <> iDelete then begin
-                 Inc(TempFH.NumRecords) ;
-                 PutRecord(TempFH,RH,TempFH.NumRecords,ADC^) ;
-                 end ;
-              end ;
-          SaveHeader( TempFH ) ;
-
-          { Close temporary and original file }
-          FileCloseSafe( TempFH.FileHandle) ;
-          FileCloseSafe( FH.FileHandle ) ;
-
-          { Delete original file }
-          DeleteFile( PChar(FH.FileName) ) ;
-          { Rename temp. file }
-          if not RenameFile( TempFH.FileName, FH.FileName ) then
-             ShowMessage( ' Renaming of' + TempFH.FileName + ' failed' ) ;
-          { Re-open file }
-          FH.FileHandle := FileOpen( FH.FileName, fmOpenReadWrite  or fmShareDenyWrite) ;
-          GetHeader( FH ) ;
-
-          { Update data file header (added 31/5/98) }
-          UpdateFileHeaderBlocks ;
-          // Display next record after deleted
-          FH.RecordNum := Min(iDelete,FH.NumRecords) ;
+    if MessageDlg( 'Delete record! Are you Sure? ', mtConfirmation,
+          [mbYes,mbNo], 0 ) = mrYes then
+          begin
+          WCPFile.DeleteRecord ;
           { Refresh child windows }
           UpdateMDIWindows ;
-
-
           end ;
 
-       finally
-          Dispose(ADC) ;
-          end ;
     end ;
 
 
@@ -2478,68 +2019,16 @@ procedure TMain.DeleteRejectedClick(Sender: TObject);
 { - Menu Item ------------------------------
   Delete rejected records from the data file
   ------------------------------------------}
-var
-   i : Integer ;
-   TempFH : TFileHeader ;
-   RH : TRecHeader ;
-   ADC : ^TSmallIntArray ;
-   OK : Boolean ;
 begin
 
-     OK := True ;
-     New(ADC) ;
+     if MessageDlg( 'Delete rejected records! Are you Sure? ', mtConfirmation,
+                    [mbYes,mbNo], 0 ) = mrYes then
+       begin
+       WCPFile.DeleteRejected ;
+       { Refresh child windows }
+       UpdateMDIWindows ;
+       end ;
 
-     try
-        if MessageDlg( 'Delete rejected records! Are you Sure? ', mtConfirmation,
-           [mbYes,mbNo], 0 ) = mrNo then OK := False ;
-
-        if OK then begin
-           { Create temporary file }
-           TempFH := FH ;
-           TempFH.FileName := ChangeFileExt( FH.FileName, '.tmp' ) ;
-           TempFH.FileHandle := FileCreate( TempFH.FileName ) ;
-           if TempFH.FileHandle < 0 then begin
-              ShowMessage( ' Unable to open ' + TempFH.FileName ) ;
-              OK := False ;
-              end ;
-          end ;
-
-        { Copy all records except rejected one to the temp. file }
-        if OK then begin
-           TempFH.NumRecords := 0 ;
-           for i := 1 to FH.NumRecords do begin
-               GetRecord(FH,RH,i,ADC^) ;
-               if RH.Status = 'ACCEPTED' then begin
-                  Inc(TempFH.NumRecords) ;
-                  PutRecord(TempFH,RH,TempFH.NumRecords,ADC^) ;
-                  end ;
-               end ;
-           SaveHeader( TempFH ) ;
-
-           { Close temporary and original file }
-           FileCloseSafe( TempFH.FileHandle) ;
-           FileCloseSafe( FH.FileHandle ) ;
-           { Delete original file }
-           DeleteFile( PChar(FH.FileName) ) ;
-
-           { Rename temp. file }
-           if not RenameFile( PChar(TempFH.FileName), FH.FileName ) then
-              ShowMessage( ' Renaming of' + TempFH.FileName + ' failed' ) ;
-
-           { Re-open file }
-           FH.FileHandle := FileOpen( FH.FileName, fmOpenReadWrite  or fmShareDenyWrite) ;
-           GetHeader( FH ) ;
-
-           { Update file header blocks with changes made to FH }
-           UpdateFileHeaderBlocks ;
-
-           { Refresh child windows }
-           UpdateMDIWindows ;
-           end ;
-
-     finally
-        Dispose(ADC) ;
-        end ;
      end;
 
 
@@ -2552,17 +2041,6 @@ begin
      AboutDlg.ShowModal ;
      end;
 
-
-procedure TMain.UpdateFileHeaderBlocks ;
-{ --------------------------------------------------------------------
-  Update original copies of file header blocks when changed made to FH
-  --------------------------------------------------------------------}
-begin
-       if FH.FileName = RawFH.FileName then RawFH := FH
-       else if FH.FileName = AvgFH.FileName then AvgFH := FH
-       else if FH.FileName = LeakFH.FileName then LeakFH := FH
-       else if FH.FileName = DrvFH.FileName then DrvFH := FH ;
-       end ;
 
 
 procedure TMain.EditRecordClick(Sender: TObject);
@@ -2583,7 +2061,7 @@ begin
 
 
 
-procedure TMain.InspectLogFileClick(Sender: TObject);
+procedure TMain.mnInspectLogFileClick(Sender: TObject);
 // -----------------------
 // Display log file window
 // -----------------------
@@ -2660,7 +2138,7 @@ begin
           for i := 0 to MDIChildCount-1 do MDICHildren[i].Close ;
 
      if ImportFromDataFile then begin
-        LoadDataFiles(RawFH.FileName) ;
+        WCPFile.LoadDataFiles(WCPFile.RawFH.FileName) ;
         // Update list of recently used files
         UpdateRecentFilesList ;
         end ;
@@ -2687,12 +2165,6 @@ var
     i : Integer ;
 begin
 
-        { Close data files }
-        CloseAllDataFiles ;
-
-        { Close log file }
-        CloseLogFile ;
-
        { Close recording and seal test windows to ensure that
          laboratory interface systems are shutdown (to avoid system crash }
        for i := 0 to MDIChildCount-1 do begin
@@ -2702,11 +2174,6 @@ begin
          if MDIChildren[i].Name = 'RecordFrm' then RecordFrm.Close ;
          end ;
 
-        { Save initialization file }
-        SaveInitializationFile( SettingsFileName ) ;
-
-        RecordTypes.Free ;
-        ChannelNames.Free ;
 
 end;
 
@@ -2795,20 +2262,20 @@ begin
      OpenDialog.DefaultExt := 'DAT' ;
      OpenDialog.Filter := ' WCP Files (*.WCP)|*.WCP';
      OpenDialog.Title := 'Append File ' ;
-     if Settings.DataDirectory <> '' then SetCurrentDir(Settings.DataDirectory) ;
-     OpenDialog.InitialDir := Settings.DataDirectory ;
+     if WCPFile.Settings.DataDirectory <> '' then SetCurrentDir(WCPFile.Settings.DataDirectory) ;
+     OpenDialog.InitialDir := WCPFile.Settings.DataDirectory ;
 
      if OpenDialog.execute then begin
 
-        Settings.DataDirectory := ExtractFilePath( OpenDialog.FileName ) ;
+        WCPFile.Settings.DataDirectory := ExtractFilePath( OpenDialog.FileName ) ;
 
-        AppendWCPFile( OpenDialog.FileName ) ;
-        fH := RawFH ;
+        WCPFile.AppendWCPFile( OpenDialog.FileName ) ;
+        WCPFile.fH := WCPFile.RawFH ;
 
         UpdateMDIWindows ;
 
         { Set display magnification to minimum }
-        if fH.NumRecords > 0 then begin
+        if WCPFile.fH.NumRecords > 0 then begin
            mnZoomOutAll.Click ;
            mnShowRaw.Visible := True ;
            mnShowRaw.Click ;
@@ -2816,7 +2283,7 @@ begin
         else mnShowRaw.Visible := False ;
         SetMenus ;
         { Update file header blocks with changes made to FH }
-        UpdateFileHeaderBlocks ;
+        WCPFile.UpdateFileHeaderBlocks ;
         end ;
      end;
 
@@ -2853,7 +2320,7 @@ begin
           for i := 0 to MDIChildCount-1 do MDICHildren[i].Close ;
 
      { Close all files }
-     CloseAllDataFiles ;
+     WCPFile.CloseAllDataFiles ;
 
      { Let form close messages be processed }
      Application.ProcessMessages ;
@@ -2872,7 +2339,7 @@ begin
         end
      else begin
         { If no replay form ... create one }
-        if RawfH.NumRecords > 0 then ReplayFrm := TReplayFrm.Create(Self) ;
+        if WCPFile.RawfH.NumRecords > 0 then ReplayFrm := TReplayFrm.Create(Self) ;
         end ;
 
      if FormExists( 'MeasureFrm' ) then MeasureFrm.NewFile ;
@@ -2884,27 +2351,6 @@ begin
      end;
 
 
-procedure TMain.CloseAllDataFiles ;
-{ -------------------------
-  Close all open data files
-  -------------------------}
-begin
-
-     if  RawFH.FileHandle >= 0 then begin
-         { Close raw data file }
-         FileCloseSafe( RawFH.FileHandle) ;
-         end ;
-
-     { Close averages file }
-     FileCloseSafe( AvgFH.FileHandle) ;
-
-     { Close leak subtracted file }
-     FileCloseSafe( LeakFH.FileHandle) ;
-
-     { Close driving function file }
-     FileCloseSafe( DrvFH.FileHandle) ;
-
-     end ;
 
 
 procedure TMain.NewFileUpdate ;
@@ -2937,9 +2383,9 @@ var
 begin
      { Get file name. Note, the .Tag property of the menu item was set
        at design time to point to the appropriate RecentFiles array item }
-     FileName := Settings.RecentFiles[TMenuItem(Sender).Tag] ;
+     FileName := WCPFile.Settings.RecentFiles[TMenuItem(Sender).Tag] ;
      if (FileName <> '') and FileExists(FileName) then begin
-        if (FileGetAttr(FileName) AND faReadOnly) = 0 then LoadDataFiles( FileName )
+        if (FileGetAttr(FileName) AND faReadOnly) = 0 then WCPFile.LoadDataFiles( FileName )
         else ShowMessage( FileName + ' is READ-ONLY. Unable to open!' ) ;
         end ;
      end;
@@ -2961,7 +2407,7 @@ begin
        else if MDIChildren[I].Name = 'MeasureFrm' then
           TMeasureFrm(MDIChildren[I]).SetStoreMode(mnStoreTraces.Checked) ;
        end ;
-     Settings.AutoErase := not mnStoreTraces.Checked ;
+     WCPFile.Settings.AutoErase := not mnStoreTraces.Checked ;
      end;
 
 
@@ -2970,8 +2416,8 @@ procedure TMain.mnDisplayGridClick(Sender: TObject);
   Enable/display grid overlay on oscilloscope displays
   ----------------------------------------------------- }
 begin
-     Settings.DisplayGrid := not Settings.DisplayGrid ;
-     mnDisplayGrid.Checked := Settings.DisplayGrid ;
+     WCPFile.Settings.DisplayGrid := not WCPFile.Settings.DisplayGrid ;
+     mnDisplayGrid.Checked := WCPFile.Settings.DisplayGrid ;
      UpdateDisplays ;
 
      end;
@@ -3076,8 +2522,8 @@ var
 begin
      { Determine how many channels are on display }
      NumChannelsOnDisplay := 0 ;
-     for ch := 0 to RawFH.NumChannels-1 do
-         if Channel[ch].InUse then Inc(NumChannelsOnDisplay) ;
+     for ch := 0 to WCPFile.RawFH.NumChannels-1 do
+         if WCPFile.Channel[ch].InUse then Inc(NumChannelsOnDisplay) ;
 
      { Toggle menu checked state }
      TMenuItem(Sender).Checked := not TMenuItem(Sender).Checked ;
@@ -3085,32 +2531,12 @@ begin
      if (NumChannelsOnDisplay=1) and (TMenuItem(Sender).Checked=False) then
         TMenuItem(Sender).Checked := True ;
      { Update channel display setting N.B. Tag property contains channel # }
-     Channel[TMenuItem(Sender).Tag].InUse := TMenuItem(Sender).Checked ;
+     WCPFile.Channel[TMenuItem(Sender).Tag].InUse := TMenuItem(Sender).Checked ;
      { Update windows currently open }
      UpdateMDIWindows ;
      end;
 
 
-procedure TMain.UpdateChannelScalingFactors(
-          var RH : TRecHeader ) ;
-// ------------------------------
-// Update channel scaling factors
-// ------------------------------
-var
-   ch : Integer ;
-begin
-     for ch := 0 to RawFH.NumChannels-1 do begin
-
-         // Ensure that calibration factor is non-zero
-         if Channel[ch].ADCCalibrationFactor = 0.0 then
-            Channel[ch].ADCCalibrationFactor := 0.001 ;
-
-         // Calculate bits->units scaling factor
-         Channel[ch].ADCScale := Abs(RH.ADCVoltageRange[ch]) /
-                                (Channel[ch].ADCCalibrationFactor
-                                 *(Main.SESLabIO.ADCMaxValue+1) ) ;
-         end ;
-     end ;
 
 
 procedure TMain.mnInterleaveClick(Sender: TObject);
@@ -3122,20 +2548,20 @@ begin
      OpenDialog.DefaultExt := 'WCP' ;
      OpenDialog.Filter := ' WCP Files (*.WCP)|*.WCP';
      OpenDialog.Title := 'Interleave File ' ;
-     if Settings.DataDirectory <> '' then SetCurrentDir(Settings.DataDirectory);
-     OpenDialog.InitialDir := Settings.DataDirectory ;
+     if WCPFile.Settings.DataDirectory <> '' then SetCurrentDir(WCPFile.Settings.DataDirectory);
+     OpenDialog.InitialDir := WCPFile.Settings.DataDirectory ;
 
      if OpenDialog.execute then begin
 
-        Settings.DataDirectory := ExtractFilePath( OpenDialog.FileName ) ;
+        WCPFile.Settings.DataDirectory := ExtractFilePath( OpenDialog.FileName ) ;
 
-        InterleaveWCPFile( OpenDialog.FileName ) ;
-        fH := RawFH ;
+        WCPFile.InterleaveWCPFile( OpenDialog.FileName ) ;
+        WCPFile.fH := WCPFile.RawFH ;
 
         UpdateMDIWindows ;
 
         { Set display magnification to minimum }
-        if fH.NumRecords > 0 then begin
+        if WCPFile.fH.NumRecords > 0 then begin
            mnZoomOutAll.Click ;
            mnShowRaw.Visible := True ;
            mnShowRaw.Click ;
@@ -3143,7 +2569,7 @@ begin
         else mnShowRaw.Visible := False ;
         SetMenus ;
         { Update file header blocks with changes made to FH }
-        UpdateFileHeaderBlocks ;
+        WCPFile.UpdateFileHeaderBlocks ;
         end ;
      end;
 
@@ -3219,9 +2645,9 @@ begin
      OpenDialog.FileName := '' ;
 
      OpenDialog.Title := 'Import File ' ;
-     if Settings.DataDirectory <> '' then begin
-        SetCurrentDir(Settings.DataDirectory);
-        OpenDialog.InitialDir := Settings.DataDirectory ;
+     if WCPFile.Settings.DataDirectory <> '' then begin
+        SetCurrentDir(WCPFile.Settings.DataDirectory);
+        OpenDialog.InitialDir := WCPFile.Settings.DataDirectory ;
         end;
 
      if not OpenDialog.execute then Exit ;
@@ -3229,14 +2655,14 @@ begin
      for iFile := 0 to OpenDialog.Files.Count-1 do
          begin
 
-         Settings.DataDirectory := ExtractFilePath( OpenDialog.FileName ) ;
+         WCPFile.Settings.DataDirectory := ExtractFilePath( OpenDialog.FileName ) ;
          FileType := Filters[OpenDialog.FilterIndex].FType ;
          FileName := OpenDialog.Files[iFile] ;
 
          { Create name of WCP file to hold imported file }
          WCPFileName := ChangeFileExt( FileName, DataFileExtension ) ;
          { Make sure an existing data file is not overwritten, unintentionally }
-         if not FileOverwriteCheck(WCPFileName ) then Exit ;
+         if not WCPFile.FileOverwriteCheck(WCPFileName ) then Exit ;
 
          // Report progress
          Main.StatusBar.SimpleText := format(
@@ -3278,68 +2704,68 @@ begin
              end ;
 
          { Create WCP data file to hold import}
-         if not CreateNewDataFile( WCPFileName ) then Exit ;
+         if not WCPFile.CreateNewDataFile( WCPFileName ) then Exit ;
 
          GetMem( Buf, SizeOf(TSmallIntArray)) ;
-         RawFH.NumChannels := Main.ImportFile.NumChannelsPerScan ;
+         WCPFile.RawFH.NumChannels := Main.ImportFile.NumChannelsPerScan ;
 
          // Ensure that no. of samples/channel is multiple of 256
-         RawFH.NumSamples := (Main.ImportFile.NumScansPerRecord div 256)*256 ;
-         if RawFH.NumSamples < Main.ImportFile.NumScansPerRecord then
-         RawFH.NumSamples := RawFH.NumSamples + 256 ;
+         WCPFile.RawFH.NumSamples := (Main.ImportFile.NumScansPerRecord div 256)*256 ;
+         if WCPFile.RawFH.NumSamples < Main.ImportFile.NumScansPerRecord then
+         WCPFile.RawFH.NumSamples := WCPFile.RawFH.NumSamples + 256 ;
 
-         RawFH.NumAnalysisBytesPerRecord := NumAnalysisBytesPerRecord(RawFH.NumChannels) ;
-         RawFH.MaxADCValue := Main.ImportFile.MaxADCValue ;
-         RawFH.MinADCValue := Main.ImportFile.MinADCValue ;
-         RawFH.IdentLine := Main.ImportFile.IdentLine ;
+         WCPFile.RawFH.NumAnalysisBytesPerRecord := WCPFile.NumAnalysisBytesPerRecord(WCPFile.RawFH.NumChannels) ;
+         WCPFile.RawFH.MaxADCValue := Main.ImportFile.MaxADCValue ;
+         WCPFile.RawFH.MinADCValue := Main.ImportFile.MinADCValue ;
+         WCPFile.RawFH.IdentLine := Main.ImportFile.IdentLine ;
 
          { Copy records }
-         RawFH.NumRecords := 0 ;
+         WCPFile.RawFH.NumRecords := 0 ;
          for iRec := 1 to Main.ImportFile.NumRecords do
              begin
              Main.ImportFile.RecordNum := iRec ;
-             RawFH.ADCVoltageRange := Main.ImportFile.ChannelADCVoltageRange[0] ;
+             WCPFile.RawFH.ADCVoltageRange := Main.ImportFile.ChannelADCVoltageRange[0] ;
              for ch := 0 to Main.ImportFile.NumChannelsPerScan-1 do
                  begin
-                 Channel[ch].ChannelOffset := Main.ImportFile.ChannelOffset[ch] ;
-                 Channel[ch].ADCName := Main.ImportFile.ChannelName[ch] ;
-                 Channel[ch].ADCUnits := Main.ImportFile.ChannelUnits[ch] ;
-                 Channel[ch].ADCSCale := Main.ImportFile.ChannelScale[ch] ;
-                 Channel[ch].ADCCalibrationFactor := Main.ImportFile.ChannelCalibrationFactor[ch] ;
-                 Channel[ch].ADCAmplifierGain := Main.ImportFile.ChannelGain[ch] ;
-                 Channel[ch].YMax := RawFH.MaxADCValue ;
-                 Channel[ch].YMin := RawFH.MinADCValue ;
+                 WCPFile.Channel[ch].ChannelOffset := Main.ImportFile.ChannelOffset[ch] ;
+                 WCPFile.Channel[ch].ADCName := Main.ImportFile.ChannelName[ch] ;
+                 WCPFile.Channel[ch].ADCUnits := Main.ImportFile.ChannelUnits[ch] ;
+                 WCPFile.Channel[ch].ADCSCale := Main.ImportFile.ChannelScale[ch] ;
+                 WCPFile.Channel[ch].ADCCalibrationFactor := Main.ImportFile.ChannelCalibrationFactor[ch] ;
+                 WCPFile.Channel[ch].ADCAmplifierGain := Main.ImportFile.ChannelGain[ch] ;
+                 WCPFile.Channel[ch].YMax := WCPFile.RawFH.MaxADCValue ;
+                 WCPFile.Channel[ch].YMin := WCPFile.RawFH.MinADCValue ;
                  end ;
 
              { Copy sampling interval and A/D range }
-             RawFH.dt := Main.ImportFile.ScanInterval ;
-             RawFH.ADCVoltageRange := Main.ImportFile.ChannelADCVoltageRange[0] ;
+             WCPFile.RawFH.dt := Main.ImportFile.ScanInterval ;
+             WCPFile.RawFH.ADCVoltageRange := Main.ImportFile.ChannelADCVoltageRange[0] ;
 
              // Read A/D sample from source file
              NumRead := Main.ImportFile.LoadADCBuffer(0,Main.ImportFile.NumScansPerRecord,Buf^ ) ;
              if NumRead <= 0 then Break ;
 
              // Pad end of buffer
-             j0 := (NumRead-1)*RawFH.NumChannels ;
-             for i := NumRead-1 to RawFH.NumSamples-1 do
+             j0 := (NumRead-1)*WCPFile.RawFH.NumChannels ;
+             for i := NumRead-1 to WCPFile.RawFH.NumSamples-1 do
                  begin
-                 j := i*RawFH.NumChannels ;
-                 for ch := 0 to RawFH.NumChannels-1 do Buf^[j+ch] := Buf^[j0+ch] ;
+                 j := i*WCPFile.RawFH.NumChannels ;
+                 for ch := 0 to WCPFile.RawFH.NumChannels-1 do Buf^[j+ch] := Buf^[j0+ch] ;
                  end ;
 
              { Save record to file }
-             Inc(RawFH.NumRecords) ;
+             Inc(WCPFile.RawFH.NumRecords) ;
              RH.Status := 'ACCEPTED' ;
              RH.RecType := 'TEST' ;
-             RH.Number := RawFH.NumRecords ;
+             RH.Number := WCPFile.RawFH.NumRecords ;
              RH.Time := RH.Number ;
-             RH.dt := RawfH.dt ;
+             RH.dt := WCPFile.RawfH.dt ;
              RH.Ident := ' ' ;
-             for ch := 0 to RawFH.NumChannels do RH.ADCVoltageRange[ch] :=
+             for ch := 0 to WCPFile.RawFH.NumChannels do RH.ADCVoltageRange[ch] :=
                                                  Main.ImportFile.ChannelADCVoltageRange[ch] ;
              RH.Value[vFitEquation] := 0.0 ;
              RH.AnalysisAvailable := False ;
-             PutRecord( RawfH, RH, RawfH.NumRecords, Buf^ ) ;
+             WCPFile.PutRecord( WCPFile.RawfH, RH, WCPFile.RawfH.NumRecords, Buf^ ) ;
 
              // Report progress
              Main.StatusBar.SimpleText := format(
@@ -3355,20 +2781,20 @@ begin
           Main.ImportFile.NumScansPerRecord,
           Main.ImportFile.NumChannelsPerScan,
           FileName,
-          RawFH.FileName]) ;
-        WriteToLogFile( Main.StatusBar.SimpleText ) ;
+          WCPFile.RawFH.FileName]) ;
+        WCPFile.WriteToLogFile( Main.StatusBar.SimpleText ) ;
 
         { Save file header }
-        SaveHeader( RawFH ) ;
+        WCPFile.SaveHeader( WCPFile.RawFH ) ;
 
         { Close source file }
         Main.ImportFile.CloseDataFile ;
 
         { Close dest. file }
-        if RawFH.FileHandle >= 0 then
+        if WCPFile.RawFH.FileHandle >= 0 then
            begin
-           FileClose( RawFH.FileHandle ) ;
-           RawFH.FileHandle := -1 ;
+           FileClose( WCPFile.RawFH.FileHandle ) ;
+           WCPFile.RawFH.FileHandle := -1 ;
            end ;
 
         FreeMem ( Buf ) ;
@@ -3378,131 +2804,7 @@ begin
      end ;
 
 
-function TMain.CreateNewDataFile(
-         FileName : String
-         ) : Boolean ;
-// --------------------------------
-// Create new (and empty) data file
-// --------------------------------
-var
-     i,ch : Integer ;
-     TempFile : String ;
-begin
 
-     { Close any existing data file }
-     CloseAllDataFiles ;
-
-     mnShowRaw.checked := False ;
-     mnShowAveraged.checked := False ;
-     mnShowAveraged.visible := False ;
-     mnShowLeakSubtracted.checked := False ;
-     mnShowLeakSubtracted.Visible := False ;
-
-     { Open new and empty data file }
-     RawFH.FileName := FileName ;
-     RawFH.FileName := ChangeFileExt( RawFH.FileName, '.wcp' ) ;
-     RawFH.FileHandle := FileCreate( RawFH.FileName ) ;
-     if RawFH.FileHandle >= 0 then begin
-        // Re-open allowing read only sharing
-        FileClose( RawFH.FileHandle ) ;
-        RawFH.FileHandle := FileOpen(  RawFH.FileName, fmOpenReadWrite or fmShareDenyWrite ) ;
-        end ;
-
-     // Time created
-     RawFH.CreationTime := DateToStr(Now) ;
-     RawFH.ProgVersion := ProgVersion ;    // WinWCP program version
-     RawFH.NumRecords := 0 ;
-
-     { Set No. of bytes in analysis record to default value }
-     RawFH.NumAnalysisBytesPerRecord := NumAnalysisBytesPerRecord(RawFH.NumChannels) ;
-     for ch := 0 to RawFH.NumChannels-1 do Channel[ch].InUse := True ;
-     SaveHeader( RawFH ) ;
-
-     for i := 0 to MDIChildCount-1 do
-         if MDIChildren[i].Name = 'RecordFrm' then begin
-            RecordFrm.caption := 'Record ' + RawFH.FileName ;
-            RecordFrm.edStatus.Text := '' ;
-            end ;
-
-     { Delete averages file (if it exists) }
-     TempFile := ChangeFileExt( RawFH.FileName, '.avg' ) ;
-     if FileExists(TempFile) then DeleteFile(PChar(TempFile)) ;
-     { Delete leak subtraction file (if it exists) }
-     TempFile := ChangeFileExt( RawFH.FileName, '.sub' ) ;
-     if FileExists(TempFile) then DeleteFile(PChar(TempFile)) ;
-     TempFile := ChangeFileExt( RawFH.FileName, '.dfn' ) ;
-     if FileExists(TempFile) then DeleteFile(PChar(TempFile)) ;
-
-     { Re-load empty data file }
-     LoadDataFiles( RawFH.FileName ) ;
-
-     WriteToLogFile( 'New data file: ' + RawFH.FileName + ' created.' ) ;
-     Result := True ;
-
-     end ;
-
-
-function TMain.CreateIndexedFileName(
-         FileName : String ) : String ;
-// ---------------------------------------------------
-// Append an (incremented) index number to end of file
-// ---------------------------------------------------
-var
-     i : Integer ;
-     ExtensionStart : Integer ;
-     IndexNumberStart : Integer ;
-     IndexNum : Integer ;
-     sDate,NewFileName : String ;
-     FileStem : String ;
-begin
-
-     // Create new file name based on date
-
-     DateTimeToString( sDate, 'yymmdd', Date() ) ;
-     FileName := Settings.DataDirectory  + Settings.FileNamePrefix ;
-     if Settings.FileNameIncludeDate then FileName := FileName + sDate ;
-     FileName := FileName + '.wcp' ;
-
-     // Find '_nnn' index number (if it exists)
-     i := Length(FileName) ;
-     ExtensionStart := Length(FileName)+1 ;
-     IndexNumberStart := -1 ;
-     While (i > 0) do begin
-         if FileName[i] = '.' then ExtensionStart := i ;
-         if FileName[i] = '_' then begin
-            IndexNumberStart := i ;
-            Break ;
-            end ;
-         Dec(i) ;
-         end ;
-
-     if ((ExtensionStart - IndexNumberStart) > 4)
-        or (ExtensionStart < 5) then IndexNumberStart := -1 ;
-
-     // Find next available (lowest) index number for this file name
-
-     FileStem :=  '' ;
-     if IndexNumberStart > 0 then begin
-        for i := 1 to IndexNumberStart-1 do
-            FileStem :=  FileStem + FileName[i] ;
-        end
-     else begin
-        for i := 1 to ExtensionStart-1 do
-            FileStem :=  FileStem + FileName[i] ;
-        end ;
-
-     IndexNum := 0 ;
-     repeat
-          Inc(IndexNum) ;
-          NewFileName := FileStem + format('_%.3d',[IndexNum]) ;
-          for i := ExtensionStart to Length(FileName) do
-              NewFileName := NewFileName + FileName[i] ;
-          until not FileExists(NewFileName) ;
-
-     // Return name
-     Result := NewFileName ;
-
-     end ;
 
 
 procedure TMain.mnZoomInCh0Click(Sender: TObject);
@@ -3589,13 +2891,13 @@ begin
      mnShowLeakSubtracted.Enabled := Enabled ;
      mnShowDrivingFunction.Enabled := Enabled ;
 
-     if RawFH.FileHandle >= 0 then mnShowRaw.Visible := True
+     if WCPFile.RawFH.FileHandle >= 0 then mnShowRaw.Visible := True
                               else mnShowRaw.Visible := False ;
-     if AvgFH.FileHandle >= 0 then mnShowAveraged.Visible := True
+     if WCPFile.AvgFH.FileHandle >= 0 then mnShowAveraged.Visible := True
                               else mnShowAveraged.Visible := False ;
-     if LeakFH.FileHandle >= 0 then mnShowLeakSubtracted.Visible := True
+     if WCPFile.LeakFH.FileHandle >= 0 then mnShowLeakSubtracted.Visible := True
                                else mnShowLeakSubtracted.Visible := False ;
-     if DrvFH.FileHandle >= 0 then mnShowDrivingFunction.Visible := True
+     if WCPFile.DrvFH.FileHandle >= 0 then mnShowDrivingFunction.Visible := True
                                else mnShowDrivingFunction.Visible := False ;
 
      end;
@@ -3723,8 +3025,9 @@ begin
         EnablePrint := True ;
         end ;
 
-
      mnPrint.Enabled := EnablePrint ;
+
+     mnInspectLogFile.Enabled := WCPFile.LogFileAvailable
 
      end;
 
@@ -3796,19 +3099,19 @@ var
 begin
 
      // If same file has been opened again, don't update
-     if Settings.RecentFiles[0] = RawFH.FileName then Exit ;
+     if WCPFile.Settings.RecentFiles[0] = WCPFile.RawFH.FileName then Exit ;
 
      // Shift list along
-     for i := High(Settings.RecentFiles) downto 1 do
-         Settings.RecentFiles[i] := Settings.RecentFiles[i-1] ;
-     Settings.RecentFiles[0] := RawFH.FileName ;
+     for i := High(WCPFile.Settings.RecentFiles) downto 1 do
+         WCPFile.Settings.RecentFiles[i] := WCPFile.Settings.RecentFiles[i-1] ;
+     WCPFile.Settings.RecentFiles[0] := WCPFile.RawFH.FileName ;
 
      { Update list in Files menu }
      mnRecentFileSeparator.Visible := False ;
-     SetRecentFileItem( mnRecentFile0, Settings.RecentFiles[0] ) ;
-     SetRecentFileItem( mnRecentFile1, Settings.RecentFiles[1] ) ;
-     SetRecentFileItem( mnRecentFile2, Settings.RecentFiles[2] ) ;
-     SetRecentFileItem( mnRecentFile3, Settings.RecentFiles[3] ) ;
+     SetRecentFileItem( mnRecentFile0, WCPFile.Settings.RecentFiles[0] ) ;
+     SetRecentFileItem( mnRecentFile1, WCPFile.Settings.RecentFiles[1] ) ;
+     SetRecentFileItem( mnRecentFile2, WCPFile.Settings.RecentFiles[2] ) ;
+     SetRecentFileItem( mnRecentFile3, WCPFile.Settings.RecentFiles[3] ) ;
 
      end ;
 
@@ -3823,7 +3126,7 @@ var
 begin
 
     for ch := 0 to WCPMaxChannels-1 do begin
-        Channel[ch].InUse := True ;
+        WCPFile.Channel[ch].InUse := True ;
         Main.SESLabIO.ADCChannelVisible[ch] := True ;
         end ;
     UpdateDisplays ;
@@ -3849,23 +3152,6 @@ begin
 
      end;
 
-function TMain.GetSpecialFolder(const ASpecialFolderID: Integer): string;
-// --------------------------
-// Get Windows special folder
-// --------------------------
-var
-  //vSFolder :  pItemIDList;
-  vSpecialPath : array[0..MAX_PATH] of Char;
-begin
-
-    SHGetFolderPath( 0, ASpecialFolderID, 0,0,vSpecialPath) ;
-//  SHGetSpecialFolderLocation(0, ASpecialFolderID, vSFolder);
-
-//  SHGetPathFromIDList(vSFolder, vSpecialPath);
-
-  Result := StrPas(vSpecialPath);
-
-  end;
 
 function TMain.DateToStr( DateTime : TDateTime ) : String ;
 // -------------------------------------------------------------
@@ -3906,6 +3192,62 @@ begin
   Result :=  System.SysUtils.StrToDateTimeDef(DateTime,Now,DateFormat) ;
 
   end;
+
+procedure TMain.CopyStringGrid( Table : TStringGrid ) ;
+{ -----------------------------------------------
+  Print the contents of a string grid spreadsheet
+  -----------------------------------------------
+  21/7/99 }
+var
+   Row,Col,TopRow,BottomRow,LeftCol,RightCol : Integer ;
+   TabText : String ;
+   UseColumn : Array[0..MaxChannels*MaxAnalysisVariables-1] of boolean ;
+   First : Boolean ;
+begin
+     { Find which columns contain data (based on first row) }
+     for Col := 0 to Table.ColCount-1 do
+         if Table.Cells[Col,0] = '' then UseColumn[Col] := False
+                                    else UseColumn[Col] := True ;
+
+
+     { Set row,column range to be copied }
+
+     if (Table.Selection.Top = Table.Selection.Bottom) and
+        (Table.Selection.Left = Table.Selection.Right) then begin
+        { Whole table if no block selected }
+        TopRow := 0 ;
+        BottomRow := Table.RowCount - 1 ;
+        LeftCol := 0 ;
+        RightCol := Table.ColCount - 1 ;
+        end
+     else begin
+        { Selected block }
+        TopRow := Table.Selection.Top ;
+        BottomRow := Table.Selection.Bottom ;
+        LeftCol := Table.Selection.Left ;
+        RightCol := Table.Selection.Right ;
+        end ;
+
+     { Copy table to tab-text string buffer }
+     TabText := '' ;
+     for Row := TopRow to BottomRow do begin
+         First := True ;
+         for Col := LeftCol to RightCol do
+             if UseColumn[Col] then begin
+             if First then begin
+                TabText := TabText + Table.Cells[Col,Row] ;
+                First := False ;
+                end
+             else TabText := TabText + chr(9) + Table.Cells[Col,Row] ;
+             end ;
+         TabText := TabText + chr(13) + chr(10) ;
+         end ;
+
+     { Copy string buffer to clipboard }
+     ClipBoard.SetTextBuf( PChar(TabText) ) ;
+
+     end ;
+
 
 
 end.

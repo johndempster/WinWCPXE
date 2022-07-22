@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ValEdit,global, ValidatedEdit ;
+  StdCtrls, ValEdit, ValidatedEdit ;
 
 type
   TFilterFrm = class(TForm)
@@ -77,6 +77,8 @@ implementation
 
 {$R *.DFM}
 
+uses WCPFIleUnit;
+
 procedure TFilterFrm.FormCreate(Sender: TObject);
 //
 // Initialisations when form is created
@@ -93,13 +95,13 @@ procedure TFilterFrm.FormShow(Sender: TObject);
 //
 begin
      { Get record type list }
-     cbRecordType.items := RecordTypes ;
+     cbRecordType.items := WCPFile.RecordTypes ;
      cbRecordType.items.delete(0)  ; {Delete first entry 'ALL'}
      if LastRecordType < 0 then LastRecordType := 0 ;
      cbRecordType.itemIndex := LastRecordType ;
 
      // Selected record type (in matching criteria)
-     cbMatchType.Items := RecordTypes ;
+     cbMatchType.Items := WCPFile.RecordTypes ;
      if LastMatchType < 0 then LastMatchType := 0 ;
      cbMatchType.ItemIndex := LastMatchType ;
 
@@ -119,7 +121,7 @@ begin
      if ShowChannels then begin
         cbChannels.Visible := True ;
         lbChannels.Visible := True ;
-        cbChannels.items := ChannelNames  ;
+        cbChannels.items := WCPFile.ChannelNames  ;
         If LastChannelIndex < 0 then LastChannelIndex := 0 ;
         cbChannels.ItemIndex := LastChannelIndex ;
         end

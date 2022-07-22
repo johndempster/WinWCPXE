@@ -30,14 +30,14 @@ implementation
 
 {$R *.DFM}
 
-uses MDIform, global ;
+uses MDIform, WCPFIleUnit;
 
 procedure TAboutDlg.FormActivate(Sender: TObject);
 begin
      edSupplier.text := Main.SESLabIO.LabInterfaceName ;
      edModel.text := Main.SESLabIO.LabInterfaceModel ;
      ProductName.caption := 'Whole Cell Analysis Program '
-                            + ProgVersion ;
+                            + WCPFile.ProgVersion ;
      end;
 
 

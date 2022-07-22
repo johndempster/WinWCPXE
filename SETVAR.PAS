@@ -4,7 +4,7 @@ interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, StdCtrls, Global ;
+  Forms, Dialogs, StdCtrls ;
 
 type
   TSetVarFrm = class(TForm)
