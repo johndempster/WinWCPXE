@@ -774,6 +774,10 @@ unit MDIForm;
    V5.7.1 22.07.22 CopyStringGrid moved from shared to TMain.
                    Shared,global,plotlib units removed and methods redistributed to WCPFileUnit,Maths,Main
                    MeasureFrm: Option added to measure decay from peak to fixed signal level
+   V5.7.2 09.11.22 Waveform measurements: Peak mode and T0,C0,C1 cursor positions now stored in WCP file header.
+                   Screen position of main program window now saved in INI file
+                   .FileName COM automation property added
+
             =======================================================================}
 
 interface
@@ -1000,12 +1004,7 @@ var
    FileName : String ;
 begin
 
-      Top := 20 ;
-      Left := 20 ;
-      Width := Screen.Width - Left - 20 ;
-      Height := Screen.Height - Top - 50 ;
-
-      WCPFile.ProgVersion := 'V5.7.1';
+      WCPFile.ProgVersion := 'V5.7.2';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + WCPFile.ProgVersion ;
 
       Application.HelpFile := WCPFile.Settings.ProgDirectory + 'WinWCP.chm';

@@ -6148,7 +6148,7 @@ function TAmplifier.GetAxoclamp900AMode(
 // Read voltage/current clamp mode telegraph
 // -----------------------------------------
 var
-    ch, iMode, Err, AmpNum : Integer;
+    ch, iMode, Err : Integer;
     CommandSensitivity : Array[0..1] of Double ;
 begin
 

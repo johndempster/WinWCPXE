@@ -99,6 +99,8 @@ unit Measure;
    26.05.22 .. ZeroFrm now settings Channel record zero level settings directly
    05.07.22 .. Decay time to fixed level option added
                Variable list now created by procedure AddVariableToTable()
+   08.11.22 .. T0,C0,C1 cursor positions now stored in FH and WCP file header
+               Peak mode setting now retained correctly when form closed and re-opened
 
   ==========================================================================}
 interface
@@ -502,7 +504,7 @@ procedure TMeasureFrm.NewFile ;
   Reset variables and channel when a new file is loaded
   -----------------------------------------------------}
 var
-   ch,v : Integer ;
+   ch : Integer ;
 begin
 
      // Get internal copy of currently displayed WCP file header
@@ -623,16 +625,21 @@ begin
      scDisplay.SetDataBuf( ADC );
 
         { Set initial position of alignment cursors }
-     if not KeepCursors then begin
+     if not KeepCursors then
+           begin
            scDisplay.ClearVerticalCursors ;
-           for ch := 0 to FH.NumChannels-1 do begin
-               if ckLockChannelCursors.Checked then begin
+           for ch := 0 to FH.NumChannels-1 do
+               begin
+               if ckLockChannelCursors.Checked then
+                  begin
                   // Single set of cursors for all channels
-                  if ch = 0 then begin
+                  if ch = 0 then
+                     begin
                      Cursors.C0[ch] := scDisplay.AddVerticalCursor(AllChannels,clOlive,'?t') ;
                      Cursors.C1[ch] := scDisplay.AddVerticalCursor(AllChannels,clOlive,'?t') ;
                      end
-                  else begin
+                  else
+                     begin
                      Cursors.C0[ch] := Cursors.C0[0] ;
                      Cursors.C1[ch] := Cursors.C1[0] ;
                      end ;
@@ -643,18 +650,25 @@ begin
                   Cursors.C1[ch] := scDisplay.AddVerticalCursor(ch,clOlive,'?t') ;
                   end ;
 
-               scDisplay.VerticalCursors[Cursors.C0[ch]] := FH.NumSamples div 50 ;
-               scDisplay.VerticalCursors[Cursors.C1[ch]] := FH.NumSamples -
-                                           scDisplay.VerticalCursors[Cursors.C0[ch]] ;
-               scDisplay.LinkVerticalCursors( Cursors.C0[ch], Cursors.C1[ch] ) ;
+               // Default if cursors never set
+               if FH.C1Cursor[ch] <= 0 then
+                  begin
+                  FH.C0Cursor[ch] :=  FH.NumSamples div 50 ;
+                  FH.C1Cursor[ch] :=  FH.NumSamples - FH.C0Cursor[ch] ;
+                  FH.T0Cursor := 0 ;
+                  end;
 
+               scDisplay.VerticalCursors[Cursors.C0[ch]] := FH.C0Cursor[ch] ;
+               scDisplay.VerticalCursors[Cursors.C1[ch]] := FH.C1Cursor[ch] ;
+
+               scDisplay.LinkVerticalCursors( Cursors.C0[ch], Cursors.C1[ch] ) ;
 
                end ;
 
            Cursors.R := scDisplay.AddVerticalCursor(AllChannels,clGreen,'?y?t') ;
            scDisplay.VerticalCursors[Cursors.R] := FH.NumSamples div 2 ;
            Cursors.T0 := scDisplay.AddVerticalCursor(AllChannels,clGreen,'t=0') ;
-           scDisplay.VerticalCursors[Cursors.T0] := 0 ;
+           scDisplay.VerticalCursors[Cursors.T0] := FH.T0Cursor ;
            KeepCursors := False ;
            end ;
 
@@ -664,9 +678,21 @@ begin
                scDisplay.HorizontalCursors[ch] := WCPFile.Channel[ch].ADCZero ;
                end ;
 
+     cbPeakMode.ItemIndex := FH.PeakMode ;
+{     FH.NumPointsAveragedAtPeak := Round(edPeakAvg.Value) ;
+     FH.RiseTimeLo := edRiseTime.LoValue ;
+     FH.RiseTimeHi := edRiseTime.HiValue ;
+     FH.RateOfRiseMode := cbRateofRiseMode.ItemIndex ;
+     FH.LatencyPercentage := edLatencyPercentage.Value ;
+
+     FH.DecayTimeToLevel := rbDecayTimeToLevel.Checked ;
+     if FH.DecayTimeToLevel then FH.DecayTimeLevel := edDecayTimeThreshold.Value
+                            else FH.DecayTimePercentage := edDecayTimeThreshold.Value ;}
+
+
 
      { Initialise peak mode combo box }
-     if cbPeakMode.ItemIndex < 0 then cbPeakMode.ItemIndex := 0 ;
+ //    if cbPeakMode.ItemIndex < 0 then cbPeakMode.ItemIndex := 0 ;
 
      { Initialise Table }
      Table.ColCount := 1 ;
@@ -983,10 +1009,13 @@ begin
          begin
          iStart[ch] := Min( Round(scDisplay.VerticalCursors[Cursors.C0[ch]]),
                                               Round(scDisplay.VerticalCursors[Cursors.C1[ch]]) ) ;
+         FH.C0Cursor[ch] := iStart[ch];
          iEnd[ch] :=   Max( Round(scDisplay.VerticalCursors[Cursors.C0[ch]]),
                                              Round(scDisplay.VerticalCursors[Cursors.C1[ch]]) ) ;
+         FH.C1Cursor[ch] := iEnd[ch];
                 { Zero time cursor }
          iTimeZero[ch] := Round(scDisplay.VerticalCursors[Cursors.t0]) ;
+         FH.T0Cursor := iTimeZero[ch] ;
          end ;
 
      WCPFile.SaveHeader( FH ) ;
@@ -2798,9 +2827,9 @@ procedure TMeasureFrm.cbPeakModeChange(Sender: TObject);
 // -----------------------------
 begin
      // Call NewFile procedure to update peak variable name
-     FH.PeakMode := cbPeakMode.ItemIndex ;
+//     FH.PeakMode := cbPeakMode.ItemIndex ;
      KeepCursors := True ;
-     NewFile ;
+ //    NewFile ;
      end;
 
 

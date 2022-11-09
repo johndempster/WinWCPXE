@@ -12,7 +12,7 @@ unit winwcp_TLB;
 // ************************************************************************ //
 
 // $Rev: 52393 $
-// File generated on 22/05/2019 13:14:26 from Type Library described below.
+// File generated on 02/11/2022 14:05:46 from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\Users\John\Documents\Embarcadero\Studio\Projects\WinWCPXE\winwcp (1)
@@ -146,6 +146,8 @@ type
     procedure PicoClearCompJP; safecall;
     function Get_SealTestGaFromPeak: Integer; safecall;
     procedure Set_SealTestGaFromPeak(Value: Integer); safecall;
+    function Get_FileName: OleVariant; safecall;
+    procedure Set_FileName(Value: OleVariant); safecall;
     property Cm: OleVariant read Get_Cm write Set_Cm;
     property Gm: OleVariant read Get_Gm write Set_Gm;
     property Ga: OleVariant read Get_Ga write Set_Ga;
@@ -173,6 +175,7 @@ type
     property PicoCfastComp: OleVariant read Get_PicoCfastComp write Set_PicoCfastComp;
     property PicoJPComp: OleVariant read Get_PicoJPComp write Set_PicoJPComp;
     property SealTestGaFromPeak: Integer read Get_SealTestGaFromPeak write Set_SealTestGaFromPeak;
+    property FileName: OleVariant read Get_FileName write Set_FileName;
   end;
 
 // *********************************************************************//
@@ -223,6 +226,7 @@ type
     procedure PicoClearCompC; dispid 240;
     procedure PicoClearCompJP; dispid 238;
     property SealTestGaFromPeak: Integer dispid 239;
+    property FileName: OleVariant dispid 241;
   end;
 
 // *********************************************************************//

@@ -1344,7 +1344,7 @@ begin
 
      // Calculate membrane capacity
      TauC := -1.0 / Slope ;
-     outputdebugstring(pchar(format('Tau=%.4g',[TauC])));
+//     outputdebugstring(pchar(format('Tau=%.4g',[TauC])));
      Capacity[iAverage] := TauC*(GAccess[iAverage] + GMembrane[iAverage]) ;
      if Capacity[iAverage] < 0.0 then Exit ;
 

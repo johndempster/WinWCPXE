@@ -30,7 +30,7 @@ object MeasureFrm: TMeasureFrm
     Top = 8
     Width = 639
     Height = 769
-    ActivePage = HistogramTab
+    ActivePage = AnalysisTab
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -12
@@ -41,10 +41,6 @@ object MeasureFrm: TMeasureFrm
     OnChange = PageChange
     object AnalysisTab: TTabSheet
       Caption = 'Analysis'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object scDisplay: TScopeDisplay
         Left = 148
         Top = 6
@@ -333,8 +329,8 @@ object MeasureFrm: TMeasureFrm
           ParentFont = False
           TabOrder = 4
           object cbRateofRiseMode: TComboBox
-            Left = 6
-            Top = 16
+            Left = 11
+            Top = 17
             Width = 107
             Height = 23
             Hint = 'Algorithm used to compute rate of rise'

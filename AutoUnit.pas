@@ -92,6 +92,8 @@ type
     procedure Set_SealTestNumAverages(Value: OleVariant); safecall;
     function Get_SealTestGaFromPeak: Integer; safecall;
     procedure Set_SealTestGaFromPeak(Value: Integer); safecall;
+    function Get_FileName: OleVariant; safecall;
+    procedure Set_FileName(Value: OleVariant); safecall;
 
   end;
 
@@ -817,6 +819,19 @@ procedure TAUTO.Set_SealTestGaFromPeak(Value: Integer);
 begin
     if Value <> 0 then WCPFile.Settings.SealTest.GaFromPeak := True
                   else  WCPFile.Settings.SealTest.GaFromPeak := False ;
+end;
+
+function TAUTO.Get_FileName: OleVariant;
+// -----------------------------------------
+// Get name of currently open WCP data file
+// -----------------------------------------
+begin
+     Result := WCPFile.RawFH.FileName ;
+end;
+
+procedure TAUTO.Set_FileName(Value: OleVariant);
+begin
+
 end;
 
 initialization

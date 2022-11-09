@@ -98,6 +98,10 @@ unit WCPFIleUnit ;
   14.08.19 ... 'LATPERC=', fHDR.LatencyPercentage added to WCP header
   16.11.21 ... Quantal analysis (qanal.pas) settinfs added
   04.07.22 ... 'TXLEV=', fHDR.DecayTimeLevel ), 'TXTOLEV=', fHDR.DecayTimeToLevel added to file header
+  08.11.22 ... Initial Main form position now set in DataModuleCreate (rather than Main.FormShow())
+               FH.PeakMode now saved in file header
+               Unnecessary '=' removed from KEY in AddKeyValue()
+               Waveform measurement cursors now saved in file header (up to max. of 16 channels)
 
   }
 
@@ -228,6 +232,9 @@ TFileHeader = packed record
             RiseTimeHi : Single ;                   // Rise time upper limit (fraction of peak)
             QuantilePercentage : Single ;           // Quantile % value
             LatencyPercentage : Single ;            // Latency time to % peak value
+            T0Cursor : Integer ;                    // T=0 zero cursor
+            C0Cursor : Array[0..MaxChannels-1] of Integer ;    // Start of analysis area
+            C1Cursor : Array[0..MaxChannels-1] of Integer ;    // End of analysis area
 
             // Non-stationary variance analysis parameters
             NSVChannel : Integer ;          // Current channel to be analysed
@@ -551,11 +558,10 @@ TSettings = record
 
  { ProgVersion : string ;}
   fH : TFileHeader ;
-  RawfH : TFileHeader ;
-  AvgfH : TFileHeader ;
-  LeakfH : TFileHeader ;
-  DrvFH : TFileHeader ;
-//  HeaderArrayFull : Boolean ;     // File header parameter array full flag
+  RawfH : TFileHeader ;             // Raw data file
+  AvgfH : TFileHeader ;             // Averages file
+  LeakfH : TFileHeader ;            // Leak subtracted data file
+  DrvFH : TFileHeader ;             // Driving function file
 
   // File channel calibration
     Channel : array[0..MaxChannels-1] of TChannel ;
@@ -733,7 +739,7 @@ implementation
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
 
-uses AmpModule, MDIForm, StimModule, math, System.STrUtils, VCL.Dialogs, shlobj, System.UITypes ;
+uses AmpModule, MDIForm, StimModule, math, System.STrUtils, VCL.Dialogs, shlobj, System.UITypes, VCL.Forms ;
 
 {$R *.dfm}
 
@@ -824,75 +830,86 @@ begin
      fHDR.NumAnalysisBytesPerRecord := NumAnalysisBytesPerRecord(fHDR.NumChannels) ;
 
      fHDR.Version := FileVersion ;
-     AddKeyValue( Header, 'VER=',fHDR.Version );
+     AddKeyValue( Header, 'VER',fHDR.Version );
 
-     AddKeyValue( Header, 'VERPROG=',fHDR.ProgVersion );
+     AddKeyValue( Header, 'VERPROG',fHDR.ProgVersion );
 
      // Time file created
-     AddKeyValue( Header, 'CTIME=', fHDR.CreationTime ) ;
+     AddKeyValue( Header, 'CTIME', fHDR.CreationTime ) ;
 
      // Time recording started (s)
-     AddKeyValue( Header, 'RTIMESECS=', fHDR.RecordingStartTimeSecs ) ;
+     AddKeyValue( Header, 'RTIMESECS', fHDR.RecordingStartTimeSecs ) ;
 
      // Date/time of start of recording
-     AddKeyValue( Header, 'RTIME=', fHDR.RecordingStartTime ) ;
+     AddKeyValue( Header, 'RTIME', fHDR.RecordingStartTime ) ;
 
-     AddKeyValue( Header, 'NBH=', fHDR.NumBytesInHeader ) ;
+     AddKeyValue( Header, 'NBH', fHDR.NumBytesInHeader ) ;
 
      // 13/2/02 Added to distinguish between 12 and 16 bit data files
-     AddKeyValue( Header, 'ADCMAX=', fHDR.MaxADCValue ) ;
+     AddKeyValue( Header, 'ADCMAX', fHDR.MaxADCValue ) ;
 
-     AddKeyValue( Header, 'NC=', fHDR.NumChannels ) ;
+     AddKeyValue( Header, 'NC', fHDR.NumChannels ) ;
      fHDR.NumDataBytesPerRecord := fHDR.NumSamples*fHDR.NumChannels*2;
      fHDR.NumBytesPerRecord := fHDR.NumAnalysisBytesPerRecord +
                                fHDR.NumDataBytesPerRecord  ;
      NumSectors := fHDR.NumAnalysisBytesPerRecord div NumBytesPerSector ;
-     AddKeyValue( Header, 'NBA=', NumSectors ) ;
+     AddKeyValue( Header, 'NBA', NumSectors ) ;
      NumSectors := fHDR.NumDataBytesPerRecord div NumBytesPerSector ;
-     AddKeyValue( Header, 'NBD=', NumSectors ) ;
+     AddKeyValue( Header, 'NBD', NumSectors ) ;
 
-     AddKeyValue( Header, 'AD=', fHDR.ADCVoltageRange ) ;
+     AddKeyValue( Header, 'AD', fHDR.ADCVoltageRange ) ;
 
-     AddKeyValue( Header, 'NR=', fHDR.NumRecords ) ;
-     AddKeyValue( Header, 'DT=',fHDR.dt );
+     AddKeyValue( Header, 'NR', fHDR.NumRecords ) ;
+     AddKeyValue( Header, 'DT',fHDR.dt );
 
      fHDR.NumZeroAvg := Max(fHDR.NumZeroAvg,1) ;
-     AddKeyValue( Header, 'NZ=', fHDR.NumZeroAvg ) ;
+     AddKeyValue( Header, 'NZ', fHDR.NumZeroAvg ) ;
 
      for ch := 0 to fHDR.NumChannels-1 do
          begin
-         AddKeyValue( Header, format('YO%d=',[ch]), Channel[ch].ChannelOffset) ;
-         AddKeyValue( Header, format('YU%d=',[ch]), Channel[ch].ADCUnits ) ;
-         AddKeyValue( Header, format('YN%d=',[ch]), Channel[ch].ADCName ) ;
-         AddKeyValue( Header, format('YG%d=',[ch]), Channel[ch].ADCCalibrationFactor ) ;
-         AddKeyValue( Header, format('YZ%d=',[ch]), Channel[ch].ADCZero) ;
-         AddKeyValue( Header, format('YR%d=',[ch]), Channel[ch].ADCZeroAt) ;
+         AddKeyValue( Header, format('YO%d',[ch]), Channel[ch].ChannelOffset) ;
+         AddKeyValue( Header, format('YU%d',[ch]), Channel[ch].ADCUnits ) ;
+         AddKeyValue( Header, format('YN%d',[ch]), Channel[ch].ADCName ) ;
+         AddKeyValue( Header, format('YG%d',[ch]), Channel[ch].ADCCalibrationFactor ) ;
+         AddKeyValue( Header, format('YZ%d',[ch]), Channel[ch].ADCZero) ;
+         AddKeyValue( Header, format('YR%d',[ch]), Channel[ch].ADCZeroAt) ;
          end ;
 
      // T.(x%) waveform measurement percentage decay time
-     AddKeyValue( Header, 'TXPERC=', fHDR.DecayTimePercentage ) ;
-     AddKeyValue( Header, 'TXLEV=', fHDR.DecayTimeLevel ) ;
-     AddKeyValue( Header, 'TXTOLEV=', fHDR.DecayTimeToLevel ) ;
+     AddKeyValue( Header, 'TXPERC', fHDR.DecayTimePercentage ) ;
+     AddKeyValue( Header, 'TXLEV', fHDR.DecayTimeLevel ) ;
+     AddKeyValue( Header, 'TXTOLEV', fHDR.DecayTimeToLevel ) ;
 
-     AddKeyValue( Header, 'PKPAVG=', fHDR.NumPointsAveragedAtPeak ) ;
+     // Peak mode and points averaged at peak
+     AddKeyValue( Header, 'PKMODE', fHDR.PeakMode ) ;
+     AddKeyValue( Header, 'PKPAVG', fHDR.NumPointsAveragedAtPeak ) ;
+
      // Quantile percentage measurement in use
-     AddKeyValue( Header, 'QUPERC=', fHDR.QuantilePercentage ) ;
+     AddKeyValue( Header, 'QUPERC', fHDR.QuantilePercentage ) ;
      // Latency percentage measurement in use
-     AddKeyValue( Header, 'LATPERC=', fHDR.LatencyPercentage ) ;
+     AddKeyValue( Header, 'LATPERC', fHDR.LatencyPercentage ) ;
 
-     AddKeyValue( Header, 'TRISELO=', fHDR.RiseTimeLo ) ;
-     AddKeyValue( Header, 'TRISEHI=', fHDR.RiseTimeHi ) ;
+     AddKeyValue( Header, 'TRISELO', fHDR.RiseTimeLo ) ;
+     AddKeyValue( Header, 'TRISEHI', fHDR.RiseTimeHi ) ;
+
+     // Measurement cursors
+     AddKeyValue( Header, 'T0CURS', fHDR.T0Cursor ) ;
+     for ch := 0 to Min(fHDR.NumChannels-1,15) do
+         begin
+         AddKeyValue( Header, format('C0CURS%d',[ch]), fHDR.C0Cursor[ch] ) ;
+         AddKeyValue( Header, format('C1CURS%d',[ch]), fHDR.C1Cursor[ch] ) ;
+         end;
 
      // Non-stationary variance analysis settings
-     AddKeyValue( Header, 'NSVCHAN=', fHDR.NSVChannel ) ;
-     AddKeyValue( Header, 'NSVALIGN=', fHDR.NSVAlignmentMode ) ;
-     AddKeyValue( Header, 'NSVTYPR=', fHDR.NSVType ) ;
-     AddKeyValue( Header, 'NSVS2P=', fHDR.NSVScaleToPeak ) ;
-     AddKeyValue( Header, 'NSVCUR0=', fHDR.NSVAnalysisCursor0 ) ;
-     AddKeyValue( Header, 'NSVCUR1=', fHDR.NSVAnalysisCursor1 ) ;
+     AddKeyValue( Header, 'NSVCHAN', fHDR.NSVChannel ) ;
+     AddKeyValue( Header, 'NSVALIGN', fHDR.NSVAlignmentMode ) ;
+     AddKeyValue( Header, 'NSVTYPR', fHDR.NSVType ) ;
+     AddKeyValue( Header, 'NSVS2P', fHDR.NSVScaleToPeak ) ;
+     AddKeyValue( Header, 'NSVCUR0', fHDR.NSVAnalysisCursor0 ) ;
+     AddKeyValue( Header, 'NSVCUR1', fHDR.NSVAnalysisCursor1 ) ;
 
      { Experiment identification line }
-     AddKeyValue( Header, 'ID=', fHDR.IdentLine ) ;
+     AddKeyValue( Header, 'ID', fHDR.IdentLine ) ;
 
      // Get ANSIstring copy of header text and write to file
      pANSIBuf := AllocMem( fHDR.NumBytesInHeader ) ;
@@ -992,8 +1009,6 @@ begin
      pANSIBuf[fHDR.NumBytesInHeader-1] := #0 ;
      ANSIHeader := ANSIString( pANSIBuf ) ;
      Header.Text := String(ANSIHeader) ;
-
-
 
      for i := 0 to Header.Count-1 do Header[i] := ReplaceText( Header[i], '==','=');
      for i := 0 to Header.Count-1 do outputdebugstring(pchar(Header[i]));
@@ -1118,6 +1133,8 @@ begin
       fHDR.DecayTimeToLevel := False ;
       fHDR.DecayTimeToLevel := GetKeyValue( Header, 'TXTOLEV', fHDR.DecayTimeToLevel ) ;
 
+     // Peak mode and points averaged at peak
+      fHDR.PeakMode := GetKeyValue( Header, 'PKMODE', fHDR.PeakMode ) ;
       fHDR.NumPointsAveragedAtPeak := GetKeyValue( Header, 'PKPAVG', fHDR.NumPointsAveragedAtPeak ) ;
 
       // Quantile percentage measurement in use
@@ -1128,6 +1145,17 @@ begin
       // Rise time limits
       fHDR.RiseTimeLo := GetKeyValue( Header, 'TRISELO', fHDR.RiseTimeLo ) ;
       fHDR.RiseTimeHi := GetKeyValue( Header, 'TRISEHI', fHDR.RiseTimeHi ) ;
+
+     // Measurement cursors
+     fHDR.T0Cursor := 0 ;
+     fHDR.T0Cursor := GetKeyValue( Header, 'T0CURS', fHDR.T0Cursor ) ;
+     for ch := 0 to Min(fHDR.NumChannels-1,15) do
+         begin
+         fHDR.C0Cursor[ch] := 0 ;
+         fHDR.C0Cursor[ch] := GetKeyValue( Header, format('C0CURS%d',[ch]), fHDR.C0Cursor[ch] ) ;
+         fHDR.C1Cursor[ch] := 0 ;
+         fHDR.C1Cursor[ch] := GetKeyValue( Header, format('C1CURS%d',[ch]), fHDR.C1Cursor[ch] ) ;
+         end;
 
       // Non-stationary variance analysis settings
       fHDR.NSVChannel := GetKeyValue( Header, 'NSVCHAN', fHDR.NSVChannel ) ;
@@ -1937,6 +1965,7 @@ procedure TWCPFile.DataModuleCreate(Sender: TObject);
 // --------------------------------------
 var
     ch : Integer ;
+  I: Integer;
 begin
 
 
@@ -1990,8 +2019,6 @@ begin
      Settings.AutoErase := True ;
      Settings.DisplayGrid := True ;
      Settings.ResetDisplayMagnification := True ;
-
-
 
      Settings.Colors.Cursors := clBlue ;
      Settings.Colors.Grid := clAqua ;
@@ -2190,6 +2217,11 @@ begin
      RawFH.NumPointsAveragedAtPeak := 1 ;
      RawFH.LatencyPercentage := 10.0 ;
 
+     // Set all measurement cursors to zero indicating they have not been set
+     for i := 0 to High(FH.C0Cursor) do FH.C0Cursor[i] := 0 ;
+     for i := 0 to High(FH.C1Cursor) do FH.C1Cursor[i] := 0 ;
+     FH.T0Cursor := 0 ;
+
       { Create default set of record types }
       RecordTypes := TStringList.Create ;
       RecordTypes.Add( 'ALL' ) ;
@@ -2229,6 +2261,12 @@ begin
          Channel[ch].yMax := RawfH.MaxADCValue ;
          Channel[ch].InUse := True ;
          end ;
+
+      // Initialise location of main program window
+      Main.Top := 20 ;
+      Main.Left := 20 ;
+      Main.Width := Screen.Width - Main.Left - 20 ;
+      Main.Height := Screen.Height - Main.Top - 50 ;
 
      { Load initialization file to get name of last data file used }
      if not Settings.NoINIFile then WCPFile.LoadInitializationFile( SettingsFileName ) ;

@@ -786,8 +786,8 @@ procedure TFitFrm.bDoFitClick(Sender: TObject);
   -------------------}
 var
    Rec,StartAtRec,EndAtRec,iStart,iEnd,yZero,TZero : Integer ;
-   i,j,ch,ChFit,nFit,iSkip,iStep,NumFitted : Integer ;
-   x,dx,Sum : single ;
+   i,j,ch,ChFit,nFit,NumFitted : Integer ;
+   Sum : single ;
    FitData : PXYData ;
    Average : Array[0..MaxChannels-1] of Single ;
    OK,Done : Boolean ;

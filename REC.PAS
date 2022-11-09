@@ -2611,8 +2611,6 @@ begin
 
 procedure TRecordFrm.edRecordDurationKeyPress(Sender: TObject;
   var Key: Char);
-var
-    RecDuration : Single ;
 begin
      if Key = #13 then
         begin
