@@ -26,15 +26,11 @@ object EditProtocolFrm: TEditProtocolFrm
     Top = 200
     Width = 812
     Height = 441
-    ActivePage = StimulusTab
+    ActivePage = RecordTab
     TabOrder = 0
     OnChange = PageChange
     object RecordTab: TTabSheet
       Caption = 'Recording'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 765
-      ExplicitHeight = 0
       object lbError: TLabel
         Left = 376
         Top = 8
@@ -76,7 +72,7 @@ object EditProtocolFrm: TEditProtocolFrm
         Height = 179
         TabOrder = 1
         object RecTable: TStringGrid
-          Left = 4
+          Left = 3
           Top = 3
           Width = 301
           Height = 159
@@ -251,7 +247,7 @@ object EditProtocolFrm: TEditProtocolFrm
       ImageIndex = 1
       ExplicitLeft = 0
       ExplicitTop = 0
-      ExplicitWidth = 765
+      ExplicitWidth = 0
       ExplicitHeight = 0
       object ProtocolGrp: TGroupBox
         Left = 103
@@ -11946,10 +11942,6 @@ object EditProtocolFrm: TEditProtocolFrm
       TabWidth = 35
       object AO0Tab: TTabSheet
         Caption = 'AO0'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object AO0StimGrp: TGroupBox
           Left = 2
           Top = 0

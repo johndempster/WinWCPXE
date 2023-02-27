@@ -1137,6 +1137,7 @@ begin
         WCPFile.SaveHeader( WCPFile.RawfH ) ;
         { Set file header in use to raw file header }
         WCPFile.FH := WCPFile.RawFH ;
+        WCPFile.GetHeader(WCPFile.fH) ;
 
         // Restore pulse program selected when recording started
         if cbPulseProgram.ItemIndex < cbPulseProgram.Items.Count then

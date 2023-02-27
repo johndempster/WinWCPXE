@@ -4,7 +4,7 @@ object ExportFrm: TExportFrm
   BorderStyle = bsDialog
   Caption = ' Export File'
   ClientHeight = 390
-  ClientWidth = 425
+  ClientWidth = 539
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
   Font.Color = clWindowText
@@ -77,7 +77,7 @@ object ExportFrm: TExportFrm
   object ChannelsGrp: TGroupBox
     Left = 8
     Top = 199
-    Width = 409
+    Width = 523
     Height = 153
     Hint = 'Select channels to be exported'
     Caption = ' Channels '
@@ -343,8 +343,8 @@ object ExportFrm: TExportFrm
   end
   object GroupBox3: TGroupBox
     Left = 8
-    Top = 0
-    Width = 409
+    Top = -4
+    Width = 523
     Height = 106
     Caption = ' Files '
     Font.Charset = ANSI_CHARSET
@@ -370,9 +370,9 @@ object ExportFrm: TExportFrm
       OnClick = bChangeNameClick
     end
     object meFileList: TMemo
-      Left = 8
+      Left = 3
       Top = 17
-      Width = 312
+      Width = 510
       Height = 59
       Lines.Strings = (
         'meFileList')
@@ -383,7 +383,7 @@ object ExportFrm: TExportFrm
   object GroupBox2: TGroupBox
     Left = 172
     Top = 108
-    Width = 245
+    Width = 359
     Height = 85
     Caption = ' Output  Format  '
     TabOrder = 3

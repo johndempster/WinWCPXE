@@ -34,6 +34,12 @@ unit exportUnit;
   16.07.19 ... Multiple records can now be saved in columns in ASCII file output
                instead of as a series of rows.
   25.09.19 ... Combine Records option now works correctly for IGOR IBW file export.
+  21.02.23 ... ExportFile.ChannelGain[chOut] now set to 1.0 to prevent double compensation
+               of non-unitary channel gains when exporting. Export now terminated when
+               channel gain changes within a WCP file.
+               Size of export file list box increased to display more of file names
+  27.02.23 ... Now uses glocal WCFFile.FH file header record rather than internal FH
+               to avoid initial empty export list when records are not displayed.
   }
 interface
 
@@ -100,7 +106,6 @@ type
 
     ExportExtension : Array[0..100] of String ;
     KeepFileName : String ;
-    FH : TFileHeader ;      // Internal copy of file header to be exported
     procedure SetChannel( CheckBox : TCheckBox ; ch : Integer ) ;
     function CreateExportFileName(FileName : string ) : String ;
     procedure ExportToFile( FileName : string ) ;
@@ -138,7 +143,7 @@ begin
 
      { Set block of WCP file to be exported }
      edRange.LoValue := 1.0 ;
-     edRange.HiLimit := FH.NumRecords ;
+     edRange.HiLimit := WCPFile.FH.NumRecords ;
      edRange.HiValue := edRange.HiLimit ;
 
      // Export formats
@@ -167,7 +172,7 @@ begin
 
      { Update O/P file name channel selection options }
      meFileList.Clear ;
-     meFileList.Lines[0] := FH.FileName ;
+     meFileList.Lines[0] := WCPFile.FH.FileName ;
      ckCombineRecords.Visible := False ;
      ckASCIIRecordsInColumns.Visible := False ;
 
@@ -183,7 +188,7 @@ procedure TExportFrm.SetChannel(
 // Set channel selection state
 // ---------------------------
 begin
-     if ch < FH.NumChannels then begin
+     if ch < WCPFile.FH.NumChannels then begin
         CheckBox.Visible := True ;
         CheckBox.Checked := WCPFile.Channel[ch].InUse ;
         CheckBox.Caption := WCPFile.Channel[ch].ADCName ;
@@ -214,22 +219,26 @@ var
    ExportFileName : String ;
    ScanIntervalChanged : Boolean ;
    ErrMsg : String ;
+   CalFactor : Array[0..MaxChannels] of Single ;
 begin
 
-     if rbAllRecords.Checked then begin
+     if rbAllRecords.Checked then
+        begin
         StartAt := 1 ;
-        EndAt := FH.NumRecords ;
+        EndAt := WCPFile.FH.NumRecords ;
         end
-     else begin
-        StartAt := Min(Round(edRange.LoValue),FH.NumRecords) ;
-        EndAt := Min(Round(edRange.HiValue),FH.NumRecords) ;
+     else
+        begin
+        StartAt := Min(Round(edRange.LoValue),WCPFile.FH.NumRecords) ;
+        EndAt := Min(Round(edRange.HiValue),WCPFile.FH.NumRecords) ;
         end ;
 
      // Add record range to file name
      ExportFileName := CreateExportFileName(FileName) ;
 
      // If destination file already exists, allow user to abort
-     if FileExists( ExportFileName ) then begin
+     if FileExists( ExportFileName ) then
+        begin
         if MessageDlg( ExportFileName + ' exists! Overwrite?!',
            mtConfirmation, [mbYes, mbNo], 0) <> mrYes then Exit ;
         end ;
@@ -239,29 +248,30 @@ begin
      ExportFile.CreateDataFile( ExportFileName,ExportType ) ;
 
      // Set file parameters
-     ExportFile.NumScansPerRecord := FH.NumSamples ;
-     ExportFile.MaxADCValue := FH.MaxADCValue ;
-     ExportFile.MinADCValue := FH.MinADCValue ;
-     ExportFile.ScanInterval := FH.dt ;
-     ExportFile.IdentLine := FH.IdentLine ;
+     ExportFile.NumScansPerRecord := WCPFile.FH.NumSamples ;
+     ExportFile.MaxADCValue := WCPFile.FH.MaxADCValue ;
+     ExportFile.MinADCValue := WCPFile.FH.MinADCValue ;
+     ExportFile.ScanInterval := WCPFile.FH.dt ;
+     ExportFile.IdentLine := WCPFile.FH.IdentLine ;
      ExportFile.ABFAcquisitionMode := ftEpisodic ;
      ExportFile.ASCIISaveRecordsinColumns := ckASCIIRecordsinColumns.Checked ;
 
-     NumBytesPerBuf := FH.NumSamples*FH.NumChannels*2 ;
+     NumBytesPerBuf := WCPFile.FH.NumSamples*WCPFile.FH.NumChannels*2 ;
      GetMem( InBuf, NumBytesPerBuf ) ;
      GetMem( OutBuf, NumBytesPerBuf ) ;
 
      Try
 
      chOut := 0 ;
-     for ch := 0 to FH.NumChannels-1 do if UseChannel(ch) then begin
+     for ch := 0 to WCPFile.FH.NumChannels-1 do if UseChannel(ch) then
+         begin
          ExportFile.ChannelOffset[chOut] := chOut ;
-         ExportFile.ChannelADCVoltageRange[chOut] := FH.ADCVoltageRange ;
+         ExportFile.ChannelADCVoltageRange[chOut] := WCPFile.FH.ADCVoltageRange ;
          ExportFile.ChannelName[chOut] := WCPFile.Channel[ch].ADCName ;
          ExportFile.ChannelUnits[chOut] := WCPFile.Channel[ch].ADCUnits ;
          ExportFile.ChannelScale[chOut] := WCPFile.Channel[ch].ADCSCale ;
          ExportFile.ChannelCalibrationFactor[chOut] := WCPFile.Channel[ch].ADCCalibrationFactor ;
-         ExportFile.ChannelGain[chOut] := WCPFile.Channel[ch].ADCAmplifierGain ;
+         ExportFile.ChannelGain[chOut] := 1.0 ; //WCPFile.Channel[ch].ADCAmplifierGain ;
          Inc(chOut) ;
          end ;
      ExportFile.NumChannelsPerScan := chOut ;
@@ -269,20 +279,24 @@ begin
      { Copy records }
      NumRecordsExported := 0 ;
      ScanIntervalChanged := False ;
-     ExportFile.ScanInterval :=  FH.dt ;
-     for iRec := StartAt to EndAt do begin
+     for ch := 0 to High(CalFactor) do CalFactor[ch] := 0.0 ;
+     ExportFile.ScanInterval :=  WCPFile.FH.dt ;
+     for iRec := StartAt to EndAt do
+         begin
 
          // Read record
-         WCPFile.GetRecord(FH,RH,iRec,InBuf^) ;
+         WCPFile.GetRecord(WCPFile.FH,RH,iRec,InBuf^) ;
 
          // Skip if record rejected
          if not ANSIContainsText(RH.Status,'ACCEPTED') then continue ;
 
          // Copy required channels
          j := 0 ;
-         for i := 0 to FH.NumSamples-1 do begin
-             for ch := 0 to FH.NumChannels-1 do if UseChannel(ch) then begin
-                 OutBuf^[j] := InBuf^[(i*FH.NumChannels)+WCPFile.Channel[ch].ChannelOffset] ;
+         for i := 0 to WCPFile.FH.NumSamples-1 do
+             begin
+             for ch := 0 to WCPFile.FH.NumChannels-1 do if UseChannel(ch) then
+                 begin
+                 OutBuf^[j] := InBuf^[(i*WCPFile.FH.NumChannels)+WCPFile.Channel[ch].ChannelOffset] ;
                  Inc(j) ;
                  end ;
              end ;
@@ -294,19 +308,20 @@ begin
          if RH.dt <= 0.0 then RH.dt := ExportFile.ScanInterval ;
 
          // Get time interval between channel scans
-         if iRec <> StartAt then begin
+         if iRec <> StartAt then
+            begin
             if ExportFile.ScanInterval <> RH.dt then ScanIntervalChanged := True ;
             end ;
          ExportFile.ScanInterval := RH.dt ;
 
-         if ExportType = ftWCP then begin
+         if ExportType = ftWCP then
+            begin
             // Update record header (WCP file only)
             chOut := 0 ;
-            for ch := 0 to FH.NumChannels-1 do if UseChannel(ch) then begin
+            for ch := 0 to WCPFile.FH.NumChannels-1 do if UseChannel(ch) then begin
                 if RH.ADCVoltageRange[ch] = 0.0 then
-                   RH.ADCVoltageRange[ch] := FH.ADCVoltageRange ;
-                ExportFile.ChannelGain[chOut] := FH.ADCVoltageRange /
-                                                 RH.ADCVoltageRange[ch] ;
+                   RH.ADCVoltageRange[ch] := WCPFile.FH.ADCVoltageRange ;
+                ExportFile.ChannelGain[chOut] := WCPFile.FH.ADCVoltageRange / RH.ADCVoltageRange[ch] ;
                 Inc(chOut) ;
                 end ;
 
@@ -320,16 +335,28 @@ begin
          else begin
             // Adjust calibration factor for variations in channel gain (all other formats)
             chOut := 0 ;
-            for ch := 0 to FH.NumChannels-1 do if UseChannel(ch) then begin
-                if RH.ADCVoltageRange[ch] = 0.0 then RH.ADCVoltageRange[ch] := FH.ADCVoltageRange ;
+            for ch := 0 to WCPFile.FH.NumChannels-1 do if UseChannel(ch) then
+                begin
+                if RH.ADCVoltageRange[ch] = 0.0 then RH.ADCVoltageRange[ch] := WCPFile.FH.ADCVoltageRange ;
                 ExportFile.ChannelCalibrationFactor[chOut] := WCPFile.Channel[ch].ADCCalibrationFactor *
-                                                              (FH.ADCVoltageRange/RH.ADCVoltageRange[ch]) ;
+                                                              (WCPFile.FH.ADCVoltageRange/RH.ADCVoltageRange[ch]) ;
+
+                // If channel gain has changed, terminate export
+                if CalFactor[chOut] = 0.0 then CalFactor[chOut] := ExportFile.ChannelCalibrationFactor[chOut] ;
+                if CalFactor[chOut] <> ExportFile.ChannelCalibrationFactor[chOut] then
+                   begin
+                   EndAt := iRec ;
+                   ErrMsg := format('Warning: Ch.%d gain changed. Exported terminated at Rec.%d',[ch,iRec]) ;
+                   ShowMessage( ErrMsg ) ;
+                   WCPFIle.WriteToLogFile( ErrMsg ) ;
+                   end;
+
                 Inc(chOut) ;
                 end ;
             end ;
 
          // Write to export file
-         ExportFile.SaveADCBuffer( 0, FH.NumSamples, OutBuf^ ) ;
+         ExportFile.SaveADCBuffer( 0, WCPFile.FH.NumSamples, OutBuf^ ) ;
 
          // Report progress
          Main.StatusBar.SimpleText := format(
@@ -384,28 +411,28 @@ begin
 
      if rbAllRecords.Checked then begin
         StartAt := 1 ;
-        EndAt := FH.NumRecords ;
+        EndAt := WCPFile.FH.NumRecords ;
         end
      else begin
-        StartAt := Min(Round(edRange.LoValue),FH.NumRecords) ;
-        EndAt := Min(Round(edRange.HiValue),FH.NumRecords) ;
+        StartAt := Min(Round(edRange.LoValue),WCPFile.FH.NumRecords) ;
+        EndAt := Min(Round(edRange.HiValue),WCPFile.FH.NumRecords) ;
         end ;
 
      // Set file parameters
-     ExportFile.NumScansPerRecord := FH.NumSamples ;
-     ExportFile.MaxADCValue := FH.MaxADCValue ;
-     ExportFile.MinADCValue := FH.MinADCValue ;
-     ExportFile.ScanInterval := FH.dt ;
-     ExportFile.IdentLine := FH.IdentLine ;
+     ExportFile.NumScansPerRecord := WCPFile.FH.NumSamples ;
+     ExportFile.MaxADCValue := WCPFile.FH.MaxADCValue ;
+     ExportFile.MinADCValue := WCPFile.FH.MinADCValue ;
+     ExportFile.ScanInterval := WCPFile.FH.dt ;
+     ExportFile.IdentLine := WCPFile.FH.IdentLine ;
      ExportFile.ABFAcquisitionMode := ftEpisodic ;
 
-     NumBytesPerBuf := FH.NumSamples*FH.NumChannels*2 ;
+     NumBytesPerBuf := WCPFile.FH.NumSamples*WCPFile.FH.NumChannels*2 ;
      GetMem( InBuf, NumBytesPerBuf ) ;
      GetMem( OutBuf, NumBytesPerBuf ) ;
 
      Try
 
-     for ch := 0 to FH.NumChannels-1 do if UseChannel(ch) then begin
+     for ch := 0 to WCPFile.FH.NumChannels-1 do if UseChannel(ch) then begin
 
          // Create export file name
          ExportFileName := CreateExportFileName(FileName) ;
@@ -440,16 +467,16 @@ begin
              // Set file parameters
              ExportFile.NumChannelsPerScan := 1 ;
              ExportFile.NumScansPerRecord := EndAt - StartAt + 1 ;
-             ExportFile.MaxADCValue := FH.MaxADCValue ;
-             ExportFile.MinADCValue := FH.MinADCValue ;
-             ExportFile.ScanInterval := FH.dt ;
-             ExportFile.IdentLine := FH.IdentLine ;
+             ExportFile.MaxADCValue := WCPFile.FH.MaxADCValue ;
+             ExportFile.MinADCValue := WCPFile.FH.MinADCValue ;
+             ExportFile.ScanInterval := WCPFile.FH.dt ;
+             ExportFile.IdentLine := WCPFile.FH.IdentLine ;
              ExportFile.RecordNum := 1 ;
              ExportFile.ABFAcquisitionMode := ftGapFree ;
              ExportFile.NumChannelsPerScan := 1 ;
 
              ExportFile.ChannelOffset[0] := 0 ;
-             ExportFile.ChannelADCVoltageRange[0] := FH.ADCVoltageRange ;
+             ExportFile.ChannelADCVoltageRange[0] := WCPFile.FH.ADCVoltageRange ;
              ExportFile.ChannelName[0] := WCPFile.Channel[ch].ADCName ;
              ExportFile.ChannelUnits[0] := WCPFile.Channel[ch].ADCUnits ;
              ExportFile.ChannelScale[0] := WCPFile.Channel[ch].ADCSCale ;
@@ -457,13 +484,13 @@ begin
              ExportFile.ChannelGain[0] := WCPFile.Channel[ch].ADCAmplifierGain ;
 
              // Read record
-            WCPFile.GetRecord(FH,RH,iRec,InBuf^) ;
+            WCPFile.GetRecord(WCPFile.FH,RH,iRec,InBuf^) ;
 
             // Copy required channel
             j := WCPFile.Channel[ch].ChannelOffset ;
-            for i := 0 to FH.NumSamples-1 do begin
+            for i := 0 to WCPFile.FH.NumSamples-1 do begin
                 OutBuf^[i] := InBuf^[j] ;
-                 j := j + FH.NumChannels ;
+                 j := j + WCPFile.FH.NumChannels ;
                  end ;
 
             Inc(NumRecordsExported) ;
@@ -471,11 +498,11 @@ begin
 
             // Adjust calibration factor for variations in channel gain (all other formats)
             ExportFile.ChannelCalibrationFactor[0] := WCPFile.Channel[ch].ADCCalibrationFactor *
-                                                      (FH.ADCVoltageRange/RH.ADCVoltageRange[ch]) ;
+                                                      (WCPFile.FH.ADCVoltageRange/RH.ADCVoltageRange[ch]) ;
             ExportFile.ScanInterval := RH.dt ;
 
             // Write to export file
-            ExportFile.SaveADCBuffer( 0, FH.NumSamples, OutBuf^ ) ;
+            ExportFile.SaveADCBuffer( 0, WCPFile.FH.NumSamples, OutBuf^ ) ;
 
             // Report progress
             Main.StatusBar.SimpleText := format(
@@ -524,11 +551,11 @@ begin
 
      if rbAllRecords.Checked then begin
         StartAt := 1 ;
-        EndAt := FH.NumRecords ;
+        EndAt := WCPFile.FH.NumRecords ;
         end
      else begin
-        StartAt := Min(Round(edRange.LoValue),FH.NumRecords) ;
-        EndAt := Min(Round(edRange.HiValue),FH.NumRecords) ;
+        StartAt := Min(Round(edRange.LoValue),WCPFile.FH.NumRecords) ;
+        EndAt := Min(Round(edRange.HiValue),WCPFile.FH.NumRecords) ;
         end ;
 
      // Add record range to file name
@@ -536,12 +563,12 @@ begin
 
      // Get no. of channels exported
      NumChannelsToExport := 0 ;
-     for ch := 0 to FH.NumChannels-1 do if UseChannel(ch) then Inc(NumChannelsToExport) ;
+     for ch := 0 to WCPFile.FH.NumChannels-1 do if UseChannel(ch) then Inc(NumChannelsToExport) ;
 
      if ckCombineRecords.Checked then begin
         NumRecordsToExport := 0 ;
         for iRec := StartAt to EndAt do begin
-            WCPFile.GetRecordHeaderOnly(FH,RH,iRec) ;
+            WCPFile.GetRecordHeaderOnly(WCPFile.FH,RH,iRec) ;
            if ANSIContainsText(RH.Status,'ACCEPTED') then Inc(NumRecordsToExport) ;
             end ;
         end
@@ -549,10 +576,10 @@ begin
         NumRecordsToExport := 1 ;
         end ;
 
-     NumSamplesPerBuf := FH.NumSamplesPerRecord*FH.NumChannels ;
+     NumSamplesPerBuf := WCPFile.FH.NumSamplesPerRecord*WCPFile.FH.NumChannels ;
      GetMem( InBuf, NumSamplesPerBuf*2 ) ;
      GetMem( YBuf, NumSamplesPerBuf*8*NumRecordsToExport ) ;
-     GetMem( TBuf, (NumSamplesPerBuf div FH.NumChannels)*8*NumRecordsToExport ) ;
+     GetMem( TBuf, (NumSamplesPerBuf div WCPFile.FH.NumChannels)*8*NumRecordsToExport ) ;
 
      Writer := TMATFileWriter.Create();
      Writer.OpenMATFile( ExportFileName ) ;
@@ -567,29 +594,29 @@ begin
      for iRec := StartAt to EndAt do begin
 
          // Read record
-         WCPFile.GetRecord(FH,RH,iRec,InBuf^) ;
+         WCPFile.GetRecord(WCPFile.FH,RH,iRec,InBuf^) ;
 
          // Skip if record rejected
          if not ANSIContainsText(RH.Status,'ACCEPTED') then continue ;
 
          // Write time vector
          if not ckCombineRecords.Checked then iT := 0 ;
-         for i := 0 to FH.NumSamples-1 do begin
+         for i := 0 to WCPFile.FH.NumSamples-1 do begin
              TBuf^[iT] := iT*RH.dt ;
              Inc(iT) ;
              end ;
          if not ckCombineRecords.Checked then begin
-            Writer.WriteDoubleMatrixHeader(format('T%d',[iRec]),FH.NumSamples,1);
-            Writer.WriteDoubleMatrixValues( TBuf^, FH.NumSamples,1) ;
+            Writer.WriteDoubleMatrixHeader(format('T%d',[iRec]),WCPFile.FH.NumSamples,1);
+            Writer.WriteDoubleMatrixValues( TBuf^, WCPFile.FH.NumSamples,1) ;
             NumRecordsExported := 0 ;
             end ;
 
          // Copy required channels
          NumChannelsExported := 0 ;
-         for ch := 0 to FH.NumChannels-1 do if UseChannel(ch) then begin
-             iY := (NumRecordsExported + NumChannelsExported*NumRecordsToExport)*FH.NumSamples ;
-             for i := 0 to FH.NumSamples-1 do begin
-                 YBuf^[iY] := (InBuf^[(i*FH.NumChannels)+WCPFile.Channel[ch].ChannelOffset]
+         for ch := 0 to WCPFile.FH.NumChannels-1 do if UseChannel(ch) then begin
+             iY := (NumRecordsExported + NumChannelsExported*NumRecordsToExport)*WCPFile.FH.NumSamples ;
+             for i := 0 to WCPFile.FH.NumSamples-1 do begin
+                 YBuf^[iY] := (InBuf^[(i*WCPFile.FH.NumChannels)+WCPFile.Channel[ch].ChannelOffset]
                                 - WCPFile.Channel[ch].ADCZero)*WCPFile.Channel[ch].ADCSCale ;
                  Inc(iY) ;
                  end ;
@@ -598,8 +625,8 @@ begin
 
          if not ckCombineRecords.Checked then begin
             Writer.WriteDoubleMatrixHeader( format('Y%d',[iRec]),
-                                            FH.NumSamples,NumChannelsToExport);
-            Writer.WriteDoubleMatrixValues( YBuf^, FH.NumSamples,NumChannelsToExport) ;
+                                            WCPFile.FH.NumSamples,NumChannelsToExport);
+            Writer.WriteDoubleMatrixValues( YBuf^, WCPFile.FH.NumSamples,NumChannelsToExport) ;
             end ;
 
          // Report progress
@@ -612,10 +639,10 @@ begin
          end ;
 
      if ckCombineRecords.Checked then begin
-        Writer.WriteDoubleMatrixHeader('T',FH.NumSamples*NumRecordsToExport,1);
-        Writer.WriteDoubleMatrixValues( TBuf^,FH.NumSamples*NumRecordsToExport,1) ;
-        Writer.WriteDoubleMatrixHeader('Y',FH.NumSamples*NumRecordsToExport,NumChannelsToExport);
-        Writer.WriteDoubleMatrixValues( YBuf^, FH.NumSamples*NumRecordsToExport,NumChannelsToExport) ;
+        Writer.WriteDoubleMatrixHeader('T',WCPFile.FH.NumSamples*NumRecordsToExport,1);
+        Writer.WriteDoubleMatrixValues( TBuf^,WCPFile.FH.NumSamples*NumRecordsToExport,1) ;
+        Writer.WriteDoubleMatrixHeader('Y',WCPFile.FH.NumSamples*NumRecordsToExport,NumChannelsToExport);
+        Writer.WriteDoubleMatrixValues( YBuf^, WCPFile.FH.NumSamples*NumRecordsToExport,NumChannelsToExport) ;
         end ;
 
      // Final Report
@@ -676,7 +703,7 @@ begin
      // Add record range to file name
      if rbAllRecords.Checked then begin
         StartAt := 1 ;
-        EndAt := FH.NumRecords ;
+        EndAt := WCPFile.FH.NumRecords ;
         end
      else begin
         StartAt := Round(edRange.LoValue) ;
@@ -702,7 +729,7 @@ begin
      // Add channels for ASCII text export
      if TADCDataFileType(cbExportFormat.Items.objects[cbExportFormat.ItemIndex])=ftASC then begin
         s := '[' ;
-        for ch := 0 to FH.NumChannels-1 do if UseChannel(ch) then begin
+        for ch := 0 to WCPFile.FH.NumChannels-1 do if UseChannel(ch) then begin
             s := s + WCPFile.Channel[ch].ADCName + ',' ;
             end;
         s := LeftStr(s,Length(s)-1)+'].tmp' ;
@@ -762,10 +789,10 @@ begin
      WCPFile.OpenAssociateFile(WCPFIle.AvgFH,FileName,'.avg') ;
      WCPFile.OpenAssociateFile(WCPFIle.LeakFH,FileName,'.sub') ;
      WCPFile.OpenAssociateFile(WCPFIle.DrvFH,FileName,'.dfn') ;
-     if Main.mnShowRaw.checked then FH := WCPFIle.RawFH ;
-     if Main.mnShowAveraged.checked then FH := WCPFIle.AvgFH ;
-     if Main.mnShowDrivingFunction.checked then FH := WCPFIle.DrvFH ;
-     if Main.mnShowLeakSubtracted.checked then FH := WCPFIle.LeakFH ;
+     if Main.mnShowRaw.checked then WCPFile.FH := WCPFIle.RawFH ;
+     if Main.mnShowAveraged.checked then WCPFile.FH := WCPFIle.AvgFH ;
+     if Main.mnShowDrivingFunction.checked then WCPFile.FH := WCPFIle.DrvFH ;
+     if Main.mnShowLeakSubtracted.checked then WCPFile.FH := WCPFIle.LeakFH ;
      end;
 
 

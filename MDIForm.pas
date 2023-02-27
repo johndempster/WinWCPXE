@@ -777,6 +777,9 @@ unit MDIForm;
    V5.7.2 09.11.22 Waveform measurements: Peak mode and T0,C0,C1 cursor positions now stored in WCP file header.
                    Screen position of main program window now saved in INI file
                    .FileName COM automation property added
+   V5.7.3 21.02.23 ExportUnit.pas Incorrect scaling of channel signals when channel gains were non-unitary fixed.
+                   Export now terminated when channel gain changes within WCP files.
+                   Export file list now intialised to currently open file even if display window not initially openb.
 
             =======================================================================}
 
@@ -1004,7 +1007,7 @@ var
    FileName : String ;
 begin
 
-      WCPFile.ProgVersion := 'V5.7.2';
+      WCPFile.ProgVersion := 'V5.7.3';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + WCPFile.ProgVersion ;
 
       Application.HelpFile := WCPFile.Settings.ProgDirectory + 'WinWCP.chm';
@@ -2293,7 +2296,9 @@ procedure TMain.mnExportClick(Sender: TObject);
   Export records to a foreign data file type
   --------------------------------------------}
 begin
+
     ExportFrm.ShowModal ;
+
     end ;
 
 
@@ -3026,7 +3031,10 @@ begin
 
      mnPrint.Enabled := EnablePrint ;
 
-     mnInspectLogFile.Enabled := WCPFile.LogFileAvailable
+     mnInspectLogFile.Enabled := WCPFile.LogFileAvailable ;
+
+     // Only enable Export dialog if replay form exists
+     mnExport.Enabled := FormExists( 'ReplayFrm' ) ;
 
      end;
 
