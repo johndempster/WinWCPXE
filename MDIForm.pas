@@ -780,6 +780,8 @@ unit MDIForm;
    V5.7.3 21.02.23 ExportUnit.pas Incorrect scaling of channel signals when channel gains were non-unitary fixed.
                    Export now terminated when channel gain changes within WCP files.
                    Export file list now intialised to currently open file even if display window not initially openb.
+   V5.7.4 03.04.23 Digital clock support temporarily disabled for NI 6353 devices to determine
+                   if there is a programming incompatibility with 32 bit Port0
 
             =======================================================================}
 
@@ -1007,7 +1009,7 @@ var
    FileName : String ;
 begin
 
-      WCPFile.ProgVersion := 'V5.7.3';
+      WCPFile.ProgVersion := 'V5.7.4';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + WCPFile.ProgVersion ;
 
       Application.HelpFile := WCPFile.Settings.ProgDirectory + 'WinWCP.chm';
