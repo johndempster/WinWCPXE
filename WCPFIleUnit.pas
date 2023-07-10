@@ -102,6 +102,7 @@ unit WCPFIleUnit ;
                FH.PeakMode now saved in file header
                Unnecessary '=' removed from KEY in AddKeyValue()
                Waveform measurement cursors now saved in file header (up to max. of 16 channels)
+  06.07.23 ... '=' removed from Keywords to avoid '==' in settings text files
 
   }
 
@@ -1906,6 +1907,7 @@ procedure TWCPFile.AddKeyValue( List : TStringList ;  // List for Key=Value pair
 // Add Key=Single Value to List
 // ---------------------
 begin
+     Keyword := ReplaceText( Keyword,'=','') ;
      List.Add( Keyword + format('=%.4g',[Value]) ) ;
 end;
 
@@ -1918,6 +1920,7 @@ procedure TWCPFile.AddKeyValue( List : TStringList ;  // List for Key=Value pair
 // Add Key=Integer Value to List
 // ---------------------
 begin
+     Keyword := ReplaceText( Keyword,'=','') ;
      List.Add( Keyword + format('=%d',[Value]) ) ;
 end;
 
@@ -1929,6 +1932,7 @@ procedure TWCPFile.AddKeyValue( List : TStringList ;  // List for Key=Value pair
 // Add Key=NativeInt Value to List
 // ---------------------
 begin
+     Keyword := ReplaceText( Keyword,'=','') ;
      List.Add( Keyword + format('=%d',[Value] )) ;
 end;
 
@@ -1941,6 +1945,7 @@ procedure TWCPFile.AddKeyValue( List : TStringList ;  // List for Key=Value pair
 // Add Key=string Value to List
 // ---------------------
 begin
+     Keyword := ReplaceText( Keyword,'=','') ;
      List.Add( Keyword + '=' + Value ) ;
 end;
 
@@ -1953,6 +1958,7 @@ procedure TWCPFile.AddKeyValue( List : TStringList ;  // List for Key=Value pair
 // Add Key=boolean Value to List
 // ---------------------
 begin
+     Keyword := ReplaceText( Keyword,'=','') ;
      if Value then List.Add( Keyword + '= T' )
               else List.Add( Keyword + '= F' ) ;
 end;
@@ -3757,6 +3763,9 @@ var
     s : string ;
 begin
 
+     // Remove any '=' in keyword
+     Keyword := ReplaceText( Keyword, '=', '' ) ;
+
      idx := List.IndexOfName( Keyword ) ;
      if idx >= 0 then
         begin
@@ -3782,6 +3791,9 @@ var
     istart,idx : Integer ;
     s : string ;
 begin
+
+     // Remove any '=' in keyword
+     Keyword := ReplaceText( Keyword, '=', '' ) ;
 
      idx := List.IndexOfName( Keyword ) ;
      if idx >= 0 then
@@ -3809,6 +3821,9 @@ var
     s : string ;
 begin
 
+     // Remove any '=' in keyword
+     Keyword := ReplaceText( Keyword, '=', '' ) ;
+
      idx := List.IndexOfName( Keyword ) ;
      if idx >= 0 then
         begin
@@ -3835,6 +3850,9 @@ var
     s : string ;
 begin
 
+     // Remove any '=' in keyword
+     Keyword := ReplaceText( Keyword, '=', '' ) ;
+
       idx := List.IndexOfName( Keyword ) ;
      if idx >= 0 then
         begin
@@ -3860,6 +3878,9 @@ var
     istart,idx : Integer ;
     s : string ;
 begin
+
+     // Remove any '=' in keyword
+     Keyword := ReplaceText( Keyword, '=', '' ) ;
 
      idx := List.IndexOfName( Keyword ) ;
      if idx >= 0 then

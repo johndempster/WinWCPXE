@@ -782,6 +782,7 @@ unit MDIForm;
                    Export file list now intialised to currently open file even if display window not initially openb.
    V5.7.4 03.04.23 Digital clock support temporarily disabled for NI 6353 devices to determine
                    if there is a programming incompatibility with 32 bit Port0
+   V5.7.5 06.07.23 DCLAMPUNIT Settings now saved and loaded correctly fixing bug introduced in V5.7.1
 
             =======================================================================}
 
@@ -1009,7 +1010,7 @@ var
    FileName : String ;
 begin
 
-      WCPFile.ProgVersion := 'V5.7.4';
+      WCPFile.ProgVersion := 'V5.7.5';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + WCPFile.ProgVersion ;
 
       Application.HelpFile := WCPFile.Settings.ProgDirectory + 'WinWCP.chm';

@@ -29,29 +29,12 @@ object DCLAMPFrm: TDCLAMPFrm
     OnChange = PageChange
     object ControlsTab: TTabSheet
       Caption = 'Controls '
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox1: TGroupBox
         Left = 3
         Top = 0
         Width = 749
         Height = 534
         TabOrder = 0
-        object Label2: TLabel
-          Left = 247
-          Top = 395
-          Width = 52
-          Height = 14
-          Caption = 'COM Port'
-          Font.Charset = ANSI_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'Arial'
-          Font.Style = [fsBold]
-          ParentFont = False
-        end
         object Label4: TLabel
           Left = 195
           Top = 434
@@ -1092,10 +1075,6 @@ object DCLAMPFrm: TDCLAMPFrm
     object GraphsTab: TTabSheet
       Caption = 'Graphs'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object plPlot: TXYPlotDisplay
         Left = 8
         Top = 40

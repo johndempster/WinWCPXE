@@ -25,6 +25,7 @@ unit DCLAMPUnit;
 //                Updating time now reported in status bar
 // 05.08.16       DCLAMP parameters now updated when form opened
 // 15.07.22       SaveSettings() and LoadSettings() now use TStringList to hold KEY=Value pairs
+// 06.07.23       = removed from KEY=Value pairs to avoid == in text file
 
 interface
 
@@ -46,7 +47,6 @@ type
     Page: TPageControl;
     ControlsTab: TTabSheet;
     GroupBox1: TGroupBox;
-    Label2: TLabel;
     GroupBox4: TGroupBox;
     GroupBox5: TGroupBox;
     rbOff: TRadioButton;
@@ -1195,55 +1195,55 @@ begin
      // Load list from file
      Header.LoadFromFile( IniFileName ) ;
 
-     edGMax.Value := WCPFile.GetKeyValue( Header, 'GMX=', edGMax.Value) ;
+     edGMax.Value := WCPFile.GetKeyValue( Header, 'GMX', edGMax.Value) ;
 
-     edNumRecords.Value := WCPFile.GetKeyValue( Header, 'NUMREPS=', edNumRecords.Value) ;
+     edNumRecords.Value := WCPFile.GetKeyValue( Header, 'NUMREPS', edNumRecords.Value) ;
 
-     edVrev.Value := WCPFile.GetKeyValue( Header, 'VRV=', edVrev.Value) ;
+     edVrev.Value := WCPFile.GetKeyValue( Header, 'VRV', edVrev.Value) ;
 
-     edMSSVhalf.Value := WCPFile.GetKeyValue( Header, 'MVH=', edMSSVhalf.Value) ;
+     edMSSVhalf.Value := WCPFile.GetKeyValue( Header, 'MVH', edMSSVhalf.Value) ;
 
-     edMSSVslope.Value := WCPFile.GetKeyValue( Header, 'MVS=', edMSSVslope.Value) ;
+     edMSSVslope.Value := WCPFile.GetKeyValue( Header, 'MVS', edMSSVslope.Value) ;
 
-     edMTauVhalf.Value := WCPFile.GetKeyValue( Header, 'MTVH=', edMTauVhalf.Value) ;
+     edMTauVhalf.Value := WCPFile.GetKeyValue( Header, 'MTVH', edMTauVhalf.Value) ;
 
-     edMTauVslope.Value := WCPFile.GetKeyValue( Header, 'MTVS=', edMTauVslope.Value) ;
+     edMTauVslope.Value := WCPFile.GetKeyValue( Header, 'MTVS', edMTauVslope.Value) ;
 
-     edMTauMin.Value := WCPFile.GetKeyValue( Header, 'MTMN=', edMTauMin.Value) ;
+     edMTauMin.Value := WCPFile.GetKeyValue( Header, 'MTMN', edMTauMin.Value) ;
 
-     edMTauMax.Value := WCPFile.GetKeyValue( Header, 'MTMX=', edMTauMax.Value) ;
+     edMTauMax.Value := WCPFile.GetKeyValue( Header, 'MTMX', edMTauMax.Value) ;
 
-     edHSSVhalf.Value := WCPFile.GetKeyValue( Header, 'HVH=', edHSSVhalf.Value) ;
+     edHSSVhalf.Value := WCPFile.GetKeyValue( Header, 'HVH', edHSSVhalf.Value) ;
 
-     edHSSVslope.Value := WCPFile.GetKeyValue( Header, 'HVS=', edHSSVslope.Value) ;
+     edHSSVslope.Value := WCPFile.GetKeyValue( Header, 'HVS', edHSSVslope.Value) ;
 
-     edHTauFVhalf.Value := WCPFile.GetKeyValue( Header, 'HTFVH=', edHTauFVhalf.Value) ;
+     edHTauFVhalf.Value := WCPFile.GetKeyValue( Header, 'HTFVH', edHTauFVhalf.Value) ;
 
-     edHTauFVslope.Value := WCPFile.GetKeyValue( Header, 'HTFVS=', edHTauFVslope.Value) ;
+     edHTauFVslope.Value := WCPFile.GetKeyValue( Header, 'HTFVS', edHTauFVslope.Value) ;
 
-     edHTauFMin.Value := WCPFile.GetKeyValue( Header, 'HTFMN=', edHTauFMin.Value) ;
+     edHTauFMin.Value := WCPFile.GetKeyValue( Header, 'HTFMN', edHTauFMin.Value) ;
 
-     edHTauFMax.Value := WCPFile.GetKeyValue( Header, 'HTFMX=', edHTauFMax.Value) ;
+     edHTauFMax.Value := WCPFile.GetKeyValue( Header, 'HTFMX', edHTauFMax.Value) ;
 
-     edHTauSVhalf.Value := WCPFile.GetKeyValue( Header, 'HTSVH=', edHTauSVhalf.Value ) ;
+     edHTauSVhalf.Value := WCPFile.GetKeyValue( Header, 'HTSVH', edHTauSVhalf.Value ) ;
 
-     edHTauSVslope.Value := WCPFile.GetKeyValue( Header, 'HTSVS=', edHTauSVslope.Value) ;
+     edHTauSVslope.Value := WCPFile.GetKeyValue( Header, 'HTSVS', edHTauSVslope.Value) ;
 
-     edHTauSMin.Value := WCPFile.GetKeyValue( Header, 'HTSMN=', edHTauSMin.Value) ;
+     edHTauSMin.Value := WCPFile.GetKeyValue( Header, 'HTSMN', edHTauSMin.Value) ;
 
-     edHTauSMax.Value := WCPFile.GetKeyValue( Header, 'HTSMX=', edHTauSMax.Value) ;
+     edHTauSMax.Value := WCPFile.GetKeyValue( Header, 'HTSMX', edHTauSMax.Value) ;
 
-     edHFastFraction.Value := WCPFile.GetKeyValue( Header, 'HTFF=', edHFastFraction.Value ) ;
+     edHFastFraction.Value := WCPFile.GetKeyValue( Header, 'HTFF', edHFastFraction.Value ) ;
 
-     edmPower.Value := WCPFile.GetKeyValue( Header, 'P=', edmPower.Value ) ;
+     edmPower.Value := WCPFile.GetKeyValue( Header, 'P', edmPower.Value ) ;
 
-     ckEnableInhibitInput.Checked := WCPFile.GetKeyValue( Header, 'ENINH=', ckEnableInhibitInput.Checked ) ;
+     ckEnableInhibitInput.Checked := WCPFile.GetKeyValue( Header, 'ENINH', ckEnableInhibitInput.Checked ) ;
 
-     edCurrentCommandScaleFactor.Value := WCPFile.GetKeyValue( Header, 'CCSF=', edCurrentCommandScaleFactor.Value) ;
+     edCurrentCommandScaleFactor.Value := WCPFile.GetKeyValue( Header, 'CCSF', edCurrentCommandScaleFactor.Value) ;
 
      for i := 0 to sgSteps.RowCount-1 do
          begin
-         Value := WCPFile.GetKeyValue( Header, format('STEPSIZE%d=',[i]), 0.0 ) ;
+         Value := WCPFile.GetKeyValue( Header, format('STEPSIZE%d',[i]), 0.0 ) ;
          sgSteps.Cells[1,i] := format('%.4g %s',[Value,StepUnits[i]]) ;
          end;
 
@@ -1265,41 +1265,42 @@ begin
      // Create file header Name=Value string list
      Header := TStringList.Create ;
 
-     WCPFile.AddKeyValue( Header, 'GMX=', edGMax.Value) ;
-     WCPFile.AddKeyValue( Header, 'NUMREPS=', edNumRecords.Value );
-     WCPFile.AddKeyValue( Header, 'STEPPAR=', SteppedParameter );
+     WCPFile.AddKeyValue( Header, 'GMX', edGMax.Value) ;
+     WCPFile.AddKeyValue( Header, 'NUMREPS', edNumRecords.Value );
+     WCPFile.AddKeyValue( Header, 'STEPPAR', SteppedParameter );
 
-     WCPFile.AddKeyValue( Header, 'VRV=', edVrev.Value) ;
-     WCPFile.AddKeyValue( Header, 'MVH=', edMSSVHalf.Value) ;
-     WCPFile.AddKeyValue( Header, 'MVS=', edMSSVSlope.Value) ;
-     WCPFile.AddKeyValue( Header, 'MTMN=', edMTauMin.Value) ;
-     WCPFile.AddKeyValue( Header, 'MTMX=', edMTauMax.Value) ;
-     WCPFile.AddKeyValue( Header, 'MTVH=', edMTauVHalf.Value) ;
-     WCPFile.AddKeyValue( Header, 'MTVS=', edMTauVSlope.Value) ;
+     WCPFile.AddKeyValue( Header, 'VRV', edVrev.Value) ;
+     WCPFile.AddKeyValue( Header, 'MVH', edMSSVHalf.Value) ;
+     WCPFile.AddKeyValue( Header, 'MVS', edMSSVSlope.Value) ;
+     WCPFile.AddKeyValue( Header, 'MTMN', edMTauMin.Value) ;
+     WCPFile.AddKeyValue( Header, 'MTMX', edMTauMax.Value) ;
+     WCPFile.AddKeyValue( Header, 'MTVH', edMTauVHalf.Value) ;
+     WCPFile.AddKeyValue( Header, 'MTVS', edMTauVSlope.Value) ;
 
-     WCPFile.AddKeyValue( Header, 'HVH=', edHSSVHalf.Value) ;
-     WCPFile.AddKeyValue( Header, 'HVS=', edHSSVSlope.Value) ;
+     WCPFile.AddKeyValue( Header, 'HVH', edHSSVHalf.Value) ;
+     WCPFile.AddKeyValue( Header, 'HVS', edHSSVSlope.Value) ;
 
-     WCPFile.AddKeyValue( Header, 'HTFMN=', edHTauFMin.Value) ;
-     WCPFile.AddKeyValue( Header, 'HTFMX=', edHTauFMax.Value) ;
-     WCPFile.AddKeyValue( Header, 'HTFVH=', edHTauFVHalf.Value) ;
-     WCPFile.AddKeyValue( Header, 'HTFVS=', edHTauFVSlope.Value) ;
+     WCPFile.AddKeyValue( Header, 'HTFMN', edHTauFMin.Value) ;
+     WCPFile.AddKeyValue( Header, 'HTFMX', edHTauFMax.Value) ;
+     WCPFile.AddKeyValue( Header, 'HTFVH', edHTauFVHalf.Value) ;
+     WCPFile.AddKeyValue( Header, 'HTFVS', edHTauFVSlope.Value) ;
 
-     WCPFile.AddKeyValue( Header, 'HTSMN=', edHTauSMin.Value) ;
-     WCPFile.AddKeyValue( Header, 'HTSMX=', edHTauSMax.Value) ;
-     WCPFile.AddKeyValue( Header, 'HTSVH=', edHTauSVHalf.Value) ;
-     WCPFile.AddKeyValue( Header, 'HTSVS=', edHTauSVSlope.Value) ;
+     WCPFile.AddKeyValue( Header, 'HTSMN', edHTauSMin.Value) ;
+     WCPFile.AddKeyValue( Header, 'HTSMX', edHTauSMax.Value) ;
+     WCPFile.AddKeyValue( Header, 'HTSVH', edHTauSVHalf.Value) ;
+     WCPFile.AddKeyValue( Header, 'HTSVS', edHTauSVSlope.Value) ;
 
-     WCPFile.AddKeyValue( Header, 'HTFF=', edHFastFraction.Value) ;
+     WCPFile.AddKeyValue( Header, 'HTFF', edHFastFraction.Value) ;
 
-     WCPFile.AddKeyValue( Header, 'P=', edmPower.Value) ;
+     WCPFile.AddKeyValue( Header, 'P', edmPower.Value) ;
 
-     WCPFile.AddKeyValue( Header, 'ENINH=', ckEnableInhibitInput.Checked ) ;
+     WCPFile.AddKeyValue( Header, 'ENINH', ckEnableInhibitInput.Checked ) ;
 
-     WCPFile.AddKeyValue( Header, 'CCSF=', edCurrentCommandScaleFactor.Value) ;
+     WCPFile.AddKeyValue( Header, 'CCSF', edCurrentCommandScaleFactor.Value) ;
 
-     for i := 0 to sgSteps.RowCount-1 do begin
-         WCPFile.AddKeyValue( Header, format('STEPSIZE%d=',[i]), GetStepSize(i)) ;
+     for i := 0 to sgSteps.RowCount-1 do
+         begin
+         WCPFile.AddKeyValue( Header, format('STEPSIZE%d',[i]), GetStepSize(i)) ;
          end;
 
      // Save list to file
@@ -1308,7 +1309,6 @@ begin
      Header.Free ;
 
      end ;
-
 
 
 end.
