@@ -108,6 +108,7 @@ unit Sealtest;
   04.08.21 .. Test pulse rate speeded up by only updating test pulse waveform when required and by changes to NIDAQMXunit to make
               ADCToMemory() more efficient.
   18.08.21 .. Display All Channels tick option added to display. Tecella Triton channels can now be selected individually for display
+  04.09.23 .. Seal test holding voltages no longer updated by default holding voltage when seal test form opened
 
   ==================================================}
 
@@ -498,8 +499,6 @@ begin
      edPulseWidth.Value := WCPFile.Settings.SealTest.PulseWidth ;
 
      { Update holding potential text boxes }
-
-
      edHoldingVoltage1.Value := WCPFile.Settings.SealTest.HoldingVoltage1 ;
      edHoldingVoltage2.Value := WCPFile.Settings.SealTest.HoldingVoltage2 ;
      edHoldingVoltage3.Value := WCPFile.Settings.SealTest.HoldingVoltage3 ;
@@ -826,8 +825,8 @@ begin
     ChangeUnits( edPulseHeight3, Units, Scale ) ;
     ChangeUnits( edZapAmplitude, Units, Scale ) ;
 
-    // Use current default holding potential for selected AO channel
-    TestDAC := Min(Max(TestDAC,0),Main.SESLabIO.DACNumChannels-1) ;
+    // Use current default holding potential for selected AO channel (Removed 04.09.23)
+{    TestDAC := Min(Max(TestDAC,0),Main.SESLabIO.DACNumChannels-1) ;
     case WCPFile.Settings.SealTest.Use of
           2 : begin
              WCPFile.Settings.SealTest.HoldingVoltage2 :=  Main.SESLabIO.DACHoldingVoltage[TestDAC] ;
@@ -841,7 +840,7 @@ begin
               WCPFile.Settings.SealTest.HoldingVoltage1 :=  Main.SESLabIO.DACHoldingVoltage[TestDAC] ;
               edHoldingVoltage1.Value := WCPFile.Settings.SealTest.HoldingVoltage1 ;
               end ;
-          end ;
+          end ;  }
 
 
     end ;
