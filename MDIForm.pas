@@ -784,6 +784,7 @@ unit MDIForm;
                    if there is a programming incompatibility with 32 bit Port0
    V5.7.5 06.07.23 DCLAMPUNIT Settings now saved and loaded correctly fixing bug introduced in V5.7.1
    V5.7.6 04.09.23 Seal test holding voltages no longer updated by default holding voltage when seal test form opened
+   V5.7.7 30.10.23 Seal test auto scale option  now toggled by F6 key
 
             =======================================================================}
 
@@ -1011,7 +1012,7 @@ var
    FileName : String ;
 begin
 
-      WCPFile.ProgVersion := 'V5.7.6';
+      WCPFile.ProgVersion := 'V5.7.7';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + WCPFile.ProgVersion ;
 
       Application.HelpFile := WCPFile.Settings.ProgDirectory + 'WinWCP.chm';

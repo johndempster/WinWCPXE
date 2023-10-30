@@ -413,10 +413,6 @@ object SealTestFrm: TSealTestFrm
       end
       object CellTab: TTabSheet
         Caption = 'Cell (G)'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object Label15: TLabel
           Left = 12
           Top = 4
@@ -520,10 +516,6 @@ object SealTestFrm: TSealTestFrm
       object CellRTab: TTabSheet
         Caption = 'Cell (R)'
         ImageIndex = 2
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object Label18: TLabel
           Left = 12
           Top = 4
@@ -838,9 +830,9 @@ object SealTestFrm: TSealTestFrm
       ParentFont = False
     end
     object rbUseHoldingVoltage1: TRadioButton
-      Left = 8
-      Top = 16
-      Width = 89
+      Left = 5
+      Top = 14
+      Width = 95
       Height = 17
       Hint = 'Select test pulse #1 (F3)'
       Caption = 'Pulse #1 (F3)'
@@ -860,7 +852,7 @@ object SealTestFrm: TSealTestFrm
     object rbUseHoldingVoltage2: TRadioButton
       Left = 8
       Top = 88
-      Width = 89
+      Width = 95
       Height = 17
       Hint = 'Select test pulse #2 (F4)'
       Caption = 'Pulse #2 (F4)'
@@ -878,7 +870,7 @@ object SealTestFrm: TSealTestFrm
     object rbUseHoldingVoltage3: TRadioButton
       Left = 8
       Top = 160
-      Width = 89
+      Width = 95
       Height = 17
       Hint = 'Select test pulse #3 (No pulse) (F5)'
       Caption = 'Pulse #3 (F5)'
@@ -1254,16 +1246,16 @@ object SealTestFrm: TSealTestFrm
   object pnDisplayOptions: TPanel
     Left = 200
     Top = 301
-    Width = 240
+    Width = 265
     Height = 18
     TabOrder = 9
     object ckAutoScale: TCheckBox
       Left = 0
-      Top = 0
-      Width = 89
+      Top = -1
+      Width = 105
       Height = 12
-      Hint = 'Automatic display magification adjustment'
-      Caption = ' Auto scale'
+      Hint = 'Automatic display magification adjustment (toggled by F6 key)'
+      Caption = ' Auto scale (F6)'
       Font.Charset = ANSI_CHARSET
       Font.Color = clBlack
       Font.Height = -12
@@ -1275,7 +1267,7 @@ object SealTestFrm: TSealTestFrm
       TabOrder = 0
     end
     object ckDisplayAllChannels: TCheckBox
-      Left = 95
+      Left = 115
       Top = 0
       Width = 146
       Height = 12

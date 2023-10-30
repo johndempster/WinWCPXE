@@ -109,6 +109,7 @@ unit Sealtest;
               ADCToMemory() more efficient.
   18.08.21 .. Display All Channels tick option added to display. Tecella Triton channels can now be selected individually for display
   04.09.23 .. Seal test holding voltages no longer updated by default holding voltage when seal test form opened
+  30.10.23 .. Auto scale option now toggled by F6 key
 
   ==================================================}
 
@@ -615,7 +616,7 @@ procedure TSealTestFrm.TimerTimer(Sender: TObject);
   ---------------------}
 
 var
-   ch,T,t1,t2 : Integer ;
+   ch,T : Integer ;
    OldADCUnits : Array[0..MaxChannels-1] of String ;
    OldADCName : Array[0..MaxChannels-1] of String ;
    Changed : Boolean ;
@@ -793,7 +794,6 @@ procedure TSealTestFrm.SetClampMode ;
 var
     Units : String ;
     Scale : Single ;
-  ch: Integer;
 begin
 
     ClampMode[cbAmplifier.ItemIndex] := Amplifier.ClampMode[cbAmplifier.ItemIndex] ;
@@ -850,8 +850,6 @@ procedure TSealTestFrm.ShowAmplifierChannels ;
 // Display channels for current selected amplifier, hide others
 // ------------------------------------------------------------
 var
-    iAmp : Integer ;
-    IsVisible : Boolean ;
   ch: Integer;
 begin
 {    for iAmp := 0 to cbAmplifier.Items.Count-1 do
@@ -1635,6 +1633,10 @@ begin
           { F5 selects holding voltage #3 }
           VK_F5 : begin
                rbUseHoldingVoltage3.checked := True ;
+               end ;
+          { F6 toggle auto scale option }
+          VK_F6 : begin
+               ckAutoScale.Checked := not ckAutoScale.Checked ;
                end ;
           end ;
      end;
