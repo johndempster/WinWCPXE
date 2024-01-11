@@ -785,6 +785,7 @@ unit MDIForm;
    V5.7.5 06.07.23 DCLAMPUNIT Settings now saved and loaded correctly fixing bug introduced in V5.7.1
    V5.7.6 04.09.23 Seal test holding voltages no longer updated by default holding voltage when seal test form opened
    V5.7.7 30.10.23 Seal test auto scale option  now toggled by F6 key
+   V5.7.8 11.01.24 Rec.pas Protocol list editing issues fixed. Protocol addition disabled when no list exists. Protocols are now added to list in correct order
 
             =======================================================================}
 
@@ -1012,7 +1013,7 @@ var
    FileName : String ;
 begin
 
-      WCPFile.ProgVersion := 'V5.7.7';
+      WCPFile.ProgVersion := 'V5.7.8';
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + WCPFile.ProgVersion ;
 
       Application.HelpFile := WCPFile.Settings.ProgDirectory + 'WinWCP.chm';

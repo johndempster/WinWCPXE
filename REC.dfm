@@ -951,8 +951,8 @@ object RecordFrm: TRecordFrm
       end
     end
     object panProtocol: TPanel
-      Left = 8
-      Top = 48
+      Left = 9
+      Top = 44
       Width = 196
       Height = 250
       BevelOuter = bvNone
@@ -997,113 +997,13 @@ object RecordFrm: TRecordFrm
         TabOrder = 1
         OnClick = rbProtocolListClick
       end
-      object panProtocolList: TPanel
-        Left = 0
-        Top = 20
-        Width = 196
-        Height = 225
-        BevelOuter = bvNone
-        TabOrder = 2
-        object Label17: TLabel
-          Left = 0
-          Top = 0
-          Width = 68
-          Height = 15
-          Caption = 'Protocol List'
-          Font.Charset = ANSI_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -12
-          Font.Name = 'Arial'
-          Font.Style = []
-          ParentFont = False
-        end
-        object cbProtocolList: TComboBox
-          Left = 0
-          Top = 16
-          Width = 192
-          Height = 24
-          Hint = 'Select voltage pulse program'
-          Style = csDropDownList
-          Sorted = True
-          TabOrder = 0
-          OnChange = cbProtocolListChange
-        end
-        object meProtocolList: TMemo
-          Left = 0
-          Top = 44
-          Width = 193
-          Height = 101
-          ReadOnly = True
-          TabOrder = 1
-        end
-        object bAddProtocolToList: TButton
-          Left = 0
-          Top = 152
-          Width = 193
-          Height = 17
-          Hint = 'Add stimulus protocol to protocol execution list'
-          Caption = 'Add Protocol to List'
-          Font.Charset = ANSI_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -12
-          Font.Name = 'Arial'
-          Font.Style = [fsBold]
-          ParentFont = False
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 2
-          OnClick = bAddProtocolToListClick
-        end
-        object bNewProtocolList: TButton
-          Left = 0
-          Top = 196
-          Width = 65
-          Height = 17
-          Hint = 'Create new protocol execution list'
-          Caption = 'New List'
-          Font.Charset = ANSI_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -12
-          Font.Name = 'Arial'
-          Font.Style = [fsBold]
-          ParentFont = False
-          TabOrder = 3
-          OnClick = bNewProtocolListClick
-        end
-        object edNewProtocolListName: TEdit
-          Left = 72
-          Top = 196
-          Width = 121
-          Height = 22
-          Hint = 'New protocol execution list name'
-          AutoSize = False
-          TabOrder = 4
-          Text = 'List Name #1'
-        end
-        object bDeleteProtocolList: TButton
-          Left = 0
-          Top = 174
-          Width = 193
-          Height = 17
-          Hint = 'Delete currently selected protocol execution list'
-          Caption = 'Delete List'
-          Font.Charset = ANSI_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -12
-          Font.Name = 'Arial'
-          Font.Style = [fsBold]
-          ParentFont = False
-          TabOrder = 5
-          OnClick = bDeleteProtocolListClick
-        end
-      end
       object panSingleProtocol: TPanel
-        Left = 0
-        Top = 20
+        Left = 4
+        Top = 19
         Width = 196
         Height = 81
         BevelOuter = bvNone
-        TabOrder = 3
+        TabOrder = 2
         object Label18: TLabel
           Left = 0
           Top = 0
@@ -1143,6 +1043,106 @@ object RecordFrm: TRecordFrm
           TabOrder = 1
           OnClick = bSetStimFolderClick
         end
+      end
+    end
+    object panProtocolList: TPanel
+      Left = 6
+      Top = 64
+      Width = 196
+      Height = 225
+      BevelOuter = bvNone
+      TabOrder = 3
+      object Label17: TLabel
+        Left = -30
+        Top = 13
+        Width = 68
+        Height = 15
+        Caption = 'Protocol List'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -12
+        Font.Name = 'Arial'
+        Font.Style = []
+        ParentFont = False
+      end
+      object cbProtocolList: TComboBox
+        Left = 0
+        Top = 41
+        Width = 196
+        Height = 24
+        Hint = 'Select voltage pulse program'
+        Style = csDropDownList
+        Sorted = True
+        TabOrder = 0
+        OnChange = cbProtocolListChange
+      end
+      object meProtocolList: TMemo
+        Left = 0
+        Top = 71
+        Width = 193
+        Height = 101
+        ReadOnly = True
+        TabOrder = 1
+      end
+      object bAddProtocolToList: TButton
+        Left = 0
+        Top = 178
+        Width = 193
+        Height = 17
+        Hint = 'Add stimulus protocol to protocol execution list'
+        Caption = 'Add Protocol to List'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -12
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 2
+        OnClick = bAddProtocolToListClick
+      end
+      object bNewProtocolList: TButton
+        Left = 0
+        Top = 15
+        Width = 65
+        Height = 17
+        Hint = 'Create new protocol execution list'
+        Caption = 'New List'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -12
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        ParentFont = False
+        TabOrder = 3
+        OnClick = bNewProtocolListClick
+      end
+      object edNewProtocolListName: TEdit
+        Left = 78
+        Top = 15
+        Width = 121
+        Height = 22
+        Hint = 'New protocol execution list name'
+        AutoSize = False
+        TabOrder = 4
+        Text = 'List Name #1'
+      end
+      object bDeleteProtocolList: TButton
+        Left = 0
+        Top = 200
+        Width = 193
+        Height = 17
+        Hint = 'Delete currently selected protocol execution list'
+        Caption = 'Delete List'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -12
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        ParentFont = False
+        TabOrder = 5
+        OnClick = bDeleteProtocolListClick
       end
     end
   end
