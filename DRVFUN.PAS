@@ -199,7 +199,7 @@ procedure TDrvFunFrm.DisplayRecord ;
 var
    y,SumAmp : single ;
    i,col,TZeroAt,iLine : Integer ;
-   EqnType : TEqnType ;
+  // EqnType : TEqnType ;
 begin
 
      WCPFile.FH.RecordNum := SbRecordNum.position ;
@@ -224,18 +224,18 @@ begin
                                else ckBadRecord.checked := True ;
 
      { Plot best fitting equation }
-     EqnType := TEqnType(Round(RH.Value[vFitEquation])) ;
-     if ((EqnType = Exponential) or
-         (EqnType = Exponential2)) then begin
+//     EqnType := RH.EqnType ; // TEqnType(Round(RH.Value[vFitEquation])) ;
+     if ((RH.EqnType = Exponential) or (RH.EqnType = Exponential2)) then
+        begin
         scDisplay.ClearLines ;
         iLine := scDisplay.CreateLine( cbChannel.ItemIndex, clRed, psSolid, 1 ) ;
-        MathFunc.Setup( EqnType,
+        MathFunc.Setup( RH.EqnType,
                         WCPFile.Settings.TUnits,
                         WCPFile.Channel[cbChannel.ItemIndex].ADCUnits)  ;
 
         { Transfer best-fit equation parameters from record header }
         for i := 0 to MathFunc.NumParameters-1 do begin
-            MathFunc.Parameters[i] := RH.Value[i*MaxAnalysisVariables+vFitPar] ;
+            MathFunc.Parameters[i] := RH.Value[RH.FitPar0 + i] ;
             end ;
         TZeroAt := RH.FitCursor0 ;
 

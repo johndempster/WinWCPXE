@@ -178,8 +178,8 @@ begin
                       i : integer ;
                   begin
                   s := '"Channel","Units",' ;
-                  for i := 0 to LastMeasureVariable do
-                      s := s + '"' + MeasureFrm.VarList[i] +'",' ;
+                  for i := 0 to MeasureFrm.VarNames.Count-1 do
+                      s := s + '"' + MeasureFrm.VarNames[i] +'",' ;
                   s := LeftStr(s,Length(s)-1);
                   end );
 
@@ -216,9 +216,6 @@ begin
 
                 vStart := ch*MaxAnalysisVariables ;
 
-                rH.Value[vStart + vRecord] := Rec ;
-                rH.Value[vStart + vGroup] := Rec ;
-                rH.Value[vStart + vTime] := rH.Time ;
                 rH.Value[vStart + vInterval] := (rH.Time  - PreviousTime) ;
 
                 ChOffset := WCPFile.Channel[ch].ChannelOffset ;
@@ -477,9 +474,9 @@ begin
 
                 // Add measurements for channel to list
                 s := format('"%s","%s",',[WCPFile.Channel[ch].ADCName,WCPFile.Channel[ch].ADCUnits]) ;
-                for i := 0 to LastMeasureVariable do
+                for i := 0 to MeasureFrm.VarNames.Count-1 do
                     begin
-                    j := vStart + Integer(MeasureFrm.VarList.Objects[i]) ;
+                    j := vStart + Integer(MeasureFrm.VarNames.Objects[i]) ;
                     s := s + format('"%.6g",',[rH.Value[j]]);
                     end ;
                 s := LeftStr(s,Length(s)-1);

@@ -347,9 +347,8 @@ begin
         RH.Number := WCPFile.RawFH.NumRecords ;
         RH.Time := RH.Number ;
         RH.dt := WCPFile.RawFH.dt ;
-        for ch := 0 to WCPFile.RawFH.NumChannels-1 do
-             RH.ADCVoltageRange[Ch] := WCPFile.RawFH.ADCVoltageRange ;
-        RH.Value[vFitEquation] := 0.0 ;
+        for ch := 0 to WCPFile.RawFH.NumChannels-1 do RH.ADCVoltageRange[Ch] := WCPFile.RawFH.ADCVoltageRange ;
+        RH.EqnType := None ; // Value[vFitEquation] := 0.0 ;
         RH.AnalysisAvailable := False ;
         RH.Ident := ' ' ;
         WCPFile.PutRecord( WCPFile.RawFH, RH, WCPFile.RawFH.NumRecords, ADC^ ) ;

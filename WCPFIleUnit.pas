@@ -103,7 +103,9 @@ unit WCPFIleUnit ;
                Unnecessary '=' removed from KEY in AddKeyValue()
                Waveform measurement cursors now saved in file header (up to max. of 16 channels)
   06.07.23 ... '=' removed from Keywords to avoid '==' in settings text files
-
+  22.06.24 ... Channel # no longer included in channel name unless name is blank
+  23.06.24 ... Curve fit parameters now stored in Value array at RH.FitPar0
+               cursor settings in EqnType,FitCursor0,FitCursor1,FitCursor2,FitChan,FitPar0
   }
 
 
@@ -140,7 +142,8 @@ const
      vConductance = 14 ;
      vQuantile = 15 ;
      vAbsArea = 16 ;
-     LastMeasureVariable = 16 ;
+     vTimeofDay = 17 ;
+     LastMeasureVariable = 17 ;
 
      PositivePeaks = 1 ;
      NegativePeaks = 2 ;
@@ -148,17 +151,17 @@ const
      PeakPeaks = 3 ;
 
      // Curve fitting variable
-     vFitEquation = LastMeasureVariable+1 ;
-     vFitChan = LastMeasureVariable+2 ;
-     vFitCursor0 =  LastMeasureVariable+3 ;
+ //    vFitEquation = LastMeasureVariable+1 ;
+    vFitChan = LastMeasureVariable+2 ;
+   {  vFitCursor0 =  LastMeasureVariable+3 ;
      vFitCursor1 = LastMeasureVariable+4 ;
      vFitCursor2 = LastMeasureVariable+5 ;
      vFitResSD = LastMeasureVariable+6 ;
      vFitNumIterations = LastMeasureVariable+7 ;
      vFitDegF = LastMeasureVariable+8 ;
-     vFitAvg = LastMeasureVariable+9 ;
-     vFitPar = LastMeasureVariable+10 ;
-     vFitParSD = LastMeasureVariable+11 ;
+     vFitAvg = LastMeasureVariable+9 ;}
+     vFitPar = LastMeasureVariable+ 3 ;
+{     vFitParSD = LastMeasureVariable+11 ;}
 
      FitVarLimit = 11 ;
      VoltsTomV = 1000. ;
@@ -196,6 +199,7 @@ TRecHeader = packed record
            FitCursor1 : Integer ;
            FitCursor2 : Integer ;
            FitChan : Integer ;
+           FitPar0 : Integer ;
            AnalysisAvailable : boolean ;
            end ;
 
@@ -791,7 +795,6 @@ begin
      for ch := 0 to RawFH.NumChannels-1 do Channel[ch].InUse := True ;
      WCPFile.SaveHeader( RawFH ) ;
 
-
      { Delete averages file (if it exists) }
      TempFile := ChangeFileExt( RawFH.FileName, '.avg' ) ;
      if FileExists(TempFile) then DeleteFile(PChar(TempFile)) ;
@@ -821,6 +824,7 @@ var
    pANSIBuf : pANSIChar ;
    NumSectors : Integer ;
    ch,i : Integer ;
+   s : string ;
 begin
 
      // Create file header Name=Value string list
@@ -931,7 +935,12 @@ begin
      { Add Names of channels to list }
      ChannelNames.Clear ;
      for ch := 0 to fHDR.NumChannels-1 do
-         ChannelNames.Add( format('Ch.%d %s',[ch,Channel[ch].ADCName]) ) ;
+         begin
+         s := Channel[ch].ADCName ;
+         if s = '' then s := format('Ch.%d ',[ch]) ;
+         ChannelNames.Add( s ) ;
+         end;
+
 
      Header.Free ;
      FreeMem( pANSIBuf ) ;
@@ -962,6 +971,7 @@ var
    i,NumSectors : Integer ;
    ResetDisplayMagnification : Boolean ;
    OldValue : Integer ;
+   s : string ;
 begin
 
      // Create header parameter list
@@ -1172,7 +1182,11 @@ begin
       { Add names of channels to list }
       ChannelNames.Clear ;
       for ch := 0 to fHDR.NumChannels-1 do
-          ChannelNames.Add( format('Ch.%d %s',[ch,Channel[ch].ADCName] )) ;
+          begin
+          s := Channel[ch].ADCName ;
+          if s = '' then s := format('Ch.%d ',[ch]) ;
+          ChannelNames.Add( s ) ;
+          end;
 
       Header.Free ;
       FreeMem(pANSIBuf) ;
@@ -2348,6 +2362,7 @@ procedure TWCPFile.PutRecordHeaderOnly(
   -------------------------------------------------------}
 var
    cBuf : Array[0..255] of ANSIchar ;
+   StartFPtr,EndFptr : Integer ;
 begin
 
      // Set file and record header sizes if no records in file
@@ -2365,16 +2380,16 @@ begin
      RH.Value[vTime] := RH.Time ;
 
      // Copy equation data to values table
-     RH.Value[vFitEquation] := Integer(RH.EqnType) ;
-     RH.Value[vFitCursor0] := RH.FitCursor0 ;
+//     RH.Value[vFitEquation] := Integer(RH.EqnType) ;
+  {   RH.Value[vFitCursor0] := RH.FitCursor0 ;
      RH.Value[vFitCursor1] := RH.FitCursor1 ;
      RH.Value[vFitCursor2] := RH.FitCursor2 ;
-     RH.Value[vFitChan] := RH.FitChan ;
+     RH.Value[vFitChan] := RH.FitChan ;}
 
      { Write record header block to file }
-     FileSeek( FHDR.FileHandle,
-               (RecordNum-1)*FHDR.NumBytesPerRecord + FHDR.NumBytesInHeader,
-               0 ) ;
+     StartFPtr := FileSeek( FHDR.FileHandle,
+                            (RecordNum-1)*FHDR.NumBytesPerRecord + FHDR.NumBytesInHeader,
+                            0 ) ;
 
      // Record ACCEPTED/REJECTED status string (8 chars)
      CopyStringToANSIArray(cBuf,LeftStr(RH.Status,MaxRecordStatusChars)) ;
@@ -2398,6 +2413,16 @@ begin
      { Write Analysis variables }
      FileWrite( FHDR.FileHandle, rH.Value,sizeof(single)*Max(FHDR.NumChannels,8)*MaxAnalysisVariables ) ;
 
+     { Write fitted equation data }
+     FileWrite( FHDR.FileHandle, rH.EqnType, sizeof(rH.EqnType) ) ;
+     FileWrite( FHDR.FileHandle, rH.FitCursor0, sizeof(rH.FitCursor0) ) ;
+     FileWrite( FHDR.FileHandle, rH.FitCursor1, sizeof(rH.FitCursor1) ) ;
+     FileWrite( FHDR.FileHandle, rH.FitCursor2, sizeof(rH.FitCursor2) ) ;
+     FileWrite( FHDR.FileHandle, rH.FitChan, sizeof(rH.FitChan) ) ;
+
+     EndFPtr := FileSeek( FHDR.FileHandle, 0, 1 ) ;
+     outputdebugstring(pchar(format('Bytes written to header: %d Space in header: %d',[EndFPtr-StartFPtr,fHDR.NumAnalysisBytesPerRecord])));
+
      end ;
 
 
@@ -2411,7 +2436,7 @@ procedure TWCPFile.GetRecord(
   Read a WCP format digital signal record from file
   --------------------------------------------------}
 var
-   i,ch,i0,i1,Sum,ChOffset,FilePointer : Integer ;
+   i,ch,i0,i1,Sum,ChOffset : Integer ;
 begin
 
      { Get record header data and store in analysis block RH }
@@ -2424,17 +2449,14 @@ begin
                                fHDR.NumAnalysisBytesPerRecord  ;
 
      { Move file pointer to start of record data block }
-     FilePointer := FileSeek( FHDR.FileHandle,
-               fHDR.NumBytesInHeader +
-               fHDR.NumBytesPerRecord*(RecordNum-1) +
-               fHDR.NumAnalysisBytesPerRecord,
+     FileSeek( FHDR.FileHandle,
+               fHDR.NumBytesInHeader + fHDR.NumBytesPerRecord*(RecordNum-1) + fHDR.NumAnalysisBytesPerRecord,
                0 ) ;
 
      { Read data block }
-     if FileRead( FHDR.FileHandle, dBuf, FHDR.NumDataBytesPerRecord )
-        <> FHDR.NumDataBytesPerRecord then begin
-        WriteToLogFilenoDate( format('Error reading file %s, Rec=%d',
-                              [fHDR.FileName,fHDR.RecordNum])) ;
+     if FileRead( FHDR.FileHandle, dBuf, FHDR.NumDataBytesPerRecord ) <> FHDR.NumDataBytesPerRecord then
+        begin
+        WriteToLogFilenoDate( format('Error reading file %s, Rec=%d',[fHDR.FileName,fHDR.RecordNum])) ;
         end ;
 
      {Apply digital filter}
@@ -2442,9 +2464,11 @@ begin
         GaussianFilter( FHDR, dBuf, Settings.CutOffFrequency ) ;
 
      { Calculate zero level for each channel }
-     for ch := 0 to FHDR.NumChannels - 1 do begin
+     for ch := 0 to FHDR.NumChannels - 1 do
+         begin
          ChOffset := Channel[Ch].ChannelOffset ;
-         if Channel[ch].ADCZeroAt >= 0 then begin
+         if Channel[ch].ADCZeroAt >= 0 then
+            begin
             i0 := Channel[ch].ADCZeroAt ;
             i0 := Min(Max( i0,0 ),FHDR.NumSamples-1 ) ;
             i1 := i0 + FHDR.NumZeroAvg - 1 ;
@@ -2556,7 +2580,7 @@ procedure TWCPFile.GetRecordHeaderOnly(
   Read a WCP format digital signal record header from file
   --------------------------------------------------------}
 var
-   ch,i,FilePointer : Integer ;
+   ch,i,vStart : Integer ;
    cRecID : array[0..MaxRecordIdentChars-1] of ANSIchar ;
    cStatus : Array[0..MaxRecordStatusChars-1] of ANSIchar ;
    cRecType : Array[0..MaxRecordTypeChars-1] of ANSIchar ;
@@ -2565,20 +2589,18 @@ begin
 
      fHDR.RecordNum := RecordNum ;
      fHDR.NumDataBytesPerRecord := fHDR.NumSamples*fHDR.NumChannels*2 ;
-     fHDR.NumBytesPerRecord := fHDR.NumDataBytesPerRecord +
-                               fHDR.NumAnalysisBytesPerRecord  ;
+     fHDR.NumBytesPerRecord := fHDR.NumDataBytesPerRecord + fHDR.NumAnalysisBytesPerRecord  ;
 
      { Move file pointer to start of record header block }
-     FilePointer := FileSeek( FHDR.FileHandle,
-                    (RecordNum-1)*fHDR.NumBytesPerRecord + fHDR.NumBytesInHeader,
-                    0 ) ;
+     FileSeek( FHDR.FileHandle,
+               (RecordNum-1)*fHDR.NumBytesPerRecord + fHDR.NumBytesInHeader,
+               0 ) ;
 
      { Read record header data }
-
      FileRead( FHDR.FileHandle, cStatus, SizeOf(cStatus));
 
-     if ANSIContainsText(cStatus,'acce') or
-        ANSIContainsText(cStatus,'reje') then begin
+     if ANSIContainsText(cStatus,'acce') or ANSIContainsText(cStatus,'reje') then
+        begin
 
         // If status of record is valid, read rest of record from file
 
@@ -2599,9 +2621,9 @@ begin
         { Read channel A/D converter voltage range }
         FileRead(FHDR.FileHandle,rH.ADCVoltageRange,sizeof(single)*FHDR.NumChannels ) ;
         { Ensure all channels have a valid voltage range }
-        for Ch := 0 to FHDR.NumChannels-1 do begin
-            if (fHDR.Version < 6.0) or (rH.ADCVoltageRange[ch]=0.0) then
-               rH.ADCVoltageRange[ch] := rH.ADCVoltageRange[0] ;
+        for Ch := 0 to FHDR.NumChannels-1 do
+            begin
+            if (fHDR.Version < 6.0) or (rH.ADCVoltageRange[ch]=0.0) then rH.ADCVoltageRange[ch] := rH.ADCVoltageRange[0] ;
             Channel[ch].ADCScale := CalibFactorToADCScale( RH, ch ) ;
             end ;
 
@@ -2615,17 +2637,29 @@ begin
         if RH.Value[0] > 0.0 then rH.AnalysisAvailable := True
                              else rH.AnalysisAvailable := False ;
 
-        // Get type of fitted equation
-        RH.EqnType := TEqnType(Min(Max(Round(RH.Value[vFitEquation]),0),99)) ;
-        RH.FitCursor0 := Min(Max(Round(RH.Value[vFitCursor0]),0),FHDR.NumSamples-1) ;
+        // Get fitted equation data
+        FileRead( FHDR.FileHandle, rH.EqnType, sizeof(rH.EqnType) ) ;
+        FileRead( FHDR.FileHandle, rH.FitCursor0, sizeof(rH.FitCursor0) ) ;
+        FileRead( FHDR.FileHandle, rH.FitCursor1, sizeof(rH.FitCursor1) ) ;
+        FileRead( FHDR.FileHandle, rH.FitCursor2, sizeof(rH.FitCursor2) ) ;
+        FileRead( FHDR.FileHandle, rH.FitChan, sizeof(rH.FitChan) ) ;
+        RH.FitPar0 := vFitPar ;
+     {   RH.FitCursor0 := Min(Max(Round(RH.Value[vFitCursor0]),0),FHDR.NumSamples-1) ;
         RH.FitCursor1 := Min(Max(Round(RH.Value[vFitCursor1]),0),FHDR.NumSamples-1) ;
         RH.FitCursor2 := Min(Max(Round(RH.Value[vFitCursor2]),0),FHDR.NumSamples-1) ;
-        RH.FitChan := Min(Max(Round(RH.Value[vFitChan]),0), FHDR.NumChannels-1) ;
+        RH.FitChan := Min(Max(Round(RH.Value[vFitChan]),0), FHDR.NumChannels-1) ;}
 
-        // Copy record details in values array
-        RH.Value[vRecord] := RecordNum ;
-        RH.Value[vGroup] := RH.Number ;
-        RH.Value[vTime] := RH.Time ;
+        // Copy record number,group,time into Values array
+        vStart := 0 ;
+        for Ch := 0 to FHDR.NumChannels-1 do
+            begin
+            // Copy record details into values array
+            RH.Value[vStart+vRecord] := FHDR.RecordNum ;
+            RH.Value[vStart+vTime] := RH.Time ;
+            RH.Value[vStart+vTimeofDay] := RH.Time + FHDR.RecordingStartTimeSecs ;
+            RH.Value[vStart+vGroup] := RH.Number ;
+            vStart := vStart + MaxAnalysisVariables ;
+            end ;
 
         end
      else begin
@@ -2636,7 +2670,8 @@ begin
         rH.dt := fHDR.dt ;
         rH.Time := (fHDR.NumSamples*rH.dt)*(rH.Number-1.0) ;
         rH.Ident := 'Error' ;
-        for Ch := 0 to FHDR.NumChannels-1 do begin
+        for Ch := 0 to FHDR.NumChannels-1 do
+            begin
             RH.ADCVoltageRange[ch] := fHDR.ADCVoltageRange ;
             Channel[ch].ADCScale := CalibFactorToADCScale( RH, ch ) ;
             end ;
@@ -2960,7 +2995,6 @@ begin
           FH.RecordNum := Min(iDelete,FH.NumRecords) ;
           { Refresh child windows }
           Main.UpdateMDIWindows ;
-
 
           end ;
 
@@ -3568,7 +3602,7 @@ begin
          // Differences between old and new equations prevent
          // the equation being carried over from the old format
          RH.AnalysisAvailable := False ;
-         RH.Value[vFitEquation] := 0.0 ;
+         RH.EqnType := None ; // Value[vFitEquation] := 0.0 ;
 
          { Write data to new record }
          Inc( OutFH.NumRecords ) ;
@@ -3698,7 +3732,7 @@ begin
          // Differences between old and new equations prevent
          // the equation being carried over from the old format
          RH.AnalysisAvailable := False ;
-         RH.Value[vFitEquation] := 0.0 ;
+         RH.EqnType := None ; //RH.Value[vFitEquation] := 0.0 ;
 
          { Write data to new record }
          Inc( OutFH.NumRecords ) ;

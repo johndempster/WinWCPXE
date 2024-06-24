@@ -151,7 +151,7 @@ object MeasureFrm: TMeasureFrm
           Height = 20
           OnKeyPress = edRecordNumKeyPress
           AutoSize = False
-          Text = ' 0 / 1.00000001504746622E30 '
+          Text = ' 0 / 1.00000001504746624E30 '
           HiValue = 1.000000015047466E30
           HiLimit = 1.000000015047466E30
           Scale = 1.000000000000000000
@@ -252,7 +252,7 @@ object MeasureFrm: TMeasureFrm
             Width = 89
             Height = 20
             AutoSize = False
-            Text = ' 0.00 - 1.00000001504746622E30 '
+            Text = ' 0.00 - 1.00000001504746624E30 '
             HiValue = 1.000000015047466E30
             HiLimit = 1.000000015047466E30
             Scale = 1.000000000000000000
@@ -711,7 +711,7 @@ object MeasureFrm: TMeasureFrm
         ParentFont = False
         TabOrder = 0
         object bNewXYPlot: TButton
-          Left = 8
+          Left = 13
           Top = 89
           Width = 119
           Height = 17
@@ -1427,9 +1427,9 @@ object MeasureFrm: TMeasureFrm
       ExplicitHeight = 0
       object SummaryGrp: TGroupBox
         Left = 4
-        Top = 4
+        Top = 3
         Width = 135
-        Height = 443
+        Height = 474
         ParentCustomHint = False
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
@@ -1440,9 +1440,9 @@ object MeasureFrm: TMeasureFrm
         TabOrder = 0
         object VariablesGrp: TGroupBox
           Left = 11
-          Top = 92
+          Top = 93
           Width = 121
-          Height = 341
+          Height = 360
           Hint = 'Waveform measurements to be included in summary'
           Caption = ' Variables '
           Font.Charset = DEFAULT_CHARSET
@@ -1650,10 +1650,21 @@ object MeasureFrm: TMeasureFrm
             Top = 307
             Width = 89
             Height = 17
-            Caption = 'ckVariable15'
+            Caption = 'ckVariable16'
             Checked = True
             State = cbChecked
             TabOrder = 17
+            OnClick = ckVariable0Click
+          end
+          object ckVariable17: TCheckBox
+            Left = 8
+            Top = 323
+            Width = 89
+            Height = 17
+            Caption = 'ckVariable17'
+            Checked = True
+            State = cbChecked
+            TabOrder = 18
             OnClick = ckVariable0Click
           end
         end
@@ -1740,7 +1751,7 @@ object MeasureFrm: TMeasureFrm
         Left = 4
         Top = 4
         Width = 135
-        Height = 557
+        Height = 573
         Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
         Font.Height = -12
@@ -1750,7 +1761,7 @@ object MeasureFrm: TMeasureFrm
         TabOrder = 1
         object bClearTable: TButton
           Left = 8
-          Top = 504
+          Top = 526
           Width = 122
           Height = 17
           Caption = 'ClearTable'
@@ -1764,10 +1775,10 @@ object MeasureFrm: TMeasureFrm
           OnClick = bClearTableClick
         end
         object GroupBox11: TGroupBox
-          Left = 8
+          Left = 10
           Top = 89
           Width = 122
-          Height = 409
+          Height = 431
           Hint = 'Waveform measurements to be included in summary'
           Caption = ' Variables '
           Font.Charset = DEFAULT_CHARSET
@@ -1780,8 +1791,8 @@ object MeasureFrm: TMeasureFrm
           ShowHint = True
           TabOrder = 1
           object ckTabVar0: TCheckBox
-            Left = 8
-            Top = 48
+            Left = 3
+            Top = 47
             Width = 89
             Height = 17
             Caption = 'ckVariable0'
@@ -1938,7 +1949,7 @@ object MeasureFrm: TMeasureFrm
           end
           object bAddVariable: TButton
             Left = 8
-            Top = 330
+            Top = 354
             Width = 106
             Height = 18
             Caption = 'Add Variable'
@@ -1967,7 +1978,7 @@ object MeasureFrm: TMeasureFrm
           end
           object bClearAllTableVariables: TButton
             Left = 8
-            Top = 354
+            Top = 378
             Width = 106
             Height = 18
             Caption = 'Clear All'
@@ -1982,7 +1993,7 @@ object MeasureFrm: TMeasureFrm
           end
           object bSet: TButton
             Left = 8
-            Top = 378
+            Top = 402
             Width = 106
             Height = 18
             Caption = 'Set All'
@@ -2031,10 +2042,22 @@ object MeasureFrm: TMeasureFrm
             TabOrder = 20
             OnClick = ckVariable0Click
           end
+          object ckTabVar17: TCheckBox
+            Tag = 16
+            Left = 8
+            Top = 322
+            Width = 89
+            Height = 11
+            Caption = 'ckVariable0'
+            Checked = True
+            State = cbChecked
+            TabOrder = 21
+            OnClick = ckVariable0Click
+          end
         end
         object bSaveTableToFile: TButton
           Left = 8
-          Top = 528
+          Top = 548
           Width = 122
           Height = 17
           Caption = 'Save to File'
@@ -2091,7 +2114,7 @@ object MeasureFrm: TMeasureFrm
       Height = 20
       OnKeyPress = edPlotRangeKeyPress
       AutoSize = False
-      Text = ' 1.00 - 1.00000001504746622E30 '
+      Text = ' 1.00 - 1.00000001504746624E30 '
       LoValue = 1.000000000000000000
       HiValue = 1.000000015047466E30
       LoLimit = 1.000000000000000000

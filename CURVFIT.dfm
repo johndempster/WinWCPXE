@@ -30,7 +30,7 @@ object FitFrm: TFitFrm
     Top = 2
     Width = 649
     Height = 543
-    ActivePage = CurveFitTab
+    ActivePage = XYPlotTab
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -12
@@ -41,10 +41,6 @@ object FitFrm: TFitFrm
     OnChange = PageChange
     object CurveFitTab: TTabSheet
       Caption = 'Fit Curves'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object scDisplay: TScopeDisplay
         Left = 176
         Top = 6
@@ -187,8 +183,8 @@ object FitFrm: TFitFrm
         ParentFont = False
         TabOrder = 1
         object bDoFit: TButton
-          Left = 8
-          Top = 16
+          Left = 9
+          Top = 13
           Width = 89
           Height = 17
           Hint = 'Start curve fitting'
@@ -312,7 +308,7 @@ object FitFrm: TFitFrm
             AutoSize = False
             Text = ' 5.0-95.0 %'
             LoValue = 0.050000000745058060
-            HiValue = 0.949999988079071000
+            HiValue = 0.949999988079071100
             HiLimit = 1.000000000000000000
             Scale = 100.000000000000000000
             Units = '%'
@@ -480,10 +476,6 @@ object FitFrm: TFitFrm
     end
     object XYPlotTab: TTabSheet
       Caption = 'X/Y Plot'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object plPlot: TXYPlotDisplay
         Left = 176
         Top = 8
@@ -537,8 +529,8 @@ object FitFrm: TFitFrm
         ParentFont = False
         TabOrder = 0
         object bNewXYPlot: TButton
-          Left = 8
-          Top = 92
+          Left = 13
+          Top = 89
           Width = 145
           Height = 17
           Hint = 'Create a new X/Y plot'
@@ -655,10 +647,6 @@ object FitFrm: TFitFrm
     end
     object HistogramTab: TTabSheet
       Caption = 'Histogram'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object plHist: TXYPlotDisplay
         Left = 176
         Top = 8
@@ -891,10 +879,6 @@ object FitFrm: TFitFrm
     end
     object SummaryTab: TTabSheet
       Caption = 'Summary'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Summary: TStringGrid
         Left = 171
         Top = 4
@@ -1046,10 +1030,11 @@ object FitFrm: TFitFrm
             Checked = True
             State = cbChecked
             TabOrder = 8
+            OnClick = ckVariable0Click
           end
           object ckVariable9: TCheckBox
             Left = 8
-            Top = 160
+            Top = 162
             Width = 89
             Height = 17
             Caption = 'ckVariable0'
@@ -1060,7 +1045,7 @@ object FitFrm: TFitFrm
           end
           object ckVariable10: TCheckBox
             Left = 8
-            Top = 176
+            Top = 180
             Width = 89
             Height = 17
             Caption = 'ckVariable0'
@@ -1074,10 +1059,6 @@ object FitFrm: TFitFrm
     end
     object TablesTab: TTabSheet
       Caption = 'Tables'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Table: TStringGrid
         Left = 172
         Top = 4

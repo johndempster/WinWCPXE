@@ -47,6 +47,8 @@ unit Curvfit;
   03.03.17 .. .Close form event now terminates bDoAnalysis.Click event before
               closing form to prevent access violation
   26.05.22 .. ZeroFrm now settings Channel record zero level settings directly
+  23.06.24 .. Fitted results now stored in FitValues and in fit.fpd & fit.csv files rather than recond headers
+              Zero guesses for exponential amplitudes prevented
   ==========================================================================}
 interface
 
@@ -59,7 +61,26 @@ uses
 
 const
      NumFitChannels = 2 ;
+     MaxFitParameters = 8 ;
 
+     // Curve fitting variable
+ //    NumFitVariables = 11 ;
+     vRecord = 0 ;
+     vGroup = 1 ;
+     vTime = 2 ;
+     vTimeOfDay = 3 ;
+     vFitEquation = 4 ;
+     vFitChan = 5 ;
+   {  vFitCursor0 =  6 ;
+     vFitCursor1 = 7 ;
+     vFitCursor2 = 8 ;}
+     vFitResSD = 9 ;
+     vFitNumIterations = 10 ;
+     vFitDegF = 11 ;
+     vFitPar = 12 ;
+     vFitParSD = vFitPar + MaxFitParameters ;
+     vFitAvg = vFitParSD + MaxFitParameters ;
+     vLast = vFitAvg + MaxChannels ;
 
 type
 
@@ -225,6 +246,8 @@ TCurveFitCursors = Record
    Func : TMathFunc ;
    ADC : PSmallIntArray ;
    DispBuf : PSmallIntArray ;
+   FitValue : PSingleArray ;      // Best fit result values
+   NumBytesInFitValue : Integer ; // No. of bytes allocated to FitValue
    VarNames : TStringList ;
    Results : TStringList ; // Curve fitting results
    RH : TRecHeader ; { Record header }
@@ -238,17 +261,18 @@ TCurveFitCursors = Record
     nDisplaySkip : Integer ;
     KeepCursors : Boolean ;
 
-    VarName : array[0..MaxChannels*MaxAnalysisVariables-1] of string ;
-    Units : array[0..MaxChannels*MaxAnalysisVariables-1] of string ;
-    MaxValue : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
-    MinValue : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
-    Mean : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
-    StDev : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
-    StErr : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
+    // Summary table results
+    VarName : array[0..vLast] of string ;
+    Units : array[0..vLast] of string ;
+    MaxValue : array[0..vLast] of single ;
+    MinValue : array[0..vLast] of single ;
+    Mean : array[0..vLast] of single ;
+    StDev : array[0..vLast] of single ;
+    StErr : array[0..vLast] of single ;
     NumVariables : Integer ;
     NumRecordsAnalysed : Integer ;
 
-    TableVars : array[0..MaxChannels*MaxAnalysisVariables-1] of Integer ;
+    TableVars : array[0..vLast] of Integer ;
     NumTableColumns : Integer ;
     CloseFormASAP : Boolean ;
 
@@ -263,7 +287,7 @@ TCurveFitCursors = Record
 
     function UseVariableInSummary( VarNum : Integer ) : Boolean ;
     function AddVariableToTable( VarNum : Integer ) : Boolean ;
-    
+
     procedure SelectEquation( var FitCh : Integer ; var EqnType : TEqnType ) ;
     procedure FillTable ;
     procedure SetDefaultHistogramLimits ;
@@ -274,6 +298,8 @@ TCurveFitCursors = Record
 
     procedure InitialiseDisplay( scDisplay : TScopeDisplay ) ;
     function TidyNumber( const RawNumber : string ) : string ;
+    procedure SaveFitValuesToFile( FileName : string ) ;
+    procedure LoadFitValuesFromFile( FileName : string ) ;
   public
     { Public declarations }
 
@@ -389,7 +415,8 @@ begin
      nDisplaySkip := 1 ;
 
      { Set channel information }
-     for ch := 0 to NumFitChannels-1 do begin
+     for ch := 0 to NumFitChannels-1 do
+         begin
          scDisplay.ChanUnits[ch] := WCPFile.Channel[cbFitChannel.ItemIndex].ADCUnits ;
          scDisplay.ChanName[ch] := WCPFile.Channel[cbFitChannel.ItemIndex].ADCName ;
          scDisplay.ChanScale[ch] := WCPFile.Channel[cbFitChannel.ItemIndex].ADCScale ;
@@ -422,13 +449,22 @@ begin
      FH := WCPFile.FH ;
      WCPFile.GetHeader( FH ) ;
 
-     if FH.Numrecords > 0 then begin
+     if FH.Numrecords > 0 then
+        begin
+
         Caption := Main.UpdateCaption( FH, 'Curve Fit ' ) ;
 
         if DispBuf <> Nil then FreeMem( DispBuf ) ;
         GetMem( DispBuf, FH.NumSamples*4 ) ;
         if ADC <> Nil then FreeMem( ADC ) ;
         GetMem( ADC, FH.NumSamples*FH.NumChannels*2 ) ;
+
+        // Create best fit equation variables array
+        if FitValue <> Nil then FreeMem( FitValue ) ;
+        NumBytesInFitValue := Max(FH.NumRecords,1)*vLast*SizeOf(Single) ;
+        FitValue := AllocMem( NumBytesInFitValue );
+        // Load any existing results
+        LoadFitValuesFromFile ( FH.FileName ) ;
 
         { Initialise Fit Channel combo box }
         cbFitChannel.items := WCPFile.ChannelNames ;
@@ -468,7 +504,8 @@ begin
         scDisplay.HorizontalCursors[Cursors.Base[ChRes]] := 0 ;
 
         // Fitting cursors f---f
-        if not KeepCursors then begin
+        if not KeepCursors then
+           begin
            { Set initial position of alignment cursors }
            scDisplay.ClearVerticalCursors ;
            Cursors.T0 := scDisplay.AddVerticalCursor(AllChannels,clGreen,'t=0') ;
@@ -485,7 +522,6 @@ begin
            KeepCursors := False ;
            end ;
 
-
         NewSummaryNeeded := True ;
         NewTableNeeded := True ;
         HistogramLimitsNeeded := True ;
@@ -494,6 +530,8 @@ begin
         WCPFile.UpdateScrollBar( sbRecordNum, FH.RecordNum, 1, fH.NumRecords ) ;
 
         DisplayRecord ;
+        // Set equation combo box to setting of first record
+        cbEquation.ItemIndex := cbEquation.Items.IndexOfObject(TObject(RH.EqnType));
 
         end
      else Close ;
@@ -530,29 +568,30 @@ begin
      Units[vTime] := 's' ;
      SetCheckBoxCaption(vTime ) ;
 
+     VarName[vTimeOfDay] := 'Time of Day' ;
+     VarNames.AddObject( VarName[vTimeOfDay], TObject(vTimeOfDay) ) ;
+     Units[vTimeOfDay] := 's' ;
+     SetCheckBoxCaption(vTimeOfDay ) ;
+
      { Equation parameters }
-     Func.Setup( EqnType,
-                 WCPFile.Settings.TUnits,
-                 WCPFile.Channel[FitCh].ADCUnits ) ;
+     Func.Setup( EqnType, WCPFile.Settings.TUnits, WCPFile.Channel[FitCh].ADCUnits ) ;
 
      { Set function parameter variables }
-     for Par := 0 to Func.NumParameters-1 do begin
-         jVar := Par*MaxAnalysisVariables + vFitPar ;
-         VarName[jVar] := Func.ParNames[Par] ;
-         VarNames.AddObject( VarName[jVar],
-                             TObject(jVar)) ;
-         Units[jVar] := Func.ParUnits[Par] ;
-         SetCheckBoxCaption(jVar) ;
+     for Par := 0 to Func.NumParameters-1 do
+         begin
+         VarName[vFitPar+Par] := Func.ParNames[Par] ;
+         VarNames.AddObject( VarName[vFitPar+Par],TObject(vFitPar+Par)) ;
+         Units[vFitPar+Par] := Func.ParUnits[Par] ;
+         SetCheckBoxCaption(vFitPar+Par) ;
          end ;
 
      { Averages within limits cursor (for ALL channels except the fitting one) }
 
      for ch := 0 to FH.NumChannels-1 do begin
          if ch <> FitCh then begin
-            jVar := ch*MaxAnalysisVariables + vFitAvg ;
+            jVar := vFitAvg + ch ;
             VarName[jVar] := ' Avg. (' + WCPFile.Channel[ch].ADCName + ')' ;
-            VarNames.AddObject( VarName[jVar],
-                                TObject(jVar)) ;
+            VarNames.AddObject( VarName[jVar],TObject(jVar)) ;
             Units[jVar] := WCPFile.Channel[ch].ADCUnits ;
             SetCheckBoxCaption(jVar ) ;
             end ;
@@ -591,7 +630,7 @@ procedure TFitFrm.DisplayRecord ;
   Display digitised signal record on Page 0 of notebook
   ========================================================}
 var
-   i,j,jTo,jFrom,jEnd,ch,iLine : Integer ;
+   i,j,jTo,jFrom,jEnd,ch,iLine,vStart : Integer ;
    y,t : single ;
 begin
 
@@ -609,6 +648,11 @@ begin
 
      { Read record data from file }
      WCPFile.GetRecord( fH, RH, fH.RecordNum, ADC^ ) ;
+     vStart := Max((FH.RecordNum-1),0)*vLast ;
+     FitValue[vStart+vRecord] := FH.RecordNum ;
+     FitValue[vStart+vTime] := RH.Time ;
+     FitValue[vStart+vTimeOfDay] := RH.Time - FH.RecordingStartTimeSecs ;
+     FitValue[vStart+vGroup] := RH.Number ;
 
      { Move A/D samples to be fitted to first channel in scDisplay }
      jFrom := WCPFile.Channel[cbFitChannel.ItemIndex].ChannelOffset ;
@@ -617,7 +661,8 @@ begin
      if FH.NumSamples <= ((High(DispBuf^)+1) div 2) then nDisplaySkip := 1
                                                     else nDisplaySkip := 2 ;
     nDisplaySkip := 1 ;
-     while jFrom < jEnd do begin
+     while jFrom < jEnd do
+         begin
          DispBuf^[jTo] := ADC^[jFrom] ;
          jFrom := jFrom + FH.NumChannels*nDisplaySkip ;
          jTo := jTo + NumFitChannels ;
@@ -628,13 +673,15 @@ begin
      scDisplay.TScale := RH.dt*WCPFile.Settings.TScale ;
      scDisplay.SetDataBuf( DispBuf ) ;
 
-     if (RH.EqnType <> None) and (RH.FitCursor1 <> RH.FitCursor2) then begin
+     if (RH.EqnType <> None) {and (RH.FitCursor1 <> RH.FitCursor2)} then
+        begin
         { Set cursors to positions used to compute fit }
         scDisplay.VerticalCursors[Cursors.T0] := RH.FitCursor0 div nDisplaySkip ;
         scDisplay.VerticalCursors[Cursors.C0] := RH.FitCursor1 div nDisplaySkip  ;
         scDisplay.VerticalCursors[Cursors.C1] := RH.FitCursor2 div nDisplaySkip  ;
         end
-     else if rbAutoCursors.Checked then begin
+     else if rbAutoCursors.Checked then
+        begin
         { Find waveform and set cursors to rise/decay as required }
         SetFittingDataCursors ;
         end
@@ -642,7 +689,7 @@ begin
              = scDisplay.VerticalCursors[Cursors.C1]) or
             (scDisplay.VerticalCursors[Cursors.C0] >= scDisplay.NumPoints) or
             (scDisplay.VerticalCursors[Cursors.C1] >= scDisplay.NumPoints)
-            then begin
+        then begin
         { Cursor data is invalid, set to default settings }
         scDisplay.VerticalCursors[Cursors.T0] := 0 ;
         scDisplay.VerticalCursors[Cursors.C0] := 10 ;
@@ -650,8 +697,7 @@ begin
         end ;
 
      { Set horizontal cursors }
-     scDisplay.HorizontalCursors[Cursors.Base[ChData]] :=
-                                               WCPFile.Channel[RH.FitChan].ADCZero ;
+     scDisplay.HorizontalCursors[Cursors.Base[ChData]] := WCPFile.Channel[RH.FitChan].ADCZero ;
      // Start of area from which zero level was computed (-1 indicates fixed zero level)
      scDisplay.ChanZeroAt[ChData] := WCPFile.Channel[RH.FitChan].ADCZeroAt ;
      scDisplay.ChanZeroAvg := FH.NumZeroAvg ;
@@ -678,28 +724,33 @@ begin
      iLine := scDisplay.CreateLine( ChData, clRed, psSolid, 1 ) ;
      { Set residuals to zero }
      jTo := ChRes ;
-     for i := 0 to scDisplay.NumPoints-1 do begin
+     for i := 0 to scDisplay.NumPoints-1 do
+         begin
          DispBuf^[jTo] := 0 ;
          jTo := jTo + NumFitChannels ;
          end ;
 
-     if RH.EqnType <> None then begin
+     if RH.EqnType <> None then
+        begin
 
         { Draw fitted line on record }
         Func.Setup( RH.EqnType, WCPFile.Settings.TUnits,WCPFile.Channel[RH.FitChan].ADCUnits ) ;
 
-        for i := 0 to Func.NumParameters-1 do begin
-            Func.Parameters[i] := RH.Value[i*MaxAnalysisVariables + vFitPar] ;
+        for i := 0 to Func.NumParameters-1 do
+            begin
+            // Read parameters from record header
+            Func.Parameters[i] := RH.Value[RH.FitPar0+i] ;
             end ;
 
         NewVariableNames( RH.FitChan, RH.EqnType)  ;
 
         t := 0.0 ;
         j := 0 ;
-        for i := 0 to scDisplay.NumPoints-1 do begin
-            if i >= scDisplay.VerticalCursors[Cursors.T0] then begin
-              y := (Func.Value(t)/WCPFile.Channel[RH.FitChan].ADCScale)
-                    + WCPFile.Channel[RH.FitChan].ADCZero ;
+        for i := 0 to scDisplay.NumPoints-1 do
+            begin
+            if i >= scDisplay.VerticalCursors[Cursors.T0] then
+              begin
+              y := (Func.Value(t)/WCPFile.Channel[RH.FitChan].ADCScale) + WCPFile.Channel[RH.FitChan].ADCZero ;
                // Draw fitted line over data
                scDisplay.AddPointToLine( iLine, i, y ) ;
                t := t + RH.dt*nDisplaySkip*WCPFile.Settings.TScale ;
@@ -714,37 +765,34 @@ begin
         Results.Add( Func.Name ) ;
 
         { Best fit parameters and standard error }
-        for i := 0 to Func.NumParameters-1 do begin
-            if RH.Value[i*MaxAnalysisVariables+vFitParSD] >= 0.0 then
+        for i := 0 to Func.NumParameters-1 do
+            begin
+            if FitValue[vStart+vFitParSD + i] >= 0.0 then
                Results.Add( format(' %s = %.4g ^~ %.4g (sd) %s',
-                                           [Func.ParNames[i],
-                                            RH.Value[i*MaxAnalysisVariables+vFitPar],
-                                            RH.Value[i*MaxAnalysisVariables+vFitParSD],
-                                            Func.ParUnits[i]] ) )
+                            [Func.ParNames[i],
+                            FitValue[vStart+vFitPar + i],
+                            FitValue[vStart+vFitParSD + i],Func.ParUnits[i]] ) )
             else
                { fixed parameter }
                Results.Add( format(' %s = %.4g (fixed) %s',
-                                           [Func.ParNames[i],
-                                            RH.Value[i*MaxAnalysisVariables+vFitPar],
-                                            Func.ParUnits[i]] ) ) ;
+                                           [Func.ParNames[i],FitValue[vStart+vFitPar + i],Func.ParUnits[i]] ) ) ;
+
             end ;
 
         { Residual standard deviation }
-        Results.Add( format(' Residual S.D. = %.4g %s',
-                             [RH.Value[vFitResSD],
-                              Units[vFitResSD]])) ;
+        Results.Add( format(' Residual S.D. = %.4g %s',[FitValue[vStart+vFitResSD],Units[vFitResSD]])) ;
+
         { Statistical degrees of freedom }
-        Results.Add( format(' Degrees of freedom = %d ',
-                             [Round(RH.Value[vFitDegF])]) ) ;
+        Results.Add( format(' Degrees of freedom = %d ',[Round(FitValue[vStart+vFitDegF])]) ) ;
+
         { No. of iterations }
-        Results.Add( format(' No. of iterations = %d ',
-                             [Round(RH.Value[vFitNumIterations])]) ) ;
+        Results.Add( format(' No. of iterations = %d ',[Round(FitValue[vStart+vFitNumIterations])]) ) ;
 
         { Averages from other channels }
         for ch := 0 to fH.NumChannels-1 do if ch <> RH.FitChan then
             Results.Add( format('Avg. %s %.4g %s',
                                     [WCPFile.Channel[ch].ADCName,
-                                     RH.Value[MaxAnalysisVariables*ch + VFitAvg],
+                                     FitValue[vStart+VFitAvg + ch],
                                      WCPFile.Channel[ch].ADCUnits] ) ) ;
         end
      else begin
@@ -785,7 +833,7 @@ procedure TFitFrm.bDoFitClick(Sender: TObject);
   Start curve fitting
   -------------------}
 var
-   Rec,StartAtRec,EndAtRec,iStart,iEnd,yZero,TZero : Integer ;
+   Rec,StartAtRec,EndAtRec,iStart,iEnd,yZero,TZero,vStart : Integer ;
    i,j,ch,ChFit,nFit,NumFitted : Integer ;
    Sum : single ;
    FitData : PXYData ;
@@ -805,20 +853,22 @@ begin
 
   { -- Set range of records to be fitted -- }
 
-  if rbAllRecords.checked then begin
+  if rbAllRecords.checked then
+        begin
         { Analyse all records in file }
         StartAtRec := 1 ;
         EndAtRec := FH.NumRecords ;
         end
-  else if rbThisRecord.checked then begin
+  else if rbThisRecord.checked then
+        begin
         { Analyse the currently displayed record }
         StartAtRec := FH.RecordNum ;
         EndAtRec := FH.RecordNum ;
         end
   else begin
-        StartAtRec := Round(edRecRange.LoValue) ;
-        EndAtRec := Round(edRecRange.HiValue) ;
-        end ;
+       StartAtRec := Round(edRecRange.LoValue) ;
+       EndAtRec := Round(edRecRange.HiValue) ;
+       end ;
 
   Try
 
@@ -832,15 +882,22 @@ begin
      Rec := StartAtRec ;
      Done := False ;
      NumFitted := 0 ;
-     while not Done do begin
+     while not Done do
+           begin
 
            OK := True ;
 
            { Read record data from file }
            WCPFile.GetRecord( fH, RH, Rec, ADC^ ) ;
+           vStart := Max(FH.RecordNum-1,0)*vLast ;
+           FitValue[vStart+vRecord] := FH.RecordNum ;
+           FitValue[vStart+vTime] := RH.Time ;
+           FitValue[vStart+vTimeOfDay] := RH.Time + FH.RecordingStartTimeSecs ;
+           FitValue[vStart+vGroup] := RH.Number ;
 
            { Fit curve if record meets selection criteria }
-           if UseRecord(RH,cbTypeToBeAnalysed.text) then begin
+           if UseRecord(RH,cbTypeToBeAnalysed.text) then
+              begin
 
               { Position fitting region cursors }
               if rbAutoCursors.checked then SetFittingDataCursors ;
@@ -852,9 +909,11 @@ begin
                                           Round(scDisplay.VerticalCursors[Cursors.C1]) ) ;
 
               { Calculate average of data within cursors for each channel }
-              for ch := 0 to fh.NumChannels-1 do begin
+              for ch := 0 to fh.NumChannels-1 do
+                  begin
                   Sum := 0. ;
-                  for i := iStart to iEnd do begin
+                  for i := iStart to iEnd do
+                      begin
                       j := i*fH.NumChannels + WCPFile.Channel[ch].ChannelOffset ;
                       Sum := Sum + ADC^[j] ;
                       end ;
@@ -878,18 +937,21 @@ begin
                   until i > iEnd ;
 
               { Skip fit if not enough data points }
-              if nFit < Func.NumParameters then begin
+              if nFit < Func.NumParameters then
+                 begin
                  ShowMessage( format('%d points is insufficient for fit',[nFit]));
                  OK := False ;
                  end ;
 
               { Fit curve using non-linear regression }
-              if OK then begin
+              if OK then
+                 begin
 
                  { Create an initial set of guesses for parameters }
-                 if not Func.ParametersSet then begin
-                    for i := 0 to Func.NumParameters-1 do
-                        if not Func.FixedParameters[i] then begin
+                 if not Func.ParametersSet then
+                    begin
+                    for i := 0 to Func.NumParameters-1 do if not Func.FixedParameters[i] then
+                        begin
                         Func.Parameters[i] := Func.InitialGuess(FitData^,nFit,i) ;
                         end ;
                     end ;
@@ -903,38 +965,50 @@ begin
                  end ;
 
               { Update record header block with results }
-              if OK and (Func.Equation <> None) then begin
+              if OK and (Func.Equation <> None) then
+                 begin
                  { Get best-fit parameters/stdev etc }
                  RH.EqnType := TEqnType(cbEquation.Items.Objects[cbEquation.ItemIndex]) ;
+                 FitValue[vStart+vFitEquation] := Integer(RH.EqnType);
+
                  { Fitted data limits }
                  RH.FitCursor0 := TZero ;
                  RH.FitCursor1 := iStart ;
                  RH.FitCursor2 := iEnd ;
                  { Channel fitted }
                  RH.FitChan := cbFitChannel.ItemIndex ;
-                 RH.Value[vFitResSD] := Func.ResidualSD ;
-                 RH.Value[vFitDegF] := Func.DegreesOfFreedom ;
-                 RH.Value[vFitNumIterations] := Func.Iterations ;
+                 FitValue[vStart+vFitChan] := RH.FitChan ;
 
-                 for i := 0 to Func.NumParameters-1 do begin
-                     RH.Value[i*MaxAnalysisVariables + vFitPar] := Func.Parameters[i] ;
-                     if not Func.FixedParameters[i] then begin
-                        RH.Value[i*MaxAnalysisVariables + vFitParSD] := Func.ParameterSDs[i] ;
+                 FitValue[vStart+vFitResSD] := Func.ResidualSD ;
+                 FitValue[vStart+vFitDegF] := Func.DegreesOfFreedom ;
+                 FitValue[vStart+vFitNumIterations] := Func.Iterations ;
+
+                 for i := 0 to Func.NumParameters-1 do
+                     begin
+                     FitValue[vStart+vFitPar + i] := Func.Parameters[i] ;
+                     // Copy in WCP record header
+                     RH.Value[RH.FitPar0+i] := Func.Parameters[i] ;
+                     if not Func.FixedParameters[i] then
+                        begin
+                        FitValue[vStart+vFitParSD + i] := Func.ParameterSDs[i] ;
                         end
                      else begin
-                        RH.Value[i*MaxAnalysisVariables + vFitParSD] := -1.0 ;
+                        FitValue[vStart+vFitParSD + i] := -1.0 ;
                         end ;
                      end ;
 
                  { Average of other channels }
-                 for ch := 0 to FH.NumChannels-1 do begin
-                     RH.Value[ch*MaxAnalysisVariables+vFitAvg] := Average[Ch] ;
+                 for ch := 0 to FH.NumChannels-1 do
+                     begin
+                     FitValue[vStart+vFitAvg+ch] := Average[Ch] ;
                      end ;
                  // Increment records fitted counter
                  Inc(NumFitted) ;
                  end
               else begin
+                 // If no fit set eqn. to None
                  RH.EqnType := None ;
+                 FitValue[vStart+vFitEquation] := Integer(RH.EqnType) ;
                  end ;
 
               { Save record header containing analysis results back to file  }
@@ -978,6 +1052,9 @@ begin
                                              [StartAtRec,EndAtRec,NumFitted] ) ;
 
         end ;
+
+     // Save results to FP data file
+     SaveFitValuesToFile ( FH.FileName ) ;
 
      // Close form if this is set
      if CloseFormASAP then Close ;
@@ -1140,7 +1217,7 @@ procedure TFitFrm.bNewXYPlotClick(Sender: TObject);
   Create an X/Y Plot
   -------------------}
 var
-   Rec,StartAtRec,EndAtRec,xVar,yVar : Integer ;
+   Rec,StartAtRec,EndAtRec,xVar,yVar,vStart : Integer ;
    x,y : Single ;
 begin
 
@@ -1161,27 +1238,34 @@ begin
 
      StartAtRec := Round(edPlotRange.LoValue) ;
      EndAtRec := Round(edPlotRange.HiValue ) ;
-     for Rec := StartAtRec to EndAtRec do begin
+     for Rec := StartAtRec to EndAtRec do
+         begin
          { Read record analysis block from file }
          WCPFile.GetRecordHeaderOnly( fH, RH, Rec ) ;
+         vStart := Max(FH.RecordNum-1,0)*vLast ;
+         FitValue[vStart+vRecord] := FH.RecordNum ;
+         FitValue[vStart+vTime] := RH.Time ;
+         FitValue[vStart+vTimeOfDay] := RH.Time + FH.RecordingStartTimeSecs ;
+         FitValue[vStart+vGroup] := RH.Number ;
+
          { Add to plot if selected and valid }
-         if UseRecord(RH,cbTypeToBeAnalysed.text) and (RH.EqnType <> None) then begin
-            x := RH.Value[XVar] ;
-            y := RH.Value[YVar] ;
+         if UseRecord(RH,cbTypeToBeAnalysed.text) and (RH.EqnType <> None) then
+            begin
+            x := FitValue[vStart + XVar] ;
+            y := FitValue[vStart + YVar] ;
             plPlot.AddPoint(0, x, y ) ;
             end ;
+
          end ;
      plPlot.SortByX( 0 ) ;
 
      { Create X and Y axes labels }
      plPlot.xAxisLabel := '' ;
      if xVar > vTime then plPlot.xAxisLabel := WCPFile.Channel[RH.FitChan].ADCName + ' ';
-     plPlot.xAxisLabel := plPlot.xAxisLabel + VarName[xVar]
-                          + ' ' + Units[xVar] ;
+     plPlot.xAxisLabel := plPlot.xAxisLabel + VarName[xVar] + ' ' + Units[xVar] ;
      plPlot.yAxisLabel := '' ;
      if yVar > vTime then plPlot.yAxisLabel := WCPFile.Channel[RH.FitChan].ADCName + ' ';
-     plPlot.yAxisLabel := plPlot.yAxisLabel + VarName[yVar]
-                          + ' ' + Units[yVar] ;
+     plPlot.yAxisLabel := plPlot.yAxisLabel + VarName[yVar] + ' ' + Units[yVar] ;
 
      { Create readout cursors for X/Y plot }
      plPlot.ClearVerticalCursors ;
@@ -1214,7 +1298,8 @@ begin
 
     Rec := StartAtRec ;
     Done := False ;
-    While not Done do begin
+    While not Done do
+       begin
        WCPFile.GetRecordHeaderOnly( fH, RH, Rec ) ;
        if UseRecord(RH,cbTypeToBeAnalysed.text) and (RH.EqnType <> None)
           or (Rec > EndAtRec) then begin
@@ -1249,7 +1334,7 @@ procedure TFitFrm.bNewHistogramClick(Sender: TObject);
   Request a new histogram to be plotted
   -------------------------------------}
 var
-   i,HistCh,HistVar,Rec,RecStart,RecEnd : Integer ;
+   i,HistCh,HistVar,Rec,RecStart,RecEnd,vStart : Integer ;
    x,HScale,HLowerLimit : single ;
    EqnType : TEqnType ;
 begin
@@ -1260,7 +1345,8 @@ begin
 
      { Calculate summary data for all channels so that a suitable
      initial histogram range can be supplied for the user }
-     if NewSummaryNeeded then FillSummaryTable ;
+     if HistogramLimitsNeeded then FillSummaryTable ;
+     HistogramLimitsNeeded := False ;
 
      { Determine records, channels & variables to be plotted }
      HistVar := Integer(cbHistVariable.Items.Objects[cbHistVariable.ItemIndex]) ;
@@ -1271,7 +1357,8 @@ begin
      x := edHistMin.Value ;
      Hist.NumBins := Round( EdNumBins.Value ) ;
      Hist.BinWidth := (edHistMax.Value - x )/Hist.NumBins ;
-     for i := 0 to Hist.NumBins-1 do begin
+     for i := 0 to Hist.NumBins-1 do
+         begin
          Hist.Bins[i].lo := x ;
          Hist.Bins[i].Mid := x + Hist.BinWidth / 2. ;
          Hist.Bins[i].Hi := x + Hist.BinWidth ;
@@ -1287,19 +1374,25 @@ begin
      RecStart := Round( edPlotRange.LoValue ) ;
      RecEnd := Round( edPlotRange.HiValue ) ;
      Screen.Cursor := crHourglass ;
-     for Rec := RecStart to RecEnd do begin
+     for Rec := RecStart to RecEnd do
+            begin
             { Read record analysis block from file }
             WCPFile.GetRecordHeaderOnly( fH, RH, Rec ) ;
-            if UseRecord( RH, cbTypeToBeAnalysed.text )
-               and (RH.EqnType <> None) then begin
-               x := RH.Value[HistVar] ;
+            vStart := Max(FH.RecordNum-1,0)*vLast ;
+            FitValue[vStart+vRecord] := FH.RecordNum ;
+            FitValue[vStart+vTime] := RH.Time ;
+            FitValue[vStart+vTimeOfDay] := RH.Time + FH.RecordingStartTimeSecs ;
+            FitValue[vStart+vGroup] := RH.Number ;
+
+            if UseRecord( RH, cbTypeToBeAnalysed.text ) and (RH.EqnType <> None) then
+               begin
+               x := FitValue[vStart + HistVar] ;
                i := Round( (x - HLowerLimit) * HScale ) ;
                i := Max( Min( i,Hist.NumBins-1 ), 0 ) ;
                Hist.Bins[i].y := Hist.Bins[i].y + 1. ;
                if Hist.Bins[i].y > Hist.yHi then Hist.yHi := Hist.Bins[i].y ;
                end ;
             end ;
-
 
      { Plot new histogram }
      plHist.xAxisAutoRange := False ;
@@ -1356,6 +1449,7 @@ begin
 
    iVar := Integer(cbHistVariable.Items.Objects[cbHistVariable.ItemIndex]) ;
 
+
    edHistMin.Units := Units[iVar] ;
    edHistMax.Units := Units[iVar] ;
 
@@ -1387,7 +1481,7 @@ procedure TFitFrm.CalculateSummary ;
   Calculate summary of curve fit results held in file
   ========================================================}
 var
-   Rec,RecStart,RecEnd,FitCh,iVar,jVar,n : Integer ;
+   Rec,RecStart,RecEnd,FitCh,iVar,jVar,n,vStart : Integer ;
    y : Single ;
    EqnType : TEqnType ;
 begin
@@ -1402,33 +1496,35 @@ begin
      SelectEquation( FitCh, EqnType ) ;
 
      { Initialise summary variables }
-     for iVar := 0 to NumVariables-1 do begin
-         jVar := GetCheckBoxVariableNumber(iVar) ;
-         MaxValue[jVar] := -MaxSingle ;
-         MinValue[jVar] := MaxSingle ;
-         Mean[jVar] := 0. ;
-         StDev[jVar] := 0. ;
-         StErr[jVar] := 0. ;
+     for iVar := 0 to vLast do
+         begin
+         MaxValue[iVar] := -MaxSingle ;
+         MinValue[iVar] := MaxSingle ;
+         Mean[iVar] := 0. ;
+         StDev[iVar] := 0. ;
+         StErr[iVar] := 0. ;
          NumRecordsAnalysed := 0 ;
          end ;
 
      { Update Min/Max range of values in file }
-     for Rec := RecStart to RecEnd do begin
+     for Rec := RecStart to RecEnd do
+         begin
 
          { Get record header containing analysis results }
          WCPFile.GetRecordHeaderOnly( fH, RH, Rec ) ;
+         vStart := Max((FH.RecordNum-1),0)*vLast ;
 
          { Add record to analysis (if valid and of selected type }
-         if UseRecord( RH, cbTypeToBeAnalysed.text ) then begin
-            for iVar := 0 to NumVariables-1 do begin
-                jVar := GetCheckBoxVariableNumber(iVar) ;
+         if UseRecord( RH, cbTypeToBeAnalysed.text ) then
+            begin
+            for iVar := 0 to vLast do
+                begin
+                jVar := iVar + vStart ;
                 { Min./Max. values }
-                if MaxValue[jVar] < RH.Value[jVar] then
-                   MaxValue[jVar] := RH.Value[jVar] ;
-                if MinValue[jVar] > RH.Value[jVar] then
-                   MinValue[jVar] := RH.Value[jVar] ;
+                if MaxValue[iVar] < FitValue[jVar] then MaxValue[iVar] := FitValue[jVar] ;
+                if MinValue[iVar] > FitValue[jVar] then MinValue[iVar] := FitValue[jVar] ;
                 { Mean }
-                Mean[jVar] := Mean[jVar] + RH.Value[jVar] ;
+                Mean[iVar] := Mean[iVar] + FitValue[jVar] ;
                 end ;
             Inc(NumRecordsAnalysed) ;
             end ;
@@ -1437,28 +1533,30 @@ begin
 
      { Calculate mean value for each variable}
      n := Max( NumRecordsAnalysed, 1 ) ;
-     for iVar := 0 to NumVariables-1 do begin
-         jVar := GetCheckBoxVariableNumber(iVar) ;
-         Mean[jVar]:= Mean[jVar]/n ;
+     for iVar := 0 to vLast do
+         begin
+         Mean[iVar]:= Mean[iVar]/n ;
          end ;
 
      { Re-read the analysis blocks to get residual deviations from mean }
-     for Rec := RecStart to RecEnd do begin
+     for Rec := RecStart to RecEnd do
+         begin
          WCPFile.GetRecordHeaderOnly( fH, RH, Rec ) ;
-         if UseRecord(RH,cbTypeToBeAnalysed.text) then begin
-            for iVar := 0 to NumVariables-1 do begin
-                jVar := GetCheckBoxVariableNumber(iVar) ;
-                y := RH.Value[jVar] - Mean[jVar] ;
-                StDev[jVar] := StDev[jVar] + y*y ;
+         if UseRecord(RH,cbTypeToBeAnalysed.text) then
+            begin
+            for iVar := 0 to vLast do
+                begin
+                y := FitValue[iVar] - Mean[iVar] ;
+                StDev[iVar] := StDev[iVar] + y*y ;
                 end ;
             end ;
          end ;
 
      { Calculate standard deviation and error for each variable}
-     for iVar := 0 to NumVariables-1 do begin
-         jVar := GetCheckBoxVariableNumber(iVar) ;
-         StDev[jVar]:= sqrt( StDev[jVar] / Max(n - 1,1) ) ;
-         StErr[jVar]:= StDev[jVar]/sqrt( n ) ;
+     for iVar := 0 to vLast do
+         begin
+         StDev[iVar]:= sqrt( StDev[iVar] / Max(n - 1,1) ) ;
+         StErr[iVar]:= StDev[iVar]/sqrt( n ) ;
          end ;
 
      screen.cursor := crDefault ;
@@ -1507,18 +1605,12 @@ begin
              { Enter row of data }
              Summary.cells[cName,Row]  := VarName[jVar] ;
              if Units[jVar] <> ' ' then
-                Summary.cells[cName,Row]  := Summary.cells[cName,Row] + ' (' +
-                                             Units[jVar] + ')';
-             Summary.cells[cMean,Row]  := format( '%8.4g',
-                                          [Mean[jVar]] ) ;
-             Summary.cells[cStDev,Row] := format( '%8.4g',
-                                          [StDev[jVar]] ) ;
-             Summary.cells[cStErr,Row] := format( '%8.4g',
-                                          [StErr[jVar]] ) ;
-             Summary.cells[cMin,Row]   := format( '%8.4g',
-                                          [MinValue[jVar]] ) ;
-             Summary.cells[cMax,Row]   := format( '%8.4g',
-                                          [MaxValue[jVar]] ) ;
+                Summary.cells[cName,Row]  := Summary.cells[cName,Row] + ' (' + Units[jVar] + ')';
+             Summary.cells[cMean,Row]  := format( '%8.4g',[Mean[jVar]] ) ;
+             Summary.cells[cStDev,Row] := format( '%8.4g',[StDev[jVar]] ) ;
+             Summary.cells[cStErr,Row] := format( '%8.4g',[StErr[jVar]] ) ;
+             Summary.cells[cMin,Row]   := format( '%8.4g',[MinValue[jVar]] ) ;
+             Summary.cells[cMax,Row]   := format( '%8.4g',[MaxValue[jVar]] ) ;
              Summary.cells[cNum,Row]   := format( '%d',[NumRecordsAnalysed] ) ;
              end ;
          end ;
@@ -1528,9 +1620,11 @@ begin
 
      { Set widths of columns to maximum of data }
      TotalWidth := 20 ;
-     for Col := 0 to Summary.ColCount-1 do begin
+     for Col := 0 to Summary.ColCount-1 do
+         begin
          MaxWidth := 0 ;
-         for Row := 0 to Summary.RowCount-1 do begin
+         for Row := 0 to Summary.RowCount-1 do
+             begin
              Summary.cells[Col,Row] := ' ' + TidyNumber(Summary.cells[Col,Row]) + ' ';
              ColWidth := Summary.canvas.TextWidth(Summary.cells[Col,Row]) ;
              if  ColWidth > MaxWidth then MaxWidth := ColWidth ;
@@ -1713,17 +1807,17 @@ function TFitFrm.UseVariableInSummary(
   ---------------------------------------------------------------------- }
 begin
      case VarNum of
-        0 : Result := ckVariable0.Checked ;
-        1 : Result := ckVariable1.Checked ;
-        2 : Result := ckVariable2.Checked ;
-        3 : Result := ckVariable3.Checked ;
-        4 : Result := ckVariable4.Checked ;
-        5 : Result := ckVariable5.Checked ;
-        6 : Result := ckVariable6.Checked ;
-        7 : Result := ckVariable7.Checked ;
-        8 : Result := ckVariable8.Checked ;
-        9 : Result := ckVariable9.Checked ;
-        10 : Result := ckVariable10.Checked ;
+        0 : Result := ckVariable0.Checked and ckVariable0.Visible ;
+        1 : Result := ckVariable1.Checked and ckVariable1.Visible ;
+        2 : Result := ckVariable2.Checked and ckVariable2.Visible ;
+        3 : Result := ckVariable3.Checked and ckVariable3.Visible ;
+        4 : Result := ckVariable4.Checked and ckVariable4.Visible ;
+        5 : Result := ckVariable5.Checked and ckVariable5.Visible ;
+        6 : Result := ckVariable6.Checked and ckVariable6.Visible ;
+        7 : Result := ckVariable7.Checked and ckVariable7.Visible ;
+        8 : Result := ckVariable8.Checked and ckVariable8.Visible ;
+        9 : Result := ckVariable9.Checked and ckVariable9.Visible ;
+        10 : Result := ckVariable10.Checked and ckVariable10.Visible ;
         else Result := False ;
         end ;
 
@@ -1774,7 +1868,7 @@ procedure TFitFrm.FillTable ;
   Fill table with selected waveform measurement lists
   ===================================================}
 var
-   StartAt,EndAt,Col,Rec,jVar,FitCh : Integer ;
+   StartAt,EndAt,Col,Rec,jVar,FitCh,vStart : Integer ;
    EqnType : TEqnType ;
 begin
 
@@ -1792,7 +1886,8 @@ begin
      SelectEquation( FitCh, EqnType ) ;
 
      { Create column title }
-     for Col := 0 to Table.ColCount-1 do begin
+     for Col := 0 to Table.ColCount-1 do
+         begin
          jVar := TableVars[Col] ;
          Table.cells[Col,0] := VarName[jVar] ;
          case jVar of
@@ -1808,19 +1903,24 @@ begin
 
      StartAt := Round(edPlotRange.LoValue) ;
      EndAt := Round(edPlotRange.HiValue) ;
-     for Rec := StartAt to EndAt do begin
+     for Rec := StartAt to EndAt do
+         begin
+
          { Read analysis data from record }
          WCPFile.GetRecordHeaderOnly( fH, rH, Rec ) ;
+         vStart := Max((FH.RecordNum-1),0)*vLast ;
+
          { Only use ACCEPTED records of appropriate type }
          if UseRecord( rH, cbTypeToBeAnalysed.text ) and
-            ((RH.EqnType = EqnType) or ckIncludeBadFits.Checked) then begin
+            ((RH.EqnType = EqnType) or ckIncludeBadFits.Checked) then
+            begin
             { Fill row with selected variables }
             Table.RowCount := Table.RowCount + 1 ;
-            for Col := 0 to Table.ColCount-1 do begin
-                   jVar := TableVars[Col] ;
-                   Table.cells[Col,Table.RowCount-1] := format('%8.4g',
-                                                        [rH.Value[jVar]] ) ;
-                   end ;
+            for Col := 0 to Table.ColCount-1 do
+                begin
+                jVar := TableVars[Col] ;
+                Table.cells[Col,Table.RowCount-1] := format('%8.4g',[FitValue[vStart+jVar]] ) ;
+                end ;
             end ;
          end ;
 
@@ -1903,6 +2003,7 @@ procedure TFitFrm.FormCreate(Sender: TObject);
 begin
     ADC := Nil ;
     DispBuf := Nil ;
+    FitValue := Nil ;
     Hist := THistogram.Create ;
     VarNames := TStringList.Create ;
     Results := TStringList.Create ;
@@ -1917,6 +2018,8 @@ procedure TFitFrm.FormDestroy(Sender: TObject);
 begin
      if ADC <> Nil then FreeMem(ADC) ;
      if DispBuf <> Nil then FreeMem(DispBuf) ;
+     if FitValue <> Nil then FreeMem(FitValue) ;
+
      Hist.Free ;
      VarNames.Free ;
      Results.Free ;
@@ -2414,7 +2517,7 @@ begin
                if FilterFrm.SetRecordType then rH.RecType := FilterFrm.RecType ;
                end
             else if (RH.EqnType <> None) then begin
-               y := RH.Value[FilterFrm.Variable] ;
+               y := FitValue[FilterFrm.Variable] ;
                if ((FilterFrm.LowerLimit <= y) and (y <= FilterFrm.UpperLimit)) then begin
                   if FilterFrm.SetRecordStatus then rH.Status := FilterFrm.Status ;
                   if FilterFrm.SetRecordType then rH.RecType := FilterFrm.RecType ;
@@ -2601,5 +2704,99 @@ procedure TFitFrm.ckFixedZeroLevelsClick(Sender: TObject);
 begin
      WCPFile.Settings.FixedZeroLevels := ckFixedZeroLevels.Checked ;
      end;
+
+procedure TFitFrm.SaveFitValuesToFile( FileName : string ) ;
+// ---------------------------------------------
+// Save curve fit results to FP & CSV data files
+// ---------------------------------------------
+var
+    FileHandle : THandle ;
+    iRec,iVar,vStart,i : Integer;
+    YTable : TStringList ;
+    s : string ;
+begin
+
+     // Save to floating point file
+
+     // Save fit data in file with .fit.fpd ending
+     FileName := FileName + '.fit.fpd'  ;
+
+     if FileExists( FileName ) then
+        begin
+        FileHandle := FileOpen(FileName, fmOpenReadWrite ) ;
+        end
+     else
+        begin
+        FileHandle := FileCreate( FileName ) ;
+        end;
+
+     // Write values array to file
+     FileWrite( FileHandle, FitValue^, NumBytesInFitValue ) ;
+     FileClose( FileHandle ) ;
+
+     // Save to CSV file
+
+     // Create string list
+     YTable := TStringList.Create ;
+
+     // First line contains variable names as column labels
+     s := '' ;
+     for i := 0 to VarNames.Count-1 do
+         begin
+           iVar := Integer(VarNames.Objects[i]) ;
+           s := s + '"' + VarName[iVar] + '"' ;
+           if i <> VarNames.Count-1 then s := s + ',' ;
+         end;
+     YTable.Add(s) ;
+
+     // Add rows
+
+     for iRec := 1 to FH.NumRecords-1 do
+         begin
+         s := '' ;
+         vStart := (iRec-1)*vLast ;
+         if FitValue[vStart+vRecord] > 0.0 then
+            begin
+            for i := 0 to VarNames.Count-1 do
+                begin
+                iVar := vStart + Integer(VarNames.Objects[i]) ;
+                s := s + format('"%.6g"',[FitValue[iVar]]) ;
+                if i <> VarNames.Count-1 then s := s + ',' ;
+                end ;
+            YTable.Add(s) ;
+            end ;
+         end ;
+
+     // Write to CSV file
+     FileName := ReplaceText( FileName, '.fpd', '.csv' ) ;
+     YTable.SaveToFile( FileName ) ;
+     YTable.Free ;
+
+end;
+
+
+procedure TFitFrm.LoadFitValuesFromFile( FileName : string ) ;
+// -------------------------------------------
+// Save raw curve fit results to FP data file
+// -------------------------------------------
+var
+    FileHandle : THandle ;
+begin
+
+     // Fit results file has .fit.fpd ending
+     FileName := FileName + '.fit.fpd'  ;
+
+     if FileExists( FileName ) then
+        begin
+        FileHandle := FileOpen(FileName, fmOpenRead ) ;
+        // Write values array to file
+        FileRead( FileHandle, FitValue^, NumBytesInFitValue ) ;
+        // Close file
+        FileClose( FileHandle ) ;
+        end ;
+
+end;
+
+
 
 end.

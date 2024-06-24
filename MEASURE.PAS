@@ -90,7 +90,7 @@ unit Measure;
    30.07.19   Rise time limits now stored in WCP file header
    12.08.19 .. Absolute area measurement variable added
    15.08.19 .. % of peak detection point for latency can now be set by user
-   16.08.19 .. Variable table columns now work properly again VarNames renamed to VarList for clarity
+   16.08.19 .. Variable table columns now work properly again VarNames renamed to VarNames for clarity
    13.04.21 .. Waveform measurements now performed in MeasureThread
                Results saved in CSV table with suffix <file name> .wfm.csv
                Absolute peak values now correctly entered in results table
@@ -101,6 +101,7 @@ unit Measure;
                Variable list now created by procedure AddVariableToTable()
    08.11.22 .. T0,C0,C1 cursor positions now stored in FH and WCP file header
                Peak mode setting now retained correctly when form closed and re-opened
+   23.06.24 .. Time of day variable added.
 
   ==========================================================================}
 interface
@@ -282,6 +283,8 @@ TMeasureFrmCursors = Record
     edLatencyPercentage: TValidatedEdit;
     rbDecayTimePercent: TRadioButton;
     rbDecayTimeToLevel: TRadioButton;
+    ckVariable17: TCheckBox;
+    ckTabVar17: TCheckBox;
     procedure bDoAnalysisClick(Sender: TObject);
     procedure bAbortClick(Sender: TObject);
     procedure bNewXYPlotClick(Sender: TObject);
@@ -334,6 +337,9 @@ TMeasureFrmCursors = Record
    Cursors : TMeasureFrmCursors ;
    ADC : PSmallIntArray ;
    Hist : THistogram ;
+//   WfmValue : PSingleArray ;      // Waveform measurements
+//   NumBytesInWfmValue : Integer ; // No. of bytes allocated to WfmValue
+
 
    HistResults : TStringList ;
    XYResults : TStringList ;
@@ -387,9 +393,10 @@ TMeasureFrmCursors = Record
 
     procedure StopDoAnalysisThread ;
 
+
   public
     { Public declarations }
-    VarList : TStringList ;
+    VarNames : TStringList ;
     VarName : array[0..MaxAnalysisVariables-1] of string ;               // Measurement variable names
     Units : array[0..MaxChannels*MaxAnalysisVariables-1] of string ;  // Measurement variable unitss
      UnitsScale : array[0..MaxChannels*MaxAnalysisVariables-1] of single ;
@@ -721,7 +728,7 @@ var
 begin
 
    // Clear variable names string list
-     VarList.Clear ;
+     VarNames.Clear ;
 
      { Create waveform analysis record }
      for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := ' ' ;
@@ -733,18 +740,25 @@ begin
      for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := 's' ;
      CreateVariable( vTime, 'Time', VarUnits, 1. ) ;
 
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := WCPFile.Channel[ch].ADCUnits ;
+     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := 's' ;
+     CreateVariable( vTimeOfDay, 'Time of Day', VarUnits, 1. ) ;
+
+     for ch := 0 to FH.NumChannels-1 do
+         VarUnits[ch] := WCPFile.Channel[ch].ADCUnits ;
      CreateVariable(vAverage,'Average',VarUnits,1. ) ;
 
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := WCPFile.Channel[ch].ADCUnits + '.'
-                                                    + WCPFile.Settings.TUnits ;
+     for ch := 0 to FH.NumChannels-1 do
+         VarUnits[ch] := WCPFile.Channel[ch].ADCUnits + '.' + WCPFile.Settings.TUnits ;
+
      CreateVariable(vArea,'Area',VarUnits,WCPFile.Settings.TScale ) ;
 
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := WCPFile.Channel[ch].ADCUnits + '.'
-                                                    + WCPFile.Settings.TUnits ;
+     for ch := 0 to FH.NumChannels-1 do
+         VarUnits[ch] := WCPFile.Channel[ch].ADCUnits + '.' + WCPFile.Settings.TUnits ;
+
      CreateVariable(vAbsArea,'Abs(Area)',VarUnits,WCPFile.Settings.TScale ) ;
 
-     for ch := 0 to FH.NumChannels-1 do VarUnits[ch] := WCPFile.Channel[ch].ADCUnits ;
+     for ch := 0 to FH.NumChannels-1 do
+        VarUnits[ch] := WCPFile.Channel[ch].ADCUnits ;
 
      { Type of peak analysis required }
 
@@ -807,6 +821,7 @@ begin
      SetCheckBoxCaption( ckVariable14, 14 ) ;
      SetCheckBoxCaption( ckVariable15, 15 ) ;
      SetCheckBoxCaption( ckVariable16, 16 ) ;
+     SetCheckBoxCaption( ckVariable17, 17 ) ;
 
      { Set up captions of TabVars to be summarised }
      SetCheckBoxCaption( ckTabVar0, 0 ) ;
@@ -826,20 +841,21 @@ begin
      SetCheckBoxCaption( ckTabVar14, 14 ) ;
      SetCheckBoxCaption( ckTabVar15, 15 ) ;
      SetCheckBoxCaption( ckTabVar16, 16 ) ;
+     SetCheckBoxCaption( ckTabVar17, 17 ) ;
 
      { Create variable name list for X/Y plot }
-     cbXVariable.items := VarList  ;
+     cbXVariable.items := VarNames  ;
      if cbXVariable.ItemIndex < 0  then cbXVariable.ItemIndex := 0 ;
-     cbYVariable.items := VarList  ;
+     cbYVariable.items := VarNames  ;
      if cbYVariable.ItemIndex < 0  then cbYVariable.ItemIndex := 0 ;
-     cbCondIVar.items := VarList  ;
+     cbCondIVar.items := VarNames  ;
      if cbCondIVar.ItemIndex < 0  then cbCondIVar.ItemIndex := vAverage ;
-     cbCondVVar.items := VarList  ;
+     cbCondVVar.items := VarNames  ;
      if cbCondVVar.ItemIndex < 0  then cbCondVVar.ItemIndex := vAverage ;
-     cbHistVariable.items := VarList  ;
+     cbHistVariable.items := VarNames  ;
      if cbHistVariable.ItemIndex < 0  then cbHistVariable.ItemIndex := 0 ;
 
-     sgResults.RowCount := LastMeasureVariable + 2 ;
+     sgResults.RowCount := VarNames.Count + 2 ;
      sgResults.ColCount := FH.NumChannels + 1 ;
 
      { Variable name column }
@@ -868,6 +884,7 @@ var
    ch,v,ColWidth,jVar : Integer ;
    s : string ;
 begin
+
      sbRecordNum.Max := fH.NumRecords ;
      sbRecordNum.Min := 1 ;
      sbRecordNum.Enabled := True ;
@@ -881,7 +898,8 @@ begin
      { Read record data from file }
      WCPFile.GetRecord( fH, rH, fH.RecordNum, ADC^ ) ;
 
-     for ch := 0 to FH.NumChannels-1 do begin
+     for ch := 0 to FH.NumChannels-1 do
+         begin
          // Zero level
          scDisplay.HorizontalCursors[ch] := WCPFile.Channel[ch].ADCZero ;
          // Start of area from which zero level was computed (-1 indicates fixed zero level)
@@ -903,11 +921,13 @@ begin
      cbRecordType.ItemIndex := cbRecordType.items.indexOf(rh.RecType);
 
      { Display waveform measurements for this record }
-     if RH.AnalysisAvailable then begin
-        for Ch := 0 to FH.NumChannels-1 do if WCPFile.Channel[Ch].InUse then begin
+     if RH.AnalysisAvailable then
+        begin
+        for Ch := 0 to FH.NumChannels-1 do if WCPFile.Channel[Ch].InUse then
+            begin
             ColWidth := 0 ;
             for v := 0 to cbXVariable.Items.Count-1 do begin
-                jVar := ch*MaxAnalysisVariables + Integer(VarList.objects[v]) ;
+                jVar := ch*MaxAnalysisVariables + Integer(VarNames.objects[v]) ;
                 s := format(' %.4g %s    ',[RH.Value[jVar]*UnitsScale[jVar],Units[jVar]]) ;
                 sgResults.Cells[Ch+1,v+1] := s ;
                 if ColWidth < sgResults.Canvas.TextWidth(s) then
@@ -1008,10 +1028,10 @@ begin
      for ch := 0 to FH.NumChannels-1 do
          begin
          iStart[ch] := Min( Round(scDisplay.VerticalCursors[Cursors.C0[ch]]),
-                                              Round(scDisplay.VerticalCursors[Cursors.C1[ch]]) ) ;
+                            Round(scDisplay.VerticalCursors[Cursors.C1[ch]]) ) ;
          FH.C0Cursor[ch] := iStart[ch];
          iEnd[ch] :=   Max( Round(scDisplay.VerticalCursors[Cursors.C0[ch]]),
-                                             Round(scDisplay.VerticalCursors[Cursors.C1[ch]]) ) ;
+                            Round(scDisplay.VerticalCursors[Cursors.C1[ch]]) ) ;
          FH.C1Cursor[ch] := iEnd[ch];
                 { Zero time cursor }
          iTimeZero[ch] := Round(scDisplay.VerticalCursors[Cursors.t0]) ;
@@ -1080,11 +1100,16 @@ begin
      Ych := cbYChannel.itemIndex ;
      YVar := Integer(cbYVariable.Items.Objects[cbYVariable.ItemIndex]) ;
 
-     { Create X and Y axes labels }
-     plPlot.xAxisLabel := '' ;
-     if xVar > vTime then plPlot.xAxisLabel := WCPFile.Channel[xCh].ADCName + ' ';
-     plPlot.xAxisLabel := plPlot.xAxisLabel + VarName[xVar]
-                          + ' ' + Units[xCh*MaxAnalysisVariables+xVar] ;
+     // Set X axis label
+
+     if (xVar <> vRecord) and (xVar <> vGroup) and (xVar <> vTime) and (xVar <> vTimeOfDay) then
+        begin
+        // Don't include channel name for non-channel related variables
+        plPlot.xAxisLabel := WCPFile.Channel[xCh].ADCName + ' ' ;
+        end;
+     plPlot.xAxisLabel := plPlot.xAxisLabel + VarName[xVar] + ' ' + Units[xCh*MaxAnalysisVariables+xVar] ;
+
+     // Set Y axis label
 
      plPlot.yAxisLabel := '' ;
      if yVar = vConductance then begin
@@ -1095,11 +1120,12 @@ begin
         SetCheckBoxCaption( ckTabVar14, 14 ) ;
         end ;
 
-     if (yVar > vTime) then begin
+     if (yVar <> vRecord) and (yVar <> vGroup) and (yVar <> vTime) and (yVar <> vTimeOfDay) then
+        begin
+        // Don't include channel name for non-channel related variables
         plPlot.yAxisLabel := WCPFile.Channel[yCh].ADCName + ' ' ;
-        plPlot.yAxisLabel := plPlot.yAxisLabel + VarName[yVar]
-                             + ' ' + Units[yCh*MaxAnalysisVariables+yVar] ;
-        end ;
+        end;
+     plPlot.yAxisLabel := plPlot.yAxisLabel + VarName[yVar] + ' ' + Units[yCh*MaxAnalysisVariables+yVar] ;
 
      { Clear data points line }
      plPlot.CreateLine( XYDataLine , clBlue, msOpenSquare, psSolid ) ;
@@ -1111,7 +1137,7 @@ begin
          WCPFile.GetRecordHeaderOnly( fH, rH, Rec ) ;
          { Add to plot if selected and valid }
          if UseRecord(rH,cbTypeToBeAnalysed.text) then begin
-            x := rH.Value[XCh*MaxAnalysisVariables+XVar]*UnitsScale[XCh*MaxAnalysisVariables+XVar] ;
+            x := RH.Value[XCh*MaxAnalysisVariables+XVar]*UnitsScale[XCh*MaxAnalysisVariables+XVar] ;
             if YVar = vConductance then begin
                // Calculate conductance
                OK := CalculateConductance(y) ;
@@ -1121,7 +1147,7 @@ begin
                end
             else begin
                // All other variables
-               y := rH.Value[YCh*MaxAnalysisVariables+YVar]*UnitsScale[YCh*MaxAnalysisVariables+YVar] ;
+               y := RH.Value[YCh*MaxAnalysisVariables+YVar]*UnitsScale[YCh*MaxAnalysisVariables+YVar] ;
                plPlot.AddPoint(0, x, y ) ;
                end ;
             end ;
@@ -1188,8 +1214,8 @@ begin
      else if ANSIContainsText(VUnits,'uv') then VScale := 1E-6
      else VScale := 1.0 ;
 
-     I := rH.Value[ICh*MaxAnalysisVariables+IVar]*UnitsScale[ICh*MaxAnalysisVariables+IVar]*IScale ;
-     V := rH.Value[VCh*MaxAnalysisVariables+VVar]*UnitsScale[VCh*MaxAnalysisVariables+VVar]*VScale ;
+     I := RH.Value[ICh*MaxAnalysisVariables+IVar]*UnitsScale[ICh*MaxAnalysisVariables+IVar]*IScale ;
+     V := RH.Value[VCh*MaxAnalysisVariables+VVar]*UnitsScale[VCh*MaxAnalysisVariables+VVar]*VScale ;
 
      VDrive := V - edVRev.Value ;
      if Abs(VDrive) >= VDriveMin then begin
@@ -1210,7 +1236,7 @@ begin
      G := G*GScale ; // Return in select conductance units
 
      // Update record variable
-     rH.Value[ICh*MaxAnalysisVariables+VConductance] := G ;
+     RH.Value[ICh*MaxAnalysisVariables+VConductance] := G ;
 
      end ;
 
@@ -1269,8 +1295,7 @@ begin
             { Read record analysis block from file }
             WCPFile.GetRecordHeaderOnly( fH, rH, Rec ) ;
             if UseRecord( rH, cbTypeToBeAnalysed.text ) then begin
-               x := rH.Value[ VarCh*MaxAnalysisVariables+VarVar  ]
-                    * UnitsScale[VarCh*MaxAnalysisVariables+VarVar] ;
+               x := RH.Value[ VarCh*MaxAnalysisVariables+VarVar  ]*UnitsScale[VarCh*MaxAnalysisVariables+VarVar] ;
                i := Round( (x - HLowerLimit) * HScale ) ;
                i := Max( Min(i,Hist.NumBins-1), 0) ;
                Hist.Bins[i].y := Hist.Bins[i].y + 1. ;
@@ -1293,7 +1318,15 @@ begin
      { Create X and Y axes labels }
      plHist.xAxisLabel := '' ;
      if VarVar > vTime then plHist.xAxisLabel := WCPFile.Channel[VarCh].ADCName + ' ';
-     plHist.xAxisLabel := plHist.xAxisLabel + VarList[VarVar]
+
+     if (VarVar <> vRecord) and (VarVar <> vGroup) and (VarVar <> vTime) and (VarVar <> vTimeOfDay) then
+        begin
+        // Don't include channel name for non-channel related variables
+        plPlot.xAxisLabel := WCPFile.Channel[VarCh].ADCName + ' ' ;
+        end;
+     plPlot.xAxisLabel := plPlot.xAxisLabel + VarName[VarVar] + ' ' + Units[VarCh*MaxAnalysisVariables+VarVar] ;
+
+     plHist.xAxisLabel := plHist.xAxisLabel + VarNames[VarVar]
                           + ' ' + Units[VarCh*MaxAnalysisVariables+VarVar] ;
 
      plHist.yAxisAutoRange := True ;
@@ -1388,8 +1421,10 @@ begin
 
          if Rec = RecStart then begin
             { Initialise Min/Max if this is first record }
-            for iVar := 0 to LastMeasureVariable do begin
-                for ch := 0 to fH.NumChannels -1 do begin
+            for iVar := 0 to VarNames.Count-1 do
+                begin
+                for ch := 0 to fH.NumChannels -1 do
+                    begin
                     jVar := ch*MaxAnalysisVariables + iVar ;
                     MaxValue[jVar] := -MaxSingle ;
                     MinValue[jVar] := MaxSingle ;
@@ -1402,19 +1437,18 @@ begin
             end ;
 
          { Add record to analysis (if valid and of selected type }
-         if UseRecord( rH, cbTypeToBeAnalysed.text ) then begin
-            for iVar := 0 to LastMeasureVariable do begin
-                for ch := 0 to fH.NumChannels-1 do begin
+         if UseRecord( rH, cbTypeToBeAnalysed.text ) then
+            begin
+            for iVar := 0 to VarNames.Count-1 do
+                begin
+                for ch := 0 to fH.NumChannels-1 do
+                    begin
                     jVar := ch*MaxAnalysisVariables + iVar ;
                     { Min./Max. values }
-                    if MaxValue[jVar] < rH.Value[jVar] then
-                       MaxValue[jVar] := rH.Value[jVar] ;
-
-                    if MinValue[jVar] > rH.Value[jVar] then
-                       MinValue[jVar] := rH.Value[jVar] ;
+                    if MaxValue[jVar] < RH.Value[jVar] then MaxValue[jVar] := RH.Value[jVar] ;
+                    if MinValue[jVar] > RH.Value[jVar] then MinValue[jVar] := RH.Value[jVar] ;
                     { Mean }
-                    Mean[jVar] := Mean[jVar]
-                                                 + rH.Value[jVar] ;
+                    Mean[jVar] := Mean[jVar] + RH.Value[jVar] ;
                     end ;
                 end ;
             Inc(NumRecordsAnalysed) ;
@@ -1425,7 +1459,8 @@ begin
      { Calculate mean value for each variable}
      n := Max( NumRecordsAnalysed, 1 ) ;
      for ch := 0 to fH.NumChannels-1 do
-         for iVar := 0 to LastMeasureVariable do begin
+         for iVar := 0 to VarNames.Count-1 do
+             begin
              jVar := ch*MaxAnalysisVariables + iVar ;
              Mean[jVar]:= Mean[jVar] / n ;
              end ;
@@ -1433,11 +1468,14 @@ begin
      { Re-read the analysis blocks to get residual deviations from mean }
      for Rec := RecStart to RecEnd do begin
          WCPFile.GetRecordHeaderOnly( fH, rH, Rec ) ;
-         if UseRecord( rH, cbTypeToBeAnalysed.text ) then begin
-            for iVar := 0 to LastMeasureVariable do begin
-                for ch := 0 to fH.NumChannels-1 do begin
+         if UseRecord( rH, cbTypeToBeAnalysed.text ) then
+            begin
+            for iVar := 0 to VarNames.Count-1 do
+                begin
+                for ch := 0 to fH.NumChannels-1 do
+                    begin
                     jVar := ch*MaxAnalysisVariables + iVar ;
-                    y := rH.Value[jVar] - Mean[jVar] ;
+                    y := RH.Value[jVar] - Mean[jVar] ;
                     StDev[jVar] := StDev[jVar] + y*y ;
                     end ;
                 end ;
@@ -1445,8 +1483,10 @@ begin
          end ;
 
      { Calculate standard deviation and error for each variable}
-     for ch := 0 to fH.NumChannels-1 do begin
-         for iVar := 0 to LastMeasureVariable do begin
+     for ch := 0 to fH.NumChannels-1 do
+         begin
+         for iVar := 0 to VarNames.Count-1 do
+             begin
              jVar := ch*MaxAnalysisVariables + iVar ;
              StDev[jVar]:= sqrt( StDev[jVar] / Max(n - 1,1) ) ;
              StErr[jVar]:= StDev[jVar]/sqrt( n ) ;
@@ -1505,13 +1545,15 @@ begin
 
      { Fill rows of table }
      Row := 0 ;
-     for iVar := 0 to LastMeasureVariable do begin
-         if UseVariableInSummary(iVar) then begin
-             jVar := SumCh*MaxAnalysisVariables + Integer(VarList.objects[iVar]);
+     for iVar := 0 to VarNames.Count-1 do
+         begin
+         if UseVariableInSummary(iVar) then
+             begin
+             jVar := SumCh*MaxAnalysisVariables + Integer(VarNames.objects[iVar]);
              Row := Row + 1 ;
              Summary.RowCount := Row + 1 ;
              { Enter row of data }
-             Summary.cells[cName,Row]  := VarList[iVar] ;
+             Summary.cells[cName,Row]  := VarNames[iVar] ;
              if Units[jVar] <> ' ' then
                 Summary.cells[cName,Row]  := Summary.cells[cName,Row] + ' (' +
                                              Units[jVar] + ')';
@@ -1568,7 +1610,7 @@ procedure TMeasureFrm.SetCheckBoxCaption(
   Set summary check box caption and tag#
   -------------------------------------- }
 begin
-     CheckBox.caption := VarList[VarNum] ;
+     CheckBox.caption := VarNames[VarNum] ;
      CheckBox.Tag := VarNum ;
      end ;
 
@@ -1597,6 +1639,7 @@ begin
      else if ckVariable14.Tag = VarNum then Result := ckVariable14.Checked
      else if ckVariable15.Tag = VarNum then Result := ckVariable15.Checked
      else if ckVariable16.Tag = VarNum then Result := ckVariable16.Checked
+     else if ckVariable17.Tag = VarNum then Result := ckVariable17.Checked
      else Result := True ;
      end ;
 
@@ -1619,7 +1662,8 @@ var
    StartAt,EndAt,Col,Rec,jVar : Integer ;
 begin
 
-     if NumTableColumns <= 0 then begin
+     if NumTableColumns <= 0 then
+        begin
         Table.ColCount := 1 ;
         Table.RowCount := 1 ;
         Table.Cells[0,0] := '' ;
@@ -1631,14 +1675,13 @@ begin
 
      { Create column title }
      for Col := 0 to Table.ColCount-1 do begin
-            jVar := TableChans[Col]*MaxAnalysisVariables + Integer(VarList.Objects[TableVars[Col]]);
-            Table.cells[Col,0] := VarList[TableVars[Col]] ;
+            jVar := TableChans[Col]*MaxAnalysisVariables + Integer(VarNames.Objects[TableVars[Col]]);
+            Table.cells[Col,0] := VarNames[TableVars[Col]] ;
             case TableVars[Col] of
                vRecord,vGroup : Table.cells[Col,1] := '' ;
                vTime : Table.cells[Col,1] := '(' + Units[jVar] + ')'
                else begin
-                  Table.cells[Col,1] := WCPFile.ChannelNames[TableChans[Col]] +
-                                        ' (' + Units[jVar] + ')' ;
+                  Table.cells[Col,1] := WCPFile.ChannelNames[TableChans[Col]] + ' (' + Units[jVar] + ')' ;
                   end ;
                end ;
          end ;
@@ -1655,9 +1698,8 @@ begin
             { Fill row with selected variables }
             Table.RowCount := Table.RowCount + 1 ;
             for Col := 0 to Table.ColCount-1 do begin
-                   jVar := TableChans[Col]*MaxAnalysisVariables + Integer(VarList.Objects[TableVars[Col]]);
-                   Table.cells[Col,Table.RowCount-1] := format('%8.4g',
-                                                        [rH.Value[jVar]*UnitsScale[jVar]] ) ;
+                   jVar := TableChans[Col]*MaxAnalysisVariables + Integer(VarNames.Objects[TableVars[Col]]);
+                   Table.cells[Col,Table.RowCount-1] := format('%9.5g',[RH.Value[jVar]*UnitsScale[jVar]] ) ;
                    end ;
             end ;
          end ;
@@ -1736,7 +1778,7 @@ procedure TMeasureFrm.FormCreate(Sender: TObject);
 begin
      ADC := Nil ;
      Hist := THistogram.Create ;
-     VarList := TStringList.Create ;
+     VarNames := TStringList.Create ;
      XYResults := TStringList.Create ;
      HistResults := TStringList.Create ;
      MathFunc := TMathFunc.Create ;
@@ -1751,7 +1793,7 @@ procedure TMeasureFrm.FormDestroy(Sender: TObject);
 // ----------------------------
 begin
     if ADC <> Nil then FreeMem(ADC) ;
-    VarList.Free ;
+    VarNames.Free ;
     Hist.Free ;
     XYResults.Free ;
     HistResults.Free ;
@@ -1783,7 +1825,7 @@ var
 begin
 
      VarName[iNum] := VName ;
-     VarList.AddObject( VarName[iNum], TObject(iNum) ) ;
+     VarNames.AddObject( VarName[iNum], TObject(iNum) ) ;
 
      for ch := 0 to FH.NumChannels-1 do begin
          iVar := ch*MaxAnalysisVariables + iNum ;
@@ -2504,12 +2546,14 @@ begin
      RecEnd := Round( edPlotRange.HiValue ) ;
 
      nData := 0 ;
-     for Rec := RecStart to RecEnd do begin
+     for Rec := RecStart to RecEnd do
+         begin
          { Read record analysis block from file }
          WCPFile.GetRecordHeaderOnly( fH, rH, Rec ) ;
-         if UseRecord( rH, cbTypeToBeAnalysed.text ) then begin
+         if UseRecord( rH, cbTypeToBeAnalysed.text ) then
+            begin
             jVar := VarCh*MaxAnalysisVariables + VarVar ;
-            x^[nData] := rH.Value[jVar]*UnitsScale[jVar] ;
+            x^[nData] := RH.Value[jVar]*UnitsScale[jVar] ;
             Inc(nData);
             end ;
          end ;
@@ -2603,7 +2647,7 @@ var
    y : Single ;
 begin
 
-     FilterFrm.VarNames := VarList ;
+     FilterFrm.VarNames := VarNames ;
      FilterFrm.ShowChannels := True ;
      FilterFrm.ShowModal ;
      if FilterFrm.ModalResult = mrOK then begin
@@ -2621,7 +2665,7 @@ begin
             WCPFile.GetRecordHeaderOnly( fH, rH, Rec ) ;
             jVar := YCh*MaxAnalysisVariables + YVar ;
             { Set record ACCEPTED/REJECTED according to criteria }
-            y := rH.Value[jVar]*UnitsScale[jVar] ;
+            y := RH.Value[jVar]*UnitsScale[jVar] ;
 
             Matched := False ;
 
@@ -2667,7 +2711,7 @@ begin
                                Format('Records filtered %s = %.3g <= %s (%s) <= %.3g',
                                [Status,
                                FilterFrm.LowerLimit,
-                               VarList[YVar],
+                               VarNames[YVar],
                                WCPFile.ChannelNames[YCh],
                                FilterFrm.UpperLimit] ))
         else WCPFile.WriteToLogFile (Format('All Records = %s',[Status])) ;
@@ -2874,6 +2918,7 @@ begin
    AddVariableToTable( ckTabVar14 ) ;
    AddVariableToTable( ckTabVar15 ) ;
    AddVariableToTable( ckTabVar16 ) ;
+   AddVariableToTable( ckTabVar17 ) ;
 
    FillTable ;
 
@@ -2918,6 +2963,7 @@ begin
      ckTabVar14.Checked := False ;
      ckTabVar15.Checked := False ;
      ckTabVar16.Checked := False ;
+     ckTabVar17.Checked := False ;
      end;
 
 
@@ -2943,6 +2989,7 @@ begin
      ckTabVar14.Checked := True ;
      ckTabVar15.Checked := True ;
      ckTabVar16.Checked := True ;
+     ckTabVar17.Checked := True ;
      end;
 
 
