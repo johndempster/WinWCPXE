@@ -11,10 +11,8 @@ object ExportFrm: TExportFrm
   Font.Height = -11
   Font.Name = 'Arial'
   Font.Style = []
-  OldCreateOrder = True
   Position = poDesigned
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 14
   object GroupBox8: TGroupBox
     Left = 8

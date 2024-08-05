@@ -60,8 +60,9 @@ unit StimModule;
   01.03.17 FillDigWave() function added. TScale & TUnits now set in FormShow()
   31.05.18 Sine wave protocol added.
   06.02.20 PulseStaircase waveform type producing a series of pulses on a rising staircase added.
-  09.12.12 Frequency increment of wvWave sine waves caan now act as a multiplier as well as an additive increment
+  09.12.22 Frequency increment of wvWave sine waves caan now act as a multiplier as well as an additive increment
            MULTIPLIERFLAG= added to waveform parameter records and spFrequencyMultiplierFlag added to protocol parameter list
+  05.08.24 FindClose(SearchRec.FileHandle) change to FindClose(SearchRec) to fix variable type error which arose when compiled with Delphi 11.1
   =============================================}
 
 interface
@@ -1673,7 +1674,7 @@ begin
 
         { Add file name (no extension or path) to list }
         if FileFound = 0 then cbList.items.Add(WCPFile.ExtractFileNameOnly(SearchRec.Name))
-                        else FindClose(SearchRec.FindHandle) ;
+                        else FindClose(SearchRec) ;
         First := False ;
         Until FileFound <> 0 ;
 
@@ -1905,7 +1906,7 @@ begin
         First := False ;
         Until FileFound <> 0 ;
 
-     FindClose(SearchRec.FindHandle) ;
+     FindClose(SearchRec) ;
 
      FreeMem( Prot ) ;
      if ExtVBuf <> Nil then FreeMem(ExtVBuf) ;

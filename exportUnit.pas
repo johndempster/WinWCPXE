@@ -40,6 +40,8 @@ unit exportUnit;
                Size of export file list box increased to display more of file names
   27.02.23 ... Now uses glocal WCFFile.FH file header record rather than internal FH
                to avoid initial empty export list when records are not displayed.
+  05.08.24 ... ofShareAware added as OpenDialog option to avoid unable to file when
+               currently open file is first in list.
   }
 interface
 
@@ -670,7 +672,7 @@ procedure TExportFrm.bChangeNameClick(Sender: TObject);
 begin
 
      OpenDialog.DefaultExt := '.wcp' ;
-     OpenDialog.options := [ofOverwritePrompt,ofHideReadOnly,ofPathMustExist,ofAllowMultiSelect] ;
+     OpenDialog.options := [ofOverwritePrompt,ofHideReadOnly,ofPathMustExist,ofAllowMultiSelect,ofShareAware] ;
      OpenDialog.Filter := ' Files (*' + OpenDialog.DefaultExt + ')|*' +
                             OpenDialog.DefaultExt + '|' ;
 
