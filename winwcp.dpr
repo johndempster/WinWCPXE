@@ -53,7 +53,8 @@ uses
   DCLAMPUnit in 'DCLAMPUnit.pas' {DCLAMPFrm},
   MeasureThread in 'MeasureThread.pas',
   WCPFIleUnit in 'WCPFIleUnit.pas' {WCPFile: TDataModule},
-  MDIForm in 'MDIForm.pas' {Main};
+  MDIForm in 'MDIForm.pas' {Main},
+  UDPUnit in 'UDPUnit.pas' {UDP: TDataModule};
 
 {$R *.TLB}
 
@@ -62,6 +63,7 @@ uses
 begin
   Application.Initialize;
   Application.CreateForm(TMain, Main);
+  Application.CreateForm(TUDP, UDP);
   Application.HelpFile := 'winwcp.chm';
   Application.CreateForm(TImportRawFrm, ImportRawFrm);
   Application.CreateForm(TPrintGraphFrm, PrintGraphFrm);

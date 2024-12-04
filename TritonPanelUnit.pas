@@ -40,6 +40,7 @@ unit TritonPanelUnit;
 //          rather than as advanced proerties.
 // 18.08.19 Support for 16/32 channel Triton X added
 // 27.08.21 Auto compensation functions now stop A/D and D/A in both seal test and record forms
+// 03.12.24 .AutoCompArtefact procedure now works, AutoLeakComp, ClearLeakComp added
 
 interface
 
@@ -121,7 +122,7 @@ type
     bClearJPComp: TButton;
     gAutoLeakComp: TGroupBox;
     bAutoLeakComp: TButton;
-    bCleakLeakComp: TButton;
+    bClearLeakComp: TButton;
     panCTotal: TPanel;
     panCSlowTotal: TPanel;
     Label24: TLabel;
@@ -153,7 +154,7 @@ type
     ckCSlow: TCheckBox;
     CheckBox2: TCheckBox;
     ckShowCSlowComponents: TCheckBox;
-    bAutoCompArterfact: TButton;
+    bAutoCompArtefact: TButton;
     pRLeakComponents: TPanel;
     panRLeakAnalog: TPanel;
     Label9: TLabel;
@@ -241,11 +242,11 @@ type
     procedure bCSlowAutoCompClick(Sender: TObject);
     procedure bClearJPCompClick(Sender: TObject);
     procedure bAutoLeakCompClick(Sender: TObject);
-    procedure bCleakLeakCompClick(Sender: TObject);
+    procedure bClearLeakCompClick(Sender: TObject);
     procedure ckCFastClick(Sender: TObject);
     procedure ckShowCSlowComponentsClick(Sender: TObject);
     procedure ckCSlowClick(Sender: TObject);
-    procedure bAutoCompArterfactClick(Sender: TObject);
+    procedure bAutoCompArtefactClick(Sender: TObject);
     procedure ckShowRLeakComponentsClick(Sender: TObject);
     procedure ckRLeakClick(Sender: TObject);
     procedure ckRLeakDigitalClick(Sender: TObject);
@@ -446,6 +447,8 @@ type
     procedure AutoCompCSlow ;
     procedure AutoCompArtefact ;
     procedure AutoCompJunctionPot ;
+    procedure AutoLeakComp ;
+    procedure ClearLeakComp ;
     procedure ClearCompC ;
     procedure ClearCompJP ;
     property Gain : Integer read GetGain write SetGain ;
@@ -1258,7 +1261,7 @@ begin
 
 end;
 
-procedure TTritonPanelFrm.bCleakLeakCompClick(Sender: TObject);
+procedure TTritonPanelFrm.bClearLeakCompClick(Sender: TObject);
 // -----------------------------------
 // Clear leak conductance compensation
 // -----------------------------------
@@ -1414,7 +1417,7 @@ begin
      end;
 
 
-procedure TTritonPanelFrm.bAutoCompArterfactClick(Sender: TObject);
+procedure TTritonPanelFrm.bAutoCompArtefactClick(Sender: TObject);
 // -------------------------------------------------------------
 // Compensate any artefact remaining after capacity compensation
 // -------------------------------------------------------------
@@ -1428,7 +1431,7 @@ begin
      Screen.Cursor := crHourglass ;
      Main.StatusBar.SimpleText := 'WAIT: Arefact compensation in progress.' ;
 
-     bAutoCompArterfact.Enabled := False ;
+     bAutoCompArtefact.Enabled := False ;
 
      Screen.Cursor := crHourGlass ;
 
@@ -1459,7 +1462,7 @@ begin
      Screen.Cursor := crDefault ;
      Main.StatusBar.SimpleText := '' ;
 
-     bAutoCompArterfact.Enabled := True ;
+     bAutoCompArtefact.Enabled := True ;
 
      end;
 
@@ -2673,7 +2676,7 @@ procedure TTritonPanelFrm.AutoCompArtefact ;
 // Auto compensate remaining artefact after capacity compensation
 // --------------------------------------------------------------
 begin
-
+    bAutoCompArtefact.Click ;
     end;
 
 
@@ -2683,6 +2686,25 @@ procedure TTritonPanelFrm.AutoCompJunctionPot ;
 // -----------------------------------
 begin
     bAutoCompJunctionPot.Click ;
+
+    end;
+
+
+procedure TTritonPanelFrm.AutoLeakComp ;
+// -----------------------------------
+// Auto compensate leak conducatance
+// -----------------------------------
+begin
+    bAutoLeakComp.Click ;
+    end;
+
+
+procedure TTritonPanelFrm.ClearLeakComp ;
+// -----------------------------------
+// Clear leak conductance compensation
+// -----------------------------------
+begin
+    bClearLeakComp.Click ;
     end;
 
 

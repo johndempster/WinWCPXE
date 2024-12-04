@@ -110,6 +110,7 @@ unit Sealtest;
   18.08.21 .. Display All Channels tick option added to display. Tecella Triton channels can now be selected individually for display
   04.09.23 .. Seal test holding voltages no longer updated by default holding voltage when seal test form opened
   30.10.23 .. Auto scale option now toggled by F6 key
+  30.11.24 .. Property EstimateGaFromPeak added
 
   ==================================================}
 
@@ -318,6 +319,9 @@ type
     procedure SetSmoothingFactor( Value : Single ) ;
     function  GetSmoothingFactor : Single ;
     function GetRunning : Boolean ;
+    procedure SetEstimateGaFromPeak( Value : Boolean ) ;
+    function GetEstimateGaFromPeak : Boolean ;
+
 
     procedure InitialiseDisplay ;
     procedure ChangeUnits( var EditBox : TValidatedEdit ;
@@ -354,6 +358,9 @@ type
     Property SmoothingFactor : Single read GetSmoothingFactor
                                       write SetSmoothingFactor ;
     Property Running : Boolean read GetRunning ;
+
+    Property EstimateGaFromPeak : Boolean read GetEstimateGaFromPeak
+                                          write SetEstimateGaFromPeak ;
 
   end ;
 var
@@ -682,9 +689,6 @@ begin
                    if Changed or FirstSweep then UpdateChannelLists ;
 
                    // Update Amplifier #1 gain display
-
-
-
 
 //                   ich := cbCurrentChannel.ItemIndex ;
                    if ClampMode[cbAmplifier.ItemIndex] <>
@@ -1552,7 +1556,8 @@ procedure TSealTestFrm.edPulseWidthKeyPress(Sender: TObject; var Key: Char);
   Set width of seal test pulse
   ----------------------------}
 begin
-     if key = #13 then begin
+     if key = #13 then
+        begin
         WCPFile.Settings.SealTest.PulseWidth := edPulseWidth.Value ;
         { Note. Force a re-start of D/A waveform so that D/A cycle
           time is updated }
@@ -1880,6 +1885,13 @@ begin
      edPulseWidth.Value := Value ;
      WCPFile.Settings.SealTest.PulseWidth :=  Value ;
 
+     // Force a re-start of D/A waveform so that D/A cycle time is updated }
+     if Main.SESLabIO.DACActive then Main.SESLabIO.DACStop ;
+     scDisplay.xMax := NumTestSamples-1 ;
+     scDisplay.xMin := 0 ;
+     State := StartSweep ;
+     NewTestPulse := True ;
+
      end ;
 
 
@@ -1940,6 +1952,27 @@ function  TSealTestFrm.GetRunning : Boolean ;
 begin
      Result := Timer.Enabled ;
      end ;
+
+
+procedure TSealTestFrm.SetEstimateGaFromPeak( Value : Boolean ) ;
+// -----------------------------------
+// Set EstimateGaFromPeak flag
+// -----------------------------------
+begin
+     WCPFile.Settings.SealTest.GaFromPeak := Value ;
+     rbGaFromPeak.Checked := Value ;
+     rbGaFromExp.Checked := not Value ;
+     end ;
+
+
+function  TSealTestFrm.GetEstimateGaFromPeak : Boolean ;
+// -----------------------------------
+// Get EstimateGaFromPeak flag
+// -----------------------------------
+begin
+     Result := WCPFile.Settings.SealTest.GaFromPeak ;
+     end ;
+
 
 procedure TSealTestFrm.edPulseheight3KeyPress(Sender: TObject;
   var Key: Char);

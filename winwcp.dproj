@@ -100,12 +100,11 @@
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
-        <VerInfo_Release>1</VerInfo_Release>
         <VerInfo_MinorVer>8</VerInfo_MinorVer>
         <VerInfo_MajorVer>5</VerInfo_MajorVer>
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=;FileVersion=5.8.1.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileVersion=5.8.2.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
         <BT_BuildType>Debug</BT_BuildType>
     </PropertyGroup>
@@ -262,6 +261,11 @@
             <Form>Main</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="UDPUnit.pas">
+            <Form>UDP</Form>
+            <FormType>dfm</FormType>
+            <DesignClass>TDataModule</DesignClass>
+        </DCCReference>
         <RidlCompile Include="winwcp.ridl"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
@@ -343,7 +347,19 @@
                 <DeployFile LocalName="SIMHH.PAS" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="ZERO.PAS" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="winwcp.exe" Configuration="Debug" Class="ProjectOutput"/>
+                <DeployFile LocalName="winwcp.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>winwcp.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="winwcp.ridl" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="winwcp.ridl" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployClass Name="AdditionalDebugSymbols">
                     <Platform Name="iOSSimulator">
                         <Operation>1</Operation>

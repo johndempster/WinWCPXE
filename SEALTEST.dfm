@@ -12,7 +12,6 @@ object SealTestFrm: TSealTestFrm
   Font.Style = [fsBold]
   FormStyle = fsMDIChild
   KeyPreview = True
-  OldCreateOrder = True
   Position = poScreenCenter
   Visible = True
   OnActivate = FormActivate
@@ -22,7 +21,6 @@ object SealTestFrm: TSealTestFrm
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 15
   object scDisplay: TScopeDisplay
     Left = 200

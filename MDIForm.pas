@@ -790,6 +790,7 @@ unit MDIForm;
                    Curve fit results now stored in seperate .fit.fpd & .fit.csv data files
    V5.8.0 05.08.24 Minor changes in ExportUnit and StimUnit to fix issues which arose when porting to Delphi 11.1 compiler
    V5.8.1 25.08.24 CED 1401: Max. no. of digital pulses per stimulus increased to 5000 for Micro & Power 1401s
+   V5.8.2 02.12.24 UDP command server via localhost added (udpunit.pas)
             =======================================================================}
 
 interface
@@ -1016,7 +1017,7 @@ var
    FileName : String ;
 begin
 
-      WCPFile.ProgVersion := 'V5.8.1' ;
+      WCPFile.ProgVersion := 'V5.8.2' ;
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + WCPFile.ProgVersion ;
 
       Application.HelpFile := WCPFile.Settings.ProgDirectory + 'WinWCP.chm';

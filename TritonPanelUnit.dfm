@@ -3,7 +3,7 @@ object TritonPanelFrm: TTritonPanelFrm
   Top = 11
   Caption = 'Tecella Patch Clamp '
   ClientHeight = 667
-  ClientWidth = 1107
+  ClientWidth = 384
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,14 +11,12 @@ object TritonPanelFrm: TTritonPanelFrm
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   FormStyle = fsMDIChild
-  OldCreateOrder = False
   Position = poDefault
   Visible = True
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 13
   object gControls: TGroupBox
     Left = 8
@@ -35,17 +33,13 @@ object TritonPanelFrm: TTritonPanelFrm
       TabOrder = 0
       object AutoCompPage: TPageControl
         Left = 3
-        Top = 20
+        Top = 22
         Width = 320
         Height = 288
         ActivePage = AutoPage
         TabOrder = 0
         object AutoPage: TTabSheet
           Caption = 'Auto'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object ckCompensateAllChannels: TCheckBox
             Left = 167
             Top = 240
@@ -127,7 +121,7 @@ object TritonPanelFrm: TTritonPanelFrm
               TabOrder = 2
               OnClick = bClearCompensationClick
             end
-            object bAutoCompArterfact: TButton
+            object bAutoCompArtefact: TButton
               Left = 8
               Top = 59
               Width = 130
@@ -145,7 +139,7 @@ object TritonPanelFrm: TTritonPanelFrm
               ParentShowHint = False
               ShowHint = True
               TabOrder = 3
-              OnClick = bAutoCompArterfactClick
+              OnClick = bAutoCompArtefactClick
             end
           end
           object gAutoJPComp: TGroupBox
@@ -200,7 +194,7 @@ object TritonPanelFrm: TTritonPanelFrm
             Caption = ' Leak Conductance '
             TabOrder = 3
             object bAutoLeakComp: TButton
-              Left = 8
+              Left = 15
               Top = 17
               Width = 130
               Height = 17
@@ -217,8 +211,8 @@ object TritonPanelFrm: TTritonPanelFrm
               TabOrder = 0
               OnClick = bAutoLeakCompClick
             end
-            object bCleakLeakComp: TButton
-              Left = 8
+            object bClearLeakComp: TButton
+              Left = 15
               Top = 40
               Width = 130
               Height = 17
@@ -233,17 +227,13 @@ object TritonPanelFrm: TTritonPanelFrm
               ParentShowHint = False
               ShowHint = True
               TabOrder = 1
-              OnClick = bCleakLeakCompClick
+              OnClick = bClearLeakCompClick
             end
           end
         end
         object CapacityPage: TTabSheet
           Caption = 'Capacity'
           ImageIndex = 1
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object panCFast: TPanel
             Left = 1
             Top = 0
@@ -661,10 +651,6 @@ object TritonPanelFrm: TTritonPanelFrm
         object ResistancePage: TTabSheet
           Caption = 'Resistance'
           ImageIndex = 2
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object panRSeries: TPanel
             Left = 1
             Top = 2
@@ -1005,10 +991,6 @@ object TritonPanelFrm: TTritonPanelFrm
         object JunctionPotPage: TTabSheet
           Caption = 'Junction Pot.'
           ImageIndex = 3
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object panJunctionPot: TPanel
             Left = 1
             Top = 2
@@ -1135,10 +1117,6 @@ object TritonPanelFrm: TTritonPanelFrm
         object AdvancedTab: TTabSheet
           Caption = 'Adv.'
           ImageIndex = 4
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object GroupBox6: TGroupBox
             Left = 3
             Top = 29
