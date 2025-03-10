@@ -409,7 +409,7 @@ object SealTestFrm: TSealTestFrm
           HiLimit = 1.000000015047466E29
         end
       end
-      object CellTab: TTabSheet
+      object CellGTab: TTabSheet
         Caption = 'Cell (G)'
         object Label15: TLabel
           Left = 12

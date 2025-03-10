@@ -111,6 +111,7 @@ unit Sealtest;
   04.09.23 .. Seal test holding voltages no longer updated by default holding voltage when seal test form opened
   30.10.23 .. Auto scale option now toggled by F6 key
   30.11.24 .. Property EstimateGaFromPeak added
+  10.03.25 .. Save To LOg now correctly writes Cell resistance values to log file
 
   ==================================================}
 
@@ -177,7 +178,7 @@ type
     PipetteTab: TTabSheet;
     Label9: TLabel;
     edResistance: TValidatedEdit;
-    CellTab: TTabSheet;
+    CellGTab: TTabSheet;
     Label15: TLabel;
     Label17: TLabel;
     Label16: TLabel;
@@ -370,7 +371,7 @@ implementation
 
 {$R *.DFM}
 
-uses Mdiform, mmsystem , Rec, TritonPanelUnit, EPC9PanelUnit ;
+uses Mdiform, mmsystem , Rec, TritonPanelUnit, EPC9PanelUnit , Log;
 
 const
      //NumDACChannels = 2 ;
@@ -1734,7 +1735,9 @@ procedure TSealTestFrm.bSaveToLogClick(Sender: TObject);
 // --------------------------------
 begin
 
-     if CellParametersPage.ActivePage = CellTab then begin
+     if CellParametersPage.ActivePage = CellGTab then
+        begin
+        // Cell conductance page
         WCPFile.WriteToLogFile( format( 'Gaccess= %.5g %s',
                      [edGAccess.Value*edGAccess.Scale,edGAccess.Units])) ;
         WCPFile.WriteToLogFile( format( 'Gmembrane= %.5g %s',
@@ -1742,10 +1745,23 @@ begin
         WCPFile.WriteToLogFile( format( 'Cmembrane= %.5g %s',
                      [edCMembrane.Value*edCMembrane.Scale,edCMembrane.Units])) ;
         end
-     else begin
-        WCPFile.WriteToLogFile( format( 'Pipette Resistance= %.5g %s',
+     else if CellParametersPage.ActivePage = CellRTab then
+        begin
+        // Cell resistance page
+        WCPFile.WriteToLogFile( format( 'Raccess= %.5g %s',
+                     [edRAccess.Value*edRAccess.Scale,edRAccess.Units])) ;
+        WCPFile.WriteToLogFile( format( 'Rmembrane= %.5g %s',
+                     [edRMembrane.Value*edRMembrane.Scale,edRMembrane.Units])) ;
+        WCPFile.WriteToLogFile( format( 'Cmembrane= %.5g %s',
+                     [edCMembrane1.Value*edCMembrane1.Scale,edCMembrane1.Units])) ;
+        end
+     else
+        begin
+        // Pipette resistance page
+         WCPFile.WriteToLogFile( format( 'Pipette Resistance= %.5g %s',
                      [edResistance.Value*edResistance.Scale,edResistance.Units])) ;
-        end ;
+        end;
+
      end;
 
 
