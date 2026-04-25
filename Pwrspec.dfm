@@ -12,7 +12,6 @@ object PwrSpecFrm: TPwrSpecFrm
   Font.Style = []
   FormStyle = fsMDIChild
   KeyPreview = True
-  OldCreateOrder = True
   Position = poDesigned
   Visible = True
   OnActivate = FormActivate
@@ -23,7 +22,6 @@ object PwrSpecFrm: TPwrSpecFrm
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 15
   object Page: TPageControl
     Left = 4
@@ -41,10 +39,6 @@ object PwrSpecFrm: TPwrSpecFrm
     OnChange = PageChange
     object DataTab: TTabSheet
       Caption = 'Data Record'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object scDisplay: TScopeDisplay
         Left = 144
         Top = 6
@@ -356,10 +350,6 @@ object PwrSpecFrm: TPwrSpecFrm
     end
     object VarianceTab: TTabSheet
       Caption = 'X/Y Plot'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object plVarPlot: TXYPlotDisplay
         Left = 142
         Top = 6
@@ -636,16 +626,11 @@ object PwrSpecFrm: TPwrSpecFrm
           ReadOnly = True
           ScrollBars = ssVertical
           TabOrder = 2
-          Zoom = 100
         end
       end
     end
     object SpectrumTab: TTabSheet
       Caption = 'Spectral Analysis'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object plSpecPlot: TXYPlotDisplay
         Left = 152
         Top = 8
@@ -976,7 +961,6 @@ object PwrSpecFrm: TPwrSpecFrm
           ReadOnly = True
           ScrollBars = ssVertical
           TabOrder = 2
-          Zoom = 100
         end
       end
     end

@@ -792,6 +792,8 @@ unit MDIForm;
    V5.8.1 25.08.24 CED 1401: Max. no. of digital pulses per stimulus increased to 5000 for Micro & Power 1401s
    V5.8.2 02.12.24 UDP command server via localhost added (udpunit.pas)
    V5.8.3 10.03.25 SealTest Save To Log button now correctly writes Cell resistance values to log file
+   V5.8.4 24.04.26 View > ZoomInAll menu item added. Zooms in displays to optimal vertical magnfication
+                   Leaksub.pas Holding curret now derived from VHold cursor for both From Voltage and Fixed voltage scaling
             =======================================================================}
 
 interface
@@ -883,6 +885,7 @@ type
     mnEPC9Panel: TMenuItem;
     mnResetMulticlamp: TMenuItem;
     mnDClamp: TMenuItem;
+    mnZoomIn: TMenuItem;
     procedure FormShow(Sender: TObject);
     procedure mnOpenClick(Sender: TObject);
     procedure mnExitClick(Sender: TObject);
@@ -947,6 +950,7 @@ type
     procedure mnResetMulticlampClick(Sender: TObject);
     procedure mnDClampClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure mnZoomInClick(Sender: TObject);
   private
 
     procedure SetRecentFileItem( MenuItem : TMenuItem ; FileName : string ) ;
@@ -1018,7 +1022,7 @@ var
    FileName : String ;
 begin
 
-      WCPFile.ProgVersion := 'V5.8.3' ;
+      WCPFile.ProgVersion := 'V5.8.4' ;
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + WCPFile.ProgVersion ;
 
       Application.HelpFile := WCPFile.Settings.ProgDirectory + 'WinWCP.chm';
@@ -2836,6 +2840,41 @@ begin
              TRecordFrm(MDIChildren[I]).ZoomIn(TMenuItem(Sender).Tag) ;
           end ;
      end ;
+
+
+procedure TMain.mnZoomInClick(Sender: TObject);
+{ - Menu Item ------------------------------
+  Zoom all windows out minimum magnification
+  ------------------------------------------ }
+var
+   i : Integer ;
+begin
+     for i := 0 to MDIChildCount-1 do
+          begin
+          if MDIChildren[I].Name = 'ReplayFrm' then
+             TReplayFrm(MDIChildren[I]).ZoomInAll
+          else if MDIChildren[I].Name = 'RecordFrm' then
+             TRecordFrm(MDIChildren[I]).ZoomInAll
+          else if MDIChildren[I].Name = 'MeasureFrm' then
+             TMeasureFrm(MDIChildren[I]).ZoomIn
+          else if MDIChildren[I].Name = 'FitFrm' then
+             TFitFrm(MDIChildren[I]).ZoomIn
+          else if MDIChildren[I].Name = 'AvgFrm' then
+             TAvgFrm(MDIChildren[I]).ZoomIn
+          else if MDIChildren[I].Name = 'LeakSubFrm' then
+             TLeakSubFrm(MDIChildren[I]).ZoomIn
+          else if MDIChildren[I].Name = 'EditFrm' then
+             TEditFrm(MDIChildren[I]).ZoomIn
+          else if MDIChildren[I].Name = 'SynapseSim' then
+             TSynapseSim(MDIChildren[I]).ZoomIn
+          else if MDIChildren[I].Name = 'VClampSim' then
+             TVClampSim(MDIChildren[I]).ZoomIn
+          else if MDIChildren[I].Name = 'SimMEPSCFrm' then
+             TSimMEPSCFrm(MDIChildren[I]).ZoomIn
+          else if MDIChildren[I].Name = 'DrvFunFrm' then
+             TDrvFunFrm(MDIChildren[I]).ZoomIn ;
+          end ;
+    end;
 
 
 procedure TMain.mnZoomOutCh0Click(Sender: TObject);

@@ -684,11 +684,6 @@ function FileOverwriteCheck( var FileName : string ) : boolean ;
 
     procedure AddKeyValue( List : TStringList ;  // List for Key=Value pairs
                            Keyword : string ;    // Key
-                           Value : NativeInt        // Value
-                           ) ; Overload ;
-
-    procedure AddKeyValue( List : TStringList ;  // List for Key=Value pairs
-                           Keyword : string ;    // Key
                            Value : String        // Value
                            ) ; Overload ;
 
@@ -707,11 +702,6 @@ function FileOverwriteCheck( var FileName : string ) : boolean ;
                          KeyWord : string ;   // Key
                          Value : Integer       // Value
                          ) : Integer ; Overload ;        // Return value
-
-   function GetKeyValue( List : TStringList ;  // List for Key=Value pairs
-                         KeyWord : string ;   // Key
-                         Value : NativeInt       // Value
-                         ) : NativeInt ; Overload ;        // Return value
 
    function GetKeyValue( List : TStringList ;  // List for Key=Value pairs
                          KeyWord : string ;   // Key
@@ -1936,18 +1926,6 @@ procedure TWCPFile.AddKeyValue( List : TStringList ;  // List for Key=Value pair
 begin
      Keyword := ReplaceText( Keyword,'=','') ;
      List.Add( Keyword + format('=%d',[Value]) ) ;
-end;
-
-procedure TWCPFile.AddKeyValue( List : TStringList ;  // List for Key=Value pairs
-                                KeyWord : string ;    // Key
-                                Value : NativeInt        // Value
-                                 ) ;
-// ---------------------
-// Add Key=NativeInt Value to List
-// ---------------------
-begin
-     Keyword := ReplaceText( Keyword,'=','') ;
-     List.Add( Keyword + format('=%d',[Value] )) ;
 end;
 
 
@@ -3818,35 +3796,6 @@ function TWCPFile.GetKeyValue( List : TStringList ;  // List for Key=Value pairs
                                KeyWord : string ;   // Key
                                Value : Integer       // Value
                                ) : Integer ;        // Return value
-// ------------------------------
-// Get Key=Integer Value from List
-// ------------------------------
-var
-    istart,idx : Integer ;
-    s : string ;
-begin
-
-     // Remove any '=' in keyword
-     Keyword := ReplaceText( Keyword, '=', '' ) ;
-
-     idx := List.IndexOfName( Keyword ) ;
-     if idx >= 0 then
-        begin
-        s := List[idx] ;
-        // Find key=value separator and remove key
-        istart := Pos( '=', s ) ;
-        if istart > 0 then Delete( s, 1, istart ) ;
-        Result := STrToInt( s ) ;
-        end
-     else Result := Value ;
-
-end;
-
-
-function TWCPFile.GetKeyValue( List : TStringList ;  // List for Key=Value pairs
-                               KeyWord : string ;   // Key
-                               Value : NativeInt       // Value
-                               ) : NativeInt ;        // Return value
 // ------------------------------
 // Get Key=Integer Value from List
 // ------------------------------

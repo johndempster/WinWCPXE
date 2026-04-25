@@ -11,7 +11,6 @@ object VClampSim: TVClampSim
   Font.Name = 'Arial'
   Font.Style = []
   FormStyle = fsMDIChild
-  OldCreateOrder = True
   Position = poScreenCenter
   Visible = True
   OnClose = FormClose
@@ -20,7 +19,6 @@ object VClampSim: TVClampSim
   OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 15
   object scDisplay: TScopeDisplay
     Left = 184

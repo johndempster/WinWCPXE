@@ -26,6 +26,7 @@ unit Average;
               Averaged signals at upper/lower limits of signal range no longer wrap around.
   12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
   26.05.22 .. ZeroFrm now settings Channel record zero level settings directly
+  25.04.26 .. .ZoomInAll method added. Zooms in to optimal vertical magnfication
   ========================================================================== }
 interface
 
@@ -89,6 +90,7 @@ type
     { Public declarations }
     procedure ChangeDisplayGrid ;
     procedure ZoomOut ;
+    procedure ZoomIn ;
     procedure NewFile ;
   end;
 
@@ -685,6 +687,17 @@ begin
 procedure  TAvgFrm.ZoomOut ;
 { ---------------------------------
   Set minimum display magnification
+  --------------------------------- }
+begin
+     scDisplay.MaxADCValue := WCPFile.RawFH.MaxADCValue ;
+     scDisplay.MinADCValue := WCPFile.RawFH.MinADCValue ;
+     scDisplay.ZoomOut ;
+     end ;
+
+
+procedure  TAvgFrm.ZoomIn ;
+{ ---------------------------------
+  Set optimal display magnification
   --------------------------------- }
 begin
      scDisplay.MaxADCValue := WCPFile.RawFH.MaxADCValue ;

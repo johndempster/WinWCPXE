@@ -12,7 +12,6 @@ object FitFrm: TFitFrm
   Font.Style = []
   FormStyle = fsMDIChild
   KeyPreview = True
-  OldCreateOrder = True
   Position = poDesigned
   Visible = True
   OnActivate = FormActivate
@@ -23,7 +22,6 @@ object FitFrm: TFitFrm
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 15
   object Page: TPageControl
     Left = 8
@@ -308,7 +306,7 @@ object FitFrm: TFitFrm
             AutoSize = False
             Text = ' 5.0-95.0 %'
             LoValue = 0.050000000745058060
-            HiValue = 0.949999988079071100
+            HiValue = 0.949999988079071000
             HiLimit = 1.000000000000000000
             Scale = 100.000000000000000000
             Units = '%'
@@ -455,7 +453,6 @@ object FitFrm: TFitFrm
           Lines.Strings = (
             'erResults')
           TabOrder = 0
-          Zoom = 100
         end
       end
       object ckFixedZeroLevels: TCheckBox

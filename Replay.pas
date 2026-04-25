@@ -44,6 +44,7 @@ unit Replay;
   18.11.15 .. TReplayCursors.Base removed since use was redundant.
   12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
   26.05.22 .. ZeroFrm now settings Channel record zero level settings directly
+  25.04.26 .. .ZoomInAll method added. Zooms in to optimal vertical magnfication
   ===================================================}
 interface
 
@@ -135,6 +136,7 @@ type
     { Public declarations }
    procedure NewFile ;
    procedure ZoomOutAll ;
+   procedure ZoomInAll ;
    procedure ZoomIn( ChanNum : Integer ) ;
    procedure ZoomOut( ChanNum : Integer ) ;
    procedure ChangeDisplayGrid ;
@@ -346,6 +348,25 @@ begin
      WCPFile.Channel[0].xMax := scDisplay.xMax ;
 
      end ;
+
+
+procedure  TReplayFrm.ZoomInAll ;
+{ ---------------------------------
+  Set optimal display magnification
+  --------------------------------- }
+begin
+     scDisplay.MaxADCValue := WCPFile.RawFH.MaxADCValue ;
+     scDisplay.MinADCValue := WCPFile.RawFH.MinADCValue ;
+     scDisplay.MaxPoints := WCPFile.FH.NumSamples ;
+     scDisplay.NumPoints := scDisplay.MaxPoints ;
+     scDisplay.NumChannels := WCPFile.FH.NumChannels ;
+
+     scDisplay.ZoomIn ;
+     WCPFile.Channel[0].xMin := scDisplay.xMin ;
+     WCPFile.Channel[0].xMax := scDisplay.xMax ;
+
+     end ;
+
 
 
 procedure TReplayFrm.ZoomOut(

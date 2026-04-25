@@ -17,7 +17,7 @@ unit Simhh;
   09.08.13 .. ADC now allocated by GetMem()
   03.03.17 .. .Close form event now terminates bStart.Click event before
               closing form to prevent access violation
-
+    25.04.26 .. .ZoomInAll method added. Zooms in to optimal vertical magnfication
   ================================================================== }
 interface
 
@@ -133,6 +133,7 @@ type
     { Public declarations }
     procedure ChangeDisplayGrid ;
     procedure ZoomOut ;
+    procedure ZoomIn ;
     procedure NewFile ;
   end;
 
@@ -768,7 +769,18 @@ begin
      scDisplay.ZoomOut ;
      end ;
 
-procedure TVClampSim.scDisplayCursorChange(Sender: TObject);
+procedure  TVClampSim.ZoomIn ;
+{ ---------------------------------
+  Set optimal display magnification
+  --------------------------------- }
+begin
+     scDisplay.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
+     scDisplay.MinADCValue := Main.SESLabIO.ADCMinValue ;
+     scDisplay.ZoomIn ;
+     end ;
+
+
+     procedure TVClampSim.scDisplayCursorChange(Sender: TObject);
 var
    ch : Integer ;
 begin

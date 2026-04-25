@@ -12,7 +12,6 @@ object AvgFrm: TAvgFrm
   Font.Style = []
   FormStyle = fsMDIChild
   KeyPreview = True
-  OldCreateOrder = True
   Position = poScreenCenter
   Visible = True
   OnClose = FormClose
@@ -21,7 +20,6 @@ object AvgFrm: TAvgFrm
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 16
   object scDisplay: TScopeDisplay
     Left = 163

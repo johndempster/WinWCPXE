@@ -49,6 +49,7 @@ unit Curvfit;
   26.05.22 .. ZeroFrm now settings Channel record zero level settings directly
   23.06.24 .. Fitted results now stored in FitValues and in fit.fpd & fit.csv files rather than recond headers
               Zero guesses for exponential amplitudes prevented
+  25.04.26 .. .ZoomInAll method added. Zooms in to optimal vertical magnfication
   ==========================================================================}
 interface
 
@@ -309,6 +310,7 @@ TCurveFitCursors = Record
     procedure CopyImageToClipboard ;
     procedure ChangeDisplayGrid ;
     procedure ZoomOut ;
+    procedure ZoomIn ;
     Function DataAvailable : Boolean ;
     Function ImageAvailable : Boolean ;
 
@@ -825,6 +827,17 @@ begin
      scDisplay.MaxADCValue := FH.MaxADCValue ;
      scDisplay.MinADCValue := FH.MinADCValue ;
      scDisplay.ZoomOut ;
+     end ;
+
+
+procedure  TFitFrm.ZoomIn ;
+{ ---------------------------------
+  Set optimal display magnification
+  --------------------------------- }
+begin
+     scDisplay.MaxADCValue := FH.MaxADCValue ;
+     scDisplay.MinADCValue := FH.MinADCValue ;
+     scDisplay.ZoomIn ;
      end ;
 
 

@@ -2066,7 +2066,7 @@ procedure  TPwrSpecFrm.ZoomIn( Chan : Integer ) ;
   Let user set display magnification for channel 'Chan'
   ----------------------------------------------------- }
 begin
-      if Page.ActivePage = DataTab then scDisplay.ZoomIn(cbChannel.ItemIndex);
+      if Page.ActivePage = DataTab then scDisplay.ZoomIn ; //(cbChannel.ItemIndex);
      end ;
 
 

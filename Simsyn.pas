@@ -23,6 +23,7 @@ unit Simsyn;
   16.11.21 .. Evoked signal amplitudes now calculated by summing quantal amplitudes with gaussian noise.
               Non-linear summation of potentials now correct, using correct formula and based upon
               peak of quantal waveform rather than exponential amplitude set by user.
+  25.04.26 .. .ZoomInAll method added. Zooms in to optimal vertical magnfication
   ==================================================================}
 
 interface
@@ -112,6 +113,7 @@ type
     { Public declarations }
     procedure ChangeDisplayGrid ;
     procedure ZoomOut ;
+    procedure ZoomIn ;
     procedure NewFile ;
   end;
 function binomial( pIn, n : Single ) : Single ;
@@ -580,6 +582,18 @@ begin
      scDisplay.MinADCValue := -Main.SESLabIO.ADCMaxValue -1 ;
      scDisplay.ZoomOut ;
      end ;
+
+
+procedure  TSynapseSim.ZoomIn ;
+{ ---------------------------------
+  Set minimum display magnification
+  --------------------------------- }
+begin
+     scDisplay.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
+     scDisplay.MinADCValue := -Main.SESLabIO.ADCMaxValue -1 ;
+     scDisplay.ZoomIn ;
+     end ;
+
 
 
 
