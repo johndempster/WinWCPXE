@@ -794,6 +794,8 @@ unit MDIForm;
    V5.8.3 10.03.25 SealTest Save To Log button now correctly writes Cell resistance values to log file
    V5.8.4 24.04.26 View > ZoomInAll menu item added. Zooms in displays to optimal vertical magnfication
                    Leaksub.pas Holding curret now derived from VHold cursor for both From Voltage and Fixed voltage scaling
+   V5.8.5 22.07.26 Detailed digitiser device information now added to log file when WiNWCP started or interface changed (Heka devices only)
+
             =======================================================================}
 
 interface
@@ -1022,7 +1024,7 @@ var
    FileName : String ;
 begin
 
-      WCPFile.ProgVersion := 'V5.8.4' ;
+      WCPFile.ProgVersion := 'V5.8.5' ;
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + WCPFile.ProgVersion ;
 
       Application.HelpFile := WCPFile.Settings.ProgDirectory + 'WinWCP.chm';
@@ -1077,6 +1079,13 @@ begin
          WCPFile.Channel[ch].yMin := SESLabIO.ADCMinValue ;
          WCPFile.Channel[ch].yMax := SESLabIO.ADCMaxValue ;
          end ;
+
+     // Write information on current digitiser device to log file
+     for i := 0 to SESLabIO.DeviceInfo.Count-1 do
+         begin
+         WCPFile.WriteToLogFile( SESLabIO.DeviceInfo[i] )
+         end;
+
 
      if ANSIContainsText( ExtractFileExt(FileName),'.wcp') then begin
         if FileExists(FileName) then begin

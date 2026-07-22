@@ -13,6 +13,8 @@ unit LabInterfaceSetup;
 // 20.08.13 Unnecessary update of Main.SESLABIO.ADCInputMode when OK button pressed removed
 //          to remove delay caused by resetting of NIDAQmx devices.
 // 05.11.15 HekaEPC9USB interface added
+// 22.07.26 Detailed digitiser device information now added to log file when WiNWCP started or interface changed (Heka devices only)
+
 interface
 
 uses
@@ -52,7 +54,7 @@ var
 
 implementation
 
-uses MDIForm, AmpModule;
+uses MDIForm, AmpModule, WCPFileUnit;
 
 {$R *.dfm}
 
@@ -73,6 +75,8 @@ begin
      end;
 
 procedure TLabInterfaceSetupFrm.bOKClick(Sender: TObject);
+var
+    i : Integer ;
 begin
 
     Screen.Cursor := crHourGlass ;
@@ -81,6 +85,12 @@ begin
     //Main.SESLABIO.ADCInputMode := cbADCInputMode.ItemIndex ;
 
     Main.SESLabIO.ADCVoltageRangeIndex := cbADCVoltageRange.ItemIndex ;
+
+    // Write information on current digitiser device to log file
+     for i := 1 to Main.SESLabIO.DeviceInfo.Count-1 do
+         begin
+         WCPFile.WriteToLogFile( Main.SESLabIO.DeviceInfo[i-1] )
+         end;
 
     Screen.Cursor := crDefault ;
     Close ;
