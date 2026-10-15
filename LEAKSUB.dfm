@@ -12,7 +12,6 @@ object LeakSubFrm: TLeakSubFrm
   Font.Style = []
   FormStyle = fsMDIChild
   KeyPreview = True
-  OldCreateOrder = True
   Position = poScreenCenter
   Visible = True
   OnActivate = FormActivate
@@ -22,7 +21,6 @@ object LeakSubFrm: TLeakSubFrm
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 15
   object scDisplay: TScopeDisplay
     Left = 139

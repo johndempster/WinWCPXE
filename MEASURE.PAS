@@ -102,6 +102,7 @@ unit Measure;
    08.11.22 .. T0,C0,C1 cursor positions now stored in FH and WCP file header
                Peak mode setting now retained correctly when form closed and re-opened
    23.06.24 .. Time of day variable added.
+  25.04.26 .. .ZoomInAll method added. Zooms in to optimal vertical magnfication
 
   ==========================================================================}
 interface
@@ -414,6 +415,7 @@ TMeasureFrmCursors = Record
     procedure Print ;
     procedure ChangeDisplayGrid ;
     procedure ZoomOut ;
+    procedure ZoomIn ;
     Function DataAvailable : Boolean ;
     Function ImageAvailable : Boolean ;
     procedure SetStoreMode( StorageMode : Boolean ) ;
@@ -968,6 +970,17 @@ begin
      scDisplay.MaxADCValue := FH.MaxADCValue ;
      scDisplay.MinADCValue := FH.MinADCValue ;
      scDisplay.ZoomOut ;
+     end ;
+
+
+procedure  TMeasureFrm.ZoomIn ;
+{ ---------------------------------
+  Set optimal display magnification
+  --------------------------------- }
+begin
+     scDisplay.MaxADCValue := FH.MaxADCValue ;
+     scDisplay.MinADCValue := FH.MinADCValue ;
+     scDisplay.ZoomIn ;
      end ;
 
 

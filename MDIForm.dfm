@@ -12,12 +12,10 @@ object Main: TMain
   Font.Style = []
   FormStyle = fsMDIForm
   Menu = MainMenu
-  OldCreateOrder = False
   Position = poDefault
   OnCloseQuery = FormCloseQuery
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 13
   object StatusBar: TStatusBar
     Left = 0
@@ -150,6 +148,10 @@ object Main: TMain
       object mnZoomOutAll: TMenuItem
         Caption = 'Zoom Out (&All channels)'
         OnClick = mnZoomOutAllClick
+      end
+      object mnZoomIn: TMenuItem
+        Caption = 'Zoom In (All Channels)'
+        OnClick = mnZoomInClick
       end
       object mnStoreTraces: TMenuItem
         Caption = '&Superimpose traces'

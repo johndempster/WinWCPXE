@@ -13,6 +13,7 @@ unit Drvfun;
   07.06.13 .. FH.NumZeroAvg now updated when changed in ZeroFrm
   27.07.15 .. iline added to .CreateLine() & .AddPointToLine()
   12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
+  25.04.26 .. .ZoomInAll method added. Zooms in to optimal vertical magnfication
   ==========================================================================}
 interface
 
@@ -73,6 +74,7 @@ type
     { Public declarations }
     procedure ChangeDisplayGrid ;
     procedure ZoomOut ;
+    procedure ZoomIn ;
     procedure NewFile ;
   end;
 
@@ -668,6 +670,17 @@ begin
      scDisplay.MaxADCValue := WCPFIle.DrvFH.MaxADCValue ;
      scDisplay.MinADCValue := WCPFIle.DrvFH.MinADCValue ;
      scDisplay.ZoomOut ;
+     end ;
+
+
+procedure  TDrvFunFrm.ZoomIn ;
+{ ---------------------------------
+  Set minimum display magnification
+  --------------------------------- }
+begin
+     scDisplay.MaxADCValue := WCPFIle.DrvFH.MaxADCValue ;
+     scDisplay.MinADCValue := WCPFIle.DrvFH.MinADCValue ;
+     scDisplay.ZoomIn ;
      end ;
 
 

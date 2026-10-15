@@ -1,13 +1,13 @@
-WinWCP
-Whole Cell Electrophysiology Data Analysis Program
+WinWCP - Window Whole Cell Program
 
-The files contained in this archive can be built using Embarcadero Delphi XE (versions 3-8).
-
-Note. The SESComponents package of common Delphi components used in Strathclyde Electrophysiology Software applications must be downloaded from the SESComponentsXE repository and installed on the Delphi XE toolbar before building this application. See the SESComponentsXE repository for details.
+The files contained in this archive can be buit using the Embarcadero Delphi software development environment which can be downloaded from https://www.embarcadero.com/products/delphi/starter
 
 To build and run the application:
+ 
+1) Clone this repository to a folder in the DelphiProjects folder e.g. ..\My Documents\Embarcadero\Studio\Projects\WinWCP
+2) Select File > Open Project and open .. \My Documents\Embarcadero\Studio\Projects\WinEDR\WinWCP
+3) Select Project > Build > All
+4) Select Run
 
-1) Clone this repository to a folder in the Delphi XE Projects folder e.g. ..\My Documents\Rad Studio\Projects\WinWCPXE.
-2) Select File->Open Project and open ..\My Documents\Rad Studio\Projects\WinWCPXE\WinWCP.dpr
-3) Select Project->Build WinWCP
-4) Select Run->Run
+Note. The SESComponents package of common Delphi components used in Strathclyde Electrophysiology Software applications must be downloaded from https://github.com/johndempster/SESComponentsXE and installed on the Delphi toolbar before building this application. See the SESComponentsXE repository  for details.
+

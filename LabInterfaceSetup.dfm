@@ -11,12 +11,10 @@ object LabInterfaceSetupFrm: TLabInterfaceSetupFrm
   Font.Name = 'Arial'
   Font.Style = []
   FormStyle = fsMDIChild
-  OldCreateOrder = False
   Position = poDefault
   Visible = True
   OnClose = FormClose
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 15
   object cbLabInterface: TComboBox
     Left = 4
@@ -121,7 +119,7 @@ object LabInterfaceSetupFrm: TLabInterfaceSetupFrm
       TabOrder = 1
     end
     object bOK: TButton
-      Left = 0
+      Left = 1
       Top = 56
       Width = 49
       Height = 25

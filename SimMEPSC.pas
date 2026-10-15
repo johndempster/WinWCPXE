@@ -18,6 +18,7 @@ unit SimMEPSC;
   09.08.13 .. ADC now allocated by AllocMem()
   03.03.17 .. .Close form event now terminates bStart.Click event before
               closing form to prevent access violation
+  25.04.26 .. .ZoomInAll method added. Zooms in to optimal vertical magnfication
   }
 
 
@@ -87,6 +88,7 @@ type
     { Public declarations }
      procedure ChangeDisplayGrid ;
      procedure ZoomOut ;
+     procedure ZoomIn ;
      procedure NewFile ;
   end;
 
@@ -538,6 +540,17 @@ begin
      scDisplay.MinADCValue := Main.SESLabIO.ADCMinValue ;
      scDisplay.ZoomOut ;
      end ;
+
+procedure  TSimMEPSCFrm.ZoomIn ;
+{ ---------------------------------
+  Set optimal display magnification
+  --------------------------------- }
+begin
+     scDisplay.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
+     scDisplay.MinADCValue := Main.SESLabIO.ADCMinValue ;
+     scDisplay.ZoomIn ;
+     end ;
+
 
 function TSimMEPSCFrm.CheckNewDataFileNeeded : Boolean ;
 // ------------------------------------------------------------

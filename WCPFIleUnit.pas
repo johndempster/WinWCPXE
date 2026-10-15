@@ -3821,8 +3821,6 @@ begin
 end;
 
 
-
-
 function TWCPFile.GetKeyValue( List : TStringList ;  // List for Key=Value pairs
                                KeyWord : string ;   // Key
                                Value : string       // Value

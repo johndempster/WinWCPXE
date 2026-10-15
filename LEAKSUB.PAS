@@ -29,6 +29,9 @@ unit Leaksub;
   07.06.13 .. FH.NumZeroAvg now updated when changed in ZeroFrm
   12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
   26.05.22 .. ZeroFrm now settings Channel record zero level settings directly
+  24.04.26 .. Holding voltages and currents now always derived from VHold cursor in both From Voltage and Fixed modes.
+  25.04.26 .. .ZoomInAll method added. Zooms in to optimal vertical magnfication
+              Holding curret now derived from VHold cursor for both From Voltage and Fixed voltage scaling
   ===================================================================}
 interface
 
@@ -101,6 +104,7 @@ type
     { Public declarations }
     procedure ChangeDisplayGrid ;
     procedure ZoomOut ;
+    procedure ZoomIN ;
     procedure NewFile ;
   end;
 
@@ -172,17 +176,18 @@ begin
      // Reallocate buffers
      np := WCPFile.RawFH.NumSamples*WCPFile.RawFH.NumChannels ;
      if ADC <> Nil then FreeMem(ADC) ;
-     GetMem( ADC, Max(np*2,1024))  ;
+     GetMem( ADC, Max(np*SizeOf(SmallInt),1024))  ;
      if ITest <> Nil then FreeMem(ITest) ;
-     GetMem( ITest, Max(np*4,1024) ) ;
+     GetMem( ITest, Max(np*SizeOf(Integer),1024) ) ;
      if VTest <> Nil then FreeMem(VTest) ;
-     GetMem( VTest, Max(np*4,1024) ) ;
+     GetMem( VTest, Max(np*SizeOf(Integer),1024) ) ;
      if ILeak <> Nil then FreeMem(ILeak) ;
-     GetMem( ILeak, Max(np*4,1024) ) ;
+     GetMem( ILeak, Max(np*SizeOf(Integer),1024) ) ;
      if VLeak <> Nil then FreeMem(VLeak) ;
-     GetMem( VLeak, Max(np*4,1024) ) ;
+     GetMem( VLeak, Max(np*SizeOf(Integer),1024) ) ;
 
-     if WCPFile.RawFH.Numrecords > 0 then begin
+     if WCPFile.RawFH.Numrecords > 0 then
+        begin
 
         WCPFile.RawFH.RecordNum := 1 ;
         WCPFile.UpdateScrollBar( sbRecordNum, WCPFile.RawFH.RecordNum, 1, WCPFile.RawfH.NumRecords ) ;
@@ -193,13 +198,15 @@ begin
         edRange.HiValue := WCPFile.RawFH.NumRecords ;
 
         { If there is only one channel in the file ... disable automatic voltage scaling }
-        if WCPFile.RawFH.NumChannels < 2 then begin
+        if WCPFile.RawFH.NumChannels < 2 then
+           begin
            rbFixedScaling.checked := True ;
            rbAutoScaling.enabled := False ;
            cbVoltage.Enabled := False ;
            cbVoltage.ItemIndex := -1 ;
            end
-        else begin
+        else
+           begin
            rbAutoScaling.checked := True ;
            rbAutoScaling.enabled := True ;
            cbVoltage.Enabled := True ;
@@ -230,7 +237,6 @@ var
    ch : Integer ;
 begin
 
-
      { Set up scope display }
      scDisplay.MaxADCValue := WCPFile.RawFH.MaxADCValue ;
      scDisplay.MinADCValue := WCPFile.RawFH.MinADCValue ;
@@ -240,21 +246,22 @@ begin
      scDisplay.NumPoints := WCPFile.RawFH.NumSamples ;
      scDisplay.NumChannels := WCPFile.RawFH.NumChannels ;
      { Set channel information }
-     for ch := 0 to scDisplay.NumChannels-1 do begin
+     for ch := 0 to scDisplay.NumChannels-1 do
+         begin
          scDisplay.ChanOffsets[ch] := WCPFile.Channel[ch].ChannelOffset ;
          scDisplay.ChanUnits[ch] := WCPFile.Channel[Ch].ADCUnits ;
          scDisplay.ChanName[ch] := WCPFile.Channel[Ch].ADCName ;
          scDisplay.ChanScale[ch] := WCPFile.Channel[ch].ADCScale ;
          // If the number of channels has changed, zoom out display
-         if OldNumChannels <> scDisplay.NumChannels then begin
+         if OldNumChannels <> scDisplay.NumChannels then
+            begin
             WCPFile.Channel[ch].yMin := Main.SESLabIO.ADCMinValue ;
             WCPFile.Channel[ch].yMax := Main.SESLabIO.ADCMaxValue ;
             end ;
          scDisplay.yMin[ch] := WCPFile.Channel[Ch].yMin ;
          scDisplay.yMax[ch] := WCPFile.Channel[Ch].yMax ;
-         if (ch = cbCurrent.ItemIndex) or
-            (ch = cbVoltage.ItemIndex) then scDisplay.ChanVisible[ch] := True
-                                       else scDisplay.ChanVisible[ch] := False ;
+         if (ch = cbCurrent.ItemIndex) or (ch = cbVoltage.ItemIndex) then scDisplay.ChanVisible[ch] := True
+                                                                     else scDisplay.ChanVisible[ch] := False ;
          end ;
      OldNumChannels := scDisplay.NumChannels ;
 
@@ -266,31 +273,24 @@ begin
      scDisplay.ClearVerticalCursors ;
 
      { Current channel baseline }
-     Cursors.IBase := scDisplay.AddHorizontalCursor(
-                      cbCurrent.ItemIndex,
-                      WCPFile.Settings.Colors.Cursors,
-                      True,
-                      'z') ;
+     Cursors.IBase := scDisplay.AddHorizontalCursor(cbCurrent.ItemIndex,WCPFile.Settings.Colors.Cursors,True,'z') ;
      scDisplay.HorizontalCursors[Cursors.IBase] := WCPFile.Channel[cbCurrent.ItemIndex].ADCZero ;
 
 
      { Add voltage channel cursors only if more than one channel available }
-     if WCPFile.RawFH.NumChannels > 1  then begin
+     if WCPFile.RawFH.NumChannels > 1  then
+        begin
 
         { Voltage channel baseline }
-        Cursors.VBase := scDisplay.AddHorizontalCursor(
-                         cbVoltage.ItemIndex,
-                         WCPFile.Settings.Colors.Cursors,
-                         True,
-                         'z') ;
+        Cursors.VBase := scDisplay.AddHorizontalCursor(cbVoltage.ItemIndex,WCPFile.Settings.Colors.Cursors,True,'z') ;
         scDisplay.HorizontalCursors[Cursors.VBase] := WCPFile.Channel[cbVoltage.ItemIndex].ADCZero ;
 
         { Holding voltage measurement position }
-        Cursors.VHold := scDisplay.AddVerticalCursor(AllChannels,WCPFile.Settings.Colors.Cursors,'VHold') ;
+        Cursors.VHold := scDisplay.AddVerticalCursor(AllChannels,clGreen,'VHold') ;
         scDisplay.VerticalCursors[Cursors.VHold] := 1 ;
 
         { Test voltage measurement position }
-        Cursors.VTest := scDisplay.AddVerticalCursor(AllChannels,WCPFile.Settings.Colors.Cursors,'VTest') ;
+        Cursors.VTest := scDisplay.AddVerticalCursor(AllChannels,clGreen,'VTest') ;
         scDisplay.VerticalCursors[Cursors.VTest] := WCPFile.RawFH.NumSamples div 2 ;
 
         end ;
@@ -317,7 +317,8 @@ begin
      { Read record data from file }
      WCPFile.GetRecord( WCPFile.RawfH, RH, WCPFile.RawfH.RecordNum, ADC^ ) ;
 
-     for ch := 0 to WCPFile.RawFH.NumChannels-1 do begin
+     for ch := 0 to WCPFile.RawFH.NumChannels-1 do
+         begin
          // Zero level
          scDisplay.HorizontalCursors[ch] := WCPFile.Channel[ch].ADCZero ;
          // Start of area from which zero level was computed (-1 indicates fixed zero level)
@@ -398,14 +399,17 @@ begin
      { The averages data file name has the same name as the original file
        but with the extension .sub }
      WCPFile.LeakfH.FileName := ChangeFileExt( WCPFile.RawfH.FileName, '.sub' ) ;
+
      { Create file to hold averages }
      WCPFile.FileCloseSafe(  WCPFile.LeakFH.FileHandle ) ;
      WCPFile.LeakfH.FileHandle := FileCreate( WCPFile.LeakfH.FileName ) ;
+
      { Save header block and request subtractions to start}
-     if WCPFile.LeakfH.FileHandle >= 0 then begin
-           WCPFile.LeakfH.NumRecords := 0 ;
-           WCPFile.SaveHeader( WCPFile.LeakfH ) ;
-           end
+     if WCPFile.LeakfH.FileHandle >= 0 then
+        begin
+        WCPFile.LeakfH.NumRecords := 0 ;
+        WCPFile.SaveHeader( WCPFile.LeakfH ) ;
+        end
      else ShowMessage( 'FileCreate Error ='+ IntToStr(WCPFile.LeakfH.FileHandle));
 
      { Current and voltage channel offsets into ADC buffer }
@@ -418,41 +422,36 @@ begin
      { If in FILE MODE ... compute an averaged leak record
        from all the LEAK type records in the file }
 
-     if rbFileMode.checked then begin
+     if rbFileMode.checked then
+        begin
 
         nLeak := 0 ;
         Rec := StartAtRec ;
         Done := False ;
-        While not Done do begin
+        While not Done do
+            begin
 
             { Read record data from file }
             WCPFile.GetRecord( WCPFile.RawfH, RH, Rec, ADC^ ) ;
 
             { If record is LEAK type and ACCEPTED ... add it to average }
-            if (RH.Status = 'ACCEPTED') and (RH.RecType = 'LEAK' ) then begin
+            if (RH.Status = 'ACCEPTED') and (RH.RecType = 'LEAK' ) then
+               begin
 
                { Current and voltage scaling factors }
                IScale := WCPFile.Channel[cbCurrent.ItemIndex].ADCScale ;
                VScale := WCPFile.Channel[cbVoltage.ItemIndex].ADCScale ;
 
-               if rbAutoScaling.Checked then begin
-                  { Use levels under VHold cursor as zero references
-                    when voltage scaling is in use}
-                  IZero := ADC^[Round(scDisplay.VerticalCursors[Cursors.VHold])*WCPFile.RawFH.NumChannels
-                           + IOffset] ;
-                  VZero := ADC^[Round(scDisplay.VerticalCursors[Cursors.VHold])*WCPFile.RawFH.NumChannels
-                           + VOffset] ;
-                  end
-               else begin
-                  // Use currently selected zero levels
-                  IZero := WCPFile.Channel[cbCurrent.ItemIndex].ADCZero ;
-                  VZero := WCPFile.Channel[cbVoltage.ItemIndex].ADCZero ;
-                  end ;
+               { Use levels under VHold cursor as zero references }
+               IZero := ADC^[Round(scDisplay.VerticalCursors[Cursors.VHold])*WCPFile.RawFH.NumChannels + IOffset] ;
+               VZero := ADC^[Round(scDisplay.VerticalCursors[Cursors.VHold])*WCPFile.RawFH.NumChannels + VOffset] ;
 
                { Add current and voltage channels to summation buffers }
                 j := 0 ;
-                for i := 0 to WCPFile.RawFH.NumSamples-1 do begin
-                    if nLeak = 0 then begin
+                for i := 0 to WCPFile.RawFH.NumSamples-1 do
+                    begin
+                    if nLeak = 0 then
+                       begin
                        ILeak^[i] := 0. ;
                        VLeak^[i] := 0. ;
                        end ;
@@ -466,21 +465,23 @@ begin
             Inc(Rec) ;
 
             // Report progress
-            Main.StatusBar.SimpleText := format(
-            ' Leak current subtraction : %d/%d (%d LEAK records averaged)',
-            [Rec,EndAtRec,nLeak]) ;
+            Main.StatusBar.SimpleText := format(' Leak current subtraction : %d/%d (%d LEAK records averaged)',[Rec,EndAtRec,nLeak]) ;
 
             { Terminate when last record done or user aborts }
             if (Rec > EndAtRec) or bDoSubtraction.Enabled then Done := True ;
+
             end ;
 
         { Calculate averaged leak current and voltage }
-        if nLeak > 0 then begin
-              for i := 0 to WCPFile.RawFH.NumSamples-1 do begin
-                  VLeak^[i] := VLeak^[i] / nLeak ;
-                  ILeak^[i] := ILeak^[i] / nLeak ;
-                  end ;
-              end ;
+        if nLeak > 0 then
+           begin
+           for i := 0 to WCPFile.RawFH.NumSamples-1 do
+               begin
+               VLeak^[i] := VLeak^[i] / nLeak ;
+               ILeak^[i] := ILeak^[i] / nLeak ;
+               end ;
+           end ;
+
         end ;
 
      { Scale and subtract leak records from test records }
@@ -493,30 +494,28 @@ begin
          GroupNumber := RH.Number ;
 
          { Only use records marked by user as 'ACCEPTED' }
-         if RH.Status = 'ACCEPTED' then begin
+         if RH.Status = 'ACCEPTED' then
+            begin
 
-            if ckSaveLeaks.checked or (RH.RecType <> 'LEAK') then begin
+            if ckSaveLeaks.checked or (RH.RecType <> 'LEAK') then
+               begin
+
                { *** TEST records *** }
                LastTestRecord := Rec ;
                { Current and voltage scaling factors }
                IScale := WCPFile.Channel[cbCurrent.ItemIndex].ADCScale ;
                VScale := WCPFile.Channel[cbVoltage.ItemIndex].ADCScale ;
 
-               if rbAutoScaling.Checked then begin
-                  { Use levels under VHold cursor as zero references }
-                  IZero := ADC^[VHoldCursor*WCPFile.RawFH.NumChannels + IOffset] ;
-                  VZero := ADC^[VHoldCursor*WCPFile.RawFH.NumChannels + VOffset] ;
-                  end
-               else begin
-                  // Use currently selected zero levels
-                  IZero := WCPFile.Channel[cbCurrent.ItemIndex].ADCZero ;
-                  VZero := WCPFile.Channel[cbVoltage.ItemIndex].ADCZero ;
-                  end ;
+               { Use levels under VHold cursor as zero references }
+               IZero := ADC^[Round(scDisplay.VerticalCursors[Cursors.VHold])*WCPFile.RawFH.NumChannels + IOffset] ;
+               VZero := ADC^[Round(scDisplay.VerticalCursors[Cursors.VHold])*WCPFile.RawFH.NumChannels + VOffset] ;
 
                { Add current and voltage channels to summation buffers }
                j := 0 ;
-               for i := 0 to WCPFile.RawFH.NumSamples-1 do begin
-                   if nTest = 0 then begin
+               for i := 0 to WCPFile.RawFH.NumSamples-1 do
+                   begin
+                   if nTest = 0 then
+                      begin
                       ITest^[i] := 0. ;
                       VTest^[i] := 0. ;
                       end ;
@@ -527,7 +526,8 @@ begin
 
                Inc( nTest ) ;
                end
-            else if rbGroupMode.checked then begin
+            else if rbGroupMode.checked then
+               begin
 
                { *** LEAK records *** }
 
@@ -535,21 +535,15 @@ begin
                IScale := WCPFile.Channel[cbCurrent.ItemIndex].ADCScale ;
                VScale := WCPFile.Channel[cbVoltage.ItemIndex].ADCScale ;
 
-               // Zero levels
-               if rbAutoScaling.Checked then begin
-                  { Use levels under VHold cursor as zero references }
-                  IZero := ADC^[VHoldCursor*WCPFile.RawFH.NumChannels + IOffset] ;
-                  VZero := ADC^[VHoldCursor*WCPFile.RawFH.NumChannels + VOffset] ;
-                  end
-               else begin
-                  // Use currently selected zero levels
-                  IZero := WCPFile.Channel[cbCurrent.ItemIndex].ADCZero ;
-                  VZero := WCPFile.Channel[cbVoltage.ItemIndex].ADCZero ;
-                  end ;
+               { Use levels under VHold cursor as zero references }
+               IZero := ADC^[Round(scDisplay.VerticalCursors[Cursors.VHold])*WCPFile.RawFH.NumChannels + IOffset] ;
+               VZero := ADC^[Round(scDisplay.VerticalCursors[Cursors.VHold])*WCPFile.RawFH.NumChannels + VOffset] ;
 
                j := 0 ;
-               for i := 0 to WCPFile.RawFH.NumSamples-1 do begin
-                   if nLeak = 0 then begin
+               for i := 0 to WCPFile.RawFH.NumSamples-1 do
+                   begin
+                   if nLeak = 0 then
+                      begin
                       ILeak^[i] := 0. ;
                       VLeak^[i] := 0 ;
                       end ;
@@ -559,6 +553,7 @@ begin
                    end ;
                Inc( nLeak ) ;
                end ;
+
             end ;
 
          { Is this record the last in its group or the last in the file }
@@ -569,14 +564,17 @@ begin
                                         else SaveRecord := False ;
             end ;
 
-         if SaveRecord then begin
+         if SaveRecord then
+            begin
 
             { If in Group-mode leak subtraction ... average leak record }
 
             if (nTest > 0) and (nLeak > 0) then OK := True
                                            Else OK := False ;
-            if rbGroupMode.checked then begin
-               if nLeak > 0 then begin
+            if rbGroupMode.checked then
+               begin
+               if nLeak > 0 then
+                  begin
                   for i := 0 to WCPFile.RawFH.NumSamples-1 do begin
                     VLeak^[i] := VLeak^[i] / nLeak ;
                     ILeak^[i] := ILeak^[i] / nLeak ;
@@ -586,7 +584,8 @@ begin
                end ;
 
             { Average test records }
-            if nTest > 0 then begin
+            if nTest > 0 then
+               begin
                for i := 0 to WCPFile.RawFH.NumSamples-1 do begin
                    VTest^[i] := VTest^[i] / nTest ;
                    ITest^[i] := ITest^[i] / nTest ;
@@ -597,14 +596,16 @@ begin
             // Calculate factor by which leak current is to be scaled up by
             //  before being subtracted from test current
 
-            if OK and rbAutoScaling.checked then begin
+            if OK and rbAutoScaling.checked then
+               begin
+
                { Calculate holding voltage level for leak and test records }
                i0 := VHoldCursor ;
-               i1 := Min( VHoldCursor + nAvg - 1,
-                          WCPFile.RawFH.NumSamples-1)  ;
+               i1 := Min( VHoldCursor + nAvg - 1,WCPFile.RawFH.NumSamples-1)  ;
                VHoldLeak := 0. ;
                VHoldTest := 0. ;
-               for i := i0 to i1 do begin
+               for i := i0 to i1 do
+                 begin
                  VHoldLeak := VHoldLeak + VLeak^[i] ;
                  VHoldTest := VHoldTest + VTest^[i] ;
                  end ;
@@ -613,11 +614,11 @@ begin
 
                { Calculate pulse voltage level for leak and test records }
                i0 := VTestCursor ;
-               i1 := Min(VTestCursor + nAvg - 1,
-                           WCPFile.RawFH.NumSamples-1)  ;
+               i1 := Min(VTestCursor + nAvg - 1,WCPFile.RawFH.NumSamples-1)  ;
                VPulseLeak := 0. ;
                VPulseTest := 0. ;
-               for i := i0 to i1 do begin
+               for i := i0 to i1 do
+                   begin
                    VPulseLeak := VPulseLeak + VLeak^[i] ;
                    VPulseTest := VPulseTest + VTest^[i] ;
                    end ;
@@ -629,11 +630,13 @@ begin
                VLeakStep := VPulseLeak - VHoldLeak ;
 
                { If either current or voltage steps are too small ... give up }
-               if Abs(VLeakStep) > VLimit then begin
+               if Abs(VLeakStep) > VLimit then
+                  begin
                   OK := True ;
                   LeakScale := VPulseStep / VLeakStep ;
                   end
                else OK := False ;
+
                end ;
 
             if OK then begin
@@ -686,18 +689,12 @@ begin
                { Replace current channel }
                IScale := WCPFile.Channel[cbCurrent.ItemIndex].ADCScale ;
 
-               // Zero levels
-               if rbAutoScaling.Checked then begin
-                  { Use levels under VHold cursor as zero references }
-                  IZero := ADC^[VHoldCursor*WCPFile.RawFH.NumChannels + IOffset] ;
-                  end
-               else begin
-                  // Use currently selected zero levels
-                  IZero := WCPFile.Channel[cbCurrent.ItemIndex].ADCZero ;
-                  end ;
+               { Use levels in average TEST record under VHold cursor as current zero references }
+               IZero := ADC^[VHoldCursor*WCPFile.RawFH.NumChannels + IOffset] ;
 
                j := WCPFile.Channel[cbCurrent.ItemIndex].ChannelOffset ;
-               for i := 0 to WCPFile.RawFH.NumSamples-1 do begin
+               for i := 0 to WCPFile.RawFH.NumSamples-1 do
+                   begin
                    ADC^[j] := Trunc( ITest^[i]/IScale ) + IZero ;
                    j := j + WCPFile.RawFH.NumChannels ;
                    end ;
@@ -707,6 +704,7 @@ begin
                RH.AnalysisAvailable := false ;
                RH.EqnType := None ;
                WCPFile.PutRecord( WCPFile.LeakfH, RH, WCPFile.LeakfH.NumRecords, ADC^ ) ;
+
                end ;
             end ;
 
@@ -911,6 +909,17 @@ begin
      scDisplay.MaxADCValue := WCPFile.RawFH.MaxADCValue ;
      scDisplay.MinADCValue := WCPFile.RawFH.MinADCValue ;
      scDisplay.ZoomOut ;
+     end ;
+
+
+procedure  TLeakSubFrm.ZoomIn ;
+{ ---------------------------------
+  Set minimum display magnification
+  --------------------------------- }
+begin
+     scDisplay.MaxADCValue := WCPFile.RawFH.MaxADCValue ;
+     scDisplay.MinADCValue := WCPFile.RawFH.MinADCValue ;
+     scDisplay.ZoomIn ;
      end ;
 
 

@@ -12,7 +12,6 @@ object RecordFrm: TRecordFrm
   Font.Style = []
   FormStyle = fsMDIChild
   KeyPreview = True
-  OldCreateOrder = True
   Position = poDesigned
   Visible = True
   OnActivate = FormActivate
@@ -24,7 +23,6 @@ object RecordFrm: TRecordFrm
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 16
   object Label4: TLabel
     Left = 218

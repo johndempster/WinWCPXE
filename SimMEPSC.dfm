@@ -12,7 +12,6 @@ object SimMEPSCFrm: TSimMEPSCFrm
   Font.Name = 'System'
   Font.Style = []
   FormStyle = fsMDIChild
-  OldCreateOrder = True
   Position = poScreenCenter
   Visible = True
   OnClose = FormClose
@@ -21,7 +20,6 @@ object SimMEPSCFrm: TSimMEPSCFrm
   OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 16
   object scDisplay: TScopeDisplay
     Left = 198

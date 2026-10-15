@@ -29,6 +29,7 @@ unit Recedit;
               problem when multiple channels in file. TCursors.Base removed
   12.01.17 .. .VerticalCursors() now single type and converted to integer by round()
   26.05.22 .. ZeroFrm now settings Channel record zero level settings directly
+  25.04.26 .. .ZoomInAll method added. Zooms in to optimal vertical magnfication
   ========================================================== }
 interface
 
@@ -126,6 +127,7 @@ type
     { Public declarations }
     procedure ChangeDisplayGrid ;
     procedure ZoomOut ;
+    procedure ZoomIN ;
     procedure NewFile ;
   end;
 
@@ -772,6 +774,17 @@ begin
      scDisplay.MaxADCValue := FH.MaxADCValue ;
      scDisplay.MinADCValue := FH.MinADCValue ;
      scDisplay.ZoomOut ;
+     end ;
+
+
+procedure  TEditFrm.ZoomIn ;
+{ ---------------------------------
+  Set minimum display magnification
+  --------------------------------- }
+begin
+     scDisplay.MaxADCValue := FH.MaxADCValue ;
+     scDisplay.MinADCValue := FH.MinADCValue ;
+     scDisplay.ZoomIn ;
      end ;
 
 

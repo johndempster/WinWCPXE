@@ -132,6 +132,7 @@ unit Rec;
   27.08.21 .. .StopSweep renamed .StopADCandDAC for compatibility with WinEDR
   11.01.24 .. Protocol list editing issues fixed. Protocol addition disabled when no list exists. Protocols are now added to list in corre
   21.06.24 .. Time of day at start of recording now obtained to millisecond precision using GetSystemTime()
+  25.04.26 .. .ZoomInAll method added. Zooms in to optimal vertical magnfication
 
   ==============================================================================}
 interface
@@ -404,6 +405,7 @@ type
     procedure SetStoreMode( StorageMode : Boolean ) ;
     procedure ChangeDisplayGrid ;
     procedure ZoomOutAll ;
+    procedure ZoomInAll ;
     procedure ZoomIn( ChanNum : Integer ) ;
     procedure ZoomOut( ChanNum : Integer ) ;
 
@@ -2234,6 +2236,25 @@ begin
          Main.SESLabIO.ADCChannelYMin[i] := Main.SESLabIO.ADCMinValue ;
          Main.SESLabIO.ADCChannelYMax[i] := Main.SESLabIO.ADCMaxValue ;
          end ;
+     end ;
+
+
+procedure  TRecordFrm.ZoomInAll ;
+{ ---------------------------------
+  Set optimal display magnification
+  --------------------------------- }
+var
+    i : Integer ;
+begin
+     scDisplay.MaxADCValue := Main.SESLabIO.ADCMaxValue ;
+     scDisplay.MinADCValue := Main.SESLabIO.ADCMinValue ;
+     scDisplay.ZoomIn ;
+     for i := 0 to Main.SESLabIO.ADCNumChannels-1 do
+         begin
+         Main.SESLabIO.ADCChannelYMin[i] := Main.SESLabIO.ADCMinValue ;
+         Main.SESLabIO.ADCChannelYMax[i] := Main.SESLabIO.ADCMaxValue ;
+         end ;
+
      end ;
 
 
