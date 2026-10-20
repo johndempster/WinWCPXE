@@ -795,6 +795,7 @@ unit MDIForm;
    V5.8.4 24.04.26 View > ZoomInAll menu item added. Zooms in displays to optimal vertical magnfication
                    Leaksub.pas Holding curret now derived from VHold cursor for both From Voltage and Fixed voltage scaling
    V5.8.5 22.07.26 Detailed digitiser device information now added to log file when WiNWCP started or interface changed (Heka devices only)
+   V5.8.6 20.10.26 Digidata 1440-1550B support updated. No longer crashes with PCLAMP or Axoscope V11.x drivers
 
             =======================================================================}
 
@@ -1024,7 +1025,7 @@ var
    FileName : String ;
 begin
 
-      WCPFile.ProgVersion := 'V5.8.5' ;
+      WCPFile.ProgVersion := 'V5.8.6' ;
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + WCPFile.ProgVersion ;
 
       Application.HelpFile := WCPFile.Settings.ProgDirectory + 'WinWCP.chm';

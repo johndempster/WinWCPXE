@@ -105,10 +105,10 @@
         <VerInfo_MajorVer>5</VerInfo_MajorVer>
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=;FileVersion=5.8.3.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileVersion=5.8.6.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
         <BT_BuildType>Debug</BT_BuildType>
-        <VerInfo_Release>3</VerInfo_Release>
+        <VerInfo_Release>6</VerInfo_Release>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -317,8 +317,8 @@
                     <VersionInfoKeys Name="Comments"/>
                 </VersionInfoKeys>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k280.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp280.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k290.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp290.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Platforms>
@@ -329,7 +329,7 @@
                 <version>1</version>
             </ActiveXProjectInfo>
             <ModelSupport>False</ModelSupport>
-            <Deployment Version="5">
+            <Deployment Version="4">
                 <DeployFile LocalName="AVERAGE.PAS" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="COPYREC.PAS" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="CURVFIT.PAS" Configuration="Debug" Class="ProjectFile"/>
@@ -349,8 +349,6 @@
                 <DeployFile LocalName="SIMHH.PAS" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="ZERO.PAS" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="winwcp.exe" Configuration="Debug" Class="ProjectOutput"/>
-                <DeployFile LocalName="winwcp.exe" Configuration="Debug" Class="ProjectOutput"/>
-                <DeployFile LocalName="winwcp.ridl" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="winwcp.ridl" Configuration="Debug" Class="ProjectFile"/>
                 <DeployClass Name="AdditionalDebugSymbols">
                     <Platform Name="iOSSimulator">
@@ -362,6 +360,16 @@
                     </Platform>
                     <Platform Name="Win32">
                         <Operation>0</Operation>
+                    </Platform>
+                </DeployClass>
+                <DeployClass Name="AndroidClasses">
+                    <Platform Name="Android">
+                        <RemoteDir>classes</RemoteDir>
+                        <Operation>64</Operation>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>classes</RemoteDir>
+                        <Operation>64</Operation>
                     </Platform>
                 </DeployClass>
                 <DeployClass Name="AndroidFileProvider">
