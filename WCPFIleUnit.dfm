@@ -1,7 +1,6 @@
 object WCPFile: TWCPFile
   OnCreate = DataModuleCreate
   OnDestroy = DataModuleDestroy
-  Height = 188
-  Width = 269
-  PixelsPerInch = 120
+  Height = 150
+  Width = 215
 end

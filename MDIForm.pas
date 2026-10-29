@@ -797,6 +797,7 @@ unit MDIForm;
    V5.8.5 22.07.26 Detailed digitiser device information now added to log file when WiNWCP started or interface changed (Heka devices only)
    V5.8.6 20.10.26 Digidata 1440-1550B support updated. No longer crashes with PCLAMP or Axoscope V11.x drivers
    V5.8.7 25.10.26 Setup packaged updated
+   V5.8.8 26.10.26 FileHandles now defined as THandle (not Integer)
 
             =======================================================================}
 
@@ -1026,7 +1027,7 @@ var
    FileName : String ;
 begin
 
-      WCPFile.ProgVersion := 'V5.8.7' ;
+      WCPFile.ProgVersion := 'V5.8.8' ;
       Caption := 'WinWCP : Strathclyde Electrophysiology Software ' + WCPFile.ProgVersion ;
 
       Application.HelpFile := WCPFile.Settings.ProgDirectory + 'WinWCP.chm';
@@ -1606,15 +1607,15 @@ begin
               mnShowRaw.Visible := True ;
 
               { Enable display of averages (if they exist) }
-              if (WCPFile.AvgFH.FileHandle > 0) and (WCPFile.AvgFH.NumRecords > 0) then
+              if (WCPFile.AvgFH.FileHandle <> INVALID_HANDLE_VALUE ) then
                  mnShowAveraged.visible := True
               else mnShowAveraged.visible := False ;
               { Enable display of leak subtracted records (if they exist) }
-              if (WCPFile.LeakFH.FileHandle > 0) and (WCPFile.LeakFH.NumRecords > 0) then
+              if (WCPFile.LeakFH.FileHandle <> INVALID_HANDLE_VALUE) and (WCPFile.LeakFH.NumRecords > 0) then
                  mnShowLeakSubtracted.visible := True
               else mnShowLeakSubtracted.visible := False ;
               { Enable display of leak subtracted records (if they exist) }
-              if (WCPFile.DrvFH.FileHandle > 0) and (WCPFile.DrvFH.NumRecords > 0) then
+              if (WCPFile.DrvFH.FileHandle <> INVALID_HANDLE_VALUE ) and (WCPFile.DrvFH.NumRecords > 0) then
                  mnShowDrivingFunction.visible := True
               else mnShowDrivingFunction.visible := False ;
               end ;
@@ -2821,10 +2822,10 @@ begin
         Main.ImportFile.CloseDataFile ;
 
         { Close dest. file }
-        if WCPFile.RawFH.FileHandle >= 0 then
+        if WCPFile.RawFH.FileHandle <> INVALID_HANDLE_VALUE then
            begin
            FileClose( WCPFile.RawFH.FileHandle ) ;
-           WCPFile.RawFH.FileHandle := -1 ;
+           WCPFile.RawFH.FileHandle := INVALID_HANDLE_VALUE ;
            end ;
 
         FreeMem ( Buf ) ;
@@ -2832,9 +2833,6 @@ begin
         end ;
 
      end ;
-
-
-
 
 
 procedure TMain.mnZoomInCh0Click(Sender: TObject);

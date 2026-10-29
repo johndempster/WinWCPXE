@@ -206,7 +206,7 @@ TRecHeader = packed record
 { Data file header block }
 TFileHeader = packed record
             FileName : string ;
-            FileHandle : integer ;
+            FileHandle : THandle ;
             NumSamples : LongInt ;
             NumChannels : LongInt ;
             NumSamplesPerRecord : LongInt ;
@@ -662,7 +662,7 @@ procedure OpenLogFile ;
 procedure WriteToLogFile( Line : string ) ;
 procedure WriteToLogFileNoDate( Line : string ) ;
 procedure CloseLogFile ;
-procedure FileCloseSafe( var FileHandle : Integer ) ;
+procedure FileCloseSafe( var FileHandle : THandle ) ;
 
 procedure GaussianFilter( const FHdr : TFileHeader ;
                            Var Buf : Array of SmallInt ;
@@ -769,7 +769,8 @@ begin
      RawFH.FileName := FileName ;
      RawFH.FileName := ChangeFileExt( RawFH.FileName, '.wcp' ) ;
      RawFH.FileHandle := FileCreate( RawFH.FileName ) ;
-     if RawFH.FileHandle >= 0 then begin
+     if RawFH.FileHandle <> INVALID_HANDLE_VALUE then
+        begin
         // Re-open allowing read only sharing
         FileClose( RawFH.FileHandle ) ;
         RawFH.FileHandle := FileOpen(  RawFH.FileName, fmOpenReadWrite or fmShareDenyWrite ) ;
@@ -2183,13 +2184,13 @@ begin
      Settings.QuantalAnalysis.Potentials := false ;
 
      { Set the file names and handles for all header blocks to null }
-     RawFH.FileHandle := -1 ;
+     RawFH.FileHandle := INVALID_HANDLE_VALUE ;
      RawFH.FileName := '' ;
-     AvgFH.FileHandle := -1 ;
+     AvgFH.FileHandle := INVALID_HANDLE_VALUE ;
      AvgFH.FileName := '' ;
-     LeakFH.FileHandle := -1 ;
+     LeakFH.FileHandle := INVALID_HANDLE_VALUE ;
      LeakFH.FileName := '' ;
-     DrvFH.FileHandle := -1 ;
+     DrvFH.FileHandle := INVALID_HANDLE_VALUE ;
      DrvFH.FileName := '' ;
      RawFH.RecordingStartTime := '' ;
 
@@ -2935,7 +2936,7 @@ begin
           TempFH := FH ;
           TempFH.FileName := ChangeFileExt( FH.FileName, '.tmp' ) ;
           TempFH.FileHandle := FileCreate( TempFH.FileName ) ;
-          if TempFH.FileHandle < 0 then begin
+          if TempFH.FileHandle = INVALID_HANDLE_VALUE then begin
              ShowMessage( ' Unable to open ' + TempFH.FileName ) ;
              OK := False ;
              end ;
@@ -3005,7 +3006,7 @@ begin
            TempFH := FH ;
            TempFH.FileName := ChangeFileExt( FH.FileName, '.tmp' ) ;
            TempFH.FileHandle := FileCreate( TempFH.FileName ) ;
-           if TempFH.FileHandle < 0 then begin
+           if TempFH.FileHandle = INVALID_HANDLE_VALUE then begin
               ShowMessage( ' Unable to open ' + TempFH.FileName ) ;
               OK := False ;
               end ;
@@ -3122,7 +3123,7 @@ begin
 
      { Open file }
      FileHeader.FileHandle := FileOpen( FileHeader.FileName, fmOpenReadWrite or fmShareDenyWrite) ;
-     if FileHeader.FileHandle < 0 then Exit ;
+     if FileHeader.FileHandle = INVALID_HANDLE_VALUE then Exit ;
 
      { Load the data file details }
      GetHeader( FileHeader ) ;
@@ -3163,7 +3164,7 @@ procedure TWCPFile.CloseAllDataFiles ;
   -------------------------}
 begin
 
-     if  RawFH.FileHandle >= 0 then begin
+     if  RawFH.FileHandle <> INVALID_HANDLE_VALUE then begin
          { Close raw data file }
          FileCloseSafe( RawFH.FileHandle) ;
          end ;
@@ -3181,15 +3182,15 @@ begin
 
 
 
-procedure TWCPFile.FileCloseSafe( var FileHandle : Integer ) ;
+procedure TWCPFile.FileCloseSafe( var FileHandle : THandle ) ;
 // -------------------------
 // Safe close file procedure
 // -------------------------
 begin
      // Close file (if it is open)
-     if FileHandle >= 0 then FileClose( FileHandle ) ;
-     // File handle = -1 indicates closed file
-     FileHandle := -1 ;
+     if FileHandle <> INVALID_HANDLE_VALUE then FileClose( FileHandle ) ;
+     // File handle = INVALID_HANDLE_VALUE indicates closed file
+     FileHandle := INVALID_HANDLE_VALUE ;
      end ;
 
 
@@ -3287,7 +3288,7 @@ begin
      { Open file to be appended }
      AppFH.FileName := FileName ;
      AppFH.FileHandle := FileOpen( AppFH.FileName, fmOpenReadWrite ) ;
-     if AppFH.FileHandle < 0 then begin
+     if AppFH.FileHandle = INVALID_HANDLE_VALUE then begin
         MessageDlg( 'Unable to append ' + FileName,mtWarning, [mbOK], 0 ) ;
         Exit ;
         end ;
@@ -3383,7 +3384,7 @@ begin
      // Open file #1 to be interleaved
      In1FH.FileName := FileName ;
      In1FH.FileHandle := FileOpen( In1FH.FileName, fmOpenReadWrite ) ;
-     if In1FH.FileHandle < 0 then begin
+     if In1FH.FileHandle = INVALID_HANDLE_VALUE then begin
         Exit ;
         end ;
 
@@ -3513,7 +3514,7 @@ begin
      { Open old WCP file to be converted }
      InFH.Filename := FileName ;
      InFH.FileHandle := FileOpen( InFH.FileName, fmOpenReadWrite ) ;
-     if InFH.FileHandle < 0 then begin
+     if InFH.FileHandle = INVALID_HANDLE_VALUE then begin
         Dispose(Buf) ;
         Exit ;
         end ;
@@ -3554,7 +3555,7 @@ begin
      { Create output file to hold converted records }
      OutFH.Filename := ChangeFileExt( InFH.FileName, '.TMP' ) ;
      OutFH.FileHandle := FileCreate( OutFH.FileName ) ;
-     if OutFH.FileHandle < 0 then begin
+     if OutFH.FileHandle = INVALID_HANDLE_VALUE then begin
         FileCloseSafe( InFH.FileHandle ) ;
         Dispose(Buf) ;
         Exit ;
@@ -3665,7 +3666,7 @@ begin
      { Open WCP V8 file to be converted }
      InFH.Filename := FileName ;
      InFH.FileHandle := FileOpen( InFH.FileName, fmOpenReadWrite ) ;
-     if InFH.FileHandle < 0 then begin
+     if InFH.FileHandle = INVALID_HANDLE_VALUE then begin
         Exit ;
         end ;
 
@@ -3684,7 +3685,7 @@ begin
      { Create output file to hold converted records }
      OutFH.Filename := ChangeFileExt( InFH.FileName, '.TMP' ) ;
      OutFH.FileHandle := FileCreate( OutFH.FileName ) ;
-     if OutFH.FileHandle < 0 then begin
+     if OutFH.FileHandle = INVALID_HANDLE_VALUE then begin
         FileCloseSafe( InFH.FileHandle ) ;
         Exit ;
         end ;

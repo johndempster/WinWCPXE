@@ -24,6 +24,7 @@ unit Simsyn;
               Non-linear summation of potentials now correct, using correct formula and based upon
               peak of quantal waveform rather than exponential amplitude set by user.
   25.04.26 .. .ZoomInAll method added. Zooms in to optimal vertical magnfication
+  29.10.26 .. CheckNewDataFileNeeded: FileHandle now compared against INVALID_HANDLE_VALUE (not >0)
   ==================================================================}
 
 interface
@@ -519,12 +520,14 @@ begin
      NewFileName := '' ;
 
      // Create a new file if none open
-     if WCPFile.RawFH.FileHandle <= 0 then begin
+     if WCPFile.RawFH.FileHandle = INVALID_HANDLE_VALUE then
+        begin
         // No file open .. open new one
         NewFileName := WCPFIle.CreateIndexedFileName( WCPFile.RawFH.FileName ) ;
         end
      else if (WCPFile.RawFH.NumRecords > 0) and
-        ((WCPFile.RawFH.NumChannels <> 1) or (WCPFile.RawFH.NumSamples <> Round(edNumSamples.Value))) then begin
+        ((WCPFile.RawFH.NumChannels <> 1) or (WCPFile.RawFH.NumSamples <> Round(edNumSamples.Value))) then
+        begin
         // No. channels or samples changed .. create .nn.wcp file
         // Extract stem of file name
         Stem := ANSIReplaceText( WCPFile.RawFH.FileName, '.wcp', '.' ) ;
@@ -539,7 +542,8 @@ begin
         end ;
 
      // Create new file (if required)
-     if NewFileName <> '' then begin
+     if NewFileName <> '' then
+        begin
         WCPFile.RawFH.NumChannels := 1 ;
         WCPFile.RawFH.NumSamples := Round(edNumSamples.Value) ;
         WCPFile.CreateNewDataFile( NewFileName ) ;

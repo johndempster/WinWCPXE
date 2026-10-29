@@ -366,7 +366,7 @@ var
    nTest : Integer ;
    LastTestRecord : Integer ;
 
-   OldHandle : Integer ;
+   OldHandle : THandle ;
    i,j,ch,ChOffset,Rec : Integer ;
    IOffset,VOffset,IZero,VZero : Integer ;
    IScale,VScale : single ;
@@ -405,7 +405,7 @@ begin
      WCPFile.LeakfH.FileHandle := FileCreate( WCPFile.LeakfH.FileName ) ;
 
      { Save header block and request subtractions to start}
-     if WCPFile.LeakfH.FileHandle >= 0 then
+     if WCPFile.LeakfH.FileHandle <> INVALID_HANDLE_VALUE then
         begin
         WCPFile.LeakfH.NumRecords := 0 ;
         WCPFile.SaveHeader( WCPFile.LeakfH ) ;

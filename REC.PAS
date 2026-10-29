@@ -451,8 +451,8 @@ begin
      Height := Main.StatusBar.Top - Top - 10 ;
      Width := Main.ClientWidth - Left - 20 ;
 
-     if WCPFile.RawFH.FileHandle >= 0 then Caption := 'Record ' + WCPFile.RawFH.FileName
-                              else Caption := 'Record No File' ;
+     if WCPFile.RawFH.FileHandle = INVALID_HANDLE_VALUE then Caption := 'Record ' + WCPFile.RawFH.FileName
+                                                        else Caption := 'Record No File' ;
 
      { Make sure event timer is off }
      Timer.Enabled := False ;
@@ -1848,7 +1848,8 @@ begin
 
      Result := True ;
 
-     if WCPFile.RawFH.FileHandle <= 0 then begin
+     if WCPFile.RawFH.FileHandle = INVALID_HANDLE_VALUE then
+        begin
         // Create a new file if none open
         WCPFile.CreateNewDataFile( WCPFile.CreateIndexedFileName( WCPFile.RawFH.FileName )) ;
         end ;
@@ -1874,7 +1875,7 @@ begin
         // Delete existing data file if it is empty
         if (WCPFile.RawFH.NumRecords = 0) and (WCPFile.RawFH.FileHandle >= 0) then begin
            FileClose( WCPFile.RawFH.FileHandle ) ;
-           WCPFile.RawFH.FileHandle := -1 ;
+           WCPFile.RawFH.FileHandle := INVALID_HANDLE_VALUE ;
            DeleteFile( PChar(WCPFile.RawFH.FileName) ) ;
            end ;
 
